@@ -1,0 +1,116 @@
+### Description
+
+Create a new job plan under a resource scope, based on an existing job template. 
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field           | Type   | Required | Description                                                                                                                                              |
+|-----------------|--------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type   | string | Yes      | Resource scope type. Allowed values: `biz` or `biz_set`                                                                                                  |
+| bk_scope_id     | string | Yes      | Resource scope ID matching `bk_scope_type` (business id or business set id)                                                                              |
+| job_template_id | long   | Yes      | Job template ID (must be > 0). Template must exist and the caller must hold both `view_job_template` and `create_job_plan` permissions on the scope.     |
+| name            | string | Yes      | Plan name, 1–60 characters, must not contain HTML special characters `< > " '` (@NoXss), unique within (scope, template).                            |
+| enable_steps    | array  | No       | List of template step ids to enable. If omitted, all template steps are enabled. An empty array is **not** allowed; ids outside the template will fail. |
+| variables       | array  | No       | Optional overrides for template global variables, matched **by variable name**. Unknown names or mismatched value types will fail.                       |
+
+##### variables
+
+| Field           | Type    | Required | Description                                                                                                              |
+|-----------------|---------|----------|--------------------------------------------------------------------------------------------------------------------------|
+| name            | string  | Yes      | Template variable name (matched by name, **not** by id). Must be non-blank.                                              |
+| value           | string  | No       | Variable value for string/namespace/ciphertext/array types. For **EXECUTE_OBJECT_LIST**, use `execute_target` instead of `value`. |
+| execute_target  | object  | No       | Execute target override when the template variable type is EXECUTE_OBJECT_LIST and `follow_template=false`. Host dimensions only (see below). **`kube_container_filters` is not supported** on this API. |
+| follow_template | boolean | No       | Whether to keep the template default. Defaults to `false`. When `true`, `value` is ignored and `execute_target` must not be provided. |
+
+##### execute_target (EXECUTE_OBJECT_LIST only)
+
+| Field                  | Type  | Required | Description                                                                                         |
+|------------------------|-------|----------|-----------------------------------------------------------------------------------------------------|
+| host_list              | array | No       | Static hosts: `bk_host_id`, or `bk_cloud_id` + `ip` (same as fast_execute_script).                  |
+| dynamic_group_list     | array | No       | Dynamic group id list.                                                                              |
+| topo_node_list         | array | No       | CMDB topo nodes with `id` and `node_type`.                                                          |
+| kube_container_filters | array | No       | **Not supported** on this API; returns `ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON` if provided.    |
+
+At least one of `host_list`, `dynamic_group_list`, or `topo_node_list` must be non-empty. 
+
+Fields other than those above (e.g. `description`, `type`, `required`, `changeable`) are determined by the template and **ignored** when supplied.
+
+### Request Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_template_id": 1000,
+    "name": "my-api-plan",
+    "enable_steps": [101, 102, 103],
+    "variables": [
+        {
+            "name": "TARGET_DIR",
+            "value": "/data/release"
+        },
+        {
+            "name": "KEEP_TEMPLATE_DEFAULT",
+            "follow_template": true
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {"bk_host_id": 10001}
+                ],
+                "dynamic_group_list": [
+                    {"id": "dg-001"}
+                ]
+            }
+        }
+    ]
+}
+```
+
+### Response Examples
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "bk_biz_id": 2,
+        "job_plan_id": 50001,
+        "job_plan_name": "my-api-plan",
+        "job_template_id": 1000,
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "need_update": false
+    }
+}
+```
+
+### Response Fields
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field           | Type    | Description                                             |
+|-----------------|---------|---------------------------------------------------------|
+| bk_scope_type   | string  | Resource scope type                                     |
+| bk_scope_id     | string  | Resource scope ID                                       |
+| bk_biz_id       | long    | Legacy biz / biz set id                                 |
+| job_plan_id     | long    | Newly created plan id                                   |
+| job_plan_name   | string  | Plan name                                               |
+| job_template_id | long    | Job template id                                         |
+| creator         | string  | Plan creator                                            |
+| create_time     | long    | Plan create time, unix timestamp in milliseconds        |
+| need_update     | boolean | Whether the plan needs to be synced from the template.  |

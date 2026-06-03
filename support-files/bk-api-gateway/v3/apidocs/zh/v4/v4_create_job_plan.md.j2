@@ -1,0 +1,116 @@
+### 功能描述
+
+基于已存在的作业模板，在指定资源范围下创建新的执行方案。
+
+### 请求参数
+
+#### Body参数
+
+| 字段              | 类型     | 必选 | 描述                                                                                                       |
+|-----------------|--------|----|----------------------------------------------------------------------------------------------------------|
+| bk_scope_type   | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                                       |
+| bk_scope_id     | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                                                  |
+| job_template_id | long   | 是  | 作业模板 ID，必须 > 0；模板需已存在，且调用方在该业务下具备 `view_job_template` 与 `create_job_plan` 权限                              |
+| name            | string | 是  | 执行方案名称；长度 1-60，不可包含 HTML 特殊字符 `< > " '`（@NoXss）；同一 (业务, 模板) 内需唯一                                          |
+| enable_steps    | array  | 否  | 启用的模板步骤 ID 列表（对应模板步骤 ID）；不传时启用模板的全部步骤；不允许传空数组；列表内出现非模板步骤 ID 将报错                                       |
+| variables       | array  | 否  | 模板全局变量覆盖列表，按变量名定位模板变量；变量名在模板中不存在或值类型不匹配将报错                                                       |
+
+##### variables
+
+| 字段              | 类型      | 必选 | 描述                                                                                               |
+|-----------------|---------|----|--------------------------------------------------------------------------------------------------|
+| name            | string  | 是  | 模板全局变量名，按名称匹配模板变量（不支持按 ID）；不可为空                                                               |
+| value           | string  | 否  | 变量值；适用于字符串/命名空间/密文/关联数组/索引数组等类型；**执行目标列表（EXECUTE_OBJECT_LIST）类型请使用 execute_target，不可使用 value** |
+| execute_target  | object  | 否  | 执行目标覆盖；仅当模板变量类型为 EXECUTE_OBJECT_LIST 且 `follow_template=false` 时填写；支持主机维度（见下表），**暂不支持** `kube_container_filters` |
+| follow_template | boolean | 否  | 是否沿用模板默认值，默认 false；为 true 时忽略 value，且**不可**传入 execute_target |
+
+##### execute_target（仅 EXECUTE_OBJECT_LIST）
+
+| 字段                    | 类型    | 必选 | 描述                                                                                    |
+|-----------------------|-------|----|---------------------------------------------------------------------------------------|
+| host_list             | array | 否  | 静态主机列表；元素支持 `bk_host_id`，或 `bk_cloud_id` + `ip`（与 fast_execute_script 一致）              |
+| dynamic_group_list    | array | 否  | 动态分组 ID 列表                                                                           |
+| topo_node_list        | array | 否  | CMDB 拓扑节点列表，元素含 `id`、`node_type`                                                    |
+| kube_container_filters | array | 否  | **本接口暂不支持**；传入将返回 `ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON`                          |
+
+`host_list` / `dynamic_group_list` / `topo_node_list` 至少一项非空。
+
+除上述字段外，其它字段（如 description / type / required / changeable 等）由模板决定，**传入将被忽略**。
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_template_id": 1000,
+    "name": "my-api-plan",
+    "enable_steps": [101, 102, 103],
+    "variables": [
+        {
+            "name": "TARGET_DIR",
+            "value": "/data/release"
+        },
+        {
+            "name": "KEEP_TEMPLATE_DEFAULT",
+            "follow_template": true
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {"bk_host_id": 10001}
+                ],
+                "dynamic_group_list": [
+                    {"id": "dg-001"}
+                ]
+            }
+        }
+    ]
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "bk_biz_id": 2,
+        "job_plan_id": 50001,
+        "job_plan_name": "my-api-plan",
+        "job_template_id": 1000,
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "need_update": false
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段              | 类型      | 描述                 |
+|-----------------|---------|--------------------|
+| bk_scope_type   | string  | 资源范围类型             |
+| bk_scope_id     | string  | 资源范围 ID            |
+| bk_biz_id       | long    | 兼容字段，业务/业务集 ID     |
+| job_plan_id     | long    | 新建执行方案 ID          |
+| job_plan_name   | string  | 执行方案名称             |
+| job_template_id | long    | 作业模板 ID            |
+| creator         | string  | 创建人                |
+| create_time     | long    | 创建时间，Unix 时间戳，单位毫秒 |
+| need_update     | boolean | 是否需要从作业模板同步        |

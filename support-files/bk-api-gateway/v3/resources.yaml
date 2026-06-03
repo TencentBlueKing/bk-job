@@ -5055,6 +5055,41 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Get account password encryption metadata
+  /api/v4/create_job_plan:
+    post:
+      operationId: v4_create_job_plan
+      description: 基于已有作业模板创建执行方案
+      tags:
+        - v4
+      responses:
+        default:
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-manage/create_job_plan
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Create a new job plan based on an existing job template
   /api/v4/get_job_instance_list:
     get:
       operationId: v4_get_job_instance_list
