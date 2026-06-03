@@ -98,13 +98,13 @@ ext {
     set('jacksonVersion', "2.15.4")
     set('jaxrsVersion', "3.1.0")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
-    set('logbackVersion', "1.5.16")
+    set('logbackVersion', "1.5.34")
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     set('slf4jVersion', "2.0.16")
     // servletVersion 已移除，统一使用 jakarta.servlet (jakartaServletVersion)
     // apache commons
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-    set('apacheCommonsLang3Version', "3.12.0")
+    set('apacheCommonsLang3Version', "3.20.0")
     // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
     set('apacheCommonsCollectionVersion', "4.4")
     // https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
@@ -141,11 +141,11 @@ ext {
     set('commonsValidatorVersion', "1.6")
     set('okHttpVersion', "4.12.0")
     set('jcommanderVersion', "1.72")
-    set('kubernetesJavaClientVersion', "19.0.0")
+    set('kubernetesJavaClientVersion', "19.0.3")
     set('springCloudKubernetesVersion', "3.3.2")
     set('cryptoJavaSDKVersion', "1.1.3")
-    // Fix CVE-2019-10086,CVE-2014-0114
-    set('commonsBeanutilsVersion', "1.9.4")
+    // Fix CVE-2025-48734
+    set('commonsBeanutilsVersion', "1.11.0")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersion:" + bkjobVersion
@@ -392,6 +392,8 @@ subprojects {
     configurations {
         all*.exclude group: 'junit', module: 'junit'
         all*.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        // 排除commons-logging，会与Spring Boot spring-jcl冲突
+        all*.exclude group: 'commons-logging', module: 'commons-logging'
         // spring-cloud-sleuth-brave 排除已移除（Sleuth 已弃用，使用 Micrometer Tracing）
         all*.exclude group: 'org.springframework.data', module: 'spring-data-redis'
     }
