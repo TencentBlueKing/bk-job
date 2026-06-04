@@ -63,8 +63,8 @@ def generate_sm2_keypair():
     ).decode("utf-8")
 
     return {
-        "sm2PublicKey": raw_public_base64,
-        "sm2PrivateKey": raw_private_base64,
+        "job.encrypt.sm2PublicKey": raw_public_base64,
+        "job.encrypt.sm2PrivateKey": raw_private_base64,
         "pemSM2PublicKey": public_pem,
         "pemSM2PrivateKey": private_pem,
     }
