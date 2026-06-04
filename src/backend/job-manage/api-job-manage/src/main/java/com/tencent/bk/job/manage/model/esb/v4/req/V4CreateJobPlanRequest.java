@@ -39,8 +39,6 @@ import java.util.List;
 
 /**
  * OpenAPI V4 创建执行方案请求体。
- * 业务语义与 Web 端 {@link com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq} 一致，
- * 仅做 OpenAPI ↔ 内部 DTO 的入参映射。
  */
 @Getter
 @Setter

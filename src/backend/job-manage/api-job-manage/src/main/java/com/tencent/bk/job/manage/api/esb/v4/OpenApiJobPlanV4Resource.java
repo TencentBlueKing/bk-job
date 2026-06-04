@@ -46,9 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 public interface OpenApiJobPlanV4Resource {
 
     /**
-     * 基于作业模板创建执行方案。
-     * 业务校验、权限与落库流程与 Web 端创建执行方案 ({@code WebTaskPlanResource#createPlan}) 一致，
-     * 仅通过 OpenAPI V4 对外暴露契约。
+     * 基于作业模板创建执行方案
      */
     @PostMapping("/create_job_plan")
     EsbV4Response<EsbJobPlanV4DTO> createJobPlan(
