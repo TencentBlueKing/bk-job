@@ -5062,11 +5062,158 @@ paths:
       tags:
         - v4
       responses:
-        default:
+        '200':
           content:
             application/json:
-              schema: {}
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      bk_scope_type:
+                        type: string
+                        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                      bk_scope_id:
+                        type: string
+                        description: 资源范围ID
+                      job_plan_id:
+                        type: number
+                        description: 新建的执行方案ID
+                      job_plan_name:
+                        type: string
+                        description: 执行方案名称
+                      job_template_id:
+                        type: number
+                        description: 作业模板ID
+                      creator:
+                        type: string
+                        description: 创建人
+                      create_time:
+                        type: number
+                        description: 创建时间，Unix时间戳，单位毫秒
+                      need_update:
+                        type: boolean
+                        description: '是否需要根据作业模板同步更新该执行方案。可选值: true - 需要同步, false - 不需要'
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - job_template_id
+              - name
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                job_template_id:
+                  type: number
+                  description: 作业模板ID，须大于0，且对应模板须已存在
+                name:
+                  type: string
+                  description: 执行方案名称，长度1-60个字符；不可包含HTML特殊字符 < > " ' ；在同一资源范围、同一作业模板下须唯一
+                enable_steps:
+                  type: array
+                  items:
+                    type: number
+                    description: 模板步骤ID
+                  description: 要在新方案中启用的模板步骤ID列表；不传时启用模板中的全部步骤；不可传空数组
+                variables:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - name
+                    properties:
+                      name:
+                        type: string
+                        description: 模板中的全局变量名称，按名称匹配
+                      value:
+                        type: string
+                        description: 变量默认值。适用于字符串、命名空间、密文、关联数组、索引数组类型；follow_template为true时不生效
+                      execute_target:
+                        type: object
+                        properties:
+                          host_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ip:
+                                  type: string
+                                  description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                                bk_host_id:
+                                  type: number
+                                  description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID，须与ip同时填写
+                              description: 一台静态主机
+                            description: 静态主机列表
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              properties:
+                                id:
+                                  type: string
+                                  description: 动态分组ID
+                              description: 一个动态分组
+                            description: 动态分组列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: number
+                                  description: 拓扑节点ID
+                                node_type:
+                                  type: string
+                                  description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                              description: 一个CMDB拓扑节点
+                            description: CMDB拓扑节点列表
+                        description: 执行目标。仅当模板变量为执行目标列表且follow_template为false时填写；host_list、dynamic_group_list、topo_node_list至少一项非空
+                      follow_template:
+                        type: boolean
+                        description: '是否沿用模板默认值。可选值: true - 沿用模板默认值, false - 使用本请求的value或execute_target（默认false）。为true时不可填写execute_target'
+                    description: 单个模板全局变量覆盖项
+                  description: 模板全局变量覆盖列表，按变量名与模板中的全局变量匹配
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
