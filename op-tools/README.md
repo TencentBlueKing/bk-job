@@ -100,7 +100,7 @@ sm2_keypair
 #### 功能简介
 
 生成SM2加解密所需的秘钥对，脚本json格式输出。
-用于作业平台后端values.yaml配置，对应配置项`job.encrypt.sm2PublicKey`和`job.encrypt.sm2PublicKey`，取值`sm2PublicKey`、`sm2PrivateKey`;
+用于作业平台后端values.yaml配置，对应配置项`job.encrypt.sm2PublicKey`和`job.encrypt.sm2PrivateKey`，取值`sm2PublicKey`、`sm2PrivateKey`;
 用于前端cryptoJsSdk测试使用，取值`pemSM2PublicKey`、`pemSM2PrivateKey`。
 
 > python环境: python3.6
