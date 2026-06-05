@@ -1,0 +1,150 @@
+### Description
+
+Create a new job plan in the specified resource scope (business or business set), based on an **existing** job template.
+
+Prerequisites: the job template exists; the caller has permission to view that template and create job plans in the scope. Plan names must be unique within the same resource scope and job template.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field           | Type    | Required | Description |
+|-----------------|---------|----------|-------------|
+| bk_scope_type   | string  | Yes      | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id     | string  | Yes      | Resource scope ID matching `bk_scope_type` (business ID or business set ID) |
+| job_template_id | long    | Yes      | Job template ID; must be greater than 0; the template must exist |
+| name            | string  | Yes      | Job plan name, 1–60 characters; must not contain HTML special characters `<`, `>`, `"`, `'`; must be unique within the same resource scope and job template |
+| enable_steps    | array   | No       | Template step IDs to enable in the new plan; if omitted, all template steps are enabled; an empty array is not allowed; every ID must belong to the template |
+| variables       | array   | No       | Overrides for template global variables, matched by variable name; fails if the name is unknown or the value type does not match the template; variable names must be unique in one request |
+
+##### variables[] element
+
+| Field           | Type    | Required | Description |
+|-----------------|---------|----------|-------------|
+| name            | string  | Yes      | Global variable name in the template, matched by name (not by variable ID); must be non-blank |
+| value           | string  | No       | Default variable value for string, namespace, ciphertext, associative array, or index array types in the template; ignored when `follow_template` is `true` |
+| execute_target  | object  | No       | Execute targets; only when the template variable is an execute-target list and `follow_template` is `false`; must not be used together with `value` |
+| follow_template | boolean | No       | Whether to keep the template default. Allowed values: `true` (use template default), `false` (use `value` or `execute_target` from this request; default `false`). When `true`, `execute_target` must not be provided |
+
+##### execute_target
+
+| Field                | Type  | Required | Description |
+|----------------------|-------|----------|-------------|
+| host_list            | array | No       | Static host list |
+| dynamic_group_list   | array | No       | Dynamic group list |
+| topo_node_list       | array | No       | CMDB topology node list |
+
+When `execute_target` is provided, at least one of `host_list`, `dynamic_group_list`, and `topo_node_list` must be non-empty.
+
+##### host_list[] element
+
+| Field       | Type   | Required | Description |
+|-------------|--------|----------|-------------|
+| bk_host_id  | long   | No       | Host ID in CMDB. Either this or `bk_cloud_id` + `ip` is required; if both are set, `bk_host_id` takes precedence |
+| bk_cloud_id | long   | No       | Cloud area ID; must be used together with `ip` |
+| ip          | string | No       | Host IP; must be used together with `bk_cloud_id` |
+
+##### dynamic_group_list[] element
+
+| Field | Type   | Required | Description |
+|-------|--------|----------|-------------|
+| id    | string | Yes      | Dynamic group ID |
+
+##### topo_node_list[] element
+
+| Field      | Type   | Required | Description |
+|------------|--------|----------|-------------|
+| id         | long   | Yes      | Topology node ID |
+| node_type  | string | Yes      | Topology node type. Allowed values: `module`, `set` |
+
+### Request Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_template_id": 1000,
+    "name": "my-api-plan",
+    "enable_steps": [101, 102, 103],
+    "variables": [
+        {
+            "name": "TARGET_DIR",
+            "value": "/data/release",
+            "follow_template": false
+        },
+        {
+            "name": "KEEP_TEMPLATE_DEFAULT",
+            "follow_template": true
+        },
+        {
+            "name": "HOST_TARGET",
+            "follow_template": false,
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "dynamic_group_list": [
+                    {
+                        "id": "asdo8gojhasdfskft7pr5"
+                    }
+                ],
+                "topo_node_list": [
+                    {
+                        "id": 1000,
+                        "node_type": "module"
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
+
+### Response Examples
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "job_plan_id": 50001,
+        "job_plan_name": "my-api-plan",
+        "job_template_id": 1000,
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "need_update": false
+    }
+}
+```
+
+### Response Fields
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field           | Type    | Description |
+|-----------------|---------|-------------|
+| bk_scope_type   | string  | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id     | string  | Resource scope ID |
+| job_plan_id     | long    | ID of the created job plan |
+| job_plan_name   | string  | Job plan name |
+| job_template_id | long    | Job template ID |
+| creator         | string  | Creator username |
+| create_time     | long    | Creation time, Unix timestamp in milliseconds |
+| need_update     | boolean | Whether the plan needs to be synced from the job template. Allowed values: `true`, `false` |
