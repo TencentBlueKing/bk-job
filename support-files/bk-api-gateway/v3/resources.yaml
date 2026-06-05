@@ -2262,11 +2262,234 @@ paths:
       tags:
         - open
       responses:
-        default:
+        '200':
           content:
             application/json:
-              schema: {}
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        description: 定时任务 ID
+                      name:
+                        type: string
+                        description: 定时作业名称
+                      status:
+                        type: number
+                        description: '定时任务状态。可选值: 1 - 已启动, 2 - 已暂停'
+                      bk_scope_type:
+                        type: string
+                        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                      bk_scope_id:
+                        type: string
+                        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                      job_plan_id:
+                        type: number
+                        description: 要定时执行的作业的执行方案 ID
+                      creator:
+                        type: string
+                        description: 创建人
+                      create_time:
+                        type: number
+                        description: 创建时间，Unix 时间戳，单位秒
+                      last_modify_user:
+                        type: string
+                        description: 最近一次修改人
+                      last_modify_time:
+                        type: number
+                        description: 最近一次修改时间，Unix 时间戳，单位秒
+                      expression:
+                        type: string
+                        description: '定时任务 crontab 的定时规则，各字段含义为：分 时 日 月 周，如: 0/5 * * * * 表示每5分钟执行一次；不支持?'
+                      execute_time:
+                        type: number
+                        description: 定时任务单次执行的执行时间，Unix 时间戳，单位秒
+                      execute_time_zone:
+                        type: string
+                        description: 定时任务执行时间所在时区，IANA 格式，例如 Asia/Shanghai
+                      global_var_list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: number
+                              description: 全局变量 id，唯一标识
+                            name:
+                              type: string
+                              description: 全局变量名
+                            type:
+                              type: number
+                              description: 全局变量类型
+                            value:
+                              type: string
+                              description: 字符、密码、数组类型的全局变量的值
+                            server:
+                              type: object
+                              properties:
+                                variable:
+                                  type: string
+                                  description: 引用的变量名
+                                ip_list:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      bk_host_id:
+                                        type: number
+                                        description: 主机ID
+                                      bk_cloud_id:
+                                        type: number
+                                        description: 管控区域ID
+                                      ip:
+                                        type: string
+                                        description: IP地址
+                                    description: 单台主机
+                                  description: 静态IP列表
+                                host_id_list:
+                                  type: array
+                                  items:
+                                    type: number
+                                    description: 主机ID
+                                  description: 静态主机ID列表
+                                dynamic_group_list:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      id:
+                                        type: string
+                                        description: 动态分组 ID
+                                    description: 单个动态分组
+                                  description: 动态分组ID列表
+                                topo_node_list:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      id:
+                                        type: number
+                                        description: 动态topo节点ID，对应CMDB API 中的 bk_inst_id
+                                      node_type:
+                                        type: string
+                                        description: 动态topo节点类型，对应CMDB API 中的 bk_obj_id,比如"module","set"
+                                    description: 单个topo节点
+                                  description: 动态topo节点列表
+                              description: 主机类型全局变量的值
+                          description: 单个全局变量
+                        description: 全局变量信息
+                    description: 数据
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
           description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - job_plan_id
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                job_plan_id:
+                  type: number
+                  description: 要定时执行的作业的执行方案 ID
+                id:
+                  type: number
+                  description: 定时任务 ID，更新定时任务时必传
+                name:
+                  type: string
+                  description: 定时作业名称，新建时必填，修改时选填
+                expression:
+                  type: string
+                  description: '定时任务 crontab 的定时规则，新建时必填，修改时选填，各字段含义为：分 时 日 月 周，如: 0/5 * * * * 表示每5分钟执行一次；不支持?'
+                execute_time:
+                  type: number
+                  description: 定时任务单次执行的执行时间，Unix 时间戳，单位秒；新建时不可与expression同时为空
+                execute_time_zone:
+                  type: string
+                  description: 定时任务在哪个时区下的定时表达式或执行时间触发，不传默认采用业务时区；IANA 格式，例如 Asia/Shanghai
+                global_var_list:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        description: 全局变量 id，唯一标识。如果 id 为空，那么使用 name 作为唯一标识
+                      name:
+                        type: string
+                        description: 全局变量 name
+                      value:
+                        type: string
+                        description: 字符、密码、数组类型的全局变量的值
+                      server:
+                        type: object
+                        properties:
+                          host_id_list:
+                            type: array
+                            items:
+                              type: number
+                              description: 主机ID
+                            description: 主机ID列表
+                          ip_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID
+                                ip:
+                                  type: string
+                                  description: IP地址
+                              description: 管控区域ID+IP
+                            description: 静态 IP 列表；若与 host_id_list 同时存在，将忽略 ip_list
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  description: CMDB动态分组ID
+                              description: 单个动态分组
+                            description: 动态分组列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: number
+                                  description: 动态topo节点ID，对应CMDB API 中的 bk_inst_id
+                                node_type:
+                                  type: string
+                                  description: 动态topo节点类型，对应CMDB API 中的 bk_obj_id,比如"module","set"
+                              description: 单个topo节点
+                            description: 动态topo节点列表
+                        description: 主机类型全局变量的值
+                    description: 单个全局变量
+                  description: 全局变量信息，可使用查询执行方案详情接口查询方案可设置的变量信息
+        required: false
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -4642,11 +4865,50 @@ paths:
       tags:
         - open
       responses:
-        default:
+        '200':
           content:
             application/json:
-              schema: {}
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: number
+                    description: 定时任务ID
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
           description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - id
+              - status
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                id:
+                  type: number
+                  description: 定时作业 ID
+                status:
+                  type: number
+                  description: '定时状态。可选值: 1 - 启动, 2 - 暂停'
+        required: false
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true

@@ -62,15 +62,40 @@
 
 > **🚫 硬性规则：在需要利用「业务上下文」预填 `bk_scope`、推荐方案或参数前，应完成下列加载步骤。**
 
+### 3.1 脚本自动加载（推荐，默认启用）
+
+带 `--bk-scope-id` 的子命令在输出 JSON 中会附加 **`_business_memory`** 字段，结构示例：
+
+```json
+{
+  "loaded": true,
+  "scope_type": "biz",
+  "scope_id": "309",
+  "path": "memory/businesses/309.md",
+  "content": "（Markdown 全文）"
+}
+```
+
+未找到记忆文件时：`loaded: false`，并列出 `tried_paths`（`biz_{id}.md` 与 `{id}.md`）。**不阻塞**查询/执行流程。
+
+也可单独调用：
+
+```bash
+python scripts/job_apigw_client.py memory-load --bk-scope-id <业务ID>
+```
+
+关闭自动附加：任意子命令前加全局参数 `--no-business-memory`。
+
+### 3.2 智能体如何使用
+
 **执行步骤**：
 
 1. **确定资源范围**  
    从用户消息提取 `bk_scope_type`、`bk_scope_id`，缺失则询问。
 
-2. **尝试读取业务记忆文件**  
-   按 **1.2** 规则解析路径，例如 `{SKILL_DIR}/memory/businesses/309.md` 或 `biz_set_9991001.md`。  
-   - 文件存在 → 加载内容，`memory_biz_loaded = true`  
-   - 不存在 → `memory_biz_loaded = false`（**不阻塞**查询/执行流程）
+2. **读取脚本输出中的 `_business_memory`**（或先 `memory-load`）  
+   - `loaded: true` → `memory_biz_loaded = true`，用 `content` 预填范围、常用方案、参数偏好  
+   - `loaded: false` → `memory_biz_loaded = false`（仍可继续操作）
 
 3. **记忆状态判定**  
    - `true` → 成长期/成熟期：可预填范围 ID、推荐方案、参数偏好（须在 [confirmation-and-output-protocol.md](confirmation-and-output-protocol.md) **1.4** 确认摘要中标注来源 **[业务记忆预填]**）  
