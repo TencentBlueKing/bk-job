@@ -332,6 +332,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
         TaskPlanInfoDTO taskPlan = planService.getTaskPlan(user, appResourceScope.getAppId(), templateId, planId);
 
+        // 填充 step.refVariables，供 TaskStepDTO.toVO 输出前端所需的 ref_variables
         StepRefVariableParser.parseStepRefVars(taskPlan.getStepList(), taskPlan.getVariableList());
 
         final String templateVersion = taskTemplateBasicInfo.getVersion();
@@ -371,6 +372,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         TaskPlanInfoDTO taskPlan = planService.getDebugTaskPlan(user, appResourceScope.getAppId(), templateId);
         TaskPlanVO taskPlanVO = null;
         if (taskPlan != null) {
+            // 填充 step.refVariables，供 TaskStepDTO.toVO 输出前端所需的 ref_variables
             StepRefVariableParser.parseStepRefVars(taskPlan.getStepList(), taskPlan.getVariableList());
             taskPlanVO = TaskPlanInfoDTO.toVO(taskPlan);
             taskPlanVO.setCanView(true);
