@@ -56,7 +56,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
-import com.tencent.bk.job.manage.model.esb.v4.EsbJobPlanV4DTO;
+import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
@@ -100,7 +100,7 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
     @Override
     @AuditEntry(actionId = ActionId.CREATE_JOB_PLAN)
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v4_create_job_plan"})
-    public EsbV4Response<EsbJobPlanV4DTO> createJobPlan(String username,
+    public EsbV4Response<OpenApiV4JobPlanDTO> createJobPlan(String username,
                                                         String appCode,
                                                         @AuditRequestBody V4CreateJobPlanRequest request) {
         request.fillAppResourceScope(appScopeMappingService);
@@ -134,7 +134,7 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
 
         TaskPlanInfoDTO savedPlan = planService.createTaskPlan(user, planInfoDTO);
 
-        return EsbV4Response.success(toEsbJobPlanV4DTO(appId, username, savedPlan));
+        return EsbV4Response.success(toOpenApiV4JobPlanDTO(appId, username, savedPlan));
     }
 
     private List<Long> resolveEnableSteps(V4CreateJobPlanRequest request, TaskTemplateInfoDTO template) {
@@ -323,8 +323,8 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         return planInfo;
     }
 
-    private EsbJobPlanV4DTO toEsbJobPlanV4DTO(Long appId, String username, TaskPlanInfoDTO savedPlan) {
-        EsbJobPlanV4DTO data = new EsbJobPlanV4DTO();
+    private OpenApiV4JobPlanDTO toOpenApiV4JobPlanDTO(Long appId, String username, TaskPlanInfoDTO savedPlan) {
+        OpenApiV4JobPlanDTO data = new OpenApiV4JobPlanDTO();
         ResourceScope scope = appScopeMappingService.getScopeByAppId(appId);
         if (scope != null) {
             data.setScopeType(scope.getType().getValue());

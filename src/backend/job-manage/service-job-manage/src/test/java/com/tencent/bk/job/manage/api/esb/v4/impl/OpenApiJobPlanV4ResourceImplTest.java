@@ -50,7 +50,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
-import com.tencent.bk.job.manage.model.esb.v4.EsbJobPlanV4DTO;
+import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
@@ -404,9 +404,9 @@ class OpenApiJobPlanV4ResourceImplTest {
         TaskPlanInfoDTO savedPlan = buildSavedPlan(true);
         when(planService.createTaskPlan(any(User.class), any(TaskPlanInfoDTO.class))).thenReturn(savedPlan);
 
-        EsbV4Response<EsbJobPlanV4DTO> response = resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest());
+        EsbV4Response<OpenApiV4JobPlanDTO> response = resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest());
 
-        EsbJobPlanV4DTO data = response.getData();
+        OpenApiV4JobPlanDTO data = response.getData();
         assertThat(data.getJobPlanId()).isEqualTo(50001L);
         assertThat(data.getCreateTime()).isEqualTo(savedPlan.getCreateTime() * 1000L);
         assertThat(data.getNeedUpdate()).isTrue();

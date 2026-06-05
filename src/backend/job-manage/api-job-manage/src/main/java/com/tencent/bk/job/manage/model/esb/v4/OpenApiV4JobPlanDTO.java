@@ -32,12 +32,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * OpenAPI V4 执行方案 DTO（创建执行方案响应等场景共用）。
+ * OpenAPI V4 执行方案响应体（如 create_job_plan 的 data）。
  */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-public class EsbJobPlanV4DTO extends EsbAppScopeDTO {
+public class OpenApiV4JobPlanDTO extends EsbAppScopeDTO {
 
     /**
      * 执行方案 ID

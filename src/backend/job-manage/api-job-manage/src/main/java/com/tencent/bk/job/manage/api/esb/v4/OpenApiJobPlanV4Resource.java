@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.api.esb.v4;
 import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
-import com.tencent.bk.job.manage.model.esb.v4.EsbJobPlanV4DTO;
+import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,7 +49,7 @@ public interface OpenApiJobPlanV4Resource {
      * 基于作业模板创建执行方案
      */
     @PostMapping("/create_job_plan")
-    EsbV4Response<EsbJobPlanV4DTO> createJobPlan(
+    EsbV4Response<OpenApiV4JobPlanDTO> createJobPlan(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody @Validated V4CreateJobPlanRequest request

@@ -5197,6 +5197,9 @@ paths:
                             type: array
                             items:
                               type: object
+                              required:
+                              - id
+                              - node_type
                               properties:
                                 id:
                                   type: number
