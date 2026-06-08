@@ -185,14 +185,14 @@
 
 | 字段                 | 类型   | 是否一定存在 | 描述 |
 |----------------------|--------|--------------|------|
-| script_type          | int    | 是           | 脚本来源类型 |
+| script_type          | int    | 是           | 脚本来源类型。可选值：`1`（本地脚本）、`2`（引用脚本）、`3`（公共脚本） |
 | script_id            | string | 否           | 脚本 ID |
 | script_version_id    | long   | 否           | 脚本版本 ID |
 | script_content       | string | 否           | 脚本内容，Base64 编码 |
-| script_language      | int    | 是           | 脚本语言 |
+| script_language      | int    | 是           | 脚本语言。可选值：`1`（shell）、`2`（bat）、`3`（perl）、`4`（python）、`5`（powershell）、`6`（SQL） |
 | script_param         | string | 否           | 脚本参数，Base64 编码 |
 | windows_interpreter  | string | 否           | Windows 脚本解释器路径 |
-| script_timeout       | long   | 是           | 脚本超时时间，单位秒 |
+| script_timeout       | long   | 是           | 脚本超时时间，单位为秒 |
 | is_param_sensitive   | int    | 是           | 脚本参数是否敏感。可选值：`1`（是）、`0`（否） |
 | is_ignore_error      | int    | 是           | 是否忽略错误。可选值：`1`（是）、`0`（否） |
 | account              | object | 是           | 执行账号 |
@@ -204,10 +204,10 @@
 |---------------------------|-------|--------------|------|
 | file_source_list          | array | 是           | 源文件列表 |
 | file_destination          | object | 是          | 目标路径信息 |
-| timeout                   | long  | 是           | 超时时间，单位秒 |
-| transfer_mode             | int   | 是           | 传输模式 |
-| source_speed_limit        | long  | 否           | 源机器上传限速 |
-| destination_speed_limit   | long  | 否           | 目标机器下载限速 |
+| timeout                   | long  | 是           | 文件传输超时时间，单位为秒 |
+| transfer_mode             | int   | 是           | 传输模式。可选值：`1`（严谨模式）、`2`（强制模式）、`3`（保险模式 FILE_SRC_IP）、`4`（保险模式 YYYY-MM-DD） |
+| source_speed_limit        | long  | 否           | 源机器上传限速，单位为 MB/s；没有值表示不限速 |
+| destination_speed_limit   | long  | 否           | 目标机器下载限速，单位为 MB/s；没有值表示不限速 |
 | is_ignore_error           | int   | 是           | 是否忽略错误。可选值：`1`（是）、`0`（否） |
 
 ##### file_source_list[] 元素
@@ -215,7 +215,7 @@
 | 字段              | 类型   | 是否一定存在 | 描述 |
 |-------------------|--------|--------------|------|
 | file_list         | array  | 是           | 文件路径列表 |
-| file_type         | int    | 是           | 文件源类型 |
+| file_type         | int    | 是           | 文件源类型。可选值：`1`（服务器文件）、`2`（本地文件）、`3`（文件源文件）、`4`（Base64 编码的文件） |
 | file_source_code  | string | 否           | 文件源标识 |
 | account           | object | 是           | 执行账号 |
 | execute_target    | object | 否           | 源文件执行目标 |
@@ -240,10 +240,10 @@
 
 | 字段              | 类型   | 是否一定存在 | 描述 |
 |-------------------|--------|--------------|------|
-| approval_type     | int    | 是           | 确认类型 |
+| approval_type     | int    | 是           | 确认类型。可选值：`1`（任意人审批）、`2`（所有人审批） |
 | approval_user     | object | 是           | 确认人信息 |
 | approval_message  | string | 是           | 确认提示信息 |
-| notify_channel    | array  | 是           | 通知渠道列表 |
+| notify_channel    | array  | 是           | 通知渠道列表；元素为渠道类型字符串，常见取值：`mail`（邮件）、`weixin`（微信）、`rtx`（企业微信） |
 
 ##### approval_user
 

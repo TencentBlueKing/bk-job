@@ -5270,7 +5270,7 @@ paths:
                         description: 作业模板名称
                       description:
                         type: string
-                        description: 作业模板描述
+                        description: 作业模板描述；无描述时为空字符串
                       creator:
                         type: string
                         description: 创建人
@@ -5302,7 +5302,7 @@ paths:
                               description: '是否必填。可选值: 1 - 是, 0 - 否'
                             value:
                               type: string
-                              description: 变量值；密文类型返回******
+                              description: '变量值；当 type 为 1、2、4、5、6 时返回；密文类型返回******'
                             execute_target:
                               type: object
                               properties:
@@ -5352,7 +5352,7 @@ paths:
                                   description: CMDB拓扑节点列表
                               description: 执行目标
                           description: 全局变量
-                        description: 全局变量列表
+                        description: 全局变量列表；无变量时为空数组
                       step_list:
                         type: array
                         items:
@@ -5372,7 +5372,7 @@ paths:
                               properties:
                                 script_type:
                                   type: number
-                                  description: 脚本来源类型
+                                  description: '脚本来源类型。可选值: 1 - 本地脚本, 2 - 引用脚本, 3 - 公共脚本'
                                 script_id:
                                   type: string
                                   description: 脚本ID
@@ -5384,7 +5384,7 @@ paths:
                                   description: 脚本内容，Base64编码
                                 script_language:
                                   type: number
-                                  description: 脚本语言
+                                  description: '脚本语言。可选值: 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - SQL'
                                 script_param:
                                   type: string
                                   description: 脚本参数，Base64编码
@@ -5393,7 +5393,7 @@ paths:
                                   description: Windows脚本解释器路径
                                 script_timeout:
                                   type: number
-                                  description: 脚本超时时间，单位秒
+                                  description: 脚本超时时间，单位为秒
                                 is_param_sensitive:
                                   type: number
                                   description: '脚本参数是否敏感。可选值: 1 - 是, 0 - 否'
@@ -5438,6 +5438,8 @@ paths:
                                       type: array
                                       items:
                                         type: object
+                                        required:
+                                        - id
                                         properties:
                                           id:
                                             type: string
@@ -5447,6 +5449,9 @@ paths:
                                       type: array
                                       items:
                                         type: object
+                                        required:
+                                        - id
+                                        - node_type
                                         properties:
                                           id:
                                             type: number
@@ -5469,19 +5474,26 @@ paths:
                                         type: array
                                         items:
                                           type: string
+                                        description: 文件路径列表
                                       file_type:
                                         type: number
+                                        description: '文件源类型。可选值: 1 - 服务器文件, 2 - 本地文件, 3 - 文件源文件, 4 - Base64编码的文件'
                                       file_source_code:
                                         type: string
+                                        description: 文件源标识
                                       account:
                                         type: object
                                         properties:
                                           id:
                                             type: number
+                                            description: 账号ID
                                           name:
                                             type: string
+                                            description: 账号名称
                                           alias:
                                             type: string
+                                            description: 账号别名
+                                        description: 执行账号
                                       execute_target:
                                         type: object
                                         properties:
@@ -5507,6 +5519,8 @@ paths:
                                             type: array
                                             items:
                                               type: object
+                                              required:
+                                              - id
                                               properties:
                                                 id:
                                                   type: string
@@ -5516,6 +5530,9 @@ paths:
                                             type: array
                                             items:
                                               type: object
+                                              required:
+                                              - id
+                                              - node_type
                                               properties:
                                                 id:
                                                   type: number
@@ -5525,20 +5542,27 @@ paths:
                                                   description: '拓扑节点类型。可选值: module - 模块, set - 集群'
                                             description: CMDB拓扑节点列表
                                         description: 源文件执行目标
+                                    description: 源文件
+                                  description: 源文件列表
                                 file_destination:
                                   type: object
                                   properties:
                                     path:
                                       type: string
+                                      description: 目标路径
                                     account:
                                       type: object
                                       properties:
                                         id:
                                           type: number
+                                          description: 账号ID
                                         name:
                                           type: string
+                                          description: 账号名称
                                         alias:
                                           type: string
+                                          description: 账号别名
+                                      description: 执行账号
                                     execute_target:
                                       type: object
                                       properties:
@@ -5564,6 +5588,8 @@ paths:
                                           type: array
                                           items:
                                             type: object
+                                            required:
+                                            - id
                                             properties:
                                               id:
                                                 type: string
@@ -5573,6 +5599,9 @@ paths:
                                           type: array
                                           items:
                                             type: object
+                                            required:
+                                            - id
+                                            - node_type
                                             properties:
                                               id:
                                                 type: number
@@ -5582,22 +5611,29 @@ paths:
                                                 description: '拓扑节点类型。可选值: module - 模块, set - 集群'
                                           description: CMDB拓扑节点列表
                                       description: 目标执行目标
+                                  description: 目标路径信息
                                 timeout:
                                   type: number
+                                  description: 文件传输超时时间，单位为秒
                                 transfer_mode:
                                   type: number
+                                  description: '传输模式。可选值: 1 - 严谨模式, 2 - 强制模式, 3 - 保险模式(FILE_SRC_IP), 4 - 保险模式(YYYY-MM-DD)'
                                 source_speed_limit:
                                   type: number
+                                  description: 源机器上传限速，单位为MB/s；没有值表示不限速
                                 destination_speed_limit:
                                   type: number
+                                  description: 目标机器下载限速，单位为MB/s；没有值表示不限速
                                 is_ignore_error:
                                   type: number
+                                  description: '是否忽略错误。可选值: 1 - 是, 0 - 否'
                               description: 文件步骤信息
                             approval_info:
                               type: object
                               properties:
                                 approval_type:
                                   type: number
+                                  description: '确认类型。可选值: 1 - 任意人审批, 2 - 所有人审批'
                                 approval_user:
                                   type: object
                                   properties:
@@ -5605,19 +5641,25 @@ paths:
                                       type: array
                                       items:
                                         type: string
+                                      description: 用户列表
                                     role_list:
                                       type: array
                                       items:
                                         type: string
+                                      description: 角色列表
+                                  description: 确认人信息
                                 approval_message:
                                   type: string
+                                  description: 确认提示信息
                                 notify_channel:
                                   type: array
                                   items:
                                     type: string
+                                    description: '通知渠道类型。常见取值: mail - 邮件, weixin - 微信, rtx - 企业微信；实际取值取决于环境已配置的通知渠道'
+                                  description: 通知渠道列表
                               description: 人工确认步骤信息
                           description: 步骤
-                        description: 步骤列表
+                        description: 步骤列表，返回模板全部步骤（含未启用步骤）；无步骤时为空数组
                     description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
           description: ''
         '400':
@@ -5655,7 +5697,7 @@ paths:
         required: true
         schema:
           type: string
-        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+        description: 资源范围ID，须与bk_scope_type对应，表示业务ID或业务集ID
       - name: id
         in: query
         required: true

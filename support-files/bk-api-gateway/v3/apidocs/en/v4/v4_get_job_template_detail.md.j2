@@ -185,11 +185,11 @@ Prerequisites: the target job template must exist; the caller must have permissi
 
 | Field                | Type   | Always Present | Description |
 |----------------------|--------|----------------|-------------|
-| script_type          | int    | Yes            | Script source type |
+| script_type          | int    | Yes            | Script source type. Optional values: `1` (local script), `2` (referenced script), `3` (public script) |
 | script_id            | string | No             | Script ID |
 | script_version_id    | long   | No             | Script version ID |
 | script_content       | string | No             | Script content, Base64 encoded |
-| script_language      | int    | Yes            | Script language |
+| script_language      | int    | Yes            | Script language. Optional values: `1` (shell), `2` (bat), `3` (perl), `4` (python), `5` (powershell), `6` (SQL) |
 | script_param         | string | No             | Script parameters, Base64 encoded |
 | windows_interpreter  | string | No             | Windows interpreter path |
 | script_timeout       | long   | Yes            | Script timeout in seconds |
@@ -204,10 +204,10 @@ Prerequisites: the target job template must exist; the caller must have permissi
 |---------------------------|-------|----------------|-------------|
 | file_source_list          | array | Yes            | File source list |
 | file_destination          | object | Yes           | File destination |
-| timeout                   | long  | Yes            | Timeout in seconds |
-| transfer_mode             | int   | Yes            | Transfer mode |
-| source_speed_limit        | long  | No             | Upload speed limit |
-| destination_speed_limit   | long  | No             | Download speed limit |
+| timeout                   | long  | Yes            | File transfer timeout in seconds |
+| transfer_mode             | int   | Yes            | Transfer mode. Optional values: `1` (strict), `2` (force), `3` (safety FILE_SRC_IP), `4` (safety YYYY-MM-DD) |
+| source_speed_limit        | long  | No             | Upload speed limit in MB/s; no value indicates no speed limit |
+| destination_speed_limit   | long  | No             | Download speed limit in MB/s; no value indicates no speed limit |
 | is_ignore_error           | int   | Yes            | Whether to ignore errors. Optional values: `1` (yes), `0` (no) |
 
 ##### file_source_list[] element
@@ -215,7 +215,7 @@ Prerequisites: the target job template must exist; the caller must have permissi
 | Field             | Type   | Always Present | Description |
 |-------------------|--------|----------------|-------------|
 | file_list         | array  | Yes            | File path list |
-| file_type         | int    | Yes            | File source type |
+| file_type         | int    | Yes            | File source type. Optional values: `1` (server file), `2` (local file), `3` (file source file), `4` (Base64-encoded file) |
 | file_source_code  | string | No             | File source code |
 | account           | object | Yes            | Execute account |
 | execute_target    | object | No             | Source execute target |
@@ -240,10 +240,10 @@ Prerequisites: the target job template must exist; the caller must have permissi
 
 | Field             | Type   | Always Present | Description |
 |-------------------|--------|----------------|-------------|
-| approval_type     | int    | Yes            | Approval type |
+| approval_type     | int    | Yes            | Approval type. Optional values: `1` (anyone), `2` (all) |
 | approval_user     | object | Yes            | Approval user info |
 | approval_message  | string | Yes            | Approval message |
-| notify_channel    | array  | Yes            | Notify channel list |
+| notify_channel    | array  | Yes            | Notify channel list; each element is a channel type string. Common values: `mail`, `weixin`, `rtx` |
 
 ##### approval_user
 
