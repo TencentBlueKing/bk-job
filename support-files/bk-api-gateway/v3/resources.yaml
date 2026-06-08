@@ -5656,7 +5656,7 @@ paths:
         schema:
           type: string
         description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
-      - name: job_template_id
+      - name: id
         in: query
         required: true
         schema:

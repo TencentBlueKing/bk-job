@@ -59,10 +59,10 @@ public class OpenApiJobTemplateV4ResourceImpl implements OpenApiJobTemplateV4Res
                                                                              String appCode,
                                                                              String scopeType,
                                                                              String scopeId,
-                                                                             Long jobTemplateId) {
+                                                                             Long id) {
         Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
         User user = JobContextUtil.getUser();
-        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplate(user, appId, jobTemplateId);
+        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplate(user, appId, id);
         OpenApiV4JobTemplateDetailDTO data = OpenApiV4JobTemplateConverter.toDetailDTO(
             templateInfo, appScopeMappingService
         );

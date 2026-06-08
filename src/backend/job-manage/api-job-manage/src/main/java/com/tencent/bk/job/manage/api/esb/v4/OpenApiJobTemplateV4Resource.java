@@ -67,9 +67,9 @@ public interface OpenApiJobTemplateV4Resource {
         @RequestParam(value = "bk_scope_id")
         @NotBlank(message = "{validation.constraints.EmptyScopeId.message}")
         String scopeId,
-        @RequestParam(value = "job_template_id")
-        @NotNull(message = "{validation.constraints.InvalidJobTemplateId.message}")
-        @Min(value = 1L, message = "{validation.constraints.InvalidJobTemplateId.message}")
-        Long jobTemplateId
+        @RequestParam(value = "id")
+        @NotNull(message = "{validation.constraints.InvalidJobTemplateDetailId.message}")
+        @Min(value = 1L, message = "{validation.constraints.InvalidJobTemplateDetailId.message}")
+        Long id
     );
 }

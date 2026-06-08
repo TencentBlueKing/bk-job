@@ -12,14 +12,14 @@
 |-------------------|--------|------|------|
 | bk_scope_type     | string | 是   | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
 | bk_scope_id       | string | 是   | 资源范围 ID，须与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
-| job_template_id   | long   | 是   | 作业模板 ID，须大于 0，且对应模板须已存在 |
+| id                | long   | 是   | 作业模板 ID，须大于 0，且对应模板须已存在 |
 
 ### 请求参数示例
 
 - GET
 
 ```json
-/api/v4/get_job_template_detail?bk_scope_type=biz&bk_scope_id=2&job_template_id=1000
+/api/v4/get_job_template_detail?bk_scope_type=biz&bk_scope_id=2&id=1000
 ```
 
 ### 返回结果示例

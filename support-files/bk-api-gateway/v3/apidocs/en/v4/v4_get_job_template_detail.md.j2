@@ -12,14 +12,14 @@ Prerequisites: the target job template must exist; the caller must have permissi
 |-------------------|--------|----------|-------------|
 | bk_scope_type     | string | Yes      | Resource scope type. Optional values: `biz` (business), `biz_set` (business set) |
 | bk_scope_id       | string | Yes      | Resource scope ID, must match `bk_scope_type` |
-| job_template_id   | long   | Yes      | Job template ID, must be greater than 0 and the template must exist |
+| id                | long   | Yes      | Job template ID, must be greater than 0 and the template must exist |
 
 ### Request Example
 
 - GET
 
 ```json
-/api/v4/get_job_template_detail?bk_scope_type=biz&bk_scope_id=2&job_template_id=1000
+/api/v4/get_job_template_detail?bk_scope_type=biz&bk_scope_id=2&id=1000
 ```
 
 ### Response Examples
