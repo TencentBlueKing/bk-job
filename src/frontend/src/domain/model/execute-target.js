@@ -28,9 +28,9 @@ import I18n from '@/i18n';
 export default class ExecuteObjectsInfo {
   static isExecuteObjectsInfoEmpty(executeObjectsInfo) {
     const {
-      dynamicGroupList,
-      hostList,
-      nodeList,
+      dynamicGroupList = [],
+      hostList = [],
+      nodeList = [],
       containerList = [],
     } = executeObjectsInfo;
 
@@ -42,9 +42,9 @@ export default class ExecuteObjectsInfo {
 
   static cloneExecuteObjectsInfo(executeObjectsInfo) {
     const {
-      dynamicGroupList,
-      hostList,
-      nodeList,
+      dynamicGroupList = [],
+      hostList = [],
+      nodeList = [],
       containerList = [],
     } = executeObjectsInfo;
 
@@ -67,9 +67,9 @@ export default class ExecuteObjectsInfo {
 
   get text() {
     const {
-      dynamicGroupList,
-      hostList,
-      nodeList,
+      dynamicGroupList = [],
+      hostList = [],
+      nodeList = [],
       containerList = [],
     } = this.executeObjectsInfo;
     const strs = [];
