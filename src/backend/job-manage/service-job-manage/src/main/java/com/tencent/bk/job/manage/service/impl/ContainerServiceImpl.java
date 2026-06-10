@@ -26,9 +26,11 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.cc.model.req.KubeContainerQueryReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
 import com.tencent.bk.job.manage.service.ContainerService;
 import lombok.extern.slf4j.Slf4j;
@@ -73,5 +75,18 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     public List<ContainerDetailDTO> listKubeContainerByUIds(Long bizId, List<String> containerUIds) {
         return bizCmdbClient.listKubeContainerByUIds(bizId, containerUIds);
+    }
+
+    @Override
+    public PageData<ContainerDetailDTO> listKubeContainerByCondition(Long bizId,
+                                                                     KubeContainerFilter filter,
+                                                                     Integer start,
+                                                                     Integer pageSize) {
+        KubeContainerQueryReq req = new KubeContainerQueryReq();
+        req.setBizId(bizId);
+        req.setFilter(filter);
+        req.setStart(start);
+        req.setPageSize(pageSize);
+        return bizCmdbClient.listKubeContainerByCondition(req);
     }
 }

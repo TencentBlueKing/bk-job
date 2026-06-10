@@ -32,6 +32,13 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.KubeClusterFilter;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubeContainerPropFilter;
+import com.tencent.bk.job.common.model.dto.KubeNamespaceFilter;
+import com.tencent.bk.job.common.model.dto.KubePodFilter;
+import com.tencent.bk.job.common.model.dto.KubeWorkloadFilter;
+import com.tencent.bk.job.common.model.dto.LabelSelectExprDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
@@ -40,10 +47,11 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.util.converter.WebContainerConditionFilterConverter;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.inner.ServiceExecuteTargetDTO;
-import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParse;
+import com.tencent.bk.job.common.util.label.selector.LabelSelectorParse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -270,6 +278,11 @@ public class ExecuteTargetDTO implements Cloneable {
                 .collect(Collectors.toList());
             taskExecuteObjectsInfoVO.setContainerList(containerVOs);
         }
+        // 动态条件过滤器回显：只透出过滤条件（cluster/namespace/workload/propConditions），已解析的 containers 不外露
+        if (CollectionUtils.isNotEmpty(containerFilters)) {
+            taskExecuteObjectsInfoVO.setContainerFilterList(
+                WebContainerConditionFilterConverter.fromKubeContainerFilters(containerFilters));
+        }
         target.setExecuteObjectsInfo(taskExecuteObjectsInfoVO);
 
         return target;
@@ -422,6 +435,12 @@ public class ExecuteTargetDTO implements Cloneable {
                 containerList.add(targetContainer);
             });
             executeTargetDTO.setStaticContainerList(containerList);
+        }
+
+        // 处理动态条件过滤器：Web 入参 containerFilterList → 内部 KubeContainerFilter
+        if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getContainerFilterList())) {
+            executeTargetDTO.setContainerFilters(WebContainerConditionFilterConverter.toKubeContainerFilters(
+                taskExecuteObjectsInfoVO.getContainerFilterList()));
         }
 
         return executeTargetDTO;

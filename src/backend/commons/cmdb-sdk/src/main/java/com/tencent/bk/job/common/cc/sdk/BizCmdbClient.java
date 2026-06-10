@@ -30,6 +30,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.constants.KubeTopoNodeTypeEnum;
 import com.tencent.bk.job.common.cc.exception.CmdbDynamicGroupNotFoundException;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
@@ -75,6 +76,7 @@ import com.tencent.bk.job.common.cc.model.req.GetBriefCacheTopoReq;
 import com.tencent.bk.job.common.cc.model.req.GetCloudAreaInfoReq;
 import com.tencent.bk.job.common.cc.model.req.GetObjAttributeReq;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
+import com.tencent.bk.job.common.cc.model.req.KubeContainerQueryReq;
 import com.tencent.bk.job.common.cc.model.req.ListHostsWithoutBizReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeClusterReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
@@ -100,6 +102,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.model.result.SearchAppResult;
 import com.tencent.bk.job.common.cc.model.result.SearchCloudAreaResult;
 import com.tencent.bk.job.common.cc.model.result.SearchDynamicGroupResult;
+import com.tencent.bk.job.common.cc.util.KubePropConditionTranslator;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
@@ -114,6 +117,10 @@ import com.tencent.bk.job.common.exception.TieredPageQueryException;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.KubeClusterFilter;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubeNamespaceFilter;
+import com.tencent.bk.job.common.model.dto.KubeWorkloadFilter;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
@@ -1957,5 +1964,162 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         newPropertyFilter.setRules(newRules);
 
         return newPropertyFilter;
+    }
+
+    /**
+     * 按动态条件过滤器分页查询业务下的容器列表。
+     * <p>
+     * 拓扑维度（cluster/namespace/workload）先解析为拓扑节点 ID 作为 nodeIdList；字段级 propConditions
+     * 按 container_/pod_ 前缀拆分为 cmdb 的 containerFilter / podFilter 规则。仅本方法承载 dynamic filter，
+     * 校验已在调用方（WebResource）通过校验器完成，这里只做协议翻译。
+     */
+    @Override
+    public PageData<ContainerDetailDTO> listKubeContainerByCondition(KubeContainerQueryReq req) {
+        Long bizId = req.getBizId();
+        KubeContainerFilter filter = req.getFilter();
+        int start = req.getStart() == null ? 0 : req.getStart();
+        int pageSize = req.getPageSize() == null ? CMDB_CONTAINER_QUERY_PAGE_SIZE : req.getPageSize();
+
+        ListKubeContainerByTopoReq topoReq = makeCmdbBaseReq(ListKubeContainerByTopoReq.class);
+        topoReq.setBizId(bizId);
+
+        if (filter != null && filter.hasKubeNodeFilter()) {
+            List<KubeNodeID> nodeIdList = computeKubeTopoNodeForCondition(bizId, filter);
+            if (CollectionUtils.isEmpty(nodeIdList)) {
+                // 拓扑条件未匹配到任何节点，直接返回空页，避免无谓的容器查询
+                return new PageData<>(start, pageSize, 0L, Collections.emptyList());
+            }
+            topoReq.setNodeIdList(nodeIdList);
+        }
+
+        if (filter != null && filter.hasPropConditions()) {
+            PropertyFilterDTO containerFilter = new PropertyFilterDTO();
+            containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
+            PropertyFilterDTO podFilter = new PropertyFilterDTO();
+            podFilter.setCondition(RuleConditionEnum.AND.getCondition());
+
+            KubePropConditionTranslator.appendRules(filter.getPropConditions(), containerFilter, podFilter);
+            if (containerFilter.hasRule()) {
+                topoReq.setContainerFilter(containerFilter);
+            }
+            if (podFilter.hasRule()) {
+                topoReq.setPodFilter(podFilter);
+            }
+        }
+
+        topoReq.setPage(new Page(start, pageSize, ContainerDTO.Fields.ID));
+
+        return listPageKubeContainerByTopo(topoReq, true);
+    }
+
+    /**
+     * 解析 dynamic filter 的 cluster/namespace/workload 为拓扑节点 ID 列表。
+     * <p>
+     * 优先走 Web 入口形态（{@link KubeContainerFilter#hasKubeTopoObjects()}）—— Web 直接传 CMDB ID，
+     * 无需二次访问 CMDB；否则回退到 v4 字符串字段（UIDs / 名称），需要查 CMDB 翻译为 ID。
+     */
+    private List<KubeNodeID> computeKubeTopoNodeForCondition(long bizId, KubeContainerFilter filter) {
+        if (filter.hasKubeTopoObjects()) {
+            return computeKubeTopoNodeFromObjects(filter);
+        }
+        return computeKubeTopoNodeFromFilters(bizId, filter);
+    }
+
+    /**
+     * Web 入口形态：cluster/namespace/workload 的 id 直接是 CMDB 拓扑节点 ID。
+     * 取最精细维度（workloads → namespaces → clusters）作为 nodeIdList。
+     */
+    private List<KubeNodeID> computeKubeTopoNodeFromObjects(KubeContainerFilter filter) {
+        if (CollectionUtils.isNotEmpty(filter.getWorkloadNodes())) {
+            return filter.getWorkloadNodes().stream()
+                .map(w -> new KubeNodeID(w.getKind(), w.getId()))
+                .collect(Collectors.toList());
+        }
+        if (CollectionUtils.isNotEmpty(filter.getNamespaceNodes())) {
+            return filter.getNamespaceNodes().stream()
+                .map(ns -> new KubeNodeID(KubeTopoNodeTypeEnum.NAMESPACE.getValue(), ns.getId()))
+                .collect(Collectors.toList());
+        }
+        if (CollectionUtils.isNotEmpty(filter.getClusterNodes())) {
+            return filter.getClusterNodes().stream()
+                .map(c -> new KubeNodeID(KubeTopoNodeTypeEnum.CLUSTER.getValue(), c.getId()))
+                .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * v4 / 历史形态：cluster UIDs / namespace 名称 / workload kind+名称，需要先访 CMDB 翻译为 ID。
+     */
+    private List<KubeNodeID> computeKubeTopoNodeFromFilters(long bizId, KubeContainerFilter filter) {
+        KubeClusterFilter clusterFilter = filter.getClusterFilter();
+        KubeNamespaceFilter namespaceFilter = filter.getNamespaceFilter();
+        KubeWorkloadFilter workloadFilter = filter.getWorkloadFilter();
+
+        List<KubeClusterDTO> matchClusters = null;
+        if (clusterFilter != null && CollectionUtils.isNotEmpty(clusterFilter.getClusterUIDs())) {
+            matchClusters = listKubeClusters(
+                KubeClusterQuery.Builder.builder(bizId).bkClusterUIDs(clusterFilter.getClusterUIDs()).build());
+            if (CollectionUtils.isEmpty(matchClusters)) {
+                return Collections.emptyList();
+            }
+        }
+        List<Long> matchClusterIds = matchClusters == null ? null :
+            matchClusters.stream().map(KubeClusterDTO::getId).collect(Collectors.toList());
+
+        if (workloadFilter != null && StringUtils.isNotBlank(workloadFilter.getKind())) {
+            List<Long> matchNamespaceIds = resolveNamespaceIds(bizId, matchClusterIds, namespaceFilter);
+            if (matchNamespaceIds != null && matchNamespaceIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+            List<KubeWorkloadDTO> workloads = listKubeWorkloads(
+                WorkloadQuery.Builder.builder(bizId, workloadFilter.getKind())
+                    .bkClusterIds(matchClusterIds)
+                    .bkNamespaceIds(matchNamespaceIds)
+                    .names(workloadFilter.getWorkloadNames())
+                    .build());
+            return workloads == null ? Collections.emptyList() : workloads.stream()
+                .map(workload -> new KubeNodeID(workload.getKind(), workload.getId()))
+                .collect(Collectors.toList());
+        }
+
+        if (namespaceFilter != null && CollectionUtils.isNotEmpty(namespaceFilter.getNamespaces())) {
+            List<KubeNamespaceDTO> namespaces = listKubeNamespaces(
+                NamespaceQuery.Builder.builder(bizId)
+                    .bkClusterIds(matchClusterIds)
+                    .names(namespaceFilter.getNamespaces())
+                    .build());
+            return namespaces == null ? Collections.emptyList() : namespaces.stream()
+                .map(ns -> new KubeNodeID(KubeTopoNodeTypeEnum.NAMESPACE.getValue(), ns.getId()))
+                .collect(Collectors.toList());
+        }
+
+        if (matchClusters != null) {
+            return matchClusters.stream()
+                .map(cluster -> new KubeNodeID(KubeTopoNodeTypeEnum.CLUSTER.getValue(), cluster.getId()))
+                .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * 解析 namespace 过滤为 namespace ID 列表；未指定 namespace 时返回 null（表示不在该维度收窄）。
+     * 返回空列表表示指定了 namespace 但未匹配到任何 namespace。
+     */
+    private List<Long> resolveNamespaceIds(long bizId,
+                                           List<Long> matchClusterIds,
+                                           KubeNamespaceFilter namespaceFilter) {
+        if (namespaceFilter == null || CollectionUtils.isEmpty(namespaceFilter.getNamespaces())) {
+            return null;
+        }
+        List<KubeNamespaceDTO> namespaces = listKubeNamespaces(
+            NamespaceQuery.Builder.builder(bizId)
+                .bkClusterIds(matchClusterIds)
+                .names(namespaceFilter.getNamespaces())
+                .build());
+        if (CollectionUtils.isEmpty(namespaces)) {
+            return Collections.emptyList();
+        }
+        return namespaces.stream().map(KubeNamespaceDTO::getId).collect(Collectors.toList());
     }
 }

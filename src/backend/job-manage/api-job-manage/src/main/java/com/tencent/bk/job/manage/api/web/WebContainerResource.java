@@ -34,10 +34,14 @@ import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerCh
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerDetailReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
+import com.tencent.bk.job.manage.model.web.request.dynamicfilter.PreviewDynamicContainerReq;
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
+import com.tencent.bk.job.manage.model.web.vo.dynamicfilter.DynamicContainerFilterMetadataVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -163,6 +167,46 @@ public interface WebContainerResource {
         @Parameter(description = "容器ID及元数据信息", required = true)
         @RequestBody
             ContainerDetailReq req
+    );
+
+    // 动态条件过滤器-1
+    @Operation(summary = "获取动态条件过滤器的字段/运算符元数据")
+    @GetMapping(value = {"/dynamic/container/field/metadata"})
+    Response<DynamicContainerFilterMetadataVO> getDynamicContainerFilterMetadata(
+        @Parameter(description = "用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @Parameter(hidden = true)
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @Parameter(description = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @Parameter(description = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId
+    );
+
+    // 动态条件过滤器-2
+    @Operation(summary = "动态条件过滤器命中预览")
+    @PostMapping(value = {"/dynamic/container/preview"})
+    Response<PageData<ContainerVO>> previewDynamicContainerByCondition(
+        @Parameter(description = "用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @Parameter(hidden = true)
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @Parameter(description = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @Parameter(description = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @Parameter(description = "动态条件过滤器与分页参数", required = true)
+        @Valid
+        @RequestBody
+            PreviewDynamicContainerReq req
     );
 
 }

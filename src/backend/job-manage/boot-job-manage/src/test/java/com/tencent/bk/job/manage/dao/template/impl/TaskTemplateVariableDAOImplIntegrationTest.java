@@ -25,9 +25,14 @@
 package com.tencent.bk.job.manage.dao.template.impl;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubePropCondition;
 import com.tencent.bk.job.manage.dao.TaskVariableDAO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,7 +155,7 @@ class TaskTemplateVariableDAOImplIntegrationTest {
         variable.setChangeable(true);
         variable.setRequired(false);
         System.out.println(variable);
-        Long variableId = taskVariableDAO.insertVariable(variable);
+        long variableId = taskVariableDAO.insertVariable(variable);
         variable.setId(variableId);
         assertThat(taskVariableDAO.getVariableById(variable.getTemplateId(), variableId)).isEqualTo(variable);
     }
@@ -247,4 +252,82 @@ class TaskTemplateVariableDAOImplIntegrationTest {
         assertThat(taskVariableDAO.updateVarByParentResourceIdAndTplVarId(VARIABLE_3)).isFalse();
     }
 
+    /**
+     * EXECUTE_OBJECT_LIST 类型变量「新字段端到端写入读取」回归：default_value 持久化 TaskTargetDTO JSON
+     * （CipherVariableCryptoService 对非 CIPHER 类型恒透传，等价于 plaintext 存储）。
+     * 写入含 containerFilters 的 JSON，读回后由 TaskTargetDTO.fromJsonString 解析，所有字段需保真。
+     */
+    @Test
+    @DisplayName("default_value 持久化 EXECUTE_OBJECT_LIST + containerFilters 完整保真")
+    void givenExecuteObjectListVariableWithContainerFiltersReturnRoundTripPreserved() {
+        TaskTargetDTO original = buildTargetWithContainerFilters();
+        TaskVariableDTO variable = new TaskVariableDTO();
+        variable.setTemplateId(getRandomPositiveLong());
+        variable.setName(UUID.randomUUID().toString());
+        variable.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST);
+        variable.setDefaultValue(original.toJsonString());
+        variable.setDescription(UUID.randomUUID().toString());
+        variable.setChangeable(true);
+        variable.setRequired(false);
+
+        long newId = taskVariableDAO.insertVariable(variable);
+        variable.setId(newId);
+
+        TaskVariableDTO reloaded = taskVariableDAO.getVariableById(variable.getTemplateId(), newId);
+        assertThat(reloaded).isNotNull();
+        assertThat(reloaded.getType()).isEqualTo(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST);
+
+        TaskTargetDTO reloadedTarget = TaskTargetDTO.fromJsonString(reloaded.getDefaultValue());
+        assertThat(reloadedTarget).isNotNull();
+        assertThat(reloadedTarget.getContainerFilters()).hasSize(1);
+
+        KubeContainerFilter filter = reloadedTarget.getContainerFilters().get(0);
+        assertThat(filter.getClusterNodes()).hasSize(1);
+        assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(1000L);
+        assertThat(filter.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
+        assertThat(filter.getPropConditions()).hasSize(2);
+        assertThat(filter.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
+        assertThat(filter.getPropConditions().get(0).getValue()).isEqualTo("docker://abcdefg");
+        assertThat(filter.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
+    }
+
+    /**
+     * 老数据兼容：EXECUTE_OBJECT_LIST 类型变量曾经的 default_value 写入仅含 hostNodeList，没有 containerFilters 字段。
+     * 反序列化后 TaskTargetDTO.containerFilters 必须为 null，不影响老逻辑分支。
+     */
+    @Test
+    @DisplayName("default_value 老 JSON（无 containerFilters）反序列化后 containerFilters = null")
+    void givenLegacyExecuteObjectListDefaultValueReturnContainerFiltersNull() {
+        String legacyJson = "{\"hostNodeList\":{\"hostList\":[{\"hostId\":101,\"cloudAreaId\":0,\"ip\":\"10.0.0.1\"}]}}";
+        TaskVariableDTO variable = new TaskVariableDTO();
+        variable.setTemplateId(getRandomPositiveLong());
+        variable.setName(UUID.randomUUID().toString());
+        variable.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST);
+        variable.setDefaultValue(legacyJson);
+        variable.setDescription(UUID.randomUUID().toString());
+        variable.setChangeable(true);
+        variable.setRequired(false);
+
+        long newId = taskVariableDAO.insertVariable(variable);
+
+        TaskVariableDTO reloaded = taskVariableDAO.getVariableById(variable.getTemplateId(), newId);
+        TaskTargetDTO target = TaskTargetDTO.fromJsonString(reloaded.getDefaultValue());
+
+        assertThat(target).isNotNull();
+        assertThat(target.getHostNodeList()).isNotNull();
+        assertThat(target.getContainerFilters()).isNull();
+    }
+
+    private TaskTargetDTO buildTargetWithContainerFilters() {
+        KubeContainerFilter filter = new KubeContainerFilter();
+        filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L, "集群1000")));
+        filter.setPropConditions(Arrays.asList(
+            new KubePropCondition("container_container_uid", "contains", "docker://abcdefg"),
+            new KubePropCondition("pod_name", "equal", "pod-a")
+        ));
+
+        TaskTargetDTO target = new TaskTargetDTO();
+        target.setContainerFilters(Collections.singletonList(filter));
+        return target;
+    }
 }

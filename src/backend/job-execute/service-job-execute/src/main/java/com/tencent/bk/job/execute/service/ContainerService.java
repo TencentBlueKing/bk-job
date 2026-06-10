@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.Container;
-import com.tencent.bk.job.execute.model.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 
 import java.util.Collection;
 import java.util.List;

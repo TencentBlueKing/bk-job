@@ -45,7 +45,7 @@ public class ContainerVO {
     @Schema(description = "容器资源 ID, 容器在 cmdb 中注册资源的 ID")
     private Long id;
 
-    @Schema(description = "容器 ID", example = "docker://8812391923...")
+    @Schema(description = "容器 UID", example = "docker://8812391923...")
     private String uid;
 
     @Schema(description = "容器名称")

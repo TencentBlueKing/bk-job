@@ -48,6 +48,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.Container;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.tenant.TenantService;
@@ -2031,6 +2032,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 containerList.add(container);
             }
             executeTarget.setStaticContainerList(containerList);
+        }
+
+        // 透传动态条件过滤器：覆盖「步骤直接目标」与「EXECUTE_OBJECT_LIST 变量默认值」两条入口；
+        // 调用时传入覆盖值由 Web/OpenAPI 入参直接给 ExecuteTargetDTO，不走本方法，无需在此处理。
+        // clone 防止后续执行链路 mutate（如 runtime 解析后写回 containers）反向污染上游 ServiceTaskTargetDTO。
+        List<KubeContainerFilter> serviceContainerFilters = taskTarget.getContainerFilters();
+        if (CollectionUtils.isNotEmpty(serviceContainerFilters)) {
+            List<KubeContainerFilter> cloned = new ArrayList<>(serviceContainerFilters.size());
+            for (KubeContainerFilter filter : serviceContainerFilters) {
+                cloned.add(filter.clone());
+            }
+            executeTarget.setContainerFilters(cloned);
         }
         return executeTarget;
     }

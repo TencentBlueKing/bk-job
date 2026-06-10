@@ -25,6 +25,10 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubeNamespaceObjectDTO;
+import com.tencent.bk.job.common.model.dto.KubePropCondition;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
@@ -554,6 +558,167 @@ public class StepInstanceDAOImplIntegrationTest {
 
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(1L, 1L);
         assertThat(stepInstance.getRollingConfigId()).isEqualTo(1000L);
+    }
+
+    /**
+     * 容器动态条件「老数据兼容」回归：模拟引入 propConditions / Web 拓扑对象之前已落库的 containerFilters 形态
+     * （v4 字符串字段 clusterFilter/namespaceFilter）。
+     * 出库后下游对该字段的判断必须保持「未配置」语义：propConditions 为 null、Web 拓扑对象集合也为 null，
+     * 同时 hasContainerExecuteObject() = true 仍能识别为容器执行目标。
+     * <p>
+     * 执行引擎对持久化形态的上游来源无感知，本用例只锁住「字段形态 → 行为」契约。
+     * 数据来源：init_step_instance_data.sql 中 step_instance.id=20 的行。
+     */
+    @Test
+    void testGetStepInstance_legacyContainerFiltersWithoutPropConditions() {
+        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(20L, 20L);
+
+        assertThat(stepInstance).isNotNull();
+        assertThat(stepInstance.getTargetExecuteObjects()).isNotNull();
+        assertThat(stepInstance.getTargetExecuteObjects().getStaticIpList()).isNullOrEmpty();
+        assertThat(stepInstance.getTargetExecuteObjects().hasContainerExecuteObject()).isTrue();
+
+        assertThat(stepInstance.getTargetExecuteObjects().getContainerFilters()).hasSize(1);
+        KubeContainerFilter cf = stepInstance.getTargetExecuteObjects().getContainerFilters().get(0);
+        // 老数据使用 v4 字符串字段
+        assertThat(cf.getClusterFilter()).isNotNull();
+        assertThat(cf.getClusterFilter().getClusterUIDs()).containsExactly("BCS-K8S-00001");
+        assertThat(cf.getNamespaceFilter()).isNotNull();
+        assertThat(cf.getNamespaceFilter().getNamespaces()).containsExactly("default");
+        // 关键回归：propConditions、Web 拓扑对象集合都必须 null，否则会污染下游解析分支
+        assertThat(cf.hasPropConditions()).isFalse();
+        assertThat(cf.getPropConditions()).isNull();
+        assertThat(cf.hasKubeTopoObjects()).isFalse();
+        assertThat(cf.getClusterNodes()).isNull();
+        assertThat(cf.getNamespaceNodes()).isNull();
+        assertThat(cf.getWorkloadNodes()).isNull();
+    }
+
+    /**
+     * 容器动态条件「新数据读」回归：
+     * 模拟本特性发布后写入 step_instance.target_servers 的形态——containerFilters 内含 Web 入口形态
+     * 的拓扑对象（clusters/namespaces，每项 id+name）+ propConditions。
+     * 出库后下游必须能拿到完整的字段，包括展示用 name（避免回显时二次访 CMDB）与各种 value 形态。
+     * <p>
+     * 数据来源：init_step_instance_data.sql 中 step_instance.id=21 的行。
+     */
+    @Test
+    void testGetStepInstance_newContainerConditionsRoundTrip() {
+        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(21L, 21L);
+
+        assertThat(stepInstance).isNotNull();
+        assertThat(stepInstance.getTargetExecuteObjects()).isNotNull();
+        assertThat(stepInstance.getTargetExecuteObjects().hasContainerExecuteObject()).isTrue();
+
+        List<KubeContainerFilter> filters = stepInstance.getTargetExecuteObjects().getContainerFilters();
+        assertThat(filters).hasSize(1);
+        KubeContainerFilter cf = filters.get(0);
+        // Web 入口形态：id + name 都保真
+        assertThat(cf.hasKubeTopoObjects()).isTrue();
+        assertThat(cf.getClusterNodes()).hasSize(1);
+        assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
+        assertThat(cf.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
+        assertThat(cf.getNamespaceNodes()).hasSize(1);
+        assertThat(cf.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
+        assertThat(cf.getNamespaceNodes().get(0).getName()).isEqualTo("命名空间10000");
+        // v4 字符串字段保持 null，不污染 Web 入口数据
+        assertThat(cf.getClusterFilter()).isNull();
+        assertThat(cf.getNamespaceFilter()).isNull();
+
+        assertThat(cf.hasPropConditions()).isTrue();
+        assertThat(cf.getPropConditions()).hasSize(2);
+
+        KubePropCondition c1 = cf.getPropConditions().get(0);
+        assertThat(c1.getField()).isEqualTo("container_container_uid");
+        assertThat(c1.getOperator()).isEqualTo("equal");
+        assertThat(c1.getValue()).isEqualTo("docker://nginx-1-24");
+
+        KubePropCondition c2 = cf.getPropConditions().get(1);
+        assertThat(c2.getField()).isEqualTo("pod_name");
+        assertThat(c2.getOperator()).isEqualTo("equal");
+        assertThat(c2.getValue()).isEqualTo("pod-a");
+    }
+
+    /**
+     * 容器动态条件「新数据写读」端到端回归：通过 DAO 真实地把带 Web 拓扑对象 + propConditions 的
+     * ExecuteTargetDTO 写入 step_instance.target_servers，经过 H2 LONGTEXT 列存储后出库，
+     * 验证 jOOQ field 绑定、JsonMapper 序列化、H2 长 JSON 支持等真链路无信息丢失。
+     */
+    @Test
+    void testAddStepInstance_writeAndReadContainerConditions() {
+        StepInstanceBaseDTO toInsert = new StepInstanceBaseDTO();
+        toInsert.setAppId(2L);
+        toInsert.setName("write_container_conditions");
+        toInsert.setTaskInstanceId(200L);
+        toInsert.setStepId(200L);
+        toInsert.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
+
+        ExecuteTargetDTO target = new ExecuteTargetDTO();
+        KubeContainerFilter filter = new KubeContainerFilter();
+        filter.setClusterNodes(Lists.newArrayList(new KubeClusterObjectDTO(1001L, "集群1001")));
+        filter.setNamespaceNodes(Lists.newArrayList(
+            new KubeNamespaceObjectDTO(1L, "ns1"),
+            new KubeNamespaceObjectDTO(2L, "default")
+        ));
+        filter.setPropConditions(Lists.newArrayList(
+            new KubePropCondition("container_container_uid", "equal",
+                "docker://abcdefg"),
+            new KubePropCondition("pod_name", "equal", "pod-a")
+        ));
+        target.setContainerFilters(Lists.newArrayList(filter));
+        toInsert.setTargetExecuteObjects(target);
+
+        toInsert.setOperator("admin");
+        toInsert.setStatus(RunStatusEnum.SUCCESS);
+        toInsert.setExecuteCount(0);
+        toInsert.setStartTime(1572868800000L);
+        toInsert.setEndTime(1572868801000L);
+        toInsert.setTotalTime(1000L);
+        toInsert.setCreateTime(1572868800000L);
+        toInsert.setStepNum(1);
+        toInsert.setStepOrder(1);
+
+        long stepInstanceId = stepInstanceDAO.addStepInstanceBase(toInsert);
+
+        // 出库
+        StepInstanceBaseDTO reloaded = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+
+        assertThat(reloaded).isNotNull();
+        assertThat(reloaded.getTargetExecuteObjects()).isNotNull();
+        assertThat(reloaded.getTargetExecuteObjects().hasContainerExecuteObject()).isTrue();
+
+        List<KubeContainerFilter> reloadedFilters = reloaded.getTargetExecuteObjects().getContainerFilters();
+        assertThat(reloadedFilters).hasSize(1);
+        KubeContainerFilter reloadedFilter = reloadedFilters.get(0);
+
+        // Web 拓扑对象保真：id + name 都保留，支撑详情页回显
+        assertThat(reloadedFilter.getClusterNodes()).hasSize(1);
+        assertThat(reloadedFilter.getClusterNodes().get(0).getId()).isEqualTo(1001L);
+        assertThat(reloadedFilter.getClusterNodes().get(0).getName()).isEqualTo("集群1001");
+        assertThat(reloadedFilter.getNamespaceNodes()).hasSize(2);
+        assertThat(reloadedFilter.getNamespaceNodes().get(0).getName()).isEqualTo("ns1");
+        assertThat(reloadedFilter.getNamespaceNodes().get(1).getName()).isEqualTo("default");
+        // v4 字符串字段保持 null
+        assertThat(reloadedFilter.getClusterFilter()).isNull();
+        assertThat(reloadedFilter.getNamespaceFilter()).isNull();
+
+        // 字段动态条件保真：含 List value 与标量 value 两种形态
+        assertThat(reloadedFilter.hasPropConditions()).isTrue();
+        assertThat(reloadedFilter.getPropConditions()).hasSize(2);
+
+        KubePropCondition r1 = reloadedFilter.getPropConditions().get(0);
+        assertThat(r1.getField()).isEqualTo("container_container_uid");
+        assertThat(r1.getOperator()).isEqualTo("equal");
+        assertThat(r1.getValue()).isEqualTo("docker://abcdefg");
+
+        KubePropCondition r2 = reloadedFilter.getPropConditions().get(1);
+        assertThat(r2.getField()).isEqualTo("pod_name");
+        assertThat(r2.getOperator()).isEqualTo("equal");
+        assertThat(r2.getValue()).isEqualTo("pod-a");
+
+        // 反向：未配置静态主机时不能误产生
+        assertThat(reloaded.getTargetExecuteObjects().getStaticIpList()).isNullOrEmpty();
+        assertThat(reloaded.getTargetExecuteObjects().getIpList()).isNullOrEmpty();
     }
 
 

@@ -291,6 +291,8 @@ CREATE TABLE `task_plan_step_script`
 ) ENGINE = INNODB
   DEFAULT CHARSET = UTF8MB4;
 
+ALTER TABLE `task_plan_step_script` ADD COLUMN `status` tinyint(2) UNSIGNED NOT NULL DEFAULT 0;
+
 -- ----------------------------
 -- Table structure for task_plan_variable
 -- ----------------------------

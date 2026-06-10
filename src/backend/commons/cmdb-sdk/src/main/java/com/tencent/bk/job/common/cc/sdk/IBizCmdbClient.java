@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
+import com.tencent.bk.job.common.cc.model.req.KubeContainerQueryReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
@@ -265,4 +266,13 @@ public interface IBizCmdbClient {
     PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req);
 
     List<ContainerDetailDTO> listKubeContainerByUIds(long bizId, Collection<String> containerUIds);
+
+    /**
+     * 按动态条件过滤器查询业务下的容器列表。
+     * <p>
+     * 入参以高层的 KubeContainerFilter 描述拓扑 + propConditions 一体化条件，
+     * 由 sdk 内部翻译为 cmdb 的 PropertyFilterDTO；调用方无需关心 cmdb 协议。
+     * Layer 1 仅声明签名，实际翻译落在 Layer 2。
+     */
+    PageData<ContainerDetailDTO> listKubeContainerByCondition(KubeContainerQueryReq req);
 }
