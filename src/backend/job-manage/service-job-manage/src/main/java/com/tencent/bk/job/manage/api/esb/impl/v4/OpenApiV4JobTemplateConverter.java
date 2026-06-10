@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.json.SecondToMillisUtil;
 import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
@@ -77,16 +78,12 @@ public final class OpenApiV4JobTemplateConverter {
         detail.setName(templateInfo.getName());
         detail.setDescription(templateInfo.getDescription() == null ? "" : templateInfo.getDescription());
         detail.setCreator(templateInfo.getCreator());
-        detail.setCreateTime(toMillis(templateInfo.getCreateTime()));
+        detail.setCreateTime(SecondToMillisUtil.toMillis(templateInfo.getCreateTime()));
         detail.setLastModifyUser(templateInfo.getLastModifyUser());
-        detail.setLastModifyTime(toMillis(templateInfo.getLastModifyTime()));
+        detail.setLastModifyTime(SecondToMillisUtil.toMillis(templateInfo.getLastModifyTime()));
         detail.setGlobalVarList(toGlobalVarList(templateInfo.getVariableList()));
         detail.setStepList(toStepList(templateInfo.getStepList()));
         return detail;
-    }
-
-    private static Long toMillis(Long seconds) {
-        return seconds == null ? null : seconds * 1000L;
     }
 
     private static List<V4JobTemplateGlobalVarDTO> toGlobalVarList(List<TaskVariableDTO> variableList) {
@@ -233,6 +230,9 @@ public final class OpenApiV4JobTemplateConverter {
         return account;
     }
 
+    /**
+     * 仅映射主机类执行目标（host_list / dynamic_groups / topo_nodes），不含静态容器目标。
+     */
     static V4JobTemplateExecuteTargetDTO toExecuteTarget(TaskTargetDTO taskTarget) {
         if (taskTarget == null) {
             return null;
