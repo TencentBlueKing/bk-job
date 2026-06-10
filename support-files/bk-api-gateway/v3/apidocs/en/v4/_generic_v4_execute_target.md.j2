@@ -11,18 +11,7 @@
 
 {% include '_generic_v4_host.md.j2' %}
 
-##### dynamic_group
-
-| Field | Type   | Required | Description        |
-|-------|--------|----------|--------------------|
-| id    | string | Yes      | Dynamic group ID   |
-
-##### topo_node
-
-| Field     | Type   | Required | Description                                     |
-|-----------|--------|----------|-------------------------------------------------|
-| id        | long   | Yes      | Topology node ID                                |
-| node_type | string | Yes      | Topology node type. Allowed values: module, set |
+{% include '_generic_v4_execute_target_dynamic_topo_children.md.j2' %}
 
 ##### kube_container_filter
 

@@ -28,34 +28,7 @@ Prerequisites: the job template exists; the caller has permission to view that t
 
 ##### execute_target
 
-| Field                | Type  | Required | Description |
-|----------------------|-------|----------|-------------|
-| host_list            | array | No       | Static host list |
-| dynamic_group_list   | array | No       | Dynamic group list |
-| topo_node_list       | array | No       | CMDB topology node list |
-
-When `execute_target` is provided, at least one of `host_list`, `dynamic_group_list`, and `topo_node_list` must be non-empty.
-
-##### host_list[] element
-
-| Field       | Type   | Required | Description |
-|-------------|--------|----------|-------------|
-| bk_host_id  | long   | No       | Host ID in CMDB. Either this or `bk_cloud_id` + `ip` is required; if both are set, `bk_host_id` takes precedence |
-| bk_cloud_id | long   | No       | Cloud area ID; must be used together with `ip` |
-| ip          | string | No       | Host IP; must be used together with `bk_cloud_id` |
-
-##### dynamic_group_list[] element
-
-| Field | Type   | Required | Description |
-|-------|--------|----------|-------------|
-| id    | string | Yes      | Dynamic group ID |
-
-##### topo_node_list[] element
-
-| Field      | Type   | Required | Description |
-|------------|--------|----------|-------------|
-| id         | long   | Yes      | Topology node ID |
-| node_type  | string | Yes      | Topology node type. Allowed values: `module`, `set` |
+{% include '_generic_v4_execute_target_without_container_req.md.j2' %}
 
 ### Request Example
 

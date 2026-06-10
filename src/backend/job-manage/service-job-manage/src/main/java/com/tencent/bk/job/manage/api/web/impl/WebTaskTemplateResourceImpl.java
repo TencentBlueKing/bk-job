@@ -226,6 +226,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplate(user,
             appResourceScope.getAppId(), templateId);
 
+        // 填充 step.refVariables，供 TaskStepDTO.toVO 输出前端所需的 ref_variables
         StepRefVariableParser.parseStepRefVars(templateInfo.getStepList(), templateInfo.getVariableList());
 
         TaskTemplateVO taskTemplateVO = TaskTemplateInfoDTO.toVO(templateInfo);

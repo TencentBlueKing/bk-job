@@ -5240,6 +5240,493 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Create a new job plan based on an existing job template
+  /api/v4/get_job_template_detail:
+    get:
+      operationId: v4_get_job_template_detail
+      description: 获取作业模板详情
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      bk_scope_type:
+                        type: string
+                        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                      bk_scope_id:
+                        type: string
+                        description: 资源范围ID
+                      id:
+                        type: number
+                        description: 作业模板ID
+                      name:
+                        type: string
+                        description: 作业模板名称
+                      description:
+                        type: string
+                        description: 作业模板描述；无描述时为空字符串
+                      creator:
+                        type: string
+                        description: 创建人
+                      create_time:
+                        type: number
+                        description: 创建时间，Unix时间戳，单位毫秒
+                      last_modify_user:
+                        type: string
+                        description: 最后修改人
+                      last_modify_time:
+                        type: number
+                        description: 最后修改时间，Unix时间戳，单位毫秒
+                      global_var_list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: 全局变量名称
+                            type:
+                              type: number
+                              description: '变量类型。可选值: 1 - 字符串, 2 - 命名空间, 3 - 执行目标列表, 4 - 密文, 5 - 关联数组, 6 - 索引数组'
+                            description:
+                              type: string
+                              description: 变量描述
+                            required:
+                              type: number
+                              description: '是否必填。可选值: 1 - 是, 0 - 否'
+                            value:
+                              type: string
+                              description: '变量值；当 type 为 1、2、4、5、6 时返回；密文类型返回******'
+                            execute_target:
+                              type: object
+                              properties:
+                                variable:
+                                  type: string
+                                  description: 引用模板中其他全局变量名称
+                                host_list:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      bk_host_id:
+                                        type: number
+                                        description: 主机在CMDB中的ID
+                                      bk_cloud_id:
+                                        type: number
+                                        description: 管控区域ID
+                                      ip:
+                                        type: string
+                                        description: 主机IP地址
+                                  description: 静态主机列表
+                                dynamic_group_list:
+                                  type: array
+                                  items:
+                                    type: object
+                                    required:
+                                    - id
+                                    properties:
+                                      id:
+                                        type: string
+                                        description: 动态分组ID
+                                  description: 动态分组列表
+                                topo_node_list:
+                                  type: array
+                                  items:
+                                    type: object
+                                    required:
+                                    - id
+                                    - node_type
+                                    properties:
+                                      id:
+                                        type: number
+                                        description: 拓扑节点ID
+                                      node_type:
+                                        type: string
+                                        description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                                  description: CMDB拓扑节点列表
+                              description: 执行目标
+                          description: 全局变量
+                        description: 全局变量列表；无变量时为空数组
+                      step_list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: number
+                              description: 步骤ID
+                            name:
+                              type: string
+                              description: 步骤名称
+                            type:
+                              type: number
+                              description: '步骤类型。可选值: 1 - 脚本执行, 2 - 文件分发, 3 - 人工确认'
+                            script_info:
+                              type: object
+                              properties:
+                                script_type:
+                                  type: number
+                                  description: '脚本来源类型。可选值: 1 - 本地脚本, 2 - 引用脚本, 3 - 公共脚本'
+                                script_id:
+                                  type: string
+                                  description: 脚本ID
+                                script_version_id:
+                                  type: number
+                                  description: 脚本版本ID
+                                script_content:
+                                  type: string
+                                  description: 脚本内容，Base64编码
+                                script_language:
+                                  type: number
+                                  description: '脚本语言。可选值: 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - SQL'
+                                script_param:
+                                  type: string
+                                  description: 脚本参数，Base64编码
+                                windows_interpreter:
+                                  type: string
+                                  description: Windows脚本解释器路径
+                                script_timeout:
+                                  type: number
+                                  description: 脚本超时时间，单位为秒
+                                is_param_sensitive:
+                                  type: number
+                                  description: '脚本参数是否敏感。可选值: 1 - 是, 0 - 否'
+                                is_ignore_error:
+                                  type: number
+                                  description: '是否忽略错误。可选值: 1 - 是, 0 - 否'
+                                account:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: number
+                                      description: 账号ID
+                                    name:
+                                      type: string
+                                      description: 账号名称
+                                    alias:
+                                      type: string
+                                      description: 账号别名
+                                  description: 执行账号
+                                execute_target:
+                                  type: object
+                                  properties:
+                                    variable:
+                                      type: string
+                                      description: 引用模板中其他全局变量名称
+                                    host_list:
+                                      type: array
+                                      items:
+                                        type: object
+                                        properties:
+                                          bk_host_id:
+                                            type: number
+                                            description: 主机在CMDB中的ID
+                                          bk_cloud_id:
+                                            type: number
+                                            description: 管控区域ID
+                                          ip:
+                                            type: string
+                                            description: 主机IP地址
+                                      description: 静态主机列表
+                                    dynamic_group_list:
+                                      type: array
+                                      items:
+                                        type: object
+                                        required:
+                                        - id
+                                        properties:
+                                          id:
+                                            type: string
+                                            description: 动态分组ID
+                                      description: 动态分组列表
+                                    topo_node_list:
+                                      type: array
+                                      items:
+                                        type: object
+                                        required:
+                                        - id
+                                        - node_type
+                                        properties:
+                                          id:
+                                            type: number
+                                            description: 拓扑节点ID
+                                          node_type:
+                                            type: string
+                                            description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                                      description: CMDB拓扑节点列表
+                                  description: 执行目标
+                              description: 脚本步骤信息
+                            file_info:
+                              type: object
+                              properties:
+                                file_source_list:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      file_list:
+                                        type: array
+                                        items:
+                                          type: string
+                                        description: 文件路径列表
+                                      file_type:
+                                        type: number
+                                        description: '文件源类型。可选值: 1 - 服务器文件, 2 - 本地文件, 3 - 文件源文件, 4 - Base64编码的文件'
+                                      file_source_code:
+                                        type: string
+                                        description: 文件源标识
+                                      account:
+                                        type: object
+                                        properties:
+                                          id:
+                                            type: number
+                                            description: 账号ID
+                                          name:
+                                            type: string
+                                            description: 账号名称
+                                          alias:
+                                            type: string
+                                            description: 账号别名
+                                        description: 执行账号
+                                      execute_target:
+                                        type: object
+                                        properties:
+                                          variable:
+                                            type: string
+                                            description: 引用模板中其他全局变量名称
+                                          host_list:
+                                            type: array
+                                            items:
+                                              type: object
+                                              properties:
+                                                bk_host_id:
+                                                  type: number
+                                                  description: 主机在CMDB中的ID
+                                                bk_cloud_id:
+                                                  type: number
+                                                  description: 管控区域ID
+                                                ip:
+                                                  type: string
+                                                  description: 主机IP地址
+                                            description: 静态主机列表
+                                          dynamic_group_list:
+                                            type: array
+                                            items:
+                                              type: object
+                                              required:
+                                              - id
+                                              properties:
+                                                id:
+                                                  type: string
+                                                  description: 动态分组ID
+                                            description: 动态分组列表
+                                          topo_node_list:
+                                            type: array
+                                            items:
+                                              type: object
+                                              required:
+                                              - id
+                                              - node_type
+                                              properties:
+                                                id:
+                                                  type: number
+                                                  description: 拓扑节点ID
+                                                node_type:
+                                                  type: string
+                                                  description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                                            description: CMDB拓扑节点列表
+                                        description: 源文件执行目标
+                                    description: 源文件
+                                  description: 源文件列表
+                                file_destination:
+                                  type: object
+                                  properties:
+                                    path:
+                                      type: string
+                                      description: 目标路径
+                                    account:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: number
+                                          description: 账号ID
+                                        name:
+                                          type: string
+                                          description: 账号名称
+                                        alias:
+                                          type: string
+                                          description: 账号别名
+                                      description: 执行账号
+                                    execute_target:
+                                      type: object
+                                      properties:
+                                        variable:
+                                          type: string
+                                          description: 引用模板中其他全局变量名称
+                                        host_list:
+                                          type: array
+                                          items:
+                                            type: object
+                                            properties:
+                                              bk_host_id:
+                                                type: number
+                                                description: 主机在CMDB中的ID
+                                              bk_cloud_id:
+                                                type: number
+                                                description: 管控区域ID
+                                              ip:
+                                                type: string
+                                                description: 主机IP地址
+                                          description: 静态主机列表
+                                        dynamic_group_list:
+                                          type: array
+                                          items:
+                                            type: object
+                                            required:
+                                            - id
+                                            properties:
+                                              id:
+                                                type: string
+                                                description: 动态分组ID
+                                          description: 动态分组列表
+                                        topo_node_list:
+                                          type: array
+                                          items:
+                                            type: object
+                                            required:
+                                            - id
+                                            - node_type
+                                            properties:
+                                              id:
+                                                type: number
+                                                description: 拓扑节点ID
+                                              node_type:
+                                                type: string
+                                                description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                                          description: CMDB拓扑节点列表
+                                      description: 目标执行目标
+                                  description: 目标路径信息
+                                timeout:
+                                  type: number
+                                  description: 文件传输超时时间，单位为秒
+                                transfer_mode:
+                                  type: number
+                                  description: '传输模式。可选值: 1 - 严谨模式, 2 - 强制模式, 3 - 保险模式(FILE_SRC_IP), 4 - 保险模式(YYYY-MM-DD)'
+                                source_speed_limit:
+                                  type: number
+                                  description: 源机器上传限速，单位为MB/s；没有值表示不限速
+                                destination_speed_limit:
+                                  type: number
+                                  description: 目标机器下载限速，单位为MB/s；没有值表示不限速
+                                is_ignore_error:
+                                  type: number
+                                  description: '是否忽略错误。可选值: 1 - 是, 0 - 否'
+                              description: 文件步骤信息
+                            approval_info:
+                              type: object
+                              properties:
+                                approval_type:
+                                  type: number
+                                  description: '确认类型。可选值: 1 - 任意人审批, 2 - 所有人审批'
+                                approval_user:
+                                  type: object
+                                  properties:
+                                    user_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 用户列表
+                                    role_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 角色列表
+                                  description: 确认人信息
+                                approval_message:
+                                  type: string
+                                  description: 确认提示信息
+                                notify_channel:
+                                  type: array
+                                  items:
+                                    type: string
+                                    description: '通知渠道类型。常见取值: mail - 邮件, weixin - 微信, rtx - 企业微信；实际取值取决于环境已配置的通知渠道'
+                                  description: 通知渠道列表
+                              description: 人工确认步骤信息
+                          description: 步骤
+                        description: 步骤列表，返回模板全部步骤（含未启用步骤）；无步骤时为空数组
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      parameters:
+      - name: bk_scope_type
+        in: query
+        required: true
+        schema:
+          type: string
+        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+      - name: bk_scope_id
+        in: query
+        required: true
+        schema:
+          type: string
+        description: 资源范围ID，须与bk_scope_type对应，表示业务ID或业务集ID
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: number
+        description: 作业模板ID，须大于0，且对应模板须已存在
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: get
+          path: /{env.api_path_prefix}api/job/v4/job-manage/get_job_template_detail
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get job template detail
   /api/v4/get_job_instance_list:
     get:
       operationId: v4_get_job_instance_list
@@ -5779,17 +6266,129 @@ paths:
                         properties:
                           ip:
                             type: string
-                            description: 主机IP地址。与bk_host_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先。
+                            description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
                           bk_host_id:
                             type: number
-                            description: 主机ID。与ip+bk_cloud_id参数必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先。
+                            description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
                           bk_cloud_id:
                             type: number
-                            default: 0
-                            description: 云区域ID，内部IDC区域通常为0，未指定情况下使用0。与bk_host_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先
-                        description: 一台主机
+                            description: 管控区域ID，须与ip同时填写
+                        description: 一台静态主机
                       description: 静态主机列表
-                  description: 执行目标
+                    dynamic_group_list:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        properties:
+                          id:
+                            type: string
+                            description: 动态分组ID
+                        description: 一个动态分组
+                      description: 动态分组列表
+                    topo_node_list:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        - node_type
+                        properties:
+                          id:
+                            type: number
+                            description: 拓扑节点ID
+                          node_type:
+                            type: string
+                            description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                        description: 一个CMDB拓扑节点
+                      description: CMDB拓扑节点列表
+                    kube_container_filters:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - kube_cluster_filter
+                        properties:
+                          kube_cluster_filter:
+                            type: object
+                            required:
+                            - cluster_uid_list
+                            properties:
+                              cluster_uid_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: 集群UID列表
+                            description: 集群过滤器
+                          kube_namespace_filter:
+                            type: object
+                            properties:
+                              namespace_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: namespace名称列表
+                            description: namespace过滤器
+                          kube_workload_filter:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                                description: workload类型，如deployment、statefulSet、daemonSet、customResource等
+                              workload_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: workload名称列表
+                            description: workload过滤器
+                          kube_pod_filter:
+                            type: object
+                            properties:
+                              pod_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: pod名称列表
+                              label_selector:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    key:
+                                      type: string
+                                      description: label key
+                                    operator:
+                                      type: string
+                                      description: '操作符。可选值: not_exists, equals, in, not_equals, not_in, exists, gt, lt'
+                                    values:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: label value列表，operator为in或not_in时必填
+                                description: 标签选择器列表
+                              label_selector_expr:
+                                type: array
+                                items:
+                                  type: string
+                                description: label selector表达式
+                            description: pod属性过滤器
+                          kube_container_prop_filter:
+                            type: object
+                            properties:
+                              container_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: 容器名称列表
+                            description: 容器属性过滤器
+                          execute_in_whole_cluster:
+                            type: boolean
+                            default: false
+                            description: 是否在整个集群内执行，默认为false。为true时忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter
+                        description: 一个容器过滤器
+                      description: 容器过滤器列表
+                  description: 执行目标。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空
                 script_content:
                   type: string
                   description: Base64编码后的脚本内容。
