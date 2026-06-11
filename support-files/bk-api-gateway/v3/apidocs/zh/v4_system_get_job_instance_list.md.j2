@@ -1,4 +1,4 @@
-### 功能描述
+﻿### 功能描述
 
 查询任务执行历史
 
@@ -28,7 +28,7 @@
 - GET
 
 ```json
-/api/v4/get_job_instance_list?bk_scope_type=biz&bk_scope_id=1&type=0&launch_mode=1&status=3&operator=admin&name=test&create_time_start=1546272000000&create_time_end=1577807999999&offset=40&length=20
+/api/v4/system/get_job_instance_list?bk_scope_type=biz&bk_scope_id=1&type=0&launch_mode=1&status=3&operator=admin&name=test&create_time_start=1546272000000&create_time_end=1577807999999&offset=40&length=20
 ```
 
 ### 返回结果示例
@@ -112,4 +112,4 @@
 
 #### task_status
 
-{% include '_generic_task_status.md.j2' %}
+{% include '_generic_v4_task_status.md.j2' %}

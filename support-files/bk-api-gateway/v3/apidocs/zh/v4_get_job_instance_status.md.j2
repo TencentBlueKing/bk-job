@@ -1,4 +1,4 @@
-### 功能描述
+﻿### 功能描述
 
 根据作业实例 ID 查询作业执行状态
 
@@ -18,7 +18,7 @@
 - GET
 
 ```json
-/api/v4/system/get_job_instance_status?bk_scope_type=biz&bk_scope_id=1&job_instance_id=100&return_ip_result=true
+/api/v4/get_job_instance_status?bk_scope_type=biz&bk_scope_id=1&job_instance_id=100&return_ip_result=true
 ```
 
 ### 返回结果示例
@@ -137,12 +137,12 @@
 
 #### execute_object
 
-{% include '_generic_execute_object.md.j2' %}
+{% include '_generic_v4_execute_object.md.j2' %}
 
 #### run_status
 
-{% include '_generic_task_status.md.j2' %}
+{% include '_generic_v4_task_status.md.j2' %}
 
 #### target_object_status
 
-{% include '_generic_target_object_status.md.j2' %}
+{% include '_generic_v4_target_object_status.md.j2' %}
