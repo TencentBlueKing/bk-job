@@ -528,6 +528,12 @@ public class ErrorCode {
     public static final int BK_ARTIFACTORY_BASE_URL_INVALID = 1260020;
     // 白名单记录已存在，请删除旧数据后再添加
     public static final int FILE_SOURCE_WHITE_INFO_ALREADY_EXISTS = 1260021;
+    /**
+     * Worker 连通性回探失败，详情：{0}
+     * 用于 file-worker 启动期反复调用 file-gateway 的 /remote/fileWorker/connectivityCheck 接口，
+     * 回探失败时记录日志（不抛异常）。
+     */
+    public static final int FILE_WORKER_CONNECTIVITY_CHECK_FAIL = 1260022;
 
     // 文件网关 end
     // 文件代理 start

@@ -50,7 +50,8 @@ jooq {
 
                     println("mysqlURL=" + mysqlURL)
                     println("mysqlUser=" + mysqlUser)
-                    url = "jdbc:mysql://${mysqlURL}/${databaseName}?useSSL=false&serverTimezone=UTC"
+                    url = "jdbc:mysql://${mysqlURL}/${databaseName}?useSSL=false&serverTimezone=UTC" +
+                            "&allowPublicKeyRetrieval=true"
                     user = mysqlUser
                     password = mysqlPasswd
                 }
