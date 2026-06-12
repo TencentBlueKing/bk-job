@@ -35,8 +35,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Authorization {
 
-    public static final String HEADER_KEY_AUTHORIZATION = "X-Bkapi-Authorization";
-
     @JsonProperty("bk_app_code")
     private String bkAppCode;
 
