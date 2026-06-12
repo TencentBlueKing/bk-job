@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
@@ -53,6 +54,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
+import com.tencent.bk.job.manage.service.host.TenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import org.junit.jupiter.api.AfterEach;
@@ -63,8 +65,11 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -95,6 +100,7 @@ class OpenApiJobPlanV4ResourceImplTest {
     private TemplateAuthService templateAuthService;
     private PlanAuthService planAuthService;
     private AppScopeMappingService appScopeMappingService;
+    private TenantHostService tenantHostService;
 
     private OpenApiJobPlanV4ResourceImpl resource;
     private User testUser;
@@ -106,6 +112,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         templateAuthService = mock(TemplateAuthService.class);
         planAuthService = mock(PlanAuthService.class);
         appScopeMappingService = mock(AppScopeMappingService.class);
+        tenantHostService = mock(TenantHostService.class);
         testUser = new User(TENANT_ID, USERNAME, USERNAME);
 
         when(appScopeMappingService.getAppIdByScope(SCOPE_TYPE, SCOPE_ID)).thenReturn(APP_ID);
@@ -122,7 +129,8 @@ class OpenApiJobPlanV4ResourceImplTest {
             templateService,
             templateAuthService,
             planAuthService,
-            appScopeMappingService
+            appScopeMappingService,
+            tenantHostService
         );
         JobContextUtil.setUser(testUser);
     }
@@ -354,6 +362,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         mixed.setDynamicGroups(Collections.singletonList(group));
         mixed.setTopoNodes(Collections.singletonList(topo));
 
+        stubListHostsByIps(Collections.singletonMap("0:127.0.0.1", buildCmdbHost(20002L, 0L, "127.0.0.1")));
         createWithExecuteTarget(mixed);
 
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
@@ -363,10 +372,55 @@ class OpenApiJobPlanV4ResourceImplTest {
         );
         assertThat(target.getHostNodeList().getHostList()).hasSize(2);
         assertThat(target.getHostNodeList().getHostList().get(0).getHostId()).isEqualTo(10001L);
+        assertThat(target.getHostNodeList().getHostList().get(1).getHostId()).isEqualTo(20002L);
         assertThat(target.getHostNodeList().getHostList().get(1).getIp()).isEqualTo("127.0.0.1");
         assertThat(target.getHostNodeList().getDynamicGroupId()).containsExactly("dg-001");
         assertThat(target.getHostNodeList().getNodeInfoList()).hasSize(1);
         assertThat(target.getHostNodeList().getNodeInfoList().get(0).getType()).isEqualTo("module");
+    }
+
+    @Test
+    @DisplayName("仅传 cloud+ip 且 CMDB 查不到主机时抛 ILLEGAL_PARAM，且不落库")
+    void executeTarget_hostByIp_notFoundInCmdb_throws() {
+        TaskVariableDTO hostVar = buildTemplateVar(20L, "HOST_TARGET", TaskVariableTypeEnum.EXECUTE_OBJECT_LIST, null);
+        stubTemplateAndCreate(Collections.singletonList(101L), Collections.singletonList(hostVar));
+
+        OpenApiV4HostDTO hostByIp = new OpenApiV4HostDTO();
+        hostByIp.setBkCloudId(0L);
+        hostByIp.setIp("127.0.0.99");
+        V4ExecuteTargetDTO executeTarget = new V4ExecuteTargetDTO();
+        executeTarget.setHostList(Collections.singletonList(hostByIp));
+
+        // CMDB 返回空 -> 视为该 cloud+ip 主机不存在
+        stubListHostsByIps(Collections.emptyMap());
+
+        assertThatThrownBy(() -> createWithExecuteTarget(executeTarget))
+            .isInstanceOfSatisfying(InvalidParamException.class, e ->
+                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON)
+            );
+        verify(planService, times(0)).createTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
+    }
+
+    private void stubListHostsByIps(Map<String, ApplicationHostDTO> mapping) {
+        when(tenantHostService.listHostsByIps(eq(TENANT_ID), any())).thenAnswer(invocation -> {
+            Collection<String> requested = invocation.getArgument(1);
+            Map<String, ApplicationHostDTO> result = new HashMap<>();
+            for (String cloudIp : requested) {
+                ApplicationHostDTO host = mapping.get(cloudIp);
+                if (host != null) {
+                    result.put(cloudIp, host);
+                }
+            }
+            return result;
+        });
+    }
+
+    private static ApplicationHostDTO buildCmdbHost(Long hostId, Long cloudId, String ip) {
+        ApplicationHostDTO host = new ApplicationHostDTO();
+        host.setHostId(hostId);
+        host.setCloudAreaId(cloudId);
+        host.setIp(ip);
+        return host;
     }
 
     private void createWithExecuteTarget(V4ExecuteTargetDTO executeTarget) {
