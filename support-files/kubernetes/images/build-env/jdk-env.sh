@@ -1,13 +1,13 @@
 # 该文件由shell启动时 source，用于初始化默认jdk，并提供jdk切换函数
-export JAVA17_HOME=/data/TencentKona-17.0.16.b1
-export KONA_JDK17_HOME=/data/TencentKona-17.0.16.b1
-export JAVA8_HOME=/data/TencentKona8
-export KONA_JDK8_HOME=/data/TencentKona8
+export JAVA17_HOME=/bk_job_data/TencentKona-17.0.16.b1
+export KONA_JDK17_HOME=/bk_job_data/TencentKona-17.0.16.b1
+export JAVA8_HOME=/bk_job_data/TencentKona8
+export KONA_JDK8_HOME=/bk_job_data/TencentKona8
 export NVM_DIR=/usr/local/nvm
 export MYSQL_PORT=${MYSQL_PORT:-3306}
 export MYSQL_USER=${MYSQL_USER:-root}
 export MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
-export MYSQL_DATADIR=${MYSQL_DATADIR:-/data/mysql}
+export MYSQL_DATADIR=${MYSQL_DATADIR:-/bk_job_data/mysql}
 export MYSQL_RUN_DIR=${MYSQL_RUN_DIR:-/tmp/mysql}
 
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"

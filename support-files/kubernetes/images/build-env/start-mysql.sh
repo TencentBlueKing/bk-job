@@ -4,7 +4,7 @@ set -euo pipefail
 export PATH="/usr/local/mysql/bin:$PATH"
 
 # 这些参数均可在 docker run 时通过 -e 覆盖。
-MYSQL_DATADIR=${MYSQL_DATADIR:-/data/mysql}
+MYSQL_DATADIR=${MYSQL_DATADIR:-/bk_job_data/mysql}
 MYSQL_RUN_DIR=${MYSQL_RUN_DIR:-/tmp/mysql}
 MYSQL_SOCKET=${MYSQL_SOCKET:-${MYSQL_RUN_DIR}/mysql.sock}
 MYSQL_PORT=${MYSQL_PORT:-3306}
@@ -13,9 +13,9 @@ MYSQL_PASSWORD=${MYSQL_PASSWORD:-root}
 MYSQL_LOG=${MYSQL_LOG:-${MYSQL_RUN_DIR}/mysqld.log}
 
 case "${MYSQL_DATADIR}" in
-    /data/*|/tmp/*) ;;
+    /bk_job_data/*|/tmp/*) ;;
     *)
-        echo "MYSQL_DATADIR must be under /data or /tmp because start-mysql recreates it: ${MYSQL_DATADIR}" >&2
+        echo "MYSQL_DATADIR must be under /bk_job_data or /tmp because start-mysql recreates it: ${MYSQL_DATADIR}" >&2
         exit 1
         ;;
 esac
