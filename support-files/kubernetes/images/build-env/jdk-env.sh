@@ -21,13 +21,23 @@ export NODE_HOME
 use-jdk17() {
     export JAVA_HOME="$JAVA17_HOME"
     export CLASSPATH=".:$JAVA_HOME/lib"
-    export PATH="$JAVA_HOME/bin:$NODE_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    PATH=":$PATH:"
+    PATH="${PATH//:$JAVA17_HOME\/bin:/:}"
+    PATH="${PATH//:$JAVA8_HOME\/bin:/:}"
+    PATH="${PATH#:}"
+    PATH="${PATH%:}"
+    export PATH="$JAVA_HOME/bin:$PATH"
 }
 
 use-jdk8() {
     export JAVA_HOME="$JAVA8_HOME"
     export CLASSPATH=".:$JAVA_HOME/lib"
-    export PATH="$JAVA_HOME/bin:$NODE_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    PATH=":$PATH:"
+    PATH="${PATH//:$JAVA17_HOME\/bin:/:}"
+    PATH="${PATH//:$JAVA8_HOME\/bin:/:}"
+    PATH="${PATH#:}"
+    PATH="${PATH%:}"
+    export PATH="$JAVA_HOME/bin:$PATH"
 }
 
 # 默认使用jdk17，需要jdk8时手动执行use-jdk8

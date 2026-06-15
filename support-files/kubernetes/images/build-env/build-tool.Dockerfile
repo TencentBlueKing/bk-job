@@ -4,6 +4,7 @@ ARG BASE_IMAGE=bkjob/tool-set:3.12.6
 FROM ${BASE_IMAGE} AS git-builder
 
 ARG GIT_VERSION=2.41.3
+ARG GIT_SHA256=baa39125deee194b440ac7d0138f6c34f0d87ceb1cb9da5b2becf704f45b0819
 
 # 构建指定版本的git
 RUN dnf install -y \
@@ -17,6 +18,7 @@ RUN dnf install -y \
         zlib-devel && \
     cd /tmp && \
     curl -fSL "https://mirrors.edge.kernel.org/pub/software/scm/git/git-${GIT_VERSION}.tar.xz" -o git.tar.xz && \
+    echo "${GIT_SHA256}  git.tar.xz" | sha256sum -c - && \
     mkdir git-src && \
     tar -xJf git.tar.xz -C git-src --strip-components=1 && \
     cd git-src && \
@@ -30,8 +32,10 @@ FROM ${BASE_IMAGE}
 
 ARG KONA_JDK8_TAG=8.0.26-GA
 ARG KONA_JDK8_PACKAGE=TencentKona8.0.26.b1_jdk_linux-x86_64_8u492.tar.gz
+ARG KONA_JDK8_SHA256=9df50dd8e888ac62721ddd18400194f190bd91b8f3a1e1d782f710fc0eab2478
 ARG NODE_VERSION=24.16.0
 ARG NVM_VERSION=0.40.3
+ARG NVM_SHA256=5f4d6aaa04a177dc93c985e31dbc411ab6b8c6e1e21d8015dbc1372625fcd1d0
 
 LABEL maintainer="Tencent BlueKing Job" \
       dockerfile.version="1.0.1"
@@ -68,6 +72,7 @@ RUN ln -sf /opt/git/bin/git /usr/local/bin/git
 RUN mkdir -p /bk_job_data && \
     cd /tmp && \
     curl -fSL "https://github.com/Tencent/TencentKona-8/releases/download/${KONA_JDK8_TAG}/${KONA_JDK8_PACKAGE}" -o kona8.tar.gz && \
+    echo "${KONA_JDK8_SHA256}  kona8.tar.gz" | sha256sum -c - && \
     KONA_DIR="$(tar -tzf kona8.tar.gz | head -1 | cut -d/ -f1)" && \
     tar -xzf kona8.tar.gz -C /bk_job_data && \
     rm -rf "${JAVA8_HOME}" && \
@@ -78,6 +83,7 @@ RUN mkdir -p /bk_job_data && \
 RUN mkdir -p "${NVM_DIR}" && \
     cd /tmp && \
     curl -fSL "https://github.com/nvm-sh/nvm/archive/refs/tags/v${NVM_VERSION}.tar.gz" -o nvm.tar.gz && \
+    echo "${NVM_SHA256}  nvm.tar.gz" | sha256sum -c - && \
     tar -xzf nvm.tar.gz -C "${NVM_DIR}" --strip-components=1 && \
     rm -f /tmp/nvm.tar.gz && \
     . "${NVM_DIR}/nvm.sh" && \

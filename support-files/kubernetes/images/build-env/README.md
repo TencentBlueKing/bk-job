@@ -34,17 +34,20 @@ docker build \
   .
 ```
 
-需要调整基础镜像或组件版本时，通过 build-arg 覆盖：
+需要调整基础镜像或组件版本时，通过 build-arg 覆盖；修改组件版本时必须同步更新对应的 SHA-256：
 
 ```bash
 cd support-files/kubernetes/images/build-env
 docker build \
   --build-arg BASE_IMAGE=bkjob/tool-set:3.12.6 \
   --build-arg GIT_VERSION=2.41.3 \
+  --build-arg GIT_SHA256=baa39125deee194b440ac7d0138f6c34f0d87ceb1cb9da5b2becf704f45b0819 \
   --build-arg KONA_JDK8_TAG=8.0.26-GA \
   --build-arg KONA_JDK8_PACKAGE=TencentKona8.0.26.b1_jdk_linux-x86_64_8u492.tar.gz \
+  --build-arg KONA_JDK8_SHA256=9df50dd8e888ac62721ddd18400194f190bd91b8f3a1e1d782f710fc0eab2478 \
   --build-arg NODE_VERSION=24.16.0 \
   --build-arg NVM_VERSION=0.40.3 \
+  --build-arg NVM_SHA256=5f4d6aaa04a177dc93c985e31dbc411ab6b8c6e1e21d8015dbc1372625fcd1d0 \
   -t hub.bktencent.com/blueking/job-build-tool:1.0.1 \
   -f build-tool.Dockerfile \
   .
