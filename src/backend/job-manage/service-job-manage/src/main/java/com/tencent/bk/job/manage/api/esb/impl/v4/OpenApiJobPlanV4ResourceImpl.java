@@ -37,12 +37,12 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteTargetDTO;
@@ -59,6 +59,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
+import com.tencent.bk.job.manage.service.host.TenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -83,18 +84,21 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
     private final TemplateAuthService templateAuthService;
     private final PlanAuthService planAuthService;
     private final AppScopeMappingService appScopeMappingService;
+    private final TenantHostService tenantHostService;
 
     @Autowired
     public OpenApiJobPlanV4ResourceImpl(TaskPlanService planService,
                                         TaskTemplateService templateService,
                                         TemplateAuthService templateAuthService,
                                         PlanAuthService planAuthService,
-                                        AppScopeMappingService appScopeMappingService) {
+                                        AppScopeMappingService appScopeMappingService,
+                                        TenantHostService tenantHostService) {
         this.planService = planService;
         this.templateService = templateService;
         this.templateAuthService = templateAuthService;
         this.planAuthService = planAuthService;
         this.appScopeMappingService = appScopeMappingService;
+        this.tenantHostService = tenantHostService;
     }
 
     @Override
@@ -119,7 +123,7 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         }
 
         List<Long> enableSteps = resolveEnableSteps(request, template);
-        List<TaskVariableDTO> variableList = mapVariables(request.getVariables(), template);
+        List<TaskVariableDTO> variableList = mapVariables(request.getVariables(), template, user.getTenantId());
 
         String planName = StringUtils.strip(request.getName());
         if (Boolean.FALSE.equals(
@@ -162,7 +166,9 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         return new ArrayList<>(request.getEnableSteps());
     }
 
-    private List<TaskVariableDTO> mapVariables(List<V4JobPlanVariableItem> variables, TaskTemplateInfoDTO template) {
+    private List<TaskVariableDTO> mapVariables(List<V4JobPlanVariableItem> variables,
+                                               TaskTemplateInfoDTO template,
+                                               String tenantId) {
         if (CollectionUtils.isEmpty(variables)) {
             return new ArrayList<>();
         }
@@ -220,7 +226,7 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
                             }
                         );
                     }
-                    TaskTargetDTO taskTargetDTO = buildTaskTargetDTO(item.getExecuteTarget());
+                    TaskTargetDTO taskTargetDTO = buildTaskTargetDTO(item.getExecuteTarget(), tenantId);
                     dto.setDefaultValue(taskTargetDTO.toJsonString());
                 }
             } else if (!item.isFollowTemplate() && item.getValue() != null) {
@@ -232,7 +238,7 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
     }
 
     /** 执行目标变量覆盖：仅主机维度，容器 filter 暂不支持。 */
-    private TaskTargetDTO buildTaskTargetDTO(V4ExecuteTargetDTO v4) {
+    private TaskTargetDTO buildTaskTargetDTO(V4ExecuteTargetDTO v4, String tenantId) {
         if (v4 == null) {
             throw new InvalidParamException(
                 ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
@@ -265,9 +271,7 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         }
         TaskHostNodeDTO hostNode = new TaskHostNodeDTO();
         if (CollectionUtils.isNotEmpty(v4.getHostList())) {
-            hostNode.setHostList(v4.getHostList().stream()
-                .map(OpenApiJobPlanV4ResourceImpl::toApplicationHostDTO)
-                .collect(Collectors.toList()));
+            hostNode.setHostList(resolveHostList(v4.getHostList(), tenantId));
         }
         if (CollectionUtils.isNotEmpty(v4.getDynamicGroups())) {
             hostNode.setDynamicGroupId(v4.getDynamicGroups().stream()
@@ -282,15 +286,59 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         return new TaskTargetDTO(null, hostNode, null);
     }
 
-    private static ApplicationHostDTO toApplicationHostDTO(OpenApiV4HostDTO host) {
-        ApplicationHostDTO applicationHost = new ApplicationHostDTO();
-        if (host.getBkHostId() != null) {
-            applicationHost.setHostId(host.getBkHostId());
-        } else {
-            applicationHost.setCloudAreaId(host.getBkCloudId());
-            applicationHost.setIp(host.getIp());
+    /**
+     * 将 OpenAPI 主机列表解析为 {@link ApplicationHostDTO} 列表，并补全 hostId。
+     *
+     * <p>已带 bk_host_id 的直接使用；仅传 bk_cloud_id+ip 的批量从 CMDB（经 TenantHostService 缓存兜底）反查 hostId。
+     * 未能解析到 hostId 的主机会抛 {@link InvalidParamException}，避免创建出页面回显"主机无效"的执行方案。
+     *
+     * @param hosts    入参主机列表，已由 {@link com.tencent.bk.job.execute.model.esb.v4.req.validator.V4HostGroupSequenceProvider}
+     *                 保证至少含有 bk_host_id 或 bk_cloud_id+ip
+     * @param tenantId 当前请求租户 ID
+     * @return 已补全 hostId 的主机列表
+     */
+    private List<ApplicationHostDTO> resolveHostList(List<OpenApiV4HostDTO> hosts, String tenantId) {
+        List<ApplicationHostDTO> result = new ArrayList<>(hosts.size());
+        Set<String> cloudIpsToResolve = new HashSet<>();
+        for (OpenApiV4HostDTO host : hosts) {
+            ApplicationHostDTO dto = new ApplicationHostDTO();
+            if (host.getBkHostId() != null) {
+                dto.setHostId(host.getBkHostId());
+            } else {
+                dto.setCloudAreaId(host.getBkCloudId());
+                dto.setIp(host.getIp());
+                cloudIpsToResolve.add(dto.getCloudIp());
+            }
+            result.add(dto);
         }
-        return applicationHost;
+        if (cloudIpsToResolve.isEmpty()) {
+            return result;
+        }
+
+        Map<String, ApplicationHostDTO> hostsFromCmdb =
+            tenantHostService.listHostsByIps(tenantId, cloudIpsToResolve);
+        List<String> missingCloudIps = new ArrayList<>();
+        for (ApplicationHostDTO dto : result) {
+            if (dto.getHostId() != null) {
+                continue;
+            }
+            ApplicationHostDTO cmdbHost = hostsFromCmdb == null ? null : hostsFromCmdb.get(dto.getCloudIp());
+            if (cmdbHost == null || cmdbHost.getHostId() == null) {
+                missingCloudIps.add(dto.getCloudIp());
+                continue;
+            }
+            dto.setHostId(cmdbHost.getHostId());
+        }
+        if (!missingCloudIps.isEmpty()) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{
+                    "variables[].execute_target.host_list",
+                    "host not found in cmdb by cloud_id+ip: " + String.join(",", missingCloudIps)
+                }
+            );
+        }
+        return result;
     }
 
     private static TaskNodeInfoDTO toTaskNodeInfoDTO(EsbCmdbTopoNodeDTO topoNode) {
