@@ -35,22 +35,37 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * BK-Log 配置属性，支持多日志源索引集配置。
+ * BK-Log 配置属性，支持多日志接入点（endpoints）与多日志源（sources）配置。
  * <p>
  * 配置结构：
  * <pre>
  * bk.log:
  *   defaultSource: prod-service
+ *   endpoints:
+ *     env-a:
+ *       url: http://bklog.aaa.com
+ *       bkAppCode: "xxx"        # 可选，缺省回退到 bk-api-gateway.bkAppCode
+ *       bkAppSecret: "xxx"      # 可选，缺省回退到 bk-api-gateway.bkAppSecret
+ *       username: admin
+ *       retryCount: 3
+ *       retryInterval: 3
+ *     env-b:
+ *       url: http://bklog.bbb.com
+ *       retryCount: 3
+ *       retryInterval: 3
  *   sources:
  *     prod-service:
- *       label: "生产环境-微服务日志"
+ *       label: "xxx环境-微服务日志"
+ *       endpoint: env-a
+ *       sortField: "log_time"
  *       indices: "..."
  *       indexSetId: 100
  *       expireTime: 7
- *     prod-gateway:
- *       label: "生产环境-网关Access日志"
- *       indices: "..."
- *       indexSetId: 101
+ *     othergame-service:
+ *       label: "yyy环境-微服务日志"
+ *       endpoint: env-b
+ *       sortField: "log_time"
+ *       indexSetId: 300
  *       expireTime: 7
  * </pre>
  */
@@ -61,9 +76,19 @@ import java.util.Map;
 public class BkLogProperties {
 
     /**
+     * 兼容回退时使用的 endpoint 名称
+     */
+    public static final String DEFAULT_ENDPOINT = "default";
+
+    /**
      * 默认日志源 key
      */
     private String defaultSource;
+
+    /**
+     * 日志接入点（不同环境的 bklog 网关）配置表，key 为接入点名称
+     */
+    private Map<String, Endpoint> endpoints = new LinkedHashMap<>();
 
     /**
      * 日志源配置表，key 为日志源短标识
@@ -77,7 +102,8 @@ public class BkLogProperties {
     private Integer expireTime = 7;
 
     /**
-     * 兼容旧配置：如果未配置 sources，用旧字段构造一个 default 日志源
+     * 兼容旧配置：如果未配置 sources，用旧字段构造一个 default 日志源，
+     * 并把它的 endpoint 指向 {@link #DEFAULT_ENDPOINT}
      */
     @PostConstruct
     public void init() {
@@ -87,6 +113,7 @@ public class BkLogProperties {
             fallback.setIndices(indices);
             fallback.setIndexSetId(indexSetId);
             fallback.setExpireTime(expireTime);
+            fallback.setEndpoint(DEFAULT_ENDPOINT);
             sources.put("default", fallback);
             if (StringUtils.isBlank(defaultSource)) {
                 defaultSource = "default";
@@ -107,6 +134,58 @@ public class BkLogProperties {
             );
         }
         return logSource;
+    }
+
+    /**
+     * 获取指定日志接入点配置，name 为空时使用 {@link #DEFAULT_ENDPOINT}
+     */
+    public Endpoint getEndpoint(String name) {
+        String key = StringUtils.isBlank(name) ? DEFAULT_ENDPOINT : name;
+        Endpoint endpoint = endpoints.get(key);
+        if (endpoint == null) {
+            throw new IllegalArgumentException(
+                "未知的日志接入点: " + key + "，可选接入点: " + endpoints.keySet()
+            );
+        }
+        return endpoint;
+    }
+
+    @Data
+    public static class Endpoint {
+        /**
+         * bklog 网关 base url
+         */
+        private String url;
+
+        /**
+         * 应用 Code，可空；为空时回退到 bk-api-gateway.bkAppCode
+         */
+        private String bkAppCode;
+
+        /**
+         * 应用 Secret，可空；为空时回退到 bk-api-gateway.bkAppSecret
+         */
+        private String bkAppSecret;
+
+        /**
+         * 调用别的系统时使用的用户名，可空；为空时回退到 "admin"
+         */
+        private String username;
+
+        /**
+         * 多租户 ID，会作为请求头 X-Bk-Tenant-Id 发送；缺省为 "default"
+         */
+        private String tenantId = "default";
+
+        /**
+         * 重试次数
+         */
+        private Integer retryCount = 1;
+
+        /**
+         * 重试间隔，单位：秒
+         */
+        private Integer retryInterval = 5;
     }
 
     @Data
@@ -134,5 +213,11 @@ public class BkLogProperties {
          * 日志保存时间（天）
          */
         private Integer expireTime = 7;
+
+        /**
+         * 该日志源所属的接入点名称（对应 {@link BkLogProperties#endpoints} 的 key）。
+         * 为空时回退到 {@link #DEFAULT_ENDPOINT}。
+         */
+        private String endpoint;
     }
 }

@@ -22,45 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.service.api.bklog;
+package com.tencent.bk.job.utils.http.bkapigw.v1;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.utils.http.HttpMethodEnum;
-import com.tencent.bk.job.utils.http.bkapigw.v1.ApiGwResp;
-import com.tencent.bk.job.utils.http.bkapigw.v1.BkApiGwV1Api;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.client.RestTemplate;
+/**
+ * 蓝鲸 API 网关相关的 HTTP 请求头常量
+ */
+public final class BkApiHeaders {
 
-@Slf4j
-public class BkLogApi extends BkApiGwV1Api {
+    /**
+     * 蓝鲸 API 网关认证头，值为 {@link Authorization} 的 JSON 序列化结果
+     */
+    public static final String AUTHORIZATION = "X-Bkapi-Authorization";
 
-    private static final String API_LOG_SEARCH = "/esquery_search/";
+    /**
+     * 多租户 ID 请求头
+     */
+    public static final String TENANT_ID = "X-Bk-Tenant-Id";
 
-    public BkLogApi(RestTemplate restTemplate,
-                    String url,
-                    String bkAppCode,
-                    String bkAppSecret,
-                    String username,
-                    String tenantId) {
-        super(
-            restTemplate,
-            bkAppCode,
-            bkAppSecret,
-            username,
-            url,
-            tenantId
-        );
+    private BkApiHeaders() {
     }
-
-    public LogQueryResp logSearch(LogQueryReq logQueryReq) {
-        ApiGwResp<LogQueryResp> resp = requestApi(
-            HttpMethodEnum.POST,
-            API_LOG_SEARCH,
-            null,
-            logQueryReq,
-            new TypeReference<ApiGwResp<LogQueryResp>>() {
-            });
-        return resp.getData();
-    }
-
 }
