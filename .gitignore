@@ -40,3 +40,4 @@ tests/openapi/bin/
 
 # Claude Code
 .claude/
+**/__pycache__/
