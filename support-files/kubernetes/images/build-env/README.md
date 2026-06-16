@@ -7,7 +7,7 @@
 | 组件              | 版本                            | 说明                                     |
 |-----------------|-------------------------------|----------------------------------------|
 | JDK17           | TencentKona 17.0.16           | 默认 JDK，来自 `bkjob/tool-set:3.12.6`      |
-| JDK8            | TencentKona 8.0.26 / jdk8u492 | 通过 `use-jdk8` 切换                       |
+| JDK8            | TencentKona 8.0.26 / jdk8u492 | 通过 `use_jdk8` 切换                       |
 | Git             | 2.41.3                        |                                        |
 | NodeJS          | 24.16.0                       | 通过 nvm 安装，版本固定                         |
 | nvm             | 0.40.3                        | 用于切换 NodeJS 版本                         |
@@ -195,14 +195,14 @@ java -version
 切换到 JDK8：
 
 ```bash
-use-jdk8
+use_jdk8
 java -version
 ```
 
 切回 JDK17：
 
 ```bash
-use-jdk17
+use_jdk17
 java -version
 ```
 
@@ -210,5 +210,5 @@ java -version
 
 ```bash
 docker run --rm hub.bktencent.com/blueking/job-build-tool:1.0.1 bash -lc \
-  'java -version && use-jdk8 && java -version && use-jdk17 && node -v && npm -v && nvm --version && git --version && ldconfig -p | grep libcrypto.so.1.1 && start-mysql && /usr/local/mysql/bin/mysqladmin -h127.0.0.1 -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASSWORD} ping'
+  'java -version && use_jdk8 && java -version && use_jdk17 && node -v && npm -v && nvm --version && git --version && ldconfig -p | grep libcrypto.so.1.1 && start-mysql && /usr/local/mysql/bin/mysqladmin -h127.0.0.1 -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASSWORD} ping'
 ```
