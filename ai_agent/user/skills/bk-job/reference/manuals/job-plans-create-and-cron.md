@@ -196,11 +196,12 @@ EOF
 > - `plan-execute` 传入：type=3 变量使用 `server.ip_list`（与 plan-create 不同！）
 > - 主机必须同时提供 `bk_cloud_id`（云区域ID）和 `ip`
 
-# D. dry-run 校验请求体
+# D. dry-run 校验请求体（--enable-steps 可选，不传则启用模板全部步骤）
 python scripts/job_apigw_client.py plan-create \
   --bk-scope-id <业务ID> \
   --job-template-id 1000 \
   --name "api-plan-demo" \
+  --enable-steps '[101,102]' \
   --variables-file /tmp/variables.json \
   --dry-run
 
@@ -209,7 +210,9 @@ python scripts/job_apigw_client.py plan-create \
   --bk-scope-id <业务ID> \
   --job-template-id 1000 \
   --name "api-plan-demo" \
+  --enable-steps '[101,102]' \
   --variables-file /tmp/variables.json
+# 成功返回含 job_plan_id 与 job_plan_url，须以可点击链接交付用户
 ```
 
 > **⚠️ 字段名注意（重要！）**：
