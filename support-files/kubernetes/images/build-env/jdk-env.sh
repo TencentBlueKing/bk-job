@@ -18,7 +18,7 @@ if [ -z "${NODE_HOME:-}" ] && [ -d "$NVM_DIR/versions/node" ]; then
 fi
 export NODE_HOME
 
-use-jdk17() {
+use_jdk17() {
     export JAVA_HOME="$JAVA17_HOME"
     export CLASSPATH=".:$JAVA_HOME/lib"
     PATH=":$PATH:"
@@ -29,7 +29,7 @@ use-jdk17() {
     export PATH="$JAVA_HOME/bin:$PATH"
 }
 
-use-jdk8() {
+use_jdk8() {
     export JAVA_HOME="$JAVA8_HOME"
     export CLASSPATH=".:$JAVA_HOME/lib"
     PATH=":$PATH:"
@@ -40,5 +40,5 @@ use-jdk8() {
     export PATH="$JAVA_HOME/bin:$PATH"
 }
 
-# 默认使用jdk17，需要jdk8时手动执行use-jdk8
-use-jdk17
+# 默认使用jdk17，需要jdk8时手动执行use_jdk8
+use_jdk17
