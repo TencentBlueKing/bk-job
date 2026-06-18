@@ -22,6 +22,8 @@ data:
         ability-tags: {{ .Values.fileWorkerConfig.abilityTags }}
         access:
           port: {{ .Values.fileWorkerConfig.containerPort }}
+        access-ready:
+          {{- toYaml .Values.fileWorkerConfig.accessReady | nindent 10 }}
         cloud-area-id: {{ .Values.fileWorkerConfig.cloudAreaId }}
         download-file:
           dir: {{ .Values.fileDistribute.hostPath }}

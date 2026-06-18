@@ -27,11 +27,14 @@ package com.tencent.bk.job.file_gateway.api.remote;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.model.dto.FileTaskProgressDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
+import com.tencent.bk.job.file_gateway.model.req.inner.ConnectivityCheckReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.OffLineAndReDispatchReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.UpdateFileSourceTaskReq;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ConnectivityCheckResult;
 import com.tencent.bk.job.file_gateway.service.FileSourceTaskService;
 import com.tencent.bk.job.file_gateway.service.FileWorkerService;
+import com.tencent.bk.job.file_gateway.service.WorkerConnectivityService;
 import com.tencent.bk.job.file_gateway.service.dispatch.ReDispatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,14 +50,17 @@ public class RemoteFileWorkerResourceImpl implements RemoteFileWorkerResource {
     private final FileWorkerService fileWorkerService;
     private final FileSourceTaskService fileSourceTaskService;
     private final ReDispatchService reDispatchService;
+    private final WorkerConnectivityService workerConnectivityService;
 
     @Autowired
     public RemoteFileWorkerResourceImpl(FileWorkerService fileWorkerService,
                                         FileSourceTaskService fileSourceTaskService,
-                                        ReDispatchService reDispatchService) {
+                                        ReDispatchService reDispatchService,
+                                        WorkerConnectivityService workerConnectivityService) {
         this.fileWorkerService = fileWorkerService;
         this.fileSourceTaskService = fileSourceTaskService;
         this.reDispatchService = reDispatchService;
+        this.workerConnectivityService = workerConnectivityService;
     }
 
     @Override
@@ -82,5 +88,11 @@ public class RemoteFileWorkerResourceImpl implements RemoteFileWorkerResource {
                 offLineAndReDispatchReq.getInitDelayMills(),
                 offLineAndReDispatchReq.getIntervalMills())
         );
+    }
+
+    @Override
+    public Response<ConnectivityCheckResult> connectivityCheck(ConnectivityCheckReq req) {
+        // 由 Gateway 主动回探请求方 Worker 的健康端点，结果交由 Worker 侧累计判定 access-ready
+        return Response.buildSuccessResp(workerConnectivityService.check(req));
     }
 }

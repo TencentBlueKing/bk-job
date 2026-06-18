@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -32,6 +33,7 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,7 +57,6 @@ public class RestConfig {
         HttpComponentsClientHttpRequestFactory factory = new
             HttpComponentsClientHttpRequestFactory();
         factory.setConnectionRequestTimeout(10000);
-        factory.setConnectTimeout(10000);
         // https
         try {
             SSLContext sslContext = new SSLContextBuilder()
@@ -65,6 +66,9 @@ public class RestConfig {
                 .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
                     .setSslContext(sslContext)
                     .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                    .build())
+                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                    .setConnectTimeout(Timeout.ofMilliseconds(10000))
                     .build())
                 .setMaxConnTotal(200)
                 .build();

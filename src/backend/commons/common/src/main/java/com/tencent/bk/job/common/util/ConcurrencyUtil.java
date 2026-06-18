@@ -143,6 +143,10 @@ public class ConcurrencyUtil {
         @Override
         public void run() {
             try (ContextSnapshot.Scope ignored = contextSnapshot.setThreadLocals()) {
+                // 工作线程在恢复父线程上下文后，立即把 JobContext 替换为隔离副本，
+                // 避免多个工作线程并发读写父线程同一份 JobContext 内的可变集合
+                // (如 metricTagsMap 中的 ArrayList) 而抛出 ArrayIndexOutOfBoundsException。
+                JobContextUtil.isolateContextForChildThread();
                 resultQueue.addAll(handler.handle(input));
             } catch (Exception e) {
                 log.error("InnerTask fail:", e);

@@ -22,49 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.service;
+package com.tencent.bk.job.file_gateway.model.req.inner;
 
-import com.tencent.bk.job.file.worker.config.WorkerConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Slf4j
-@Service
-public class GatewayInfoService {
-
-    private final WorkerConfig workerConfig;
-
-    @Autowired
-    public GatewayInfoService(WorkerConfig workerConfig) {
-        this.workerConfig = workerConfig;
-    }
-
-    private String getJobApiRootUrl() {
-        String jobApiRootUrl = workerConfig.getJobApiRootUrl();
-        while (jobApiRootUrl.endsWith("/")) {
-            jobApiRootUrl = jobApiRootUrl.substring(0, jobApiRootUrl.length() - 1);
-        }
-        return jobApiRootUrl;
-    }
-
-    public String getHeartBeatUrl() {
-        return getJobApiRootUrl() + "/remote/fileWorker/heartBeat";
-    }
-
-    public String getReportTaskStatusUrl() {
-        return getJobApiRootUrl() + "/remote/fileWorker/task/update";
-    }
-
-    public String getWorkerOffLineUrl() {
-        return getJobApiRootUrl() + "/remote/fileWorker/offLineAndReDispatch";
-    }
+/**
+ * Worker连通性回探请求
+ * File-Worker 在启动阶段调用此请求，要求 File-Gateway 主动回探 Worker 的健康检查端点，
+ * 以此判定 Worker 是否真正可以被 Gateway 集群访问（替代 Worker 本地自检）。
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class ConnectivityCheckReq {
 
     /**
-     * 获取 File-Gateway 的 Worker 连通性回探接口 URL，
-     * 用于 Worker 启动期判定自身是否真正可被 Gateway 集群访问。
+     * Worker 所在集群名称
      */
-    public String getConnectivityCheckUrl() {
-        return getJobApiRootUrl() + "/remote/fileWorker/connectivityCheck";
-    }
+    @Schema(description = "Worker 所在集群名称", required = true)
+    private String clusterName;
+
+    /**
+     * Gateway 用于访问 Worker 的 host
+     */
+    @Schema(description = "Gateway 用于访问 Worker 的 host", required = true)
+    private String accessHost;
+
+    /**
+     * Gateway 用于访问 Worker 的 port
+     */
+    @Schema(description = "Gateway 用于访问 Worker 的 port", required = true)
+    private Integer accessPort;
 }

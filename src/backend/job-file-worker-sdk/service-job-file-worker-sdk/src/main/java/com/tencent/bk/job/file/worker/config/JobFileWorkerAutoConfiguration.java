@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@EnableConfigurationProperties(ClusterProperties.class)
+@EnableConfigurationProperties({ClusterProperties.class, AccessReadyProperties.class})
 public class JobFileWorkerAutoConfiguration {
 
     @Bean

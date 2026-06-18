@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common;
 
+import com.tencent.bk.job.common.util.JobContextUtil;
 import io.micrometer.context.ContextSnapshot;
 import io.micrometer.context.ContextSnapshotFactory;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -252,6 +253,11 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
      */
     private void runWithContext(Runnable command, ContextSnapshot snapshot) {
         try (ContextSnapshot.Scope ignored = snapshot.setThreadLocals()) {
+            // 工作线程在恢复父线程上下文后，立即把 JobContext 替换为隔离副本，
+            // 避免多个工作线程并发读写父线程同一份 JobContext 内的可变集合
+            // (如 metricTagsMap 中的 ArrayList) 而抛出 ArrayIndexOutOfBoundsException。
+            // Scope.close() 时会自动还原父线程原 JobContext，无需手动清理。
+            JobContextUtil.isolateContextForChildThread();
             Tracer t = tracer;
             // tracer 未注入，或当前线程没有父 span（例如启动初始化任务），不创建 child span
             if (t == null || t.currentSpan() == null) {

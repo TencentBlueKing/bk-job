@@ -254,6 +254,23 @@ public class JobContextUtil {
         return jobContext;
     }
 
+    /**
+     * 把当前线程的 JobContext 替换为一份隔离副本，使其与原始(通常是父线程)
+     * JobContext 不再共享内部可变集合(如 metricTagsMap)。
+     *
+     * <p>调用场景：在通过 {@link io.micrometer.context.ContextSnapshot} 把父线程
+     * JobContext 传播到工作线程后，应立即调用本方法，避免多个工作线程并发读写
+     * 父线程 JobContext 的可变字段引发 {@link ArrayIndexOutOfBoundsException} 等问题。
+     * 若当前线程尚未持有 JobContext，本方法不做任何处理。</p>
+     */
+    public static void isolateContextForChildThread() {
+        JobContext current = JobContextThreadLocal.get();
+        if (current == null) {
+            return;
+        }
+        JobContextThreadLocal.set(current.copyForChildThread());
+    }
+
     public static Map<String, Pair<String, AbstractList<Tag>>> getOrInitMetricTagsMap() {
         JobContext jobContext = getOrInitContext();
         Map<String, Pair<String, AbstractList<Tag>>> metricTagsMap = jobContext.getMetricTagsMap();
