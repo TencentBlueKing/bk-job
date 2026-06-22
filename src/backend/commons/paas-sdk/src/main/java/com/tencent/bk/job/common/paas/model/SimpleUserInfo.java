@@ -56,6 +56,10 @@ public class SimpleUserInfo {
     private String displayName;
 
     public boolean isNotEmpty() {
-        return StringUtils.isNotEmpty(bkUsername);
+        return !isEmpty();
+    }
+
+    public boolean isEmpty() {
+        return StringUtils.isEmpty(bkUsername);
     }
 }

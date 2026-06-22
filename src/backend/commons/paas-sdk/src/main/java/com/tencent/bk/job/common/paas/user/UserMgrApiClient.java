@@ -188,10 +188,10 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
     }
 
     private void appendVirtualUsers(String tenantId,
-                                      List<String> lookups,
-                                      String lookupField,
-                                      List<SimpleUserInfo> userInfos,
-                                      Set<String> resolvedUsernames) {
+                                    List<String> lookups,
+                                    String lookupField,
+                                    List<SimpleUserInfo> userInfos,
+                                    Set<String> resolvedUsernames) {
         if (CollectionUtils.isEmpty(lookups)) {
             return;
         }
@@ -204,7 +204,7 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
             return;
         }
         for (SimpleUserInfo virtualUser : virtualUsers) {
-            if (!virtualUser.isNotEmpty()) {
+            if (virtualUser.isEmpty()) {
                 continue;
             }
             userInfos.add(virtualUser);

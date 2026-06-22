@@ -124,7 +124,7 @@ public class UserLocalCache {
         UserCacheQuery query = new UserCacheQuery(tenantId, username);
         SimpleUserInfo bkUser = userCache.getUnchecked(query);
         // 缓存了空对象，说明用户不存在
-        if (!bkUser.isNotEmpty()) {
+        if (bkUser.isEmpty()) {
             log.info("user(tenantId={}, username={}) not found in bk-user, fill by username", tenantId, username);
             return new User(tenantId, username, username);
         }
