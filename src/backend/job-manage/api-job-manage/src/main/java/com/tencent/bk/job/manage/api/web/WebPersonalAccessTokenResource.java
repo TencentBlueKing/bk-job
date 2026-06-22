@@ -22,28 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config.condition;
+package com.tencent.bk.job.manage.api.web;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.model.web.vo.PersonalAccessTokenVO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+@Tag(name = "job-manage:web:Personal_Access_Token")
+@RequestMapping("/web")
+@RestController
+@WebAPI
+public interface WebPersonalAccessTokenResource {
 
-/**
- * 未开启自定义登录（即使用蓝鲸标准登录，bk_token）时生效，与 {@link ConditionalOnCustomLoginEnable} 互补。
- */
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@ConditionalOnProperty(
-    value = "paas.login.custom.enabled",
-    havingValue = "false",
-    matchIfMissing = true
-)
-public @interface ConditionalOnCustomLoginDisable {
+    @Operation(summary = "获取公共应用个人凭证")
+    @GetMapping("/personal-access-token")
+    Response<PersonalAccessTokenVO> generatePersonalAccessToken(
+        @Parameter(description = "用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @Parameter(hidden = true)
+        @CookieValue(value = "bk_ticket", required = false)
+            String bkTicket,
+        @Parameter(hidden = true)
+        @CookieValue(value = "bk_token", required = false)
+            String bkToken
+    );
 }

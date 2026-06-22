@@ -352,6 +352,12 @@ public class ErrorCode {
     public static final int SEND_NOTIFY_EXCEED_SYSTEM_QUOTA_LIMIT = 1243059;
     // 凭证名称{0}已存在
     public static final int CREDENTIAL_NAME_EXIST = 1243060;
+    // 公共应用个人凭证能力未启用或未配置
+    public static final int PUBLIC_APP_PERSONAL_TOKEN_NOT_AVAILABLE = 1243061;
+    // 登录态票据缺失，无法生成个人凭证
+    public static final int PERSONAL_ACCESS_TOKEN_LOGIN_TICKET_MISSING = 1243062;
+    // 生成个人凭证失败
+    public static final int GENERATE_PERSONAL_ACCESS_TOKEN_FAIL = 1243063;
     // 作业管理 end
 
     // 作业执行 start

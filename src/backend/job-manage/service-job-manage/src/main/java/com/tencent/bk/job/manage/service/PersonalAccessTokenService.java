@@ -22,28 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config.condition;
+package com.tencent.bk.job.manage.service;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.tencent.bk.job.manage.model.web.vo.PersonalAccessTokenVO;
 
 /**
- * 未开启自定义登录（即使用蓝鲸标准登录，bk_token）时生效，与 {@link ConditionalOnCustomLoginEnable} 互补。
+ * 个人访问凭证服务。
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@ConditionalOnProperty(
-    value = "paas.login.custom.enabled",
-    havingValue = "false",
-    matchIfMissing = true
-)
-public @interface ConditionalOnCustomLoginDisable {
+public interface PersonalAccessTokenService {
+
+    /**
+     * 使用公共应用凭证 + 当前用户登录态生成个人 access_token。
+     *
+     * @param username 当前登录用户名
+     * @param bkTicket 自定义登录票据（可能为空）
+     * @param bkToken  标准登录票据（可能为空）
+     * @return 个人访问凭证 VO（含过期时间点）
+     */
+    PersonalAccessTokenVO generatePersonalAccessToken(String username, String bkTicket, String bkToken);
 }

@@ -22,28 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config.condition;
+package com.tencent.bk.job.manage.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * 未开启自定义登录（即使用蓝鲸标准登录，bk_token）时生效，与 {@link ConditionalOnCustomLoginEnable} 互补。
+ * 公共应用配置。用于个人轻量场景下，使用「公共应用」凭证为当前登录用户换取个人 access_token。
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@ConditionalOnProperty(
-    value = "paas.login.custom.enabled",
-    havingValue = "false",
-    matchIfMissing = true
-)
-public @interface ConditionalOnCustomLoginDisable {
+@Getter
+@Setter
+@ToString(exclude = "secret")
+@ConfigurationProperties(prefix = "job.public-app")
+public class PublicAppProperties {
+
+    /**
+     * 是否开启「公共应用个人凭证」能力
+     */
+    private boolean enabled;
+
+    /**
+     * 公共应用 app_code
+     */
+    private String code;
+
+    /**
+     * 公共应用 app_secret
+     */
+    private String secret;
 }

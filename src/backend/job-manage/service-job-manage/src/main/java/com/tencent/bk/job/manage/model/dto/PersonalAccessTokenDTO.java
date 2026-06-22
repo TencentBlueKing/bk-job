@@ -22,28 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config.condition;
+package com.tencent.bk.job.manage.model.dto;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * 未开启自定义登录（即使用蓝鲸标准登录，bk_token）时生效，与 {@link ConditionalOnCustomLoginEnable} 互补。
+ * 个人访问凭证内部 DTO。由各 Provider 将上游（auth_api/bkssm）响应归一化后返回，仅在服务内流转。
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@ConditionalOnProperty(
-    value = "paas.login.custom.enabled",
-    havingValue = "false",
-    matchIfMissing = true
-)
-public @interface ConditionalOnCustomLoginDisable {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PersonalAccessTokenDTO {
+
+    /**
+     * 用户 access_token
+     */
+    private String accessToken;
+
+    /**
+     * 有效期（秒）
+     */
+    private Long expiresIn;
+
+    /**
+     * 刷新凭证
+     */
+    private String refreshToken;
 }

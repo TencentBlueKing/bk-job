@@ -22,28 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config.condition;
+package com.tencent.bk.job.manage.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-/**
- * 未开启自定义登录（即使用蓝鲸标准登录，bk_token）时生效，与 {@link ConditionalOnCustomLoginEnable} 互补。
- */
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@ConditionalOnProperty(
-    value = "paas.login.custom.enabled",
-    havingValue = "false",
-    matchIfMissing = true
-)
-public @interface ConditionalOnCustomLoginDisable {
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(PublicAppProperties.class)
+public class PublicAppConfig {
 }
