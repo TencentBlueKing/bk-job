@@ -33,6 +33,7 @@ CODEBUDDY.md
 .cursor/
 .claude/
 openspec/
+.codegraph/
 
 pre-*-bkcodeai
 

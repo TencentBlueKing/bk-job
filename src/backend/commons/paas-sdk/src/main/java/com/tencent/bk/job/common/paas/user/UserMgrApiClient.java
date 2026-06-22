@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.OpenApiResponse;
 import com.tencent.bk.job.common.esb.sdk.BkApiV2Client;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
@@ -53,10 +52,11 @@ import org.apache.http.message.BasicHeader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API;
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API_HTTP;
@@ -69,6 +69,8 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
 
     private static final String API_BATCH_LOOKUP_VIRTUAL_USER = "/api/v3/open/tenant/virtual-users/-/lookup/";
     private static final String API_BATCH_QUERY_USER_DISPLAY_INFO = "/api/v3/open/tenant/users/-/display_info/";
+    private static final String LOOKUP_FIELD_BK_USERNAME = "bk_username";
+    private static final String LOOKUP_FIELD_LOGIN_NAME = "login_name";
     private static final Integer MAX_QUERY_BATCH_SIZE = 100;
 
     private final BkApiAuthorization authorization;
@@ -109,25 +111,11 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
     }
 
     /**
-     * 获取指定租户下的虚拟账号（admin）的bk_username
+     * 获取指定租户下的虚拟账号的信息
      */
     @Override
     public List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName) {
-        OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
-            "batch_lookup_virtual_user",
-            OpenApiRequestInfo
-                .builder()
-                .method(HttpMethodEnum.GET)
-                .uri(API_BATCH_LOOKUP_VIRTUAL_USER)
-                .addHeader(buildTenantHeader(tenantId))
-                .addQueryParam("lookups", loginName)
-                .addQueryParam("lookup_field", "login_name")
-                .authorization(authorization)
-                .build(),
-            req -> doRequest(req, new TypeReference<OpenApiResponse<List<SimpleUserInfo>>>() {
-            })
-        );
-        return resp.getData();
+        return batchLookupVirtualUsers(tenantId, loginName, LOOKUP_FIELD_LOGIN_NAME);
     }
 
     protected <T, R> OpenApiResponse<R> requestBkUserApi(
@@ -161,15 +149,27 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
     }
 
     /**
-     * 通过指定的username查出对应的用户信息
+     * 通过指定的 username 查出对应的用户信息（含自然人、虚拟用户）
      */
     @Override
     public List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames) {
+        if (CollectionUtils.isEmpty(usernames)) {
+            return Collections.emptyList();
+        }
         List<SimpleUserInfo> userResult = new ArrayList<>();
         List<String> usernameList = new ArrayList<>(usernames);
         List<List<String>> userPages = Lists.partition(usernameList, MAX_QUERY_BATCH_SIZE);
         for (List<String> userPage : userPages) {
-            List<SimpleUserInfo> userInfos = listUsersByPages(tenantId, userPage);
+            List<SimpleUserInfo> naturalUsers = listNaturalUsersByBkUsernames(tenantId, userPage);
+            List<SimpleUserInfo> userInfos = naturalUsers == null ? new ArrayList<>() : new ArrayList<>(naturalUsers);
+            Set<String> resolvedUsernames = collectResolveUsernames(userInfos);
+
+            List<String> notFoundUsernames = userPage.stream()
+                .filter(username -> !resolvedUsernames.contains(username))
+                .collect(Collectors.toList());
+            // 通过username查自然人查不到，试下查虚拟用户
+            appendVirtualUsers(tenantId, notFoundUsernames, LOOKUP_FIELD_BK_USERNAME, userInfos, resolvedUsernames);
+
             if (CollectionUtils.isNotEmpty(userInfos)) {
                 userResult.addAll(userInfos);
             }
@@ -177,7 +177,63 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
         return userResult;
     }
 
-    private List<SimpleUserInfo> listUsersByPages(String tenantId, List<String> usernames) {
+    private Set<String> collectResolveUsernames(List<SimpleUserInfo> userInfos) {
+        Set<String> resolvedUsernames = new HashSet<>();
+        for (SimpleUserInfo userInfo : userInfos) {
+            if (userInfo.isNotEmpty()) {
+                resolvedUsernames.add(userInfo.getBkUsername());
+            }
+        }
+        return resolvedUsernames;
+    }
+
+    private void appendVirtualUsers(String tenantId,
+                                    List<String> lookups,
+                                    String lookupField,
+                                    List<SimpleUserInfo> userInfos,
+                                    Set<String> resolvedUsernames) {
+        if (CollectionUtils.isEmpty(lookups)) {
+            return;
+        }
+        List<SimpleUserInfo> virtualUsers = batchLookupVirtualUsers(
+            tenantId,
+            String.join(",", lookups),
+            lookupField
+        );
+        if (CollectionUtils.isEmpty(virtualUsers)) {
+            return;
+        }
+        for (SimpleUserInfo virtualUser : virtualUsers) {
+            if (virtualUser.isEmpty()) {
+                continue;
+            }
+            userInfos.add(virtualUser);
+            resolvedUsernames.add(virtualUser.getBkUsername());
+        }
+    }
+
+    private List<SimpleUserInfo> batchLookupVirtualUsers(String tenantId, String lookups, String lookupField) {
+        OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
+            "batch_lookup_virtual_user",
+            OpenApiRequestInfo
+                .builder()
+                .method(HttpMethodEnum.GET)
+                .uri(API_BATCH_LOOKUP_VIRTUAL_USER)
+                .addHeader(buildTenantHeader(tenantId))
+                .addQueryParam("lookups", lookups)
+                .addQueryParam("lookup_field", lookupField)
+                .authorization(authorization)
+                .build(),
+            req -> doRequest(req, new TypeReference<OpenApiResponse<List<SimpleUserInfo>>>() {
+            })
+        );
+        return resp.getData();
+    }
+
+    /**
+     * 按 bk_username 批量查询自然人展示信息
+     */
+    private List<SimpleUserInfo> listNaturalUsersByBkUsernames(String tenantId, List<String> bkUsernames) {
         OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
             "batch_query_user",
             OpenApiRequestInfo
@@ -185,7 +241,7 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
                 .method(HttpMethodEnum.GET)
                 .uri(API_BATCH_QUERY_USER_DISPLAY_INFO)
                 .addHeader(buildTenantHeader(tenantId))
-                .addQueryParam("bk_usernames", String.join(",", usernames))
+                .addQueryParam("bk_usernames", String.join(",", bkUsernames))
                 .authorization(authorization)
                 .build(),
             req -> doRequest(req, new TypeReference<OpenApiResponse<List<SimpleUserInfo>>>() {})
