@@ -356,7 +356,7 @@ public class ErrorCode {
     public static final int PUBLIC_APP_PERSONAL_TOKEN_NOT_AVAILABLE = 1243061;
     // 登录态票据缺失，无法生成个人凭证
     public static final int PERSONAL_ACCESS_TOKEN_LOGIN_TICKET_MISSING = 1243062;
-    // 生成个人凭证失败
+    // 生成个人凭证失败：{0}
     public static final int GENERATE_PERSONAL_ACCESS_TOKEN_FAIL = 1243063;
     // 作业管理 end
 

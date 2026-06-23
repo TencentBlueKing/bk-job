@@ -100,24 +100,36 @@ public class BkSsmAccessTokenProvider implements PersonalAccessTokenProvider {
     }
 
     private BkSsmTokenResp requestToken(String url, Map<String, Object> body) {
+        String respStr;
+        String bodyStr = JsonUtils.toJson(body);
         try {
             HttpResponse response = HttpConPoolUtil.post(
                 url,
-                JsonUtils.toJson(body),
+                bodyStr,
                 new BasicHeader("Content-Type", "application/json"),
                 new BasicHeader("X-Bk-App-Code", publicAppProperties.getCode()),
                 new BasicHeader("X-Bk-App-Secret", publicAppProperties.getSecret())
             );
+            int statusCode = response != null ? response.getStatusCode() : -1;
+            respStr = response != null ? response.getEntity() : null;
+            if (log.isDebugEnabled()) {
+                log.debug(
+                    "Request auth_api token, url={}, body={}, statusCode={}, resp={}",
+                    url,
+                    bodyStr,
+                    statusCode,
+                    respStr
+                );
+            }
             if (response == null || response.getStatusCode() != HttpStatus.SC_OK
                 || StringUtils.isBlank(response.getEntity())) {
-                int statusCode = response != null ? response.getStatusCode() : -1;
                 log.warn("Request bkssm token fail, url={}, statusCode={}", url, statusCode);
                 throw new InternalException(
                     ErrorCode.GENERATE_PERSONAL_ACCESS_TOKEN_FAIL,
                     new Object[]{"http status " + statusCode}
                 );
             }
-            return JsonUtils.fromJson(response.getEntity(), BkSsmTokenResp.class);
+            return JsonUtils.fromJson(respStr, BkSsmTokenResp.class);
         } catch (InternalException e) {
             throw e;
         } catch (Exception e) {
