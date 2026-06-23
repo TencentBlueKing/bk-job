@@ -114,7 +114,7 @@ public class BkSsmAccessTokenProvider implements PersonalAccessTokenProvider {
             respStr = response != null ? response.getEntity() : null;
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "Request auth_api token, url={}, body={}, statusCode={}, resp={}",
+                    "Request bkssm token, url={}, body={}, statusCode={}, resp={}",
                     url,
                     bodyStr,
                     statusCode,

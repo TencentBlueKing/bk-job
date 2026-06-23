@@ -55,7 +55,7 @@ import java.util.Map;
 @ConditionalOnCustomLoginEnable
 public class AuthApiAccessTokenProvider implements PersonalAccessTokenProvider {
 
-    private static final String API_TOKEN = "/token";
+    private static final String API_TOKEN = "/token/";
 
     private final PublicAppProperties publicAppProperties;
     private final String bkAuthApiUrl;
