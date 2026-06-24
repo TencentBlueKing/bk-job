@@ -78,6 +78,7 @@ public class AuthApiAccessTokenProvider implements PersonalAccessTokenProvider {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("app_code", publicAppProperties.getCode());
         body.put("app_secret", publicAppProperties.getSecret());
+        body.put("env_name", "prod");
         body.put("grant_type", "authorization_code");
         body.put("rtx", username);
         body.put("bk_ticket", bkTicket);
