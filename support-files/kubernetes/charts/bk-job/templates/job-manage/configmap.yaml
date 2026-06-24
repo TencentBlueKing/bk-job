@@ -125,6 +125,12 @@ data:
         default-account:
           accounts:
             {{- toYaml .Values.manageConfig.defaultAccount.accounts | nindent 12 }}
+      public-app:
+        enabled: {{ .Values.publicApp.enabled }}
+        code: {{ .Values.publicApp.code | quote }}
+        secret: {{ .Values.publicApp.secret | quote }}
+    bkAuthApiUrl: {{ .Values.bkAuthApiUrl | quote }}
+    bkSsmUrl: {{ .Values.bkSsmUrl | quote }}
     mysql:
       {{- toYaml .Values.manageConfig.mysql | nindent 6 }}
     server:

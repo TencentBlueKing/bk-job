@@ -22,28 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config.condition;
+package com.tencent.bk.job.manage.service.token;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.tencent.bk.job.manage.model.dto.PersonalAccessTokenDTO;
 
 /**
- * 未开启自定义登录（即使用蓝鲸标准登录，bk_token）时生效，与 {@link ConditionalOnCustomLoginEnable} 互补。
+ * 个人访问凭证生成策略。根据当前登录方式（自定义登录 bk_ticket / 标准登录 bk_token）装配不同实现。
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@ConditionalOnProperty(
-    value = "paas.login.custom.enabled",
-    havingValue = "false",
-    matchIfMissing = true
-)
-public @interface ConditionalOnCustomLoginDisable {
+public interface PersonalAccessTokenProvider {
+
+    /**
+     * 使用公共应用凭证 + 当前用户登录态，向蓝鲸换取用户个人 access_token。
+     *
+     * @param username 当前登录用户名（网关注入）
+     * @param bkTicket 自定义登录票据（内部版 auth_api 使用），可能为空
+     * @param bkToken  标准登录票据（社区版 bkssm 使用），可能为空
+     * @return 归一化后的个人访问凭证
+     */
+    PersonalAccessTokenDTO generate(String username, String bkTicket, String bkToken);
 }

@@ -22,28 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config.condition;
+package com.tencent.bk.job.manage.service.token.model;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
- * 未开启自定义登录（即使用蓝鲸标准登录，bk_token）时生效，与 {@link ConditionalOnCustomLoginEnable} 互补。
+ * 社区版 bkssm 生成 access_token 的响应。
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@ConditionalOnProperty(
-    value = "paas.login.custom.enabled",
-    havingValue = "false",
-    matchIfMissing = true
-)
-public @interface ConditionalOnCustomLoginDisable {
+@Data
+public class BkSsmTokenResp {
+
+    /**
+     * 状态码，0 表示成功
+     */
+    private Integer code;
+
+    private String message;
+
+    private TokenData data;
+
+    @Data
+    public static class TokenData {
+        @JsonProperty("access_token")
+        private String accessToken;
+
+        @JsonProperty("expires_in")
+        private Long expiresIn;
+
+        @JsonProperty("refresh_token")
+        private String refreshToken;
+    }
 }
