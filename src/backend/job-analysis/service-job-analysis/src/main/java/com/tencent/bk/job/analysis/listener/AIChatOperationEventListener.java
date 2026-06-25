@@ -58,6 +58,8 @@ public class AIChatOperationEventListener {
      * @param message AI对话操作事件消息
      */
     public void handleEvent(Message<AIChatOperationEvent> message) {
+        // 按配置模拟消息消费延迟，放在消费流程最前端、早于任何消费与记录逻辑，用于复现依赖不稳定时序的问题，默认关闭
+        mqConsumeDelayRecorder.simulateConsumeDelay(MqBindingNames.HANDLE_AI_CHAT_OPERATION_EVENT);
         mqConsumeDelayRecorder.recordConsumeDelay(
             MqBindingNames.HANDLE_AI_CHAT_OPERATION_EVENT,
             AIChatOperationEvent.class.getSimpleName(),

@@ -55,12 +55,28 @@ public abstract class MqConsumeDelayRecorder {
     private static final String TIME_FORMATTER = "yyyy-MM-dd HH:mm:ss.SSS";
     protected final MeterRegistry meterRegistry;
     protected final MqMetricsProperties mqMetricsProperties;
+    /**
+     * MQ消息消费延迟模拟器，用于在测试环境模拟消息延迟
+     */
+    protected final MqConsumeDelaySimulator mqConsumeDelaySimulator;
 
     protected MqConsumeDelayRecorder(MeterRegistry meterRegistry,
-                                     MqMetricsProperties mqMetricsProperties
+                                     MqMetricsProperties mqMetricsProperties,
+                                     MqConsumeDelaySimulator mqConsumeDelaySimulator
     ) {
         this.meterRegistry = meterRegistry;
         this.mqMetricsProperties = mqMetricsProperties;
+        this.mqConsumeDelaySimulator = mqConsumeDelaySimulator;
+    }
+
+    /**
+     * 按配置模拟消息消费延迟，仅在开启时生效。
+     * 在消息处理前调用，用于复现依赖不稳定时序的问题。
+     *
+     * @param binding binding名称，用于日志排查
+     */
+    public void simulateConsumeDelay(String binding) {
+        mqConsumeDelaySimulator.simulateDelay(binding);
     }
 
     /**

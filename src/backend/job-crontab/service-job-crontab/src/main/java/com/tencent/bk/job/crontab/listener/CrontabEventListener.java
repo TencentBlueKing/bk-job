@@ -64,6 +64,8 @@ public class CrontabEventListener {
      * @param message 定时任务相关的事件消息
      */
     public void handleEvent(Message<CrontabEvent> message) {
+        // 按配置模拟消息消费延迟，放在消费流程最前端、早于任何消费与记录逻辑，用于复现依赖不稳定时序的问题，默认关闭
+        mqConsumeDelayRecorder.simulateConsumeDelay(MqBindingNames.HANDLE_CRONTAB_FANOUT_EVENT);
         mqConsumeDelayRecorder.recordConsumeDelay(
             MqBindingNames.HANDLE_CRONTAB_FANOUT_EVENT,
             CrontabEvent.class.getSimpleName(),

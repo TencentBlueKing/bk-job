@@ -68,6 +68,8 @@ public class BackGroundTaskListener {
      * @param taskEntityMessage 任务实体MQ信息
      */
     public void handleTask(Message<TaskEntity> taskEntityMessage) {
+        // 按配置模拟消息消费延迟，放在消费流程最前端、早于任何消费与记录逻辑，用于复现依赖不稳定时序的问题，默认关闭
+        mqConsumeDelayRecorder.simulateConsumeDelay(MqBindingNames.HANDLE_BACKGROUND_TASK);
         mqConsumeDelayRecorder.recordConsumeDelay(
             MqBindingNames.HANDLE_BACKGROUND_TASK,
             TaskEntity.class.getSimpleName(),

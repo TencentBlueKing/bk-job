@@ -44,6 +44,8 @@ public abstract class BaseJobMqListener {
     }
 
     public final void onEvent(Message<? extends JobMessage> message) {
+        // 按配置模拟消息消费延迟，放在消费流程最前端、早于任何消费与记录逻辑，用于复现依赖不稳定时序的问题，默认关闭
+        mqConsumeDelayRecorder.simulateConsumeDelay(getBindingName());
         beforeHandleMessage(message);
         try {
             handleEvent(message);
