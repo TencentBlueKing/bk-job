@@ -32,6 +32,12 @@ ext {
     }
 }
 version "${jobGatewayVersion}"
+
+configurations.configureEach {
+    // job-gateway是WebFlux/Netty服务，避免公共模块传递引入web Starter后影响WebServer的自动装配顺序，management server被选成Tomcat
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-web'
+}
+
 dependencies {
     api project(':commons:common')
     api project(":commons:common-i18n")
@@ -42,8 +48,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework:spring-webflux'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    implementation 'org.springframework.cloud:spring-cloud-gateway-server'
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webflux'
     implementation 'redis.clients:jedis'
     implementation 'commons-io:commons-io'
     implementation 'org.springframework.boot:spring-boot-starter-validation'

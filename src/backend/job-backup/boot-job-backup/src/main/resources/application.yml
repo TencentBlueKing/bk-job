@@ -20,37 +20,38 @@ management:
       exposure:
         include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh,busrefresh,bindings
       base-path: /actuator
-    enabled-by-default: false
+    access:
+      default: none
   endpoint:
     health:
-      enabled: true
+      access: unrestricted
       show-details: when_authorized
       probes:
         enabled: true
     configprops:
-      enabled: true
+      access: unrestricted
     env:
-      enabled: true
+      access: unrestricted
     beans:
-      enabled: true
+      access: unrestricted
     conditions:
-      enabled: true
+      access: unrestricted
     loggers:
-      enabled: true
+      access: unrestricted
     metrics:
-      enabled: true
+      access: unrestricted
     mappings:
-      enabled: true
+      access: unrestricted
     prometheus:
-      enabled: true
+      access: unrestricted
     scheduledtasks:
-      enabled: true
+      access: unrestricted
     info:
-      enabled: true
+      access: unrestricted
     refresh:
-      enabled: true
+      access: unrestricted
     busrefresh:
-      enabled: true
+      access: unrestricted
 server:
   port: 19808
   shutdown: graceful

@@ -41,7 +41,6 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,7 +59,6 @@ public class JobK8sDiscoveryClientAutoConfiguration {
 
     @Bean
     public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
-        KubernetesNamespaceProvider kubernetesNamespaceProvider,
         SharedInformerFactory sharedInformerFactory,
         @Qualifier("servicesLister") Lister<V1Service> serviceLister,
         @Qualifier("endpointsLister") Lister<V1Endpoints> endpointsLister,
@@ -69,7 +67,6 @@ public class JobK8sDiscoveryClientAutoConfiguration {
         KubernetesDiscoveryProperties properties
     ) {
         return new JobKubernetesInformerDiscoveryClient(
-            kubernetesNamespaceProvider.getNamespace(),
             sharedInformerFactory,
             serviceLister,
             endpointsLister,
