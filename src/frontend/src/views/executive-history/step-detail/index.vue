@@ -347,7 +347,7 @@
           //  已选中的分组不存在了——默认选中第一个分组
           const { resultGroups } = data;
           if (!_.find(resultGroups, group => group.resultType === this.currentGroup.resultType
-            && group.tag === this.currentGroup.tag)) {
+            && group.tag === this.currentGroup.tag) && resultGroups.length > 0) {
             /* eslint-disable prefer-destructuring */
             this.currentGroup = resultGroups[0];
           }
