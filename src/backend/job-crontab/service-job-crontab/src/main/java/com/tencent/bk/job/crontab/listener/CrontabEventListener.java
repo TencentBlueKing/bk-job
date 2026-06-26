@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.crontab.listener;
 
+import com.tencent.bk.job.common.mq.consume.AbstractMqConsumeListener;
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.crontab.constant.CrontabActionEnum;
 import com.tencent.bk.job.crontab.listener.event.CrontabEvent;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
@@ -41,36 +43,34 @@ import org.springframework.stereotype.Component;
  */
 @Component("crontabEventListener")
 @Slf4j
-public class CrontabEventListener {
+public class CrontabEventListener extends AbstractMqConsumeListener<CrontabEvent> {
 
     private final CronJobService cronJobService;
     private final QuartzService quartzService;
-    private final MqConsumeDelayRecorder mqConsumeDelayRecorder;
 
     @Autowired
     public CrontabEventListener(CronJobService cronJobService,
                                 QuartzService quartzService,
-                                MqConsumeDelayRecorder mqConsumeDelayRecorder
+                                MqConsumeDelayRecorder mqConsumeDelayRecorder,
+                                MqConsumeDelaySimulator mqConsumeDelaySimulator
     ) {
+        super(mqConsumeDelaySimulator, mqConsumeDelayRecorder);
         this.cronJobService = cronJobService;
         this.quartzService = quartzService;
-        this.mqConsumeDelayRecorder = mqConsumeDelayRecorder;
     }
 
+    @Override
+    protected String getBindingName() {
+        return MqBindingNames.HANDLE_CRONTAB_FANOUT_EVENT;
+    }
 
     /**
      * 处理定时任务相关的事件
      *
      * @param message 定时任务相关的事件消息
      */
-    public void handleEvent(Message<CrontabEvent> message) {
-        // 按配置模拟消息消费延迟，放在消费流程最前端、早于任何消费与记录逻辑，用于复现依赖不稳定时序的问题，默认关闭
-        mqConsumeDelayRecorder.simulateConsumeDelay(MqBindingNames.HANDLE_CRONTAB_FANOUT_EVENT);
-        mqConsumeDelayRecorder.recordConsumeDelay(
-            MqBindingNames.HANDLE_CRONTAB_FANOUT_EVENT,
-            CrontabEvent.class.getSimpleName(),
-            message
-        );
+    @Override
+    protected void handleEvent(Message<? extends CrontabEvent> message) {
         CrontabEvent crontabEvent = message.getPayload();
         log.info("Handle crontab event, event: {}, duration: {}ms", crontabEvent, crontabEvent.duration());
         long appId = crontabEvent.getAppId();

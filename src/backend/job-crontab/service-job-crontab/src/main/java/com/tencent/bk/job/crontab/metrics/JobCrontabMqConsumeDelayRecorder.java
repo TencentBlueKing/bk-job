@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.crontab.metrics;
 
-import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -36,10 +35,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class JobCrontabMqConsumeDelayRecorder extends MqConsumeDelayRecorder {
 
-    public JobCrontabMqConsumeDelayRecorder(MeterRegistry meterRegistry,
-                                            MqMetricsProperties mqMetricsProperties,
-                                            MqConsumeDelaySimulator mqConsumeDelaySimulator) {
-        super(meterRegistry, mqMetricsProperties, mqConsumeDelaySimulator);
+    public JobCrontabMqConsumeDelayRecorder(MeterRegistry meterRegistry, MqMetricsProperties mqMetricsProperties) {
+        super(meterRegistry, mqMetricsProperties);
     }
 
     @Override

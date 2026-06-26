@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.background.ha.mq;
 
+import com.tencent.bk.job.common.mq.consume.AbstractMqConsumeListener;
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskBalancer;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
@@ -38,7 +40,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class BackGroundTaskListener {
+public class BackGroundTaskListener extends AbstractMqConsumeListener<TaskEntity> {
     /**
      * CMDB事件管理器
      */
@@ -47,19 +49,21 @@ public class BackGroundTaskListener {
      * 后台任务负载均衡器
      */
     private final BackGroundTaskBalancer backGroundTaskBalancer;
-    /**
-     * MQ延迟消费记录器
-     */
-    private final MqConsumeDelayRecorder mqConsumeDelayRecorder;
 
     @Autowired
     public BackGroundTaskListener(CmdbEventManager cmdbEventManager,
                                   BackGroundTaskBalancer backGroundTaskBalancer,
-                                   MqConsumeDelayRecorder mqConsumeDelayRecorder
+                                  MqConsumeDelayRecorder mqConsumeDelayRecorder,
+                                  MqConsumeDelaySimulator mqConsumeDelaySimulator
     ) {
+        super(mqConsumeDelaySimulator, mqConsumeDelayRecorder);
         this.cmdbEventManager = cmdbEventManager;
         this.backGroundTaskBalancer = backGroundTaskBalancer;
-        this.mqConsumeDelayRecorder = mqConsumeDelayRecorder;
+    }
+
+    @Override
+    protected String getBindingName() {
+        return MqBindingNames.HANDLE_BACKGROUND_TASK;
     }
 
     /**
@@ -67,14 +71,8 @@ public class BackGroundTaskListener {
      *
      * @param taskEntityMessage 任务实体MQ信息
      */
-    public void handleTask(Message<TaskEntity> taskEntityMessage) {
-        // 按配置模拟消息消费延迟，放在消费流程最前端、早于任何消费与记录逻辑，用于复现依赖不稳定时序的问题，默认关闭
-        mqConsumeDelayRecorder.simulateConsumeDelay(MqBindingNames.HANDLE_BACKGROUND_TASK);
-        mqConsumeDelayRecorder.recordConsumeDelay(
-            MqBindingNames.HANDLE_BACKGROUND_TASK,
-            TaskEntity.class.getSimpleName(),
-            taskEntityMessage
-        );
+    @Override
+    protected void handleEvent(Message<? extends TaskEntity> taskEntityMessage) {
         try {
             doHandleTask(taskEntityMessage);
         } catch (Throwable t) {
@@ -87,7 +85,7 @@ public class BackGroundTaskListener {
      *
      * @param taskEntityMessage 任务实体MQ信息
      */
-    private void doHandleTask(Message<TaskEntity> taskEntityMessage) {
+    private void doHandleTask(Message<? extends TaskEntity> taskEntityMessage) {
         TaskEntity taskEntity = taskEntityMessage.getPayload();
         log.info("Received task from queue: {}", taskEntity);
         String tenantId = taskEntity.getTenantId();

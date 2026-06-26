@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -100,8 +101,9 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
                                       FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                       StepInstanceService stepInstanceService,
                                       JobExecuteConfig jobExecuteConfig,
-                                      MqConsumeDelayRecorder mqConsumeDelayRecorder) {
-        super(mqConsumeDelayRecorder);
+                                      MqConsumeDelayRecorder mqConsumeDelayRecorder,
+                                      MqConsumeDelaySimulator mqConsumeDelaySimulator) {
+        super(mqConsumeDelayRecorder, mqConsumeDelaySimulator);
         this.engineDependentServiceHolder = engineDependentServiceHolder;
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.metrics;
 
-import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -37,10 +36,9 @@ import org.springframework.stereotype.Component;
 public class JobExecuteMqConsumeDelayRecorder extends MqConsumeDelayRecorder {
 
     public JobExecuteMqConsumeDelayRecorder(MeterRegistry meterRegistry,
-                                            MqMetricsProperties mqMetricsProperties,
-                                            MqConsumeDelaySimulator mqConsumeDelaySimulator
+                                            MqMetricsProperties mqMetricsProperties
     ) {
-        super(meterRegistry, mqMetricsProperties, mqConsumeDelaySimulator);
+        super(meterRegistry, mqMetricsProperties);
     }
 
     @Override

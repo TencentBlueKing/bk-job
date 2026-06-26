@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.mq.consume.AbstractMqConsumeListener;
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
@@ -35,49 +37,31 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
 @Slf4j
-public abstract class BaseJobMqListener {
+public abstract class BaseJobMqListener extends AbstractMqConsumeListener<JobMessage> {
 
-    private final MqConsumeDelayRecorder mqConsumeDelayRecorder;
-
-    protected BaseJobMqListener(MqConsumeDelayRecorder mqConsumeDelayRecorder) {
-        this.mqConsumeDelayRecorder = mqConsumeDelayRecorder;
+    protected BaseJobMqListener(MqConsumeDelayRecorder mqConsumeDelayRecorder,
+                                MqConsumeDelaySimulator mqConsumeDelaySimulator) {
+        super(mqConsumeDelaySimulator, mqConsumeDelayRecorder);
     }
 
-    public final void onEvent(Message<? extends JobMessage> message) {
-        // 按配置模拟消息消费延迟，放在消费流程最前端、早于任何消费与记录逻辑，用于复现依赖不稳定时序的问题，默认关闭
-        mqConsumeDelayRecorder.simulateConsumeDelay(getBindingName());
-        beforeHandleMessage(message);
-        try {
-            handleEvent(message);
-        } finally {
-            afterHandle(message);
-        }
-    }
-
-    private void beforeHandleMessage(Message<? extends JobMessage> message) {
+    /**
+     * 业务处理前从消息头还原作业执行上下文到线程变量
+     */
+    @Override
+    protected void beforeHandle(Message<? extends JobMessage> message) {
         MessageHeaders headers = message.getHeaders();
         String jobExecuteContextJson = (String) headers.get(JobExecuteContext.KEY);
         if (StringUtils.isNotEmpty(jobExecuteContextJson)) {
             JobExecuteContextThreadLocalRepo.set(JsonUtils.fromJson(jobExecuteContextJson,
                 JobExecuteContext.class));
         }
-        mqConsumeDelayRecorder.recordConsumeDelay(
-            getBindingName(),
-            message.getPayload().getClass().getSimpleName(),
-            message
-        );
     }
-
-    private void afterHandle(Message<? extends JobMessage> message) {
-        JobExecuteContextThreadLocalRepo.unset();
-    }
-
-    protected abstract void handleEvent(Message<? extends JobMessage> message);
 
     /**
-     * 获取当前listener对应的binding名称
-     *
-     * @return binding名称
+     * 业务处理后清理线程变量中的作业执行上下文
      */
-    protected abstract String getBindingName();
+    @Override
+    protected void afterHandle(Message<? extends JobMessage> message) {
+        JobExecuteContextThreadLocalRepo.unset();
+    }
 }
