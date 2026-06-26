@@ -149,10 +149,24 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
     }
 
     /**
-     * 通过指定的 username 查出对应的用户信息（含自然人、虚拟用户）
+     * 通过指定的 username 查出对应的自然人用户信息
      */
     @Override
     public List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames) {
+        return listUsersByUsernamesInternal(tenantId, usernames, false);
+    }
+
+    /**
+     * 批量查询用户信息，自然人查不到时补充查询虚拟用户（如通知黑名单保存）
+     */
+    @Override
+    public List<SimpleUserInfo> listUsersByUsernamesIncludingVirtual(String tenantId, Collection<String> usernames) {
+        return listUsersByUsernamesInternal(tenantId, usernames, true);
+    }
+
+    private List<SimpleUserInfo> listUsersByUsernamesInternal(String tenantId,
+                                                              Collection<String> usernames,
+                                                              boolean includeVirtual) {
         if (CollectionUtils.isEmpty(usernames)) {
             return Collections.emptyList();
         }
@@ -162,13 +176,13 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
         for (List<String> userPage : userPages) {
             List<SimpleUserInfo> naturalUsers = listNaturalUsersByBkUsernames(tenantId, userPage);
             List<SimpleUserInfo> userInfos = naturalUsers == null ? new ArrayList<>() : new ArrayList<>(naturalUsers);
-            Set<String> resolvedUsernames = collectResolveUsernames(userInfos);
-
-            List<String> notFoundUsernames = userPage.stream()
-                .filter(username -> !resolvedUsernames.contains(username))
-                .collect(Collectors.toList());
-            // 通过username查自然人查不到，试下查虚拟用户
-            appendVirtualUsers(tenantId, notFoundUsernames, LOOKUP_FIELD_BK_USERNAME, userInfos, resolvedUsernames);
+            if (includeVirtual) {
+                Set<String> resolvedUsernames = collectResolveUsernames(userInfos);
+                List<String> notFoundUsernames = userPage.stream()
+                    .filter(username -> !resolvedUsernames.contains(username))
+                    .collect(Collectors.toList());
+                appendVirtualUsers(tenantId, notFoundUsernames, LOOKUP_FIELD_BK_USERNAME, userInfos, resolvedUsernames);
+            }
 
             if (CollectionUtils.isNotEmpty(userInfos)) {
                 userResult.addAll(userInfos);
