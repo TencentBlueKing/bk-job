@@ -22,26 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.metrics;
+package com.tencent.bk.job.assemble.metrics;
 
-import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 
 /**
- * crontab模块MQ延迟消费记录器
+ * 轻量化部署模式（job-assemble）下统一的MQ延迟消费记录器
  * <p>
- * 注意：该类不使用@Component自动装配，由各部署模式下的Configuration显式声明Bean，
- * 以避免轻量化部署（job-assemble）模式下多个MqConsumeDelayRecorder Bean并存导致注入冲突
+ * 注意：该类不使用@Component自动装配，由JobAssembleConfiguration显式声明Bean，
+ * 以避免与各service-job-xxx子模块下的XxxMqConsumeDelayRecorder共存导致的多Bean冲突
  */
-public class JobCrontabMqConsumeDelayRecorder extends MqConsumeDelayRecorder {
+public class JobAssembleMqConsumeDelayRecorder extends MqConsumeDelayRecorder {
 
-    public JobCrontabMqConsumeDelayRecorder(MeterRegistry meterRegistry, MqMetricsProperties mqMetricsProperties) {
+    public JobAssembleMqConsumeDelayRecorder(MeterRegistry meterRegistry,
+                                             MqMetricsProperties mqMetricsProperties) {
         super(meterRegistry, mqMetricsProperties);
     }
 
     @Override
     protected MqMetricsProperties.ConsumerMetric getConsumeMetric() {
-        return mqMetricsProperties.getConsumer().getJobCrontab();
+        return mqMetricsProperties.getConsumer().getJobAssemble();
     }
 }

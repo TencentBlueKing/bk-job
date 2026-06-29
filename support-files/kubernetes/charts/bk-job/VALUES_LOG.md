@@ -180,6 +180,9 @@ job:
         # analysis模块延迟消费阈值，不配置使用defaultDelayMs
         jobAnalysis:
           delayMs: 1000
+        # assemble模块（轻量化部署模式）延迟消费阈值，不配置使用defaultDelayMs
+        jobAssemble:
+          delayMs: 1000
 ```
 
 ## 0.9.0

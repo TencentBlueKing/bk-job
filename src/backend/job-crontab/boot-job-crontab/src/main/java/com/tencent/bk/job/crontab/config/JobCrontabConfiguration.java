@@ -28,10 +28,14 @@ import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
+import com.tencent.bk.job.crontab.metrics.JobCrontabMqConsumeDelayRecorder;
 import com.tencent.bk.job.manage.CommonAppServiceImpl;
 import com.tencent.bk.job.manage.CachedTenantServiceImpl;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -51,5 +55,11 @@ public class JobCrontabConfiguration {
     @Bean
     public BasicAppInterceptor basicAppInterceptor(CommonAppService appService) {
         return new BasicAppInterceptor(appService);
+    }
+
+    @Bean
+    public MqConsumeDelayRecorder mqConsumeDelayRecorder(MeterRegistry meterRegistry,
+                                                         MqMetricsProperties mqMetricsProperties) {
+        return new JobCrontabMqConsumeDelayRecorder(meterRegistry, mqMetricsProperties);
     }
 }
