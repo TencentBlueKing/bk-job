@@ -413,11 +413,11 @@ data:
         enable: true
         url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
         username: {{ include "job.mariadb.username" . }}
-    {{ if .Values.externalMariaDB.existingPasswordSecret }}
+        {{- if .Values.externalMariaDB.existingPasswordSecret }}
         password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-    {{- else -}}
+        {{- else }}
         password: ${mariadb-password}
-    {{- end }}
+        {{- end }}
       snowflake:
         enable: false
       name: job-leaf
