@@ -121,6 +121,11 @@ spec:
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
+            {{- if .Values.backupConfig.archive.execute.enabled }}
+            - name: archive-mariadb
+              mountPath: /etc/secrets/archive-mariadb
+              readOnly: true
+            {{- end }}
             - name: mongodb
               mountPath: /etc/secrets/mongodb
               readOnly: true
@@ -151,6 +156,11 @@ spec:
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}
+        {{- if .Values.backupConfig.archive.execute.enabled }}
+        - name: archive-mariadb
+          secret:
+            secretName: {{ include "job.archiveMariadb.secretName" . }}
+        {{- end }}
         - name: mongodb
           secret:
             secretName: {{ include "job.mongodb.secretName" . }}
