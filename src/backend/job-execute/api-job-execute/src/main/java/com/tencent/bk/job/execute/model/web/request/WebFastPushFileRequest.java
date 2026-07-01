@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
@@ -83,6 +84,7 @@ public class WebFastPushFileRequest {
     private boolean rollingEnabled;
 
     @Schema(description = "滚动配置, 滚动执行需要传入")
+    @Valid
     private RollingConfigVO rollingConfig;
 
     /**

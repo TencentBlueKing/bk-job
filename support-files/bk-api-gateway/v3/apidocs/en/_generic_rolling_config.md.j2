@@ -3,9 +3,24 @@
 | Fields      | Type   | Required | Description                                                                                                                                                                                                                                                                                          |
 |-------------|--------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | type        | int    | no       | Rolling target: 1-Transfer target; 2-Source file; Default value is 1。                                                                                                                                                                                                                                |
-| mode        | int    | yes      | Rolling mechanism: 1-pause if execution fails; 2- Ignore failure and automatically scroll to the next batch; 3- Manual confirmation                                                                                                                                                                  |
+| execution_mode | int | no       | Rolling batch execution mode: 1-Serial (default); 2-Parallel staggered. In serial mode batches run one after another (controlled by mode); in parallel staggered mode batches are dispatched in parallel with staggered delays (mode is ignored). Parallel staggered is only supported when type is 1 (Transfer target) |
+| mode        | int    | no       | Rolling mechanism: 1-pause if execution fails; 2- Ignore failure and automatically scroll to the next batch; 3- Manual confirmation. Required in serial mode (execution_mode=1); ignored in parallel staggered mode (execution_mode=2)                                                                |
 | expression  | string | no       | When type is 1, this field is required, which means rolling strategy expression                                                                                                                                                                                                                      |
+| batch_start_wait_fixed_ms | long | no | Required in parallel staggered mode (execution_mode=2). Fixed linear step between batches (milliseconds), >=0. Offset of batch k(k>=2) relative to step start = batch_start_wait_fixed_ms*(k-1)+random(batch_start_wait_random_min_ms, batch_start_wait_random_max_ms); offset of batch 1 is 0 |
+| batch_start_wait_random_min_ms | long | no | Required in parallel staggered mode (execution_mode=2). Lower bound of random delay between batches (milliseconds), >=0 |
+| batch_start_wait_random_max_ms | long | no | Required in parallel staggered mode (execution_mode=2). Upper bound of random delay between batches (milliseconds), must be >= batch_start_wait_random_min_ms |
 | file_source | object | no       | When type is 1, this field is required, which means source file rolling configuration, as defined in rolling_config.file_source. Source file rolling and transfer target rolling are not supported at the same time in the same task. If this field is set, all source file type must be server file |
+
+**Combination matrix of rolling target (type) x execution mode (execution_mode):**
+
+| type | execution_mode | Required params | Description |
+|------|----------------|-----------------|-------------|
+| 1 (Transfer target) | 1 (Serial)   | expression + mode | Batch-by-batch serial rolling, existing behavior |
+| 1 (Transfer target) | 2 (Parallel) | expression + 3 stagger params | Batches dispatched in parallel with staggering, mitigating traffic spikes |
+| 2 (Source file)     | 1 (Serial)   | file_source + mode | Batch-by-batch serial rolling by source file |
+| 2 (Source file)     | 2 (Parallel) | — | **Not supported**, rejected by validation |
+
+> In parallel staggered mode the total batch count is capped by a server config (default 200, controlled by `job.execute.rolling.scatter.max-batch`); exceeding it will be rejected by validation.
 
 ##### rolling_config.file_source
 

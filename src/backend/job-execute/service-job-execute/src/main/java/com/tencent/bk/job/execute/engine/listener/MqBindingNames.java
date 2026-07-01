@@ -45,6 +45,10 @@ public class MqBindingNames {
      */
     public static final String HANDLE_RESULT_HANDLE_RESUME_EVENT = "handleResultHandleResumeEvent-in-0";
     /**
+     * 滚动批次并行错峰下发恢复事件输入binding名称
+     */
+    public static final String HANDLE_ROLLING_BATCH_DISPATCH_RESUME_EVENT = "handleRollingBatchDispatchResumeEvent-in-0";
+    /**
      * 通知消息输入binding名称
      */
     public static final String HANDLE_NOTIFY_MSG = "handleNotifyMsg-in-0";

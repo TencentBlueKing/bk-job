@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.validation;
 
+import com.tencent.bk.job.common.constant.RollingExecutionModeEnum;
 import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.common.validation.ValidationGroups;
-import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
@@ -35,6 +35,14 @@ import java.util.List;
 
 /**
  * 抽象的滚动配置联合校验分组提供者
+ * <p>
+ * 按 type × executionMode 联合分组：
+ * - type=1(传输目标)：加入 {@link ValidationGroups.RollingType.TargetExecuteObject}
+ * - type=2(源文件)：加入 {@link ValidationGroups.RollingType.FileSource}
+ * - executionMode=1(串行,默认)：加入 {@link ValidationGroups.RollingExecutionMode.Serial}
+ * - executionMode=2(并行)：加入 {@link ValidationGroups.RollingExecutionMode.Parallel}
+ * <p>
+ * 注意："type=2 + 并行" 与 "批次总数超上限" 属于跨字段/上下文约束，无法通过分组表达，需在服务层显式校验拒绝。
  */
 @Slf4j
 public abstract class AbstractRollingConfigGroupSequenceProvider<T> implements DefaultGroupSequenceProvider<T> {
@@ -42,7 +50,8 @@ public abstract class AbstractRollingConfigGroupSequenceProvider<T> implements D
     @Override
     public List<Class<?>> getValidationGroups(T rollingConfig) {
         List<Class<?>> validationGroups = new ArrayList<>();
-        validationGroups.add(EsbRollingConfigDTO.class);
+        // 默认分组必须包含被校验的 Bean 类本身
+        validationGroups.add(getBeanClass());
         if (rollingConfig == null) {
             return validationGroups;
         }
@@ -52,8 +61,20 @@ public abstract class AbstractRollingConfigGroupSequenceProvider<T> implements D
         } else if (RollingTypeEnum.FILE_SOURCE.getValue().equals(type)) {
             validationGroups.add(ValidationGroups.RollingType.FileSource.class);
         }
+
+        Integer executionMode = getExecutionMode(rollingConfig);
+        if (RollingExecutionModeEnum.isParallel(executionMode)) {
+            validationGroups.add(ValidationGroups.RollingExecutionMode.Parallel.class);
+        } else {
+            // 缺省或串行
+            validationGroups.add(ValidationGroups.RollingExecutionMode.Serial.class);
+        }
         return validationGroups;
     }
 
     abstract Integer getRollingType(T t);
+
+    abstract Integer getExecutionMode(T t);
+
+    abstract Class<?> getBeanClass();
 }

@@ -22,80 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.common.constant;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-        interface ScriptContent {
-        }
+import static org.assertj.core.api.Assertions.assertThat;
 
-        interface ScriptId {
-        }
+@DisplayName("滚动批次执行模式枚举")
+class RollingExecutionModeEnumTest {
+
+    @Test
+    @DisplayName("valOf 合法值")
+    void valOf() {
+        assertThat(RollingExecutionModeEnum.valOf(1)).isEqualTo(RollingExecutionModeEnum.SERIAL);
+        assertThat(RollingExecutionModeEnum.valOf(2)).isEqualTo(RollingExecutionModeEnum.PARALLEL);
     }
 
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
+    @Test
+    @DisplayName("isValid 判断")
+    void isValid() {
+        assertThat(RollingExecutionModeEnum.isValid(1)).isTrue();
+        assertThat(RollingExecutionModeEnum.isValid(2)).isTrue();
+        assertThat(RollingExecutionModeEnum.isValid(0)).isFalse();
+        assertThat(RollingExecutionModeEnum.isValid(3)).isFalse();
+        assertThat(RollingExecutionModeEnum.isValid(null)).isFalse();
     }
 
-    /**
-     * 滚动类型
-     */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
+    @Test
+    @DisplayName("isParallel 判断")
+    void isParallel() {
+        assertThat(RollingExecutionModeEnum.isParallel(2)).isTrue();
+        assertThat(RollingExecutionModeEnum.isParallel(1)).isFalse();
+        assertThat(RollingExecutionModeEnum.isParallel(null)).isFalse();
     }
 
-    /**
-     * 滚动批次执行模式
-     */
-    interface RollingExecutionMode {
-        /**
-         * 串行执行
-         */
-        interface Serial {
-        }
-
-        /**
-         * 并行执行（错峰）
-         */
-        interface Parallel {
-        }
+    @Test
+    @DisplayName("getValue 与序号对应")
+    void getValue() {
+        assertThat(RollingExecutionModeEnum.SERIAL.getValue()).isEqualTo(1);
+        assertThat(RollingExecutionModeEnum.PARALLEL.getValue()).isEqualTo(2);
     }
-
-    /**
-     * 主机类型（hostId or cloudId+ip）
-     */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
-
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
-
 }

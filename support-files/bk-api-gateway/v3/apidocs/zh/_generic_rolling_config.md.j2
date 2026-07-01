@@ -3,9 +3,24 @@
 | 字段         | 类型     | 必选 | 描述                                                               |
 |------------|--------|----|------------------------------------------------------------------|
 | type       | int    | 否  | 滚动对象：1-传输目标；2-源文件；不填写默认为传输目标。                                    |
-| mode       | int    | 是  | 滚动机制：1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认                             |
-| expression | string | 否  | 滚动对象为【传输目标】时必填，滚动策略表达式                                           |
+| execution_mode | int | 否  | 滚动批次执行模式：1-串行(默认)；2-并行错峰。串行时批次间依次执行(受 mode 控制)；并行错峰时各批次按错峰延迟并行下发(不读取 mode)。仅滚动对象为【传输目标】(type=1)时支持并行错峰 |
+| mode       | int    | 否  | 滚动机制：1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认。串行模式(execution_mode=1)必填；并行错峰模式(execution_mode=2)不生效可不填 |
+| expression | string | 否  | 滚动对象为【传输目标】(type=1)时必填，滚动策略表达式                                   |
+| batch_start_wait_fixed_ms | long | 否 | 并行错峰模式(execution_mode=2)必填，批次间固定线性步长(毫秒)，≥0。批 k(k≥2) 相对步骤开始的偏移=batch_start_wait_fixed_ms*(k-1)+random(batch_start_wait_random_min_ms, batch_start_wait_random_max_ms)，批1偏移=0 |
+| batch_start_wait_random_min_ms | long | 否 | 并行错峰模式(execution_mode=2)必填，批次间随机延迟下限(毫秒)，≥0 |
+| batch_start_wait_random_max_ms | long | 否 | 并行错峰模式(execution_mode=2)必填，批次间随机延迟上限(毫秒)，需 ≥ batch_start_wait_random_min_ms |
 | file_source | object | 否  | 滚动对象为【源文件】时必填，源文件滚动配置，见rolling_config.file_source定义，不支持与传输目标同时滚动，配置该项后源文件类型仅支持服务器文件 |
+
+**滚动对象(type) × 执行模式(execution_mode) 组合矩阵：**
+
+| type | execution_mode | 必填参数 | 说明 |
+|------|----------------|---------|------|
+| 1(传输目标) | 1(串行) | expression + mode | 逐批串行滚动，现状行为 |
+| 1(传输目标) | 2(并行错峰) | expression + 3 个错峰参数 | 分批并行、按批次错峰下发，缓解突发流量尖峰 |
+| 2(源文件)   | 1(串行) | file_source + mode | 按源文件逐批串行滚动 |
+| 2(源文件)   | 2(并行错峰) | — | **不支持**，校验拒绝 |
+
+> 并行错峰模式下批次总数存在系统上限(默认 200，由服务端配置项 `job.execute.rolling.scatter.max-batch` 控制)，超过将校验拒绝。
 
 ##### rolling_config.file_source
 

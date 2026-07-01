@@ -27,8 +27,11 @@ package com.tencent.bk.job.execute.service.rolling.impl;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.constant.RollingTypeEnum;
+import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -67,16 +70,19 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     private final IdGen idGen;
     private final FileSourceBatchCalculator fileSourceBatchCalculator;
     private final StepInstanceFileBatchService stepInstanceFileBatchService;
+    private final JobExecuteConfig jobExecuteConfig;
 
     @Autowired
     public RollingConfigServiceImpl(RollingConfigDAO rollingConfigDAO,
                                     IdGen idGen,
                                     FileSourceBatchCalculator fileSourceBatchCalculator,
-                                    StepInstanceFileBatchService stepInstanceFileBatchService) {
+                                    StepInstanceFileBatchService stepInstanceFileBatchService,
+                                    JobExecuteConfig jobExecuteConfig) {
         this.rollingConfigDAO = rollingConfigDAO;
         this.idGen = idGen;
         this.fileSourceBatchCalculator = fileSourceBatchCalculator;
         this.stepInstanceFileBatchService = stepInstanceFileBatchService;
+        this.jobExecuteConfig = jobExecuteConfig;
     }
 
     @Override
@@ -116,6 +122,9 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         taskInstanceRollingConfig.setConfigName(rollingConfigName);
         taskInstanceRollingConfig.setType(rollingConfig.getType());
 
+        // 并行错峰模式的跨字段/上下文校验（type=2+并行、随机上限<下限）
+        validateScatterConfig(rollingConfig);
+
         if (rollingConfig.isTargetExecuteObjectRolling()) {
             ExecuteObjectRollingConfigDetailDO executeObjectRollingConfig = buildExecuteObjectRollingConfig(
                 rollingConfig,
@@ -137,6 +146,34 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         return taskInstanceRollingConfig;
     }
 
+    /**
+     * 并行错峰模式的跨字段/上下文校验
+     *
+     * @param rollingConfig 步骤滚动配置
+     */
+    private void validateScatterConfig(StepRollingConfigDTO rollingConfig) {
+        if (!rollingConfig.isParallelExecution()) {
+            return;
+        }
+        // 源文件滚动(type=2)不支持并行错峰
+        if (rollingConfig.isFileSourceRolling()) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                new Object[]{
+                    I18nUtil.getI18nMessage("validation.constraints.RollingFileSourceParallelNotSupported.message")
+                });
+        }
+        Long min = rollingConfig.getBatchStartWaitRandomMinMs();
+        Long max = rollingConfig.getBatchStartWaitRandomMaxMs();
+        if (min != null && max != null && max < min) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                new Object[]{
+                    I18nUtil.getI18nMessage("validation.constraints.RollingBatchStartWaitRandomMaxLessThanMin.message")
+                });
+        }
+    }
+
     private String getRollingConfigName(StepRollingConfigDTO rollingConfig) {
         if (StringUtils.isBlank(rollingConfig.getName())) {
             return "default";
@@ -153,6 +190,11 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         executeObjectRollingConfig.setName(rollingConfigName);
         executeObjectRollingConfig.setMode(rollingConfig.getMode());
         executeObjectRollingConfig.setExpr(rollingConfig.getExpr());
+        // 透传执行模式与错峰参数
+        executeObjectRollingConfig.setExecutionMode(rollingConfig.getExecutionMode());
+        executeObjectRollingConfig.setBatchStartWaitFixedMs(rollingConfig.getBatchStartWaitFixedMs());
+        executeObjectRollingConfig.setBatchStartWaitRandomMinMs(rollingConfig.getBatchStartWaitRandomMinMs());
+        executeObjectRollingConfig.setBatchStartWaitRandomMaxMs(rollingConfig.getBatchStartWaitRandomMaxMs());
 
         RollingBatchExecuteObjectsResolver resolver =
             new RollingBatchExecuteObjectsResolver(
@@ -169,6 +211,18 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         executeObjectRollingConfig.setTotalBatch(
             executeObjectRollingConfig.getExecuteObjectsBatchListCompatibly().size()
         );
+
+        // 并行错峰模式：批次总数不得超过系统上限，防止并行 GSE 任务规模失控
+        if (rollingConfig.isParallelExecution()
+            && executeObjectRollingConfig.getTotalBatch() > jobExecuteConfig.getRollingScatterMaxBatch()) {
+            log.warn("Rolling scatter total batch {} exceed limit {}",
+                executeObjectRollingConfig.getTotalBatch(), jobExecuteConfig.getRollingScatterMaxBatch());
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                new Object[]{
+                    I18nUtil.getI18nMessage("validation.constraints.RollingTotalBatchExceedLimit.message")
+                });
+        }
 
         executeObjectRollingConfig.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
         Map<Long, StepRollingConfigDO> stepRollingConfigs = new HashMap<>();

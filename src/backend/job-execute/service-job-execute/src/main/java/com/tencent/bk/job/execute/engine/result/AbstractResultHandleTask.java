@@ -654,7 +654,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     @Override
     public String getTaskId() {
-        return "gse_task:" + this.stepInstance.getId() + ":" + this.stepInstance.getExecuteCount();
+        // 纳入 batch，避免并行错峰模式下同一步骤多批次结果处理任务的 keepalive 标识冲突
+        return "gse_task:" + this.stepInstance.getId() + ":" + this.stepInstance.getExecuteCount()
+            + ":" + this.gseTask.getBatch();
     }
 
     @Override

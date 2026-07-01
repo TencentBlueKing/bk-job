@@ -98,6 +98,18 @@ public class TaskExecuteMQEventDispatcher {
     }
 
     /**
+     * 分发滚动批次并行错峰下发恢复事件
+     *
+     * @param event 滚动批次下发恢复事件
+     */
+    public void dispatchRollingBatchDispatchResumeEvent(RollingBatchDispatchResumeEvent event) {
+        log.info("Begin to dispatch rolling batch dispatch resume event, event: {}", event);
+        String output = "rollingBatchDispatchResume-out-0";
+        streamBridge.send(output, event);
+        log.info("Dispatch rolling batch dispatch resume event successfully, event: {}", event);
+    }
+
+    /**
      * 异步发送消息通知事件
      *
      * @param notification 消息内容

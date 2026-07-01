@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
 import com.tencent.bk.job.execute.dao.common.IdGen;
+import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchFinishResult;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import lombok.extern.slf4j.Slf4j;
@@ -127,5 +128,30 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
     @Override
     public List<StepInstanceRollingTaskDTO> listRollingTasksByStep(Long taskInstanceId, long stepInstanceId) {
         return stepInstanceRollingTaskDAO.listRollingTasks(taskInstanceId, stepInstanceId, null, null);
+    }
+
+    @Override
+    public void updateDispatchInfo(Long taskInstanceId,
+                                   long stepInstanceId,
+                                   int executeCount,
+                                   int batch,
+                                   Long dispatchTime,
+                                   Boolean dispatched) {
+        stepInstanceRollingTaskDAO.updateDispatchInfo(taskInstanceId, stepInstanceId, executeCount, batch,
+            dispatchTime, dispatched);
+    }
+
+    @Override
+    public ScatterBatchFinishResult finishBatchAndCheckAllDone(Long taskInstanceId,
+                                                               long stepInstanceId,
+                                                               int executeCount,
+                                                               int batch,
+                                                               RunStatusEnum status,
+                                                               Long startTime,
+                                                               Long endTime,
+                                                               Long totalTime,
+                                                               int totalBatch) {
+        return stepInstanceRollingTaskDAO.finishBatchAndCheckAllDone(taskInstanceId, stepInstanceId, executeCount,
+            batch, status, startTime, endTime, totalTime, totalBatch);
     }
 }

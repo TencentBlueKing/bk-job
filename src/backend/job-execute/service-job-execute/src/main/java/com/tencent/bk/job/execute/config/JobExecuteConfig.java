@@ -74,4 +74,16 @@ public class JobExecuteConfig {
      */
     @Value("${job.execute.scriptTask.query.contentSizeLimit:512MB}")
     private String scriptTaskQueryContentSizeLimit;
+
+    /**
+     * 滚动并行错峰模式下允许的最大批次总数，超出则校验拒绝，防止并行 GSE 任务规模失控
+     */
+    @Value("${job.execute.rolling.scatter.max-batch:200}")
+    private int rollingScatterMaxBatch;
+
+    /**
+     * 滚动并行错峰调度器消费者线程数
+     */
+    @Value("${job.execute.rolling.scatter.worker-num:5}")
+    private int rollingScatterWorkerNum;
 }

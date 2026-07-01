@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
+import com.tencent.bk.job.common.constant.RollingExecutionModeEnum;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.common.validation.CheckEnum;
@@ -33,6 +34,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -53,6 +55,47 @@ public class RollingConfigVO {
     @Schema(description = "滚动机制：1-执行失败则暂停，2-忽略失败，自动滚动下一批，3-人工确认，不传默认为1")
     @CheckEnum(enumClass = RollingModeEnum.class, message = "{validation.constraints.RollingMode_illegal.message}")
     private Integer mode = RollingModeEnum.PAUSE_IF_FAIL.getValue();
+
+    @Schema(description = "滚动批次执行模式：1-串行(默认)，2-并行(错峰)")
+    @CheckEnum(enumClass = RollingExecutionModeEnum.class,
+        message = "{validation.constraints.RollingExecutionMode_illegal.message}")
+    private Integer executionMode = RollingExecutionModeEnum.SERIAL.getValue();
+
+    @Schema(description = "批次间固定延迟（线性步长），单位毫秒，仅并行模式使用且必填")
+    @NotNull(
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitFixedMs_NotNull.message}"
+    )
+    @Min(
+        value = 0,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Min.message}"
+    )
+    private Long batchStartWaitFixedMs;
+
+    @Schema(description = "批次间随机延迟下限，单位毫秒，仅并行模式使用且必填")
+    @NotNull(
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitRandomMinMs_NotNull.message}"
+    )
+    @Min(
+        value = 0,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Min.message}"
+    )
+    private Long batchStartWaitRandomMinMs;
+
+    @Schema(description = "批次间随机延迟上限，单位毫秒，仅并行模式使用且必填，需 ≥ batchStartWaitRandomMinMs")
+    @NotNull(
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitRandomMaxMs_NotNull.message}"
+    )
+    @Min(
+        value = 0,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Min.message}"
+    )
+    private Long batchStartWaitRandomMaxMs;
 
     @Schema(description = "滚动对象为【传输目标】时的滚动分批策略表达式")
     @NotBlank(

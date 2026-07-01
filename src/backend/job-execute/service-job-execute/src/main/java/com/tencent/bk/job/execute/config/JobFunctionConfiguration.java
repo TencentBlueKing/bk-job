@@ -29,10 +29,12 @@ import com.tencent.bk.job.execute.engine.listener.GseTaskListener;
 import com.tencent.bk.job.execute.engine.listener.JobListener;
 import com.tencent.bk.job.execute.engine.listener.NotifyMsgListener;
 import com.tencent.bk.job.execute.engine.listener.ResultHandleResumeListener;
+import com.tencent.bk.job.execute.engine.listener.RollingBatchDispatchResumeListener;
 import com.tencent.bk.job.execute.engine.listener.StepListener;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
+import com.tencent.bk.job.execute.engine.listener.event.RollingBatchDispatchResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
@@ -76,6 +78,13 @@ public class JobFunctionConfiguration {
         @Autowired ResultHandleResumeListener resultHandleResumeListener) {
         log.info("Init handleResultHandleResumeEvent consumer");
         return resultHandleResumeListener::onEvent;
+    }
+
+    @Bean
+    public Consumer<Message<RollingBatchDispatchResumeEvent>> handleRollingBatchDispatchResumeEvent(
+        @Autowired RollingBatchDispatchResumeListener rollingBatchDispatchResumeListener) {
+        log.info("Init handleRollingBatchDispatchResumeEvent consumer");
+        return rollingBatchDispatchResumeListener::onEvent;
     }
 
     @Bean

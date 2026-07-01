@@ -22,80 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.engine.rolling.scatter;
 
 /**
- * 联合校验分组
+ * 并行错峰模式下单批次终态跃迁 + 步骤完成判定的结果
  */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
-
-        interface ScriptContent {
-        }
-
-        interface ScriptId {
-        }
-    }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
-    }
-
+public enum ScatterBatchFinishResult {
     /**
-     * 滚动类型
+     * 该批次此前已是终态（重复回调/转移重放），本次未推进完成判定
      */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
-
+    ALREADY_FINAL,
     /**
-     * 滚动批次执行模式
+     * 该批次本次跃迁为终态，但仍有其它批次未终态，步骤未完成
      */
-    interface RollingExecutionMode {
-        /**
-         * 串行执行
-         */
-        interface Serial {
-        }
-
-        /**
-         * 并行执行（错峰）
-         */
-        interface Parallel {
-        }
-    }
-
+    NOT_LAST_BATCH,
     /**
-     * 主机类型（hostId or cloudId+ip）
+     * 该批次本次跃迁为终态，且所有批次均已终态，由本次回调唯一收敛步骤
      */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
-
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
-
+    LAST_BATCH
 }
