@@ -22,26 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.metrics;
+package com.tencent.bk.job.common.mq.metrics;
 
-import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
-import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
-import io.micrometer.core.instrument.MeterRegistry;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * crontab模块MQ延迟消费记录器
- * <p>
- * 注意：该类不使用@Component自动装配，由各部署模式下的Configuration显式声明Bean，
- * 以避免轻量化部署（job-assemble）模式下多个MqConsumeDelayRecorder Bean并存导致注入冲突
+ * MQ消息消费延迟模拟配置
+ * 仅用于在测试环境中通过在消息处理前 Sleep 一段时间来模拟消息延迟，便于复现依赖时序的问题。
+ * 默认关闭，不影响生产默认行为。
  */
-public class JobCrontabMqConsumeDelayRecorder extends MqConsumeDelayRecorder {
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "job.mq.consume.simulate-delay")
+public class MqConsumeDelaySimulateProperties {
+    /**
+     * 是否开启消息消费延迟模拟，默认关闭
+     */
+    private boolean enabled = false;
 
-    public JobCrontabMqConsumeDelayRecorder(MeterRegistry meterRegistry, MqMetricsProperties mqMetricsProperties) {
-        super(meterRegistry, mqMetricsProperties);
-    }
-
-    @Override
-    protected MqMetricsProperties.ConsumerMetric getConsumeMetric() {
-        return mqMetricsProperties.getConsumer().getJobCrontab();
-    }
+    /**
+     * 模拟的延迟时长，单位毫秒，仅在开启时且大于0生效
+     */
+    private long delayMs = 0;
 }

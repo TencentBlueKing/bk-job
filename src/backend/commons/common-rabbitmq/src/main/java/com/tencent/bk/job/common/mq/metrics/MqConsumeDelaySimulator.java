@@ -22,26 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.metrics;
+package com.tencent.bk.job.common.mq.metrics;
 
-import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
-import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
-import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * crontab模块MQ延迟消费记录器
- * <p>
- * 注意：该类不使用@Component自动装配，由各部署模式下的Configuration显式声明Bean，
- * 以避免轻量化部署（job-assemble）模式下多个MqConsumeDelayRecorder Bean并存导致注入冲突
+ * MQ消息消费延迟模拟器
+ * 在消息处理前 Sleep 配置的时长，用于在测试环境模拟消息延迟，复现依赖不稳定时序的问题。
+ * 通过 {@link MqConsumeDelaySimulateProperties} 控制是否开启与延迟时长，默认关闭。
  */
-public class JobCrontabMqConsumeDelayRecorder extends MqConsumeDelayRecorder {
+@Slf4j
+public class MqConsumeDelaySimulator {
 
-    public JobCrontabMqConsumeDelayRecorder(MeterRegistry meterRegistry, MqMetricsProperties mqMetricsProperties) {
-        super(meterRegistry, mqMetricsProperties);
+    private final MqConsumeDelaySimulateProperties properties;
+
+    public MqConsumeDelaySimulator(MqConsumeDelaySimulateProperties properties) {
+        this.properties = properties;
     }
 
-    @Override
-    protected MqMetricsProperties.ConsumerMetric getConsumeMetric() {
-        return mqMetricsProperties.getConsumer().getJobCrontab();
+    /**
+     * 按配置模拟消息消费延迟，仅在开启且延迟时长大于0时生效。
+     *
+     * @param binding 当前消费的binding名称，用于日志排查
+     */
+    public void simulateDelay(String binding) {
+        if (!properties.isEnabled()) {
+            return;
+        }
+        long delayMs = properties.getDelayMs();
+        if (delayMs <= 0) {
+            return;
+        }
+        try {
+            log.info("Simulate mq consume delay, binding: {}, delayMs: {}", binding, delayMs);
+            Thread.sleep(delayMs);
+        } catch (InterruptedException e) {
+            // 恢复中断标志，便于上层感知中断
+            Thread.currentThread().interrupt();
+            log.warn("Interrupted while simulating mq consume delay, binding: {}, delayMs: {}", binding, delayMs, e);
+        }
     }
 }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.util.http.HttpConPoolUtil;
 import com.tencent.bk.job.common.util.http.HttpResponse;
@@ -60,9 +61,10 @@ public class CallbackListener extends BaseJobMqListener {
     public CallbackListener(MeterRegistry meterRegistry,
                             TaskInstanceService taskInstanceService,
                             MqConsumeDelayRecorder mqConsumeDelayRecorder,
+                            MqConsumeDelaySimulator mqConsumeDelaySimulator,
                             CallbackUrlValidateService callbackUrlValidateService
     ) {
-        super(mqConsumeDelayRecorder);
+        super(mqConsumeDelayRecorder, mqConsumeDelaySimulator);
         this.meterRegistry = meterRegistry;
         this.taskInstanceService = taskInstanceService;
         this.callbackUrlValidateService = callbackUrlValidateService;
