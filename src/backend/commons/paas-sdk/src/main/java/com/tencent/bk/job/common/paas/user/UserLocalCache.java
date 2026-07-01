@@ -133,6 +133,7 @@ public class UserLocalCache {
     }
 
     public Set<SimpleUserInfo> batchGetUser(String tenantId, Collection<String> usernames) {
+        // 仅解析自然人；虚拟用户在 listUsersByUsernames 中查不到，会被过滤，避免进入通知发送链路
         Set<UserCacheQuery> querySet = usernames.stream()
             .map(username -> new UserCacheQuery(tenantId, username))
             .collect(Collectors.toSet());

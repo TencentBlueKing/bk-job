@@ -92,4 +92,12 @@ public class RetryableUserApiClient implements IUserApiClient {
             "listUsersByUsernames"
         );
     }
+
+    @Override
+    public List<SimpleUserInfo> listUsersByUsernamesIncludingVirtual(String tenantId, Collection<String> usernames) {
+        return retryExecutor.executeWithRetry(
+            () -> delegate.listUsersByUsernamesIncludingVirtual(tenantId, usernames),
+            "listUsersByUsernamesIncludingVirtual"
+        );
+    }
 }
