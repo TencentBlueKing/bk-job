@@ -42,7 +42,6 @@ public class MqConsumeDelaySimulator {
 
     /**
      * 按配置模拟消息消费延迟，仅在开启且延迟时长大于0时生效。
-     * 每次调用都读取最新配置，支持运行时动态调整。
      *
      * @param binding 当前消费的binding名称，用于日志排查
      */
