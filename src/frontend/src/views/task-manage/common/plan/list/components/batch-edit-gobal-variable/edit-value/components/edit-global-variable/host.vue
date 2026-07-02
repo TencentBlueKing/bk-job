@@ -68,6 +68,8 @@
   </div>
 </template>
 <script>
+  import DOMPurify from 'dompurify';
+
   import ExecuteTargetModel from '@model/execute-target';
 
   export default {
@@ -101,7 +103,7 @@
           trigger: 'click mouseenter',
           placement: 'left',
           hideOnClick: false,
-          content: `<div style="max-width: 340px">${this.data.description}</div>`,
+          content: `<div style="max-width: 340px">${DOMPurify.sanitize(this.data.description)}</div>`,
           disabled: !this.data.description,
         };
       },
