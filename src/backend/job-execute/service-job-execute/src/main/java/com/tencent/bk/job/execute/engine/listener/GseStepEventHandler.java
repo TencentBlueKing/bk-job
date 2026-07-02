@@ -922,9 +922,21 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
 
         GseTaskDTO gseTask = gseTaskService.getGseTask(eventSource.getJobInstanceId(), eventSource.getGseTaskId());
 
+        // 并行错峰模式：各批次并发执行，GSE 任务终态回调携带真正结束的批次；
+        // 而并行模式下 JobListener 不逐批 nextStep/不 updateStepCurrentBatch，stepInstance.getBatch() 恒为 1，
+        // 故此处按 gseTask 回填结束批次，保证 finishParallelBatch 按真正结束的批次做终态跃迁与完成判定。
+        // 串行模式 stepInstance.getBatch() 由 JobListener 逐批维护且与 gseTask 一致，此处不做回填以免影响既有逻辑。
+        if (stepInstance.isRollingStep()) {
+            RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+                stepInstance.getTaskInstanceId(), stepInstance.getRollingConfigId());
+            if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                stepInstance.setBatch(gseTask.getBatch());
+            }
+        }
+
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
-        log.info("Refresh step according to gse task status, stepInstanceId: {}, gseTaskStatus: {}",
-            stepInstance.getId(), gseTaskStatus.name());
+        log.info("Refresh step according to gse task status, stepInstanceId: {}, gseTaskStatus: {}, batch: {}",
+            stepInstance.getId(), gseTaskStatus.name(), stepInstance.getBatch());
 
         switch (gseTaskStatus) {
             case SUCCESS:
