@@ -28,6 +28,7 @@
 <template>
   <date-picker
     ref="datePicker"
+    class="job-date-picker"
     :model-value="dateValue"
     :timezone="props.timezone"
     @update:modelValue="handleDateChange"
@@ -81,3 +82,10 @@
     emits('changeTimezone', timezone);
   };
 </script>
+<style lang="postcss">
+  .bk-date-picker-popover{
+    .time-zone-panel{
+      display: none;
+    }
+  }
+</style>
