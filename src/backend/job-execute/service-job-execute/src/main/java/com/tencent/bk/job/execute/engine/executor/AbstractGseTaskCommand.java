@@ -104,6 +104,11 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
         this.stepInstanceId = gseTask.getStepInstanceId();
         this.executeCount = gseTask.getExecuteCount();
         this.batch = gseTask.getBatch();
+        // 并行错峰模式下 step_instance.batch 恒为初始批次，不随各并发批次推进；而每个 GSE 任务对应确定的批次。
+        // 这里按当前 GSE 任务所属批次校正 stepInstance，使初始日志写入(saveInitialFileTaskLogs)及后续
+        // 结果处理按各自 batch 隔离，避免 2/3/4 批日志被写到 batch=1 导致查不到。
+        // 串行/非滚动场景 gseTask.getBatch() 与 stepInstance.getBatch() 本就一致，此处为无副作用的对齐。
+        stepInstance.setBatch(gseTask.getBatch());
         this.gseTaskInfo = buildGseTaskInfo(stepInstance.getTaskInstanceId(), gseTask);
     }
 
