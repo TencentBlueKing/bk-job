@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.validation.NoXss;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -46,6 +47,7 @@ public class TaskVariableVO {
     private Long id;
 
     @ApiModelProperty(value = "变量名", required = true)
+    @NoXss(fieldName = "name")
     private String name;
 
     @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组", required = true)
@@ -64,6 +66,7 @@ public class TaskVariableVO {
     private TaskTargetVO targetValue;
 
     @ApiModelProperty(value = "变量描述")
+    @NoXss(fieldName = "description")
     private String description;
 
     @ApiModelProperty(value = "赋值可变 0-不可变 1-可变", required = true)
