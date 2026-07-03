@@ -41,6 +41,7 @@
   </div>
 </template>
 <script>
+  import DOMPurify from 'dompurify';
   export default {
     props: {
       data: {
@@ -79,7 +80,7 @@
           extCls: 'variable-desc-tippy',
           trigger: 'click mouseenter',
           hideOnClick: false,
-          content: this.data.description,
+          content: DOMPurify.sanitize(this.data.description),
           disabled: !this.data.description,
         };
       },
