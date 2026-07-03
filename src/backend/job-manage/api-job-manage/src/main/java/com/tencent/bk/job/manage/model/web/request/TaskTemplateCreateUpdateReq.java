@@ -62,6 +62,7 @@ public class TaskTemplateCreateUpdateReq extends TemplateBasicInfoUpdateReq {
      * 模版变量
      */
     @ApiModelProperty(value = "模版变量, 新增、修改、删除时需要传入")
+    @Valid
     private List<TaskVariableVO> variables;
 
     public void validate() throws InvalidParamException {
