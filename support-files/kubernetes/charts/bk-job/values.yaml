@@ -129,7 +129,7 @@ mariadb:
       flush privileges;
   ## JDBC Connection properties
   connection:
-    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
 
 ## External MariaDB configuration
 ##
@@ -157,7 +157,7 @@ externalMariaDB:
   rootPassword: ""
   ## JDBC Connection properties
   connection:
-    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
   ## TLS相关配置
   tls:
     ## 是否开启tls认证
@@ -1602,7 +1602,7 @@ crontabConfig:
     host: ""
     port: 3306
     connection:
-      properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
     username: "job"
     password: ""
     maxPoolSize: 100
@@ -1717,7 +1717,7 @@ backupConfig:
       username: "job"
       password: ""
       connection:
-        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
       ## TLS相关配置
       tls :
         ## 是否开启tls认证
@@ -1747,7 +1747,7 @@ backupConfig:
       # 被归档 DB 的配置
       mariadb:
         connection:
-          properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+          properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
         dataSourceMode: standalone
         # 垂直分片配置, 需要与 executeConfig 中保持一致
         # verticalSharding:
