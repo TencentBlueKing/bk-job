@@ -151,7 +151,7 @@ class TaskExecuteServiceImplConvertToServersDTOTest {
         KubeContainerFilter cf = result.getContainerFilters().get(0);
         assertThat(cf.getClusterNodes()).hasSize(1);
         assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(cf.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
+        assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
         assertThat(cf.getPropConditions()).hasSize(2);
         assertThat(cf.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
         assertThat(cf.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
@@ -225,7 +225,7 @@ class TaskExecuteServiceImplConvertToServersDTOTest {
 
     private static KubeContainerFilter buildFullFilter() {
         KubeContainerFilter cf = new KubeContainerFilter();
-        cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L, "集群1000")));
+        cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
         cf.setPropConditions(Arrays.asList(
             new KubePropCondition("container_container_uid", "contains", "docker://abcdefg"),
             new KubePropCondition("pod_name", "equal", "pod-a")

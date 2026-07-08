@@ -40,8 +40,9 @@ import java.util.stream.Collectors;
 /**
  * Web 入参 ↔ 内部流转 DTO 转换器。
  * <p>
- * Web 入参的拓扑对象（{@code WebKubeXxxObject}，含 id+name）直接搬到内部 {@link KubeContainerFilter}
- * 的 Web 侧字段（{@code clusters/namespaces/workloads}）；不触碰 v4 OpenAPI 入口的旧字符串 sub-filter。
+ * Web 入参的拓扑对象（{@code WebKubeXxxObject}）中的 ID 会被搬到内部 {@link KubeContainerFilter}
+ * 的 Web 侧字段（{@code clusters/namespaces/workloads}）；展示名不落库，反向回显时也不透出。
+ * 不触碰 v4 OpenAPI 入口的旧字符串 sub-filter。
  * Web 不暴露 {@code emptyFilter / fetchAnyOneContainer} 两个内部开关，转换时固定置 false。
  */
 public final class WebContainerConditionFilterConverter {
@@ -68,7 +69,7 @@ public final class WebContainerConditionFilterConverter {
             return null;
         }
         return webList.stream()
-            .map(web -> web == null ? null : new KubeClusterObjectDTO(web.getId(), web.getName()))
+            .map(web -> web == null ? null : new KubeClusterObjectDTO(web.getId()))
             .collect(Collectors.toList());
     }
 
@@ -77,7 +78,7 @@ public final class WebContainerConditionFilterConverter {
             return null;
         }
         return webList.stream()
-            .map(web -> web == null ? null : new KubeNamespaceObjectDTO(web.getId(), web.getName()))
+            .map(web -> web == null ? null : new KubeNamespaceObjectDTO(web.getId()))
             .collect(Collectors.toList());
     }
 
@@ -86,7 +87,7 @@ public final class WebContainerConditionFilterConverter {
             return null;
         }
         return webList.stream()
-            .map(web -> web == null ? null : new KubeWorkloadObjectDTO(web.getKind(), web.getId(), web.getName()))
+            .map(web -> web == null ? null : new KubeWorkloadObjectDTO(web.getKind(), web.getId()))
             .collect(Collectors.toList());
     }
 
@@ -135,7 +136,6 @@ public final class WebContainerConditionFilterConverter {
                 }
                 WebKubeClusterObject web = new WebKubeClusterObject();
                 web.setId(internal.getId());
-                web.setName(internal.getName());
                 return web;
             })
             .collect(Collectors.toList());
@@ -152,7 +152,6 @@ public final class WebContainerConditionFilterConverter {
                 }
                 WebKubeNamespaceObject web = new WebKubeNamespaceObject();
                 web.setId(internal.getId());
-                web.setName(internal.getName());
                 return web;
             })
             .collect(Collectors.toList());
@@ -170,7 +169,6 @@ public final class WebContainerConditionFilterConverter {
                 WebKubeWorkloadObject web = new WebKubeWorkloadObject();
                 web.setKind(internal.getKind());
                 web.setId(internal.getId());
-                web.setName(internal.getName());
                 return web;
             })
             .collect(Collectors.toList());

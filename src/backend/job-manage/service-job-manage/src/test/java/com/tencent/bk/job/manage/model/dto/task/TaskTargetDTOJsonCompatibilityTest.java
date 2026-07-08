@@ -138,7 +138,7 @@ class TaskTargetDTOJsonCompatibilityTest {
             KubeContainerFilter cf = target.getContainerFilters().get(0);
             assertThat(cf.getClusterNodes()).hasSize(1);
             assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-            assertThat(cf.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
+            assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
             assertThat(cf.getPropConditions()).hasSize(1);
             assertThat(cf.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
             assertThat(cf.getPropConditions().get(0).getValue()).isEqualTo("docker://nginx");
@@ -165,7 +165,7 @@ class TaskTargetDTOJsonCompatibilityTest {
             original.setVariable("backendContainers");
 
             KubeContainerFilter cf = new KubeContainerFilter();
-            cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L, "集群1000")));
+            cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
             cf.setPropConditions(Arrays.asList(
                 new KubePropCondition("container_container_uid", "equal", "docker://nginx"),
                 new KubePropCondition("pod_id", "equal", 100)
@@ -178,8 +178,8 @@ class TaskTargetDTOJsonCompatibilityTest {
             assertThat(back).isNotNull();
             assertThat(back.getVariable()).isEqualTo("backendContainers");
             assertThat(back.getContainerFilters()).hasSize(1);
-            assertThat(back.getContainerFilters().get(0).getClusterNodes().get(0).getName())
-                .isEqualTo("集群1000");
+            assertThat(back.getContainerFilters().get(0).getClusterNodes().get(0).getId())
+                .isEqualTo(1000L);
             assertThat(back.getContainerFilters().get(0).getPropConditions()).hasSize(2);
             assertThat(back.getContainerFilters().get(0).getPropConditions().get(1).getField())
                 .isEqualTo("pod_id");
@@ -225,7 +225,7 @@ class TaskTargetDTOJsonCompatibilityTest {
         void containerFiltersOnlyIsPersisted() {
             TaskTargetDTO original = new TaskTargetDTO();
             KubeContainerFilter cf = new KubeContainerFilter();
-            cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L, "集群1000")));
+            cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
             cf.setPropConditions(Collections.singletonList(
                 new KubePropCondition("container_container_uid", "equal", "docker://nginx")));
             original.setContainerFilters(Collections.singletonList(cf));

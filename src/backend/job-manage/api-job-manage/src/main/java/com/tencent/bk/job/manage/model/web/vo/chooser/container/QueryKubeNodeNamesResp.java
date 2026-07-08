@@ -22,28 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.manage.model.web.vo.chooser.container;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * 容器 workload 拓扑对象。每项独立携带 {@code kind}
- * 可能的值：deployment、daemonSet、statefulSet、gameStatefulSet、gameDeployment、cronJob、job、customResource，
+ * 批量查询 kube 拓扑节点展示名响应。
+ * <p>
+ * nodes 与请求 nodes 一一对应（去重后），每个入参 (type, id) 在响应中都有一条记录，
+ * 即使 exist=false 也会返回，便于前端稳定回显。
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@PersistenceObject
-public class KubeWorkloadObjectDTO implements Cloneable {
+@Schema(description = "批量查询 kube 拓扑节点展示名响应")
+public class QueryKubeNodeNamesResp {
 
-    private String kind;
-    private Long id;
-
-    @Override
-    public KubeWorkloadObjectDTO clone() {
-        return new KubeWorkloadObjectDTO(kind, id);
-    }
+    @Schema(description = "节点回显信息列表；与请求一一对应")
+    private List<WebKubeNodeWithNameVO> nodes;
 }

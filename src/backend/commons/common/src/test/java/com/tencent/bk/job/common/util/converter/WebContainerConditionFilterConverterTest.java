@@ -42,8 +42,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 校验 Web ↔ 内部 双向转换：Web 拓扑对象（id+name 三段式）按字段映射到内部 KubeContainerFilter 的
- * Web 侧字段；不污染 v4 sub-filter；Web 不暴露 emptyFilter/fetchAnyOneContainer 两个内部开关。
+ * 校验 Web ↔ 内部 双向转换：Web 拓扑对象只把 ID 映射到内部 KubeContainerFilter 的
+ * Web 侧字段；name 不落库、不回显；不污染 v4 sub-filter；Web 不暴露 emptyFilter/fetchAnyOneContainer 两个内部开关。
  */
 @DisplayName("WebContainerConditionFilterConverter: Web 入参 ↔ 内部 DTO")
 class WebContainerConditionFilterConverterTest {
@@ -64,15 +64,12 @@ class WebContainerConditionFilterConverterTest {
         assertThat(kube).isNotNull();
         assertThat(kube.getClusterNodes()).hasSize(2);
         assertThat(kube.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(kube.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
         assertThat(kube.getClusterNodes().get(1).getId()).isEqualTo(1001L);
         assertThat(kube.getNamespaceNodes()).hasSize(2);
         assertThat(kube.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
-        assertThat(kube.getNamespaceNodes().get(0).getName()).isEqualTo("命名空间10000");
         assertThat(kube.getWorkloadNodes()).hasSize(2);
         assertThat(kube.getWorkloadNodes().get(0).getKind()).isEqualTo("deployment");
         assertThat(kube.getWorkloadNodes().get(0).getId()).isEqualTo(20000L);
-        assertThat(kube.getWorkloadNodes().get(0).getName()).isEqualTo("deployment20000");
         assertThat(kube.getWorkloadNodes().get(1).getKind()).isEqualTo("daemonSet");
         assertThat(kube.getPropConditions()).hasSize(2);
         assertThat(kube.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
@@ -124,7 +121,7 @@ class WebContainerConditionFilterConverterTest {
         assertThat(back).isNotNull();
         assertThat(back.getClusterList()).hasSize(2);
         assertThat(back.getClusterList().get(0).getId()).isEqualTo(1000L);
-        assertThat(back.getClusterList().get(0).getName()).isEqualTo("集群1000");
+        assertThat(back.getClusterList().get(0).getName()).isNull();
         assertThat(back.getNamespaceList()).hasSize(2);
         assertThat(back.getWorkloadList()).hasSize(2);
         assertThat(back.getWorkloadList().get(0).getKind()).isEqualTo("deployment");
@@ -135,7 +132,7 @@ class WebContainerConditionFilterConverterTest {
     @DisplayName("propConditions 的 List value 做了防御性拷贝（KubePropCondition.clone 兜底）")
     void fromKubeFilterDefensiveCopyOnPropConditionValue() {
         KubeContainerFilter kube = new KubeContainerFilter();
-        kube.setClusterNodes(Collections.singletonList(internalCluster(1000L, "集群1000")));
+        kube.setClusterNodes(Collections.singletonList(internalCluster(1000L)));
         kube.setPropConditions(Collections.singletonList(
             new KubePropCondition("container_container_uid", "in",
                 new ArrayList<>(Arrays.asList("docker://nginx", "docker://redis")))));
@@ -193,7 +190,7 @@ class WebContainerConditionFilterConverterTest {
         return w;
     }
 
-    private static KubeClusterObjectDTO internalCluster(Long id, String name) {
-        return new KubeClusterObjectDTO(id, name);
+    private static KubeClusterObjectDTO internalCluster(Long id) {
+        return new KubeClusterObjectDTO(id);
     }
 }

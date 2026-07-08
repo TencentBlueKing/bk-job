@@ -175,7 +175,7 @@ class ExecuteAuthServiceImplContainerAuthTest {
 
     private static KubeContainerFilter buildContainerFilter() {
         KubeContainerFilter cf = new KubeContainerFilter();
-        cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L, "集群1000")));
+        cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
         cf.setPropConditions(Collections.singletonList(
             new KubePropCondition("pod_name", "equal", "pod-a")));
         return cf;

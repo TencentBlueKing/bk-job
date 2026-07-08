@@ -613,14 +613,12 @@ public class StepInstanceDAOImplIntegrationTest {
         List<KubeContainerFilter> filters = stepInstance.getTargetExecuteObjects().getContainerFilters();
         assertThat(filters).hasSize(1);
         KubeContainerFilter cf = filters.get(0);
-        // Web 入口形态：id + name 都保真
+        // Web 入口形态：仅保真 id（name 已从 DTO 移除）
         assertThat(cf.hasKubeTopoObjects()).isTrue();
         assertThat(cf.getClusterNodes()).hasSize(1);
         assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(cf.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
         assertThat(cf.getNamespaceNodes()).hasSize(1);
         assertThat(cf.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
-        assertThat(cf.getNamespaceNodes().get(0).getName()).isEqualTo("命名空间10000");
         // v4 字符串字段保持 null，不污染 Web 入口数据
         assertThat(cf.getClusterFilter()).isNull();
         assertThat(cf.getNamespaceFilter()).isNull();
@@ -655,10 +653,10 @@ public class StepInstanceDAOImplIntegrationTest {
 
         ExecuteTargetDTO target = new ExecuteTargetDTO();
         KubeContainerFilter filter = new KubeContainerFilter();
-        filter.setClusterNodes(Lists.newArrayList(new KubeClusterObjectDTO(1001L, "集群1001")));
+        filter.setClusterNodes(Lists.newArrayList(new KubeClusterObjectDTO(1001L)));
         filter.setNamespaceNodes(Lists.newArrayList(
-            new KubeNamespaceObjectDTO(1L, "ns1"),
-            new KubeNamespaceObjectDTO(2L, "default")
+            new KubeNamespaceObjectDTO(1L),
+            new KubeNamespaceObjectDTO(2L)
         ));
         filter.setPropConditions(Lists.newArrayList(
             new KubePropCondition("container_container_uid", "equal",
@@ -691,13 +689,12 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(reloadedFilters).hasSize(1);
         KubeContainerFilter reloadedFilter = reloadedFilters.get(0);
 
-        // Web 拓扑对象保真：id + name 都保留，支撑详情页回显
+        // Web 拓扑对象保真：仅保留 id（name 已从 DTO 移除，回显时由前端携带或运行时查询）
         assertThat(reloadedFilter.getClusterNodes()).hasSize(1);
         assertThat(reloadedFilter.getClusterNodes().get(0).getId()).isEqualTo(1001L);
-        assertThat(reloadedFilter.getClusterNodes().get(0).getName()).isEqualTo("集群1001");
         assertThat(reloadedFilter.getNamespaceNodes()).hasSize(2);
-        assertThat(reloadedFilter.getNamespaceNodes().get(0).getName()).isEqualTo("ns1");
-        assertThat(reloadedFilter.getNamespaceNodes().get(1).getName()).isEqualTo("default");
+        assertThat(reloadedFilter.getNamespaceNodes().get(0).getId()).isEqualTo(1L);
+        assertThat(reloadedFilter.getNamespaceNodes().get(1).getId()).isEqualTo(2L);
         // v4 字符串字段保持 null
         assertThat(reloadedFilter.getClusterFilter()).isNull();
         assertThat(reloadedFilter.getNamespaceFilter()).isNull();

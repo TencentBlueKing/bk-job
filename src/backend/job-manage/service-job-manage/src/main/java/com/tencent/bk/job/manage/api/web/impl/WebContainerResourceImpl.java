@@ -53,8 +53,12 @@ import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerCh
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerDetailReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.container.QueryKubeNodeNamesReq;
 import com.tencent.bk.job.manage.model.web.request.dynamicfilter.PreviewDynamicContainerReq;
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
+import com.tencent.bk.job.manage.model.web.vo.chooser.container.QueryKubeNodeNamesResp;
+import com.tencent.bk.job.manage.model.web.vo.chooser.container.WebKubeNodeRefVO;
+import com.tencent.bk.job.manage.model.web.vo.chooser.container.WebKubeNodeWithNameVO;
 import com.tencent.bk.job.manage.model.web.vo.dynamicfilter.DynamicContainerFilterFieldVO;
 import com.tencent.bk.job.manage.model.web.vo.dynamicfilter.DynamicContainerFilterMetadataVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -68,6 +72,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -332,5 +337,80 @@ public class WebContainerResourceImpl implements WebContainerResource {
         fillNodesHostInfo(containerVOPageData.getData());
 
         return Response.buildSuccessResp(containerVOPageData);
+    }
+
+    @Override
+    public Response<QueryKubeNodeNamesResp> queryKubeNodeNames(String username,
+                                                               AppResourceScope appResourceScope,
+                                                               String scopeType,
+                                                               String scopeId,
+                                                               QueryKubeNodeNamesReq req) {
+        QueryKubeNodeNamesResp resp = new QueryKubeNodeNamesResp();
+        List<WebKubeNodeRefVO> reqNodes = req.getNodes();
+        if (CollectionUtils.isEmpty(reqNodes)) {
+            resp.setNodes(Collections.emptyList());
+            return Response.buildSuccessResp(resp);
+        }
+
+        // 业务集或未开启容器执行特性，直接标记全部 exist=false
+        if (appResourceScope.isBizSet() || !isContainerExecuteSupport(appResourceScope)) {
+            resp.setNodes(reqNodes.stream()
+                .map(ref -> buildNotExistVO(ref.getType(), ref.getId()))
+                .collect(Collectors.toList()));
+            return Response.buildSuccessResp(resp);
+        }
+
+        KubeTopologyDTO topo = containerService.getBizKubeCacheTopo(Long.parseLong(scopeId));
+        Map<String, KubeNodeDTO> nodeIndex = new HashMap<>();
+        if (topo != null && CollectionUtils.isNotEmpty(topo.getNodes())) {
+            for (KubeNodeDTO cluster : topo.getNodes()) {
+                collectKubeNodes(cluster, nodeIndex);
+            }
+        }
+
+        List<WebKubeNodeWithNameVO> result = new ArrayList<>(reqNodes.size());
+        for (WebKubeNodeRefVO ref : reqNodes) {
+            KubeNodeDTO hit = nodeIndex.get(buildIndexKey(ref.getType(), ref.getId()));
+            if (hit != null) {
+                WebKubeNodeWithNameVO vo = new WebKubeNodeWithNameVO();
+                vo.setType(ref.getType());
+                vo.setId(ref.getId());
+                vo.setName(hit.getName());
+                vo.setExist(true);
+                result.add(vo);
+            } else {
+                result.add(buildNotExistVO(ref.getType(), ref.getId()));
+            }
+        }
+        resp.setNodes(result);
+        return Response.buildSuccessResp(resp);
+    }
+
+    /**
+     * 将 CMDB 拓扑树递归打平为 (type, id) -> KubeNodeDTO 的索引，便于回显时 O(1) 查表。
+     */
+    private void collectKubeNodes(KubeNodeDTO node, Map<String, KubeNodeDTO> index) {
+        if (node == null || node.getKind() == null || node.getId() == null) {
+            return;
+        }
+        index.put(buildIndexKey(node.getKind(), node.getId()), node);
+        if (CollectionUtils.isNotEmpty(node.getNodes())) {
+            for (KubeNodeDTO child : node.getNodes()) {
+                collectKubeNodes(child, index);
+            }
+        }
+    }
+
+    private String buildIndexKey(String type, Long id) {
+        return type + ":" + id;
+    }
+
+    private WebKubeNodeWithNameVO buildNotExistVO(String type, Long id) {
+        WebKubeNodeWithNameVO vo = new WebKubeNodeWithNameVO();
+        vo.setType(type);
+        vo.setId(id);
+        vo.setName(null);
+        vo.setExist(false);
+        return vo;
     }
 }

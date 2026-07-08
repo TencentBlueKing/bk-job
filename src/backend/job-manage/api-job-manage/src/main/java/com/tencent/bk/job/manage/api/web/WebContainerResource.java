@@ -34,8 +34,10 @@ import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerCh
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerDetailReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.container.QueryKubeNodeNamesReq;
 import com.tencent.bk.job.manage.model.web.request.dynamicfilter.PreviewDynamicContainerReq;
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
+import com.tencent.bk.job.manage.model.web.vo.chooser.container.QueryKubeNodeNamesResp;
 import com.tencent.bk.job.manage.model.web.vo.dynamicfilter.DynamicContainerFilterMetadataVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -207,6 +209,27 @@ public interface WebContainerResource {
         @Valid
         @RequestBody
             PreviewDynamicContainerReq req
+    );
+
+    @Operation(summary = "根据 (type,id) 批量查询 kube 拓扑节点的展示名（用于详情页/编辑页回显）")
+    @PostMapping(value = {"/topology/container/nodes/names"})
+    Response<QueryKubeNodeNamesResp> queryKubeNodeNames(
+        @Parameter(description = "用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @Parameter(hidden = true)
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @Parameter(description = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @Parameter(description = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @Parameter(description = "待反查名称的节点列表", required = true)
+        @Valid
+        @RequestBody
+            QueryKubeNodeNamesReq req
     );
 
 }

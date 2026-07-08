@@ -528,10 +528,8 @@ public class CronJobDAOImplIntegrationTest {
         KubeContainerFilter filter = reloadedVar.getServer().getContainerFilters().get(0);
         assertThat(filter.getClusterNodes()).hasSize(1);
         assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(100L);
-        assertThat(filter.getClusterNodes().get(0).getName()).isEqualTo("公共集群");
         assertThat(filter.getNamespaceNodes()).hasSize(1);
         assertThat(filter.getNamespaceNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(filter.getNamespaceNodes().get(0).getName()).isEqualTo("mock-ns");
         assertThat(filter.getPropConditions()).hasSize(2);
         assertThat(filter.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
         assertThat(filter.getPropConditions().get(0).getValue()).isInstanceOf(List.class);
@@ -554,8 +552,8 @@ public class CronJobDAOImplIntegrationTest {
 
     private ServerDTO buildServerWithContainerFilters() {
         KubeContainerFilter filter = new KubeContainerFilter();
-        filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(100L, "公共集群")));
-        filter.setNamespaceNodes(Collections.singletonList(new KubeNamespaceObjectDTO(1000L, "mock-ns")));
+        filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(100L)));
+        filter.setNamespaceNodes(Collections.singletonList(new KubeNamespaceObjectDTO(1000L)));
         filter.setPropConditions(Arrays.asList(
             new KubePropCondition("container_container_uid", "in", Arrays.asList("nginx:1.24", "redis:7.2")),
             new KubePropCondition("pod_name", "equal", "pod-a")

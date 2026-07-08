@@ -284,7 +284,7 @@ class TaskTemplateVariableDAOImplIntegrationTest {
         KubeContainerFilter filter = reloadedTarget.getContainerFilters().get(0);
         assertThat(filter.getClusterNodes()).hasSize(1);
         assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(filter.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
+        assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(1000L);
         assertThat(filter.getPropConditions()).hasSize(2);
         assertThat(filter.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
         assertThat(filter.getPropConditions().get(0).getValue()).isEqualTo("docker://abcdefg");
@@ -320,7 +320,7 @@ class TaskTemplateVariableDAOImplIntegrationTest {
 
     private TaskTargetDTO buildTargetWithContainerFilters() {
         KubeContainerFilter filter = new KubeContainerFilter();
-        filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L, "集群1000")));
+        filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
         filter.setPropConditions(Arrays.asList(
             new KubePropCondition("container_container_uid", "contains", "docker://abcdefg"),
             new KubePropCondition("pod_name", "equal", "pod-a")

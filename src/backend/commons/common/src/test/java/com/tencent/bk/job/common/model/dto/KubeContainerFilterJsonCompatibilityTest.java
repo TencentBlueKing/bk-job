@@ -176,10 +176,10 @@ class KubeContainerFilterJsonCompatibilityTest {
     class WebObjectForm {
 
         @Test
-        @DisplayName("反序列化：Web 入口写入的 JSON（id+name 三段式）→ DTO 字段保真")
+        @DisplayName("反序列化：Web 入口写入的 JSON（历史 id+name 三段式，name 已废弃）→ DTO 仅保留 id，name 被忽略")
         void webObjectFormDeserializes() {
             String json = "{"
-                + "\"clusterNodes\":[{\"id\":1000,\"name\":\"集群1000\"}],"
+                + "\"clusterNodes\":[{\"id\":1000,\"name\":\"集癀1000\"}],"
                 + "\"namespaceNodes\":[{\"id\":10000,\"name\":\"命名空间10000\"}],"
                 + "\"workloadNodes\":["
                 + "  {\"kind\":\"deployment\",\"id\":20000,\"name\":\"deployment20000\"},"
@@ -193,8 +193,7 @@ class KubeContainerFilterJsonCompatibilityTest {
             assertThat(filter.hasKubeTopoObjects()).isTrue();
             assertThat(filter.getClusterNodes()).hasSize(1);
             assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-            assertThat(filter.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
-            assertThat(filter.getNamespaceNodes().get(0).getName()).isEqualTo("命名空间10000");
+            assertThat(filter.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
             assertThat(filter.getWorkloadNodes()).hasSize(2);
             assertThat(filter.getWorkloadNodes().get(0).getKind()).isEqualTo("deployment");
             assertThat(filter.getWorkloadNodes().get(1).getKind()).isEqualTo("daemonSet");
@@ -205,42 +204,42 @@ class KubeContainerFilterJsonCompatibilityTest {
         }
 
         @Test
-        @DisplayName("序列化：Web 入口 DTO → JSON，id 与 name 同存（支撑回显）")
+        @DisplayName("序列化：Web 入口 DTO → JSON，仅写出 id（name 已从 DTO 移除）")
         void webObjectFormSerializes() {
             KubeContainerFilter filter = new KubeContainerFilter();
-            filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L, "集群1000")));
-            filter.setNamespaceNodes(Collections.singletonList(new KubeNamespaceObjectDTO(10000L, "命名空间10000")));
+            filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
+            filter.setNamespaceNodes(Collections.singletonList(new KubeNamespaceObjectDTO(10000L)));
             filter.setWorkloadNodes(Collections.singletonList(
-                new KubeWorkloadObjectDTO("deployment", 20000L, "deployment20000")));
+                new KubeWorkloadObjectDTO("deployment", 20000L)));
 
             String json = JsonUtils.toJson(filter);
             assertThat(json).contains("\"clusterNodes\"")
                 .contains("\"id\":1000")
-                .contains("\"name\":\"集群1000\"")
-                .contains("\"kind\":\"deployment\"");
+                .contains("\"kind\":\"deployment\"")
+                .doesNotContain("\"name\"");
         }
 
         @Test
-        @DisplayName("Round-trip：Web 入口 → JSON → DTO 字段全保真")
+        @DisplayName("Round-trip：Web 入口 → JSON → DTO 字段保真")
         void webObjectFormRoundTrip() {
             KubeContainerFilter original = new KubeContainerFilter();
             original.setClusterNodes(Arrays.asList(
-                new KubeClusterObjectDTO(1000L, "集群1000"),
-                new KubeClusterObjectDTO(1001L, "集群1001")
+                new KubeClusterObjectDTO(1000L),
+                new KubeClusterObjectDTO(1001L)
             ));
             original.setWorkloadNodes(Arrays.asList(
-                new KubeWorkloadObjectDTO("deployment", 20000L, "deployment20000"),
-                new KubeWorkloadObjectDTO("daemonSet", 20001L, "daemonSet20001")
+                new KubeWorkloadObjectDTO("deployment", 20000L),
+                new KubeWorkloadObjectDTO("daemonSet", 20001L)
             ));
 
             KubeContainerFilter back = JsonUtils.fromJson(JsonUtils.toJson(original), KubeContainerFilter.class);
 
             assertThat(back.getClusterNodes()).extracting(KubeClusterObjectDTO::getId)
                 .containsExactly(1000L, 1001L);
-            assertThat(back.getClusterNodes()).extracting(KubeClusterObjectDTO::getName)
-                .containsExactly("集群1000", "集群1001");
             assertThat(back.getWorkloadNodes()).extracting(KubeWorkloadObjectDTO::getKind)
                 .containsExactly("deployment", "daemonSet");
+            assertThat(back.getWorkloadNodes()).extracting(KubeWorkloadObjectDTO::getId)
+                .containsExactly(20000L, 20001L);
         }
     }
 }

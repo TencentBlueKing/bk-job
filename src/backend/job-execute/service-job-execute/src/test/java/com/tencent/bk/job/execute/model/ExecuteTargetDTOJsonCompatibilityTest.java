@@ -175,7 +175,6 @@ class ExecuteTargetDTOJsonCompatibilityTest {
             assertThat(cf.hasPropConditions()).isTrue();
             assertThat(cf.hasKubeTopoObjects()).isTrue();
             assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(100L);
-            assertThat(cf.getClusterNodes().get(0).getName()).isEqualTo("公共集群");
             assertThat(cf.getPropConditions()).hasSize(2);
             assertThat(cf.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
             assertThat(cf.getPropConditions().get(0).getValue()).isEqualTo("docker://nginx");
@@ -195,7 +194,7 @@ class ExecuteTargetDTOJsonCompatibilityTest {
             original.setStaticIpList(Collections.singletonList(new HostDTO(100L)));
 
             KubeContainerFilter cf = new KubeContainerFilter();
-            cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(100L, "公共集群")));
+            cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(100L)));
             cf.setPropConditions(Collections.singletonList(
                 new KubePropCondition("pod_name", "equal", "pod-a")));
             original.setContainerFilters(Collections.singletonList(cf));
@@ -205,8 +204,8 @@ class ExecuteTargetDTOJsonCompatibilityTest {
             assertThat(back.getStaticIpList().get(0).getHostId()).isEqualTo(100L);
             assertThat(back.getContainerFilters()).hasSize(1);
             assertThat(back.getContainerFilters().get(0).getClusterNodes()).hasSize(1);
-            assertThat(back.getContainerFilters().get(0).getClusterNodes().get(0).getName())
-                .isEqualTo("公共集群");
+            assertThat(back.getContainerFilters().get(0).getClusterNodes().get(0).getId())
+                .isEqualTo(100L);
             assertThat(back.getContainerFilters().get(0).getPropConditions().get(0).getValue())
                 .isEqualTo("pod-a");
         }

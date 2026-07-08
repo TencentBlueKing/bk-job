@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 /**
  * 容器集群拓扑对象（Web 入口的内部流转 / 持久化形态）。
  * <p>
- * 同时持久化 CMDB 内部 ID 与展示名：ID 用于运行时 CMDB 查询，name 用于详情页回显避免二次访问 CMDB。
+ * 只持久化 CMDB 内部 ID：ID 用于运行时 CMDB 查询；展示名不落库，回显时由前端携带或运行时查询。
  * 区别于 {@link KubeClusterFilter}（v4 OpenAPI 用字符串 UID）。
  * <p>
  * kind(objectId) 恒为 "cluster"
@@ -44,10 +44,9 @@ import lombok.NoArgsConstructor;
 public class KubeClusterObjectDTO implements Cloneable {
 
     private Long id;
-    private String name;
 
     @Override
     public KubeClusterObjectDTO clone() {
-        return new KubeClusterObjectDTO(id, name);
+        return new KubeClusterObjectDTO(id);
     }
 }

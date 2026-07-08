@@ -219,11 +219,11 @@ class ExecuteTargetEndToEndCompatibilityTest {
             assertThat(target.getContainerFilters().get(0).hasPropConditions()).isTrue();
             assertThat(target.getContainerFilters().get(0).hasKubeTopoObjects()).isTrue();
 
-            // 3. 入库
+            // 3. 入库：ns/cluster 仅写入 id，name 不落库
             String dbJson = JsonUtils.toJson(target);
             assertThat(dbJson).contains("\"containerFilters\"")
                 .contains("\"clusterNodes\"")
-                .contains("\"集群1000\"")  // 持久化展示名以支撑详情页回显
+                .doesNotContain("\"集癀1000\"")  // name 已从 DTO 移除，不落库
                 .contains("\"propConditions\"")
                 .contains("\"container_container_uid\"")
                 .contains("\"pod_name\"");
@@ -234,20 +234,19 @@ class ExecuteTargetEndToEndCompatibilityTest {
             KubeContainerFilter cf = reloaded.getContainerFilters().get(0);
             assertThat(cf.getClusterNodes()).hasSize(1);
             assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-            assertThat(cf.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
             assertThat(cf.hasPropConditions()).isTrue();
             assertThat(cf.getPropConditions()).hasSize(2);
             assertThat(cf.getPropConditions().get(0).getValue()).isEqualTo("docker://nginx");
             assertThat(cf.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
 
-            // 5. 反向回显：前端详情页
+            // 5. 反向回显：前端详情页（name 不再由后台回显，由前端携带或运行时查询）
             TaskTargetVO echoed = reloaded.convertToTaskTargetVO();
             List<WebContainerConditionFilter> echoedFilters =
                 echoed.getExecuteObjectsInfo().getContainerFilterList();
             assertThat(echoedFilters).hasSize(1);
             assertThat(echoedFilters.get(0).getClusterList()).hasSize(1);
             assertThat(echoedFilters.get(0).getClusterList().get(0).getId()).isEqualTo(1000L);
-            assertThat(echoedFilters.get(0).getClusterList().get(0).getName()).isEqualTo("集群1000");
+            assertThat(echoedFilters.get(0).getClusterList().get(0).getName()).isNull();
             assertThat(echoedFilters.get(0).getPropConditions()).hasSize(2);
         }
 
@@ -313,14 +312,13 @@ class ExecuteTargetEndToEndCompatibilityTest {
             ExecuteTargetDTO dto3 = ExecuteTargetDTO.fromTaskTargetVO(web2);
             ExecuteTargetDTO dto4 = JsonUtils.fromJson(JsonUtils.toJson(dto3), ExecuteTargetDTO.class);
 
-            // 经过 4 跳后字段不丢失、不复制、不污染
+            // 经过 4 跳后：id / propConditions 保真（name 已从 DTO 移除）
             assertThat(dto4.getContainerFilters()).hasSize(1);
             KubeContainerFilter cf = dto4.getContainerFilters().get(0);
             assertThat(cf.getClusterNodes()).hasSize(1);
             assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-            assertThat(cf.getClusterNodes().get(0).getName()).isEqualTo("集群1000");
             assertThat(cf.getNamespaceNodes()).hasSize(1);
-            assertThat(cf.getNamespaceNodes().get(0).getName()).isEqualTo("命名空间10000");
+            assertThat(cf.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
             assertThat(cf.getPropConditions()).hasSize(2);
             assertThat(cf.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
             assertThat(cf.getPropConditions().get(1).getValue()).isEqualTo("pod-a");

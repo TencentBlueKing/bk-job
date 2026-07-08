@@ -41,10 +41,9 @@ import lombok.NoArgsConstructor;
 public class KubeNamespaceObjectDTO implements Cloneable {
 
     private Long id;
-    private String name;
 
     @Override
     public KubeNamespaceObjectDTO clone() {
-        return new KubeNamespaceObjectDTO(id, name);
+        return new KubeNamespaceObjectDTO(id);
     }
 }

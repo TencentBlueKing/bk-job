@@ -22,28 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.manage.model.web.vo.chooser.container;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
- * 容器 workload 拓扑对象。每项独立携带 {@code kind}
- * 可能的值：deployment、daemonSet、statefulSet、gameStatefulSet、gameDeployment、cronJob、job、customResource，
+ * 容器拓扑节点回显信息（type + id + name + exist）。
+ * <p>
+ * name 为 CMDB 当前的实名；当 exist=false 时，节点已在 CMDB 中被删除或对当前业务不可见，
+ * name 可能为空，前端应给出"已失效"标注。
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@PersistenceObject
-public class KubeWorkloadObjectDTO implements Cloneable {
+@JsonInclude(JsonInclude.Include.ALWAYS)
+@Schema(description = "容器拓扑节点回显信息")
+public class WebKubeNodeWithNameVO {
 
-    private String kind;
+    @Schema(description = "节点类型，与请求保持一致")
+    private String type;
+
+    @Schema(description = "CMDB 中的实例 ID，与请求保持一致")
     private Long id;
 
-    @Override
-    public KubeWorkloadObjectDTO clone() {
-        return new KubeWorkloadObjectDTO(kind, id);
-    }
+    @Schema(description = "CMDB 当前的实例名称；exist=false 时可能为空")
+    private String name;
+
+    @Schema(description = "该节点当前是否存在于 CMDB 中")
+    private Boolean exist;
 }

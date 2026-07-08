@@ -22,28 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.manage.model.web.request.chooser.container;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.AllArgsConstructor;
+import com.tencent.bk.job.manage.model.web.vo.chooser.container.WebKubeNodeRefVO;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * 容器 workload 拓扑对象。每项独立携带 {@code kind}
- * 可能的值：deployment、daemonSet、statefulSet、gameStatefulSet、gameDeployment、cronJob、job、customResource，
+ * 批量查询 kube 拓扑节点展示名请求（用于详情页/编辑页回显）。
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@PersistenceObject
-public class KubeWorkloadObjectDTO implements Cloneable {
+@Schema(description = "批量查询 kube 拓扑节点展示名请求")
+public class QueryKubeNodeNamesReq {
 
-    private String kind;
-    private Long id;
-
-    @Override
-    public KubeWorkloadObjectDTO clone() {
-        return new KubeWorkloadObjectDTO(kind, id);
-    }
+    @Schema(description = "需要反查名称的节点列表（(type, id) 二元组）", required = true)
+    @NotEmpty(message = "{validation.constraints.KubeNodeList_empty.message}")
+    @Valid
+    private List<WebKubeNodeRefVO> nodes;
 }

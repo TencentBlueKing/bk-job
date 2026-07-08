@@ -22,28 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.manage.model.web.vo.chooser.container;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
- * 容器 workload 拓扑对象。每项独立携带 {@code kind}
- * 可能的值：deployment、daemonSet、statefulSet、gameStatefulSet、gameDeployment、cronJob、job、customResource，
+ * 容器拓扑节点最小引用（type + id）。
+ * <p>
+ * 用于详情/编辑页从持久化的 {@code KubeClusterObjectDTO / KubeNamespaceObjectDTO / KubeWorkloadObjectDTO}
+ * 反查展示名。type 的取值直接使用 CMDB 的 objectId，即
+ * {@link com.tencent.bk.job.common.cc.constants.KubeTopoNodeTypeEnum} 中的枚举值：
+ * cluster / namespace / deployment / daemonSet / statefulSet / cronJob / job / customResource。
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@PersistenceObject
-public class KubeWorkloadObjectDTO implements Cloneable {
+@Schema(description = "容器拓扑节点最小引用（type + id）")
+public class WebKubeNodeRefVO {
 
-    private String kind;
+    @Schema(description = "节点类型：cluster / namespace / deployment / daemonSet / statefulSet / cronJob / job "
+        + "/ customResource", required = true)
+    @NotBlank(message = "{validation.constraints.KubeNodeType_empty.message}")
+    private String type;
+
+    @Schema(description = "CMDB 中的实例 ID", required = true)
+    @NotNull(message = "{validation.constraints.KubeNodeId_empty.message}")
     private Long id;
-
-    @Override
-    public KubeWorkloadObjectDTO clone() {
-        return new KubeWorkloadObjectDTO(kind, id);
-    }
 }

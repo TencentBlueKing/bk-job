@@ -44,8 +44,8 @@ import java.util.List;
  *   <li>OpenAPI：{@link #clusterFilter}/{@link #namespaceFilter}/{@link #workloadFilter}
  *       —— 字符串 UID/名称形态，不含 CMDB 内部 ID，沿用既有契约不动</li>
  *   <li>Web 动态条件入口：{@link #clusterNodes}/{@link #namespaceNodes}/{@link #workloadNodes}
- *       —— Object 形态，每项含 {@code id + name}（workload 还有 {@code kind}），ID 用于 CMDB 查询、
- *       name 用于详情页回显，避免回显时二次访问 CMDB</li>
+ *       —— Object 形态，每项仅含 {@code id}（workload 还有 {@code kind}），ID 用于 CMDB 查询；
+ *       展示名不落库，详情页回显时由前端携带或运行时查询</li>
  * </ul>
  * 同一实例两套字段不应同时出现：openapi 转换器只填前者、Web 转换器只填后者。
  */
@@ -90,17 +90,17 @@ public class KubeContainerFilter implements Cloneable {
     private boolean fetchAnyOneContainer;
 
     /**
-     * 集群拓扑对象列表（Web 入口；每项含 {id, name}）
+     * 集群拓扑对象列表（Web 入口；每项含 {id}）
      */
     private List<KubeClusterObjectDTO> clusterNodes;
 
     /**
-     * namespace 拓扑对象列表（Web 入口；每项含 {id, name}）
+     * namespace 拓扑对象列表（Web 入口；每项含 {id}）
      */
     private List<KubeNamespaceObjectDTO> namespaceNodes;
 
     /**
-     * workload 拓扑对象列表（Web 入口；每项含 {kind, id, name}，允许混合多种 kind）
+     * workload 拓扑对象列表（Web 入口；每项含 {kind, id}，允许混合多种 kind）
      */
     private List<KubeWorkloadObjectDTO> workloadNodes;
 
