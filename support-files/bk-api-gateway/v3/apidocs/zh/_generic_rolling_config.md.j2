@@ -6,7 +6,7 @@
 | execution_mode | int | 否  | 滚动批次执行模式：1-串行(默认)；2-并行错峰。串行时批次间依次执行(受 mode 控制)；并行错峰时各批次按错峰延迟并行下发(不读取 mode)。仅滚动对象为【传输目标】(type=1)时支持并行错峰 |
 | mode       | int    | 否  | 滚动机制：1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认。串行模式(execution_mode=1)必填；并行错峰模式(execution_mode=2)不生效可不填 |
 | expression | string | 否  | 滚动对象为【传输目标】(type=1)时必填，滚动策略表达式                                   |
-| batch_start_wait_fixed_ms | long | 否 | 并行错峰模式(execution_mode=2)必填，批次间固定线性步长(毫秒)，≥0。批 k(k≥2) 相对步骤开始的偏移=batch_start_wait_fixed_ms*(k-1)+random(batch_start_wait_random_min_ms, batch_start_wait_random_max_ms)，批1偏移=0 |
+| batch_start_wait_fixed_ms | long | 否 | 并行错峰模式(execution_mode=2)必填，批次间固定间隔(毫秒)，≥0。采用累积式错峰：批1立即下发(偏移0)；批 k(k≥2) 下发时刻=批(k-1)下发时刻+batch_start_wait_fixed_ms+random(batch_start_wait_random_min_ms, batch_start_wait_random_max_ms)，随机每批独立采样。相邻批次间隔恒≥batch_start_wait_fixed_ms+batch_start_wait_random_min_ms，保证批次始终错开 |
 | batch_start_wait_random_min_ms | long | 否 | 并行错峰模式(execution_mode=2)必填，批次间随机延迟下限(毫秒)，≥0 |
 | batch_start_wait_random_max_ms | long | 否 | 并行错峰模式(execution_mode=2)必填，批次间随机延迟上限(毫秒)，需 ≥ batch_start_wait_random_min_ms |
 | file_source | object | 否  | 滚动对象为【源文件】时必填，源文件滚动配置，见rolling_config.file_source定义，不支持与传输目标同时滚动，配置该项后源文件类型仅支持服务器文件 |

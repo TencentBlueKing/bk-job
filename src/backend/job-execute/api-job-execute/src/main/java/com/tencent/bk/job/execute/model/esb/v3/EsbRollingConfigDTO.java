@@ -73,7 +73,7 @@ public class EsbRollingConfigDTO {
     private Integer executionMode = RollingExecutionModeEnum.SERIAL.getValue();
 
     /**
-     * 批次间固定延迟（线性步长），单位毫秒，仅并行模式使用且必填
+     * 批次间固定间隔（累积式相邻批），单位毫秒，仅并行模式使用且必填
      */
     @NotNull(
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,

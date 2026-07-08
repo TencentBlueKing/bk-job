@@ -24,8 +24,13 @@
 
 package com.tencent.bk.job.execute.engine.rolling.scatter;
 
+import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
+import io.micrometer.tracing.Span;
 import lombok.Getter;
 
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.Delayed;
@@ -51,6 +56,16 @@ public class ScatterDispatchTask implements Delayed {
      * 非 null（如并行重试预先绑定好的批次）时下发器直接发事件、不再重建/重绑。
      */
     private final Long gseTaskId;
+
+    /**
+     * 登记任务时的调用链上下文（原始请求/MQ 线程的 Span），供到点触发线程重建 trace 使用。
+     * 仅在进程内内存队列中有效，不参与持久化/转移；转移重建的任务此字段为 null，由触发线程新建可关联 trace。
+     */
+    private transient Span traceContext;
+    /**
+     * 登记任务时的作业执行上下文（业务/用户信息），供到点触发线程恢复 ThreadLocal 与 MQ 透传使用。
+     */
+    private transient JobExecuteContext jobExecuteContext;
 
     public ScatterDispatchTask(Long taskInstanceId,
                                long stepInstanceId,
@@ -108,6 +123,17 @@ public class ScatterDispatchTask implements Delayed {
         return Objects.hash(taskInstanceId, stepInstanceId, executeCount, batch);
     }
 
+    /**
+     * 绑定到点触发时用于重建 trace 与作业执行上下文的信息（登记任务时在原始线程捕获）。
+     *
+     * @param traceContext      调用链 Span（可为 null）
+     * @param jobExecuteContext 作业执行上下文（可为 null）
+     */
+    public void bindTraceContext(Span traceContext, JobExecuteContext jobExecuteContext) {
+        this.traceContext = traceContext;
+        this.jobExecuteContext = jobExecuteContext;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", ScatterDispatchTask.class.getSimpleName() + "[", "]")
@@ -115,7 +141,8 @@ public class ScatterDispatchTask implements Delayed {
             .add("stepInstanceId=" + stepInstanceId)
             .add("executeCount=" + executeCount)
             .add("batch=" + batch)
-            .add("dispatchTime=" + dispatchTime)
+            .add("dispatchTime=" + DateUtils.formatUnixTimestamp(
+                dispatchTime, ChronoUnit.MILLIS, "yyyy-MM-dd HH:mm:ss.SSS", ZoneId.systemDefault()))
             .toString();
     }
 }

@@ -29,11 +29,12 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * 并行错峰模式批次下发时间计算工具。
  * <p>
- * 调度公式（以设计文档为准）：
+ * 调度公式（累积式，以设计文档为准）：
  * <ul>
- *     <li>批 1 偏移 = 0；</li>
- *     <li>批 k(k≥2) 偏移 = fixed*(k-1) + random(randomMin, randomMax)，随机每批独立采样。</li>
+ *     <li>批 1 下发时刻 = 步骤开始基准时刻（偏移 0，立即下发）；</li>
+ *     <li>批 k(k≥2) 下发时刻 = 批(k-1) 下发时刻 + fixed + random(randomMin, randomMax)，随机每批独立采样。</li>
  * </ul>
+ * 因此相邻批次间隔恒 ≥ {@code fixed + randomMin}，保证始终错开（不会因随机区间宽度 ≥ fixed 而近乎同时启动）。
  */
 public class ScatterBatchTimeCalculator {
 
@@ -41,40 +42,37 @@ public class ScatterBatchTimeCalculator {
     }
 
     /**
-     * 计算某批次相对步骤开始时刻的下发偏移（毫秒）。
+     * 计算相邻两批之间的错峰间隔（毫秒）= fixed + random(randomMin, randomMax)，随机独立采样一次。
      *
-     * @param batch          批次(从1开始)
-     * @param fixedMs        批次间固定线性步长
+     * @param fixedMs        批次间固定间隔
      * @param randomMinMs    批次间随机延迟下限
      * @param randomMaxMs    批次间随机延迟上限
-     * @return 偏移毫秒数，批1恒为0
+     * @return 相邻两批间隔毫秒数，落在 [fixed+min, fixed+max]
      */
-    public static long computeOffsetMillis(int batch, long fixedMs, long randomMinMs, long randomMaxMs) {
-        if (batch <= 1) {
-            return 0L;
-        }
+    public static long computeBatchInterval(long fixedMs, long randomMinMs, long randomMaxMs) {
         long fixed = Math.max(0L, fixedMs);
         long min = Math.max(0L, randomMinMs);
         long max = Math.max(min, randomMaxMs);
         long randomPart = min == max ? min : ThreadLocalRandom.current().nextLong(min, max + 1);
-        return fixed * (batch - 1) + randomPart;
+        return fixed + randomPart;
     }
 
     /**
-     * 计算某批次的绝对下发时刻。
+     * 累积式计算下一批的绝对下发时刻：上一批下发时刻 + fixed + random(randomMin, randomMax)。
+     * <p>
+     * 调用方需按批次顺序依次调用，并以上一次返回值作为下一次的 {@code previousDispatchTime}，
+     * 从而保证 dispatch_time 登记与调度入队使用同一累积序列。
      *
-     * @param baseTimeMillis 步骤开始基准时刻(epoch millis)
-     * @param batch          批次(从1开始)
-     * @param fixedMs        批次间固定线性步长
-     * @param randomMinMs    批次间随机延迟下限
-     * @param randomMaxMs    批次间随机延迟上限
-     * @return 绝对下发时刻(epoch millis)
+     * @param previousDispatchTime 上一批的绝对下发时刻(epoch millis)
+     * @param fixedMs              批次间固定间隔
+     * @param randomMinMs          批次间随机延迟下限
+     * @param randomMaxMs          批次间随机延迟上限
+     * @return 下一批的绝对下发时刻(epoch millis)
      */
-    public static long computeDispatchTime(long baseTimeMillis,
-                                           int batch,
-                                           long fixedMs,
-                                           long randomMinMs,
-                                           long randomMaxMs) {
-        return baseTimeMillis + computeOffsetMillis(batch, fixedMs, randomMinMs, randomMaxMs);
+    public static long computeNextDispatchTime(long previousDispatchTime,
+                                               long fixedMs,
+                                               long randomMinMs,
+                                               long randomMaxMs) {
+        return previousDispatchTime + computeBatchInterval(fixedMs, randomMinMs, randomMaxMs);
     }
 }

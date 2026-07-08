@@ -29,44 +29,64 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("并行错峰批次时间计算")
+@DisplayName("并行错峰批次时间计算(累积式)")
 class ScatterBatchTimeCalculatorTest {
 
     @Test
-    @DisplayName("批1偏移恒为0")
-    void firstBatchOffsetIsZero() {
-        assertThat(ScatterBatchTimeCalculator.computeOffsetMillis(1, 1000, 100, 500)).isZero();
+    @DisplayName("random上下限相等时，相邻批间隔完全确定：fixed+random")
+    void deterministicIntervalWhenRandomRangeEqual() {
+        // fixed=1000, random=200(min==max) → 间隔恒为 1200
+        assertThat(ScatterBatchTimeCalculator.computeBatchInterval(1000, 200, 200)).isEqualTo(1200);
     }
 
     @Test
-    @DisplayName("random上下限相等时，偏移完全确定：fixed*(k-1)+random")
-    void deterministicWhenRandomRangeEqual() {
-        // fixed=1000, random=200(min==max)
-        assertThat(ScatterBatchTimeCalculator.computeOffsetMillis(2, 1000, 200, 200)).isEqualTo(1200);
-        assertThat(ScatterBatchTimeCalculator.computeOffsetMillis(3, 1000, 200, 200)).isEqualTo(2200);
-        assertThat(ScatterBatchTimeCalculator.computeOffsetMillis(5, 1000, 200, 200)).isEqualTo(4200);
-    }
-
-    @Test
-    @DisplayName("random有区间时，偏移落在[fixed*(k-1)+min, fixed*(k-1)+max]")
-    void offsetWithinRandomRange() {
+    @DisplayName("random有区间时，相邻批间隔落在[fixed+min, fixed+max]")
+    void intervalWithinRange() {
         for (int i = 0; i < 100; i++) {
-            long offset = ScatterBatchTimeCalculator.computeOffsetMillis(4, 1000, 100, 500);
-            assertThat(offset).isBetween(3000L + 100L, 3000L + 500L);
+            long interval = ScatterBatchTimeCalculator.computeBatchInterval(1000, 100, 500);
+            assertThat(interval).isBetween(1000L + 100L, 1000L + 500L);
         }
     }
 
     @Test
-    @DisplayName("绝对下发时刻 = base + offset")
-    void computeDispatchTime() {
-        long base = 1700000000000L;
-        long dispatchTime = ScatterBatchTimeCalculator.computeDispatchTime(base, 3, 1000, 200, 200);
-        assertThat(dispatchTime).isEqualTo(base + 2200);
+    @DisplayName("fixed=0 时退化为纯随机抖动，间隔落在[min, max]")
+    void intervalWithZeroFixed() {
+        for (int i = 0; i < 100; i++) {
+            long interval = ScatterBatchTimeCalculator.computeBatchInterval(0, 100, 500);
+            assertThat(interval).isBetween(100L, 500L);
+        }
     }
 
     @Test
     @DisplayName("非法参数(负值)按0处理，不抛异常")
     void negativeParamsTreatedAsZero() {
-        assertThat(ScatterBatchTimeCalculator.computeOffsetMillis(2, -1, -1, -1)).isZero();
+        assertThat(ScatterBatchTimeCalculator.computeBatchInterval(-1, -1, -1)).isZero();
+    }
+
+    @Test
+    @DisplayName("累积式：下一批下发时刻 = 上一批 + fixed + random(确定)")
+    void computeNextDispatchTimeDeterministic() {
+        long base = 1700000000000L;
+        long batch2 = ScatterBatchTimeCalculator.computeNextDispatchTime(base, 1000, 200, 200);
+        long batch3 = ScatterBatchTimeCalculator.computeNextDispatchTime(batch2, 1000, 200, 200);
+        long batch4 = ScatterBatchTimeCalculator.computeNextDispatchTime(batch3, 1000, 200, 200);
+        // 批1=base(偏移0)；累积间隔恒为1200
+        assertThat(batch2).isEqualTo(base + 1200);
+        assertThat(batch3).isEqualTo(base + 2400);
+        assertThat(batch4).isEqualTo(base + 3600);
+    }
+
+    @Test
+    @DisplayName("累积式：即使随机区间宽度≥fixed，相邻批间隔恒≥fixed+min，始终错开")
+    void adjacentBatchesAlwaysStaggered() {
+        // random区间[0,2000]宽度≥fixed(500)，旧的独立随机公式可能导致相邻批几乎同时；累积式仍保证间隔≥500
+        long base = 1700000000000L;
+        long previous = base;
+        for (int batch = 2; batch <= 20; batch++) {
+            long dispatchTime = ScatterBatchTimeCalculator.computeNextDispatchTime(previous, 500, 0, 2000);
+            long interval = dispatchTime - previous;
+            assertThat(interval).isBetween(500L, 2500L);
+            previous = dispatchTime;
+        }
     }
 }

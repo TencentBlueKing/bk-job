@@ -248,13 +248,16 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long randomMaxMs = detail.getBatchStartWaitRandomMaxMs() == null ? 0L : detail.getBatchStartWaitRandomMaxMs();
         long baseTime = stepInstance.getStartTime() != null ? stepInstance.getStartTime() : System.currentTimeMillis();
 
-        // 第一批次已即时下发，补登记下发信息
+        // 第一批次已即时下发，补登记下发信息（批1下发时刻=baseTime，偏移0）
         stepInstanceRollingTaskService.updateDispatchInfo(taskInstanceId, stepInstanceId, executeCount, 1,
             baseTime, Boolean.TRUE);
 
+        // 累积式错峰：下一批下发时刻 = 上一批下发时刻 + fixed + random(min,max)，随机每批独立采样
+        long previousDispatchTime = baseTime;
         for (int batch = 2; batch <= totalBatch; batch++) {
-            long dispatchTime = ScatterBatchTimeCalculator.computeDispatchTime(
-                baseTime, batch, fixedMs, randomMinMs, randomMaxMs);
+            long dispatchTime = ScatterBatchTimeCalculator.computeNextDispatchTime(
+                previousDispatchTime, fixedMs, randomMinMs, randomMaxMs);
+            previousDispatchTime = dispatchTime;
             // 预登记批次滚动任务（未下发）
             StepInstanceRollingTaskDTO rollingTask = new StepInstanceRollingTaskDTO();
             rollingTask.setTaskInstanceId(taskInstanceId);
@@ -733,6 +736,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.RUNNING,
             stepInstance.getStartTime(), null, null);
 
+        // 累积式错峰：批1下发时刻=baseTime，批k = 批(k-1)下发时刻 + fixed + random(min,max)，随机每批独立采样
+        long previousDispatchTime = baseTime;
         for (int batch = 1; batch <= totalBatch; batch++) {
             stepInstance.setBatch(batch);
             // 登记批次滚动任务
@@ -741,8 +746,10 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             rollingTask.setStepInstanceId(stepInstanceId);
             rollingTask.setExecuteCount(executeCount);
             rollingTask.setBatch(batch);
-            long dispatchTime = ScatterBatchTimeCalculator.computeDispatchTime(
-                baseTime, batch, fixedMs, randomMinMs, randomMaxMs);
+            long dispatchTime = batch == 1 ? baseTime
+                : ScatterBatchTimeCalculator.computeNextDispatchTime(
+                    previousDispatchTime, fixedMs, randomMinMs, randomMaxMs);
+            previousDispatchTime = dispatchTime;
             rollingTask.setDispatchTime(dispatchTime);
             if (batch == 1) {
                 rollingTask.setStatus(RunStatusEnum.RUNNING);

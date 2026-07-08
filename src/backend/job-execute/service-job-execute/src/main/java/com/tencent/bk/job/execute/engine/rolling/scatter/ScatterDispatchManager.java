@@ -24,10 +24,13 @@
 
 package com.tencent.bk.job.execute.engine.rolling.scatter;
 
+import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.listener.event.RollingBatchDispatchResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
@@ -55,6 +58,10 @@ public class ScatterDispatchManager implements SmartLifecycle {
 
     private final ScatterBatchDispatcher scatterBatchDispatcher;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
+    /**
+     * 日志调用链Tracer，用于在到点触发线程重建 trace 上下文，使错峰批次日志带上可追踪的 traceId
+     */
+    private final Tracer tracer;
     private final int workerNum;
 
     private final DelayQueue<ScatterDispatchTask> tasksQueue = new DelayQueue<>();
@@ -68,9 +75,11 @@ public class ScatterDispatchManager implements SmartLifecycle {
     @Autowired
     public ScatterDispatchManager(ScatterBatchDispatcher scatterBatchDispatcher,
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                                  Tracer tracer,
                                   JobExecuteConfig jobExecuteConfig) {
         this.scatterBatchDispatcher = scatterBatchDispatcher;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
+        this.tracer = tracer;
         int configuredWorkerNum = jobExecuteConfig.getRollingScatterWorkerNum();
         this.workerNum = configuredWorkerNum > 0 ? configuredWorkerNum : 5;
     }
@@ -85,6 +94,9 @@ public class ScatterDispatchManager implements SmartLifecycle {
             log.warn("ScatterDispatchManager is not active, reject task: {}", task);
             return;
         }
+        // 在登记线程（原始请求/MQ 消费线程，携带 trace 上下文）捕获 Span 与作业执行上下文，
+        // 供到点触发线程重建 trace，使错峰批次（批2/3/4）日志带上可追踪的 traceId。
+        task.bindTraceContext(tracer.currentSpan(), JobExecuteContextThreadLocalRepo.get());
         log.info("Add scatter dispatch task: {}", task);
         tasksQueue.add(task);
     }
@@ -197,6 +209,36 @@ public class ScatterDispatchManager implements SmartLifecycle {
         return DestroyOrder.ROLLING_SCATTER_DISPATCHER;
     }
 
+    /**
+     * 到点触发批次下发，并重建 trace 与作业执行上下文。
+     * <p>
+     * 以登记时捕获的 Span 为父新建子 Span（转移重建的任务无父上下文时新建可关联的根 Span），
+     * 使本批次「fired / 下发 GseTaskEvent」等日志带上 traceId；同时恢复 {@link JobExecuteContextThreadLocalRepo}，
+     * 保证随后 dispatch 的 GseTaskEvent 经 MQ 透传 trace 与作业执行上下文，下游 GseTaskListener 消费得以延续 trace。
+     *
+     * @param task 到点的批次下发任务
+     */
+    private void fireTaskWithTrace(ScatterDispatchTask task) {
+        Span parent = task.getTraceContext();
+        Span span = (parent != null ? tracer.nextSpan(parent) : tracer.nextSpan()).name("scatter-dispatch");
+        try (Tracer.SpanInScope ignored = tracer.withSpan(span.start())) {
+            JobExecuteContextThreadLocalRepo.set(task.getJobExecuteContext());
+            log.info("Scatter dispatch task fired: {}", task);
+            scatterBatchDispatcher.dispatchBatch(
+                task.getTaskInstanceId(),
+                task.getStepInstanceId(),
+                task.getExecuteCount(),
+                task.getBatch(),
+                task.getGseTaskId());
+        } catch (Throwable e) {
+            span.error(e);
+            log.error("Scatter dispatch batch error, task: " + task, e);
+        } finally {
+            JobExecuteContextThreadLocalRepo.unset();
+            span.end();
+        }
+    }
+
     private final class Worker implements Runnable {
         @Override
         public void run() {
@@ -206,17 +248,7 @@ public class ScatterDispatchManager implements SmartLifecycle {
                     if (task == null) {
                         continue;
                     }
-                    log.info("Scatter dispatch task fired: {}", task);
-                    try {
-                        scatterBatchDispatcher.dispatchBatch(
-                            task.getTaskInstanceId(),
-                            task.getStepInstanceId(),
-                            task.getExecuteCount(),
-                            task.getBatch(),
-                            task.getGseTaskId());
-                    } catch (Throwable e) {
-                        log.error("Scatter dispatch batch error, task: " + task, e);
-                    }
+                    fireTaskWithTrace(task);
                 } catch (InterruptedException e) {
                     log.warn("Scatter dispatch worker interrupted", e);
                     Thread.currentThread().interrupt();
