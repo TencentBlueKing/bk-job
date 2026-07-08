@@ -762,12 +762,12 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             stepInstanceRollingTaskService.saveRollingTask(rollingTask);
 
             // 为该批次准备 GSE 任务与执行对象任务（尊重失败重试/全部重试语义）
+            // 注意：并行重试按批次逐次调用，必须仅保存「本批次」的执行对象任务；
+            // 若沿用串行的整表保存逻辑，会在后续批次迭代时重复插入前序批次的行，
+            // 触发 gse_file_execute_obj_task 唯一键 uk_step_id_execute_count_batch_mode_execute_obj_id
+            // 冲突导致循环中断，出现「仅批1重试、批2..N不下发、整步卡 RUNNING」的缺陷。
             Long gseTaskId = saveInitialGseTask(stepInstance);
-            if (retryAll) {
-                saveExecuteObjectTasksForRetryAll(stepInstance, executeCount, batch, gseTaskId);
-            } else {
-                saveExecuteObjectTasksForRetryFail(stepInstance, executeCount, batch, gseTaskId);
-            }
+            saveExecuteObjectTasksForParallelRetryBatch(stepInstance, executeCount, batch, gseTaskId, retryAll);
 
             if (batch == 1) {
                 startGseTask(stepInstance, gseTaskId);
@@ -830,6 +830,46 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         }
 
         saveExecuteObjectTasks(stepInstance, retryExecuteObjectTasks);
+    }
+
+    /**
+     * 并行错峰模式整步重试：仅为「单个批次」准备并保存执行对象任务。
+     * <p>
+     * 与串行重试的 {@link #saveExecuteObjectTasksForRetryAll}/{@link #saveExecuteObjectTasksForRetryFail}
+     * 不同，本方法在保存前按 batch 过滤，保证每个批次的执行对象任务只在其对应迭代中插入一次，
+     * 避免并行重试逐批循环时对同一 (step, executeCount, batch, mode, executeObject) 重复插入而违反唯一键。
+     *
+     * @param stepInstance 步骤实例
+     * @param executeCount 本次重试的执行次数
+     * @param batch        目标批次
+     * @param gseTaskId    本批次的 GSE 任务ID
+     * @param retryAll     true-全部重试（所有可执行对象重跑）；false-失败重试（仅失败对象重跑，成功对象结转）
+     */
+    private void saveExecuteObjectTasksForParallelRetryBatch(StepInstanceBaseDTO stepInstance,
+                                                             int executeCount,
+                                                             int batch,
+                                                             Long gseTaskId,
+                                                             boolean retryAll) {
+        List<ExecuteObjectTask> previousExecuteObjectTasks =
+            listTargetExecuteObjectTasks(stepInstance, executeCount - 1);
+        List<ExecuteObjectTask> batchExecuteObjectTasks = new ArrayList<>();
+        for (ExecuteObjectTask executeObjectTask : previousExecuteObjectTasks) {
+            if (executeObjectTask.getBatch() != batch) {
+                continue;
+            }
+            executeObjectTask.setExecuteCount(executeCount);
+            boolean needRetry = retryAll
+                || !ExecuteObjectTaskStatusEnum.isSuccess(executeObjectTask.getStatus());
+            if (needRetry) {
+                if (executeObjectTask.getExecuteObject().isExecutable()) {
+                    executeObjectTask.setActualExecuteCount(executeCount);
+                    executeObjectTask.resetTaskInitialStatus();
+                }
+                executeObjectTask.setGseTaskId(gseTaskId);
+            }
+            batchExecuteObjectTasks.add(executeObjectTask);
+        }
+        saveExecuteObjectTasks(stepInstance, batchExecuteObjectTasks);
     }
 
     private List<ExecuteObjectTask> listTargetExecuteObjectTasks(StepInstanceBaseDTO stepInstance, int executeCount) {

@@ -32,8 +32,10 @@ import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchFinishResult;
 import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchManager;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -85,6 +87,8 @@ class GseStepEventHandlerTest {
     private GseTaskService gseTaskService;
     private RollingConfigService rollingConfigService;
     private StepInstanceRollingTaskService stepInstanceRollingTaskService;
+    private FileExecuteObjectTaskService fileExecuteObjectTaskService;
+    private ScatterDispatchManager scatterDispatchManager;
 
     private GseStepEventHandler handler;
 
@@ -98,9 +102,9 @@ class GseStepEventHandlerTest {
         rollingConfigService = mock(RollingConfigService.class);
         stepInstanceRollingTaskService = mock(StepInstanceRollingTaskService.class);
         ScriptExecuteObjectTaskService scriptExecuteObjectTaskService = mock(ScriptExecuteObjectTaskService.class);
-        FileExecuteObjectTaskService fileExecuteObjectTaskService = mock(FileExecuteObjectTaskService.class);
+        fileExecuteObjectTaskService = mock(FileExecuteObjectTaskService.class);
         StepInstanceFileBatchService stepInstanceFileBatchService = mock(StepInstanceFileBatchService.class);
-        ScatterDispatchManager scatterDispatchManager = mock(ScatterDispatchManager.class);
+        scatterDispatchManager = mock(ScatterDispatchManager.class);
 
         handler = new GseStepEventHandler(
             taskInstanceService,
@@ -259,12 +263,73 @@ class GseStepEventHandlerTest {
         assertThat(stepInstance.getBatch()).isEqualTo(currentBatch);
     }
 
+    @Test
+    @DisplayName("并行错峰-终止后重试全部：整步所有批次重新错峰下发，且各批执行对象任务仅插入一次（不触发唯一键冲突）")
+    void parallelRetryAll_reschedulesAllBatchesWithoutDuplicateInsert() {
+        int totalBatch = 4;
+        int retryExecuteCount = 1;
+        mockParallelScatterRollingConfig(totalBatch);
+        StepInstanceDTO stepInstance = buildRollingStepInstance(1);
+        stepInstance.setExecuteCount(retryExecuteCount);
+        stepInstance.setStatus(RunStatusEnum.STOP_SUCCESS);
+        when(gseTaskService.saveGseTask(any())).thenReturn(GSE_TASK_ID);
+        when(filePrepareService.needToPrepareSourceFilesForGseTask(any())).thenReturn(false);
+        // 模拟真实 DAO：每次查询上一次执行的执行对象任务都返回「全批次」的新副本
+        when(fileExecuteObjectTaskService.listTasks(any(), eq(retryExecuteCount - 1), any(), any()))
+            .thenAnswer(invocation -> buildAllBatchExecuteObjectTasks(totalBatch, retryExecuteCount - 1));
+
+        handler.handleEvent(StepEvent.retryStepAll(JOB_INSTANCE_ID, STEP_INSTANCE_ID), stepInstance);
+
+        // 批1 立即下发（MQ 事件），批2..N 进入错峰延迟队列
+        verify(taskExecuteMQEventDispatcher, org.mockito.Mockito.times(1)).dispatchGseTaskEvent(any());
+        ArgumentCaptor<com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchTask> scatterCaptor =
+            ArgumentCaptor.forClass(com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchTask.class);
+        verify(scatterDispatchManager, org.mockito.Mockito.times(totalBatch - 1)).addTask(scatterCaptor.capture());
+        // 入队批次为 2..N，且 executeCount 使用递增后的新执行次数
+        java.util.List<Integer> scatterBatches = scatterCaptor.getAllValues().stream()
+            .peek(task -> assertThat(task.getExecuteCount()).isEqualTo(retryExecuteCount))
+            .map(com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchTask::getBatch)
+            .sorted()
+            .collect(java.util.stream.Collectors.toList());
+        assertThat(scatterBatches).containsExactly(2, 3, 4);
+
+        // 关键回归断言：各批执行对象任务只按「本批次」插入一次，(batch, executeObjectId) 不重复，
+        // 避免逐批循环重复插入全批次而违反唯一键 uk_step_id_execute_count_batch_mode_execute_obj_id。
+        ArgumentCaptor<java.util.Collection<ExecuteObjectTask>> saveCaptor =
+            ArgumentCaptor.forClass(java.util.Collection.class);
+        verify(fileExecuteObjectTaskService, org.mockito.Mockito.atLeastOnce()).batchSaveTasks(saveCaptor.capture());
+        java.util.List<String> savedKeys = new java.util.ArrayList<>();
+        for (java.util.Collection<ExecuteObjectTask> saved : saveCaptor.getAllValues()) {
+            for (ExecuteObjectTask task : saved) {
+                // 所有落库执行对象任务都必须使用递增后的新执行次数
+                assertThat(task.getExecuteCount()).isEqualTo(retryExecuteCount);
+                savedKeys.add(task.getBatch() + ":" + task.getExecuteObjectId());
+            }
+        }
+        // 每批一个执行对象，共 4 条，且互不重复（若重复插入会出现 16 条并含重复键）
+        assertThat(savedKeys).hasSize(totalBatch);
+        assertThat(savedKeys).doesNotHaveDuplicates();
+    }
+
     private void mockParallelRollingConfig(int totalBatch) {
         RollingConfigDTO rollingConfig = new RollingConfigDTO();
         ExecuteObjectRollingConfigDetailDO detail = new ExecuteObjectRollingConfigDetailDO();
         detail.setExecutionMode(RollingExecutionModeEnum.PARALLEL.getValue());
         detail.setMode(RollingModeEnum.PAUSE_IF_FAIL.getValue());
         detail.setTotalBatch(totalBatch);
+        rollingConfig.setExecuteObjectRollingConfig(detail);
+        when(rollingConfigService.getRollingConfig(JOB_INSTANCE_ID, ROLLING_CONFIG_ID)).thenReturn(rollingConfig);
+    }
+
+    private void mockParallelScatterRollingConfig(int totalBatch) {
+        RollingConfigDTO rollingConfig = new RollingConfigDTO();
+        ExecuteObjectRollingConfigDetailDO detail = new ExecuteObjectRollingConfigDetailDO();
+        detail.setExecutionMode(RollingExecutionModeEnum.PARALLEL.getValue());
+        detail.setMode(RollingModeEnum.PAUSE_IF_FAIL.getValue());
+        detail.setTotalBatch(totalBatch);
+        detail.setBatchStartWaitFixedMs(10000L);
+        detail.setBatchStartWaitRandomMinMs(1000L);
+        detail.setBatchStartWaitRandomMaxMs(3000L);
         rollingConfig.setExecuteObjectRollingConfig(detail);
         when(rollingConfigService.getRollingConfig(JOB_INSTANCE_ID, ROLLING_CONFIG_ID)).thenReturn(rollingConfig);
     }
@@ -297,6 +362,21 @@ class GseStepEventHandlerTest {
         stepInstance.setStatus(RunStatusEnum.RUNNING);
         stepInstance.setStartTime(1000L);
         return stepInstance;
+    }
+
+    private java.util.List<ExecuteObjectTask> buildAllBatchExecuteObjectTasks(int totalBatch, int executeCount) {
+        java.util.List<ExecuteObjectTask> tasks = new java.util.ArrayList<>();
+        for (int batch = 1; batch <= totalBatch; batch++) {
+            ExecuteObject executeObject = mock(ExecuteObject.class);
+            when(executeObject.isExecutable()).thenReturn(true);
+            when(executeObject.getId()).thenReturn("eo-" + batch);
+            ExecuteObjectTask task = new ExecuteObjectTask(
+                JOB_INSTANCE_ID, STEP_INSTANCE_ID, executeCount, batch,
+                com.tencent.bk.job.logsvr.consts.FileTaskModeEnum.DOWNLOAD, executeObject);
+            task.setStatus(com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.WAITING);
+            tasks.add(task);
+        }
+        return tasks;
     }
 
     private StepInstanceRollingTaskDTO buildRollingTask(int batch, RunStatusEnum status) {
