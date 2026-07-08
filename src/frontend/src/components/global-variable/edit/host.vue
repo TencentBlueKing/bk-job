@@ -66,6 +66,8 @@
 </template>
 
 <script>
+  import DOMPurify from 'dompurify';
+
   import ExecuteTargetModel from '@model/execute-target';
 
   import {
@@ -118,7 +120,7 @@
           extCls: 'variable-desc-tippy',
           trigger: 'click mouseenter',
           hideOnClick: false,
-          content: this.data.description,
+          content: DOMPurify.sanitize(this.data.description),
           disabled: !this.data.description,
         };
       },

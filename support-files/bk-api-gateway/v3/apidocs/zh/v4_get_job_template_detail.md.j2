@@ -1,0 +1,253 @@
+### 功能描述
+
+在指定的资源范围（业务或业务集）内，根据作业模板 ID 查询作业模板详情，包含全局变量与全部步骤（含未启用步骤）。
+
+调用前须满足：目标作业模板存在；调用身份对该资源范围具备查看该模板的操作权限。
+
+### 请求参数
+
+#### Query参数
+
+| 字段              | 类型   | 必选 | 描述 |
+|-------------------|--------|------|------|
+| bk_scope_type     | string | 是   | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id       | string | 是   | 资源范围 ID，须与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| id                | long   | 是   | 作业模板 ID，须大于 0，且对应模板须已存在 |
+
+### 请求参数示例
+
+- GET
+
+```json
+/api/v4/get_job_template_detail?bk_scope_type=biz&bk_scope_id=2&id=1000
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "id": 1000,
+        "name": "demo-template",
+        "description": "示例模板",
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "last_modify_user": "admin",
+        "last_modify_time": 1738221000000,
+        "global_var_list": [
+            {
+                "name": "TARGET_DIR",
+                "type": 1,
+                "description": "目标目录",
+                "required": 0,
+                "value": "/data/release"
+            },
+            {
+                "name": "HOST_TARGET",
+                "type": 3,
+                "description": "执行目标",
+                "required": 1,
+                "execute_target": {
+                    "host_list": [
+                        {
+                            "bk_host_id": 10001
+                        },
+                        {
+                            "bk_cloud_id": 0,
+                            "ip": "127.0.0.1"
+                        }
+                    ],
+                    "dynamic_group_list": [
+                        {
+                            "id": "dg-001"
+                        }
+                    ],
+                    "topo_node_list": [
+                        {
+                            "id": 2001,
+                            "node_type": "module"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "DB_PASSWORD",
+                "type": 4,
+                "description": "数据库密码",
+                "required": 1,
+                "value": "******"
+            }
+        ],
+        "step_list": [
+            {
+                "id": 101,
+                "name": "执行脚本",
+                "type": 1,
+                "script_info": {
+                    "script_type": 1,
+                    "script_id": "SOPS123",
+                    "script_version_id": 10001,
+                    "script_content": "ZWNobyBoZWxsbw==",
+                    "script_language": 1,
+                    "script_param": "",
+                    "windows_interpreter": "",
+                    "script_timeout": 1000,
+                    "is_param_sensitive": 0,
+                    "is_ignore_error": 0,
+                    "account": {
+                        "id": 100
+                    },
+                    "execute_target": {
+                        "host_list": [
+                            {
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.2"
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                "id": 102,
+                "name": "人工确认",
+                "type": 3,
+                "approval_info": {
+                    "approval_type": 1,
+                    "approval_user": {
+                        "user_list": ["admin"],
+                        "role_list": []
+                    },
+                    "approval_message": "请确认后继续",
+                    "notify_channel": ["mail"]
+                }
+            }
+        ]
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段               | 类型   | 是否一定存在 | 描述 |
+|--------------------|--------|--------------|------|
+| bk_scope_type      | string | 是           | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id        | string | 是           | 资源范围 ID |
+| id                 | long   | 是           | 作业模板 ID |
+| name               | string | 是           | 作业模板名称 |
+| description        | string | 是           | 作业模板描述；无描述时为空字符串 |
+| creator            | string | 是           | 创建人 |
+| create_time        | long   | 是           | 创建时间，Unix 时间戳，单位毫秒 |
+| last_modify_user   | string | 是           | 最后修改人 |
+| last_modify_time   | long   | 是           | 最后修改时间，Unix 时间戳，单位毫秒 |
+| global_var_list    | array  | 是           | 全局变量列表；无变量时为空数组 |
+| step_list          | array  | 是           | 步骤列表，返回模板全部步骤（含未启用步骤）；无步骤时为空数组 |
+
+##### global_var_list[] 元素
+
+| 字段         | 类型   | 是否一定存在 | 描述 |
+|--------------|--------|--------------|------|
+| name         | string | 是           | 全局变量名称 |
+| type         | int    | 是           | 变量类型。可选值：`1`（字符串）、`2`（命名空间）、`3`（执行目标列表）、`4`（密文）、`5`（关联数组）、`6`（索引数组） |
+| description  | string | 是           | 变量描述 |
+| required     | int    | 是           | 是否必填。可选值：`1`（是）、`0`（否） |
+| value        | string | 否           | 变量值；当 `type` 为 `1`、`2`、`4`、`5`、`6` 时返回；密文类型返回 `******` |
+| execute_target | object | 否           | 执行目标；当 `type` 为 `3` 时返回 |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target_without_container_resp.md.j2' %}
+
+##### step_list[] 元素
+
+| 字段            | 类型   | 是否一定存在 | 描述 |
+|-----------------|--------|--------------|------|
+| id              | long   | 是           | 步骤 ID |
+| name            | string | 是           | 步骤名称 |
+| type            | int    | 是           | 步骤类型。可选值：`1`（脚本执行）、`2`（文件分发）、`3`（人工确认） |
+| script_info     | object | 否           | 脚本步骤信息；`type=1` 时存在 |
+| file_info       | object | 否           | 文件步骤信息；`type=2` 时存在 |
+| approval_info   | object | 否           | 人工确认步骤信息；`type=3` 时存在 |
+
+##### script_info
+
+| 字段                 | 类型   | 是否一定存在 | 描述 |
+|----------------------|--------|--------------|------|
+| script_type          | int    | 是           | 脚本来源类型。可选值：`1`（本地脚本）、`2`（引用脚本）、`3`（公共脚本） |
+| script_id            | string | 否           | 脚本 ID |
+| script_version_id    | long   | 否           | 脚本版本 ID |
+| script_content       | string | 否           | 脚本内容，Base64 编码 |
+| script_language      | int    | 是           | 脚本语言。可选值：`1`（shell）、`2`（bat）、`3`（perl）、`4`（python）、`5`（powershell）、`6`（SQL） |
+| script_param         | string | 否           | 脚本参数，Base64 编码 |
+| windows_interpreter  | string | 否           | Windows 脚本解释器路径 |
+| script_timeout       | long   | 是           | 脚本超时时间，单位为秒 |
+| is_param_sensitive   | int    | 是           | 脚本参数是否敏感。可选值：`1`（是）、`0`（否） |
+| is_ignore_error      | int    | 是           | 是否忽略错误。可选值：`1`（是）、`0`（否） |
+| account              | object | 是           | 执行账号 |
+| execute_target       | object | 否           | 执行目标 |
+
+##### file_info
+
+| 字段                      | 类型  | 是否一定存在 | 描述 |
+|---------------------------|-------|--------------|------|
+| file_source_list          | array | 是           | 源文件列表 |
+| file_destination          | object | 是          | 目标路径信息 |
+| timeout                   | long  | 是           | 文件传输超时时间，单位为秒 |
+| transfer_mode             | int   | 是           | 传输模式。可选值：`1`（严谨模式）、`2`（强制模式）、`3`（保险模式 FILE_SRC_IP）、`4`（保险模式 YYYY-MM-DD） |
+| source_speed_limit        | long  | 否           | 源机器上传限速，单位为 MB/s；没有值表示不限速 |
+| destination_speed_limit   | long  | 否           | 目标机器下载限速，单位为 MB/s；没有值表示不限速 |
+| is_ignore_error           | int   | 是           | 是否忽略错误。可选值：`1`（是）、`0`（否） |
+
+##### file_source_list[] 元素
+
+| 字段              | 类型   | 是否一定存在 | 描述 |
+|-------------------|--------|--------------|------|
+| file_list         | array  | 是           | 文件路径列表 |
+| file_type         | int    | 是           | 文件源类型。可选值：`1`（服务器文件）、`2`（本地文件）、`3`（文件源文件）、`4`（Base64 编码的文件） |
+| file_source_code  | string | 否           | 文件源标识 |
+| account           | object | 是           | 执行账号 |
+| execute_target    | object | 否           | 源文件执行目标 |
+
+##### file_destination
+
+| 字段     | 类型   | 是否一定存在 | 描述 |
+|----------|--------|--------------|------|
+| path     | string | 是           | 目标路径 |
+| account  | object | 是           | 执行账号 |
+| execute_target | object | 否           | 目标执行目标 |
+
+##### account
+
+| 字段  | 类型   | 是否一定存在 | 描述 |
+|-------|--------|--------------|------|
+| id    | long   | 是           | 账号 ID |
+| name  | string | 否           | 账号名称 |
+| alias | string | 否           | 账号别名 |
+
+##### approval_info
+
+| 字段              | 类型   | 是否一定存在 | 描述 |
+|-------------------|--------|--------------|------|
+| approval_type     | int    | 是           | 确认类型。可选值：`1`（任意人审批）、`2`（所有人审批） |
+| approval_user     | object | 是           | 确认人信息 |
+| approval_message  | string | 是           | 确认提示信息 |
+| notify_channel    | array  | 是           | 通知渠道列表；元素为渠道类型字符串，常见取值：`mail`（邮件）、`weixin`（微信）、`rtx`（企业微信） |
+
+##### approval_user
+
+| 字段       | 类型  | 是否一定存在 | 描述 |
+|------------|-------|--------------|------|
+| user_list  | array | 是           | 用户列表 |
+| role_list  | array | 是           | 角色列表 |

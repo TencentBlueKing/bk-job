@@ -1,0 +1,9 @@
+# bk-job 技能部署配置
+# 代码库内仅为占位示例，部署到目标环境时替换为真实地址。
+# access_token 通过环境变量 BK_JOB_ACCESS_TOKEN 提供，勿写入本文件。
+
+# API 网关根 URL，可拼接 /api/v3/...、/api/v4/...
+apigw_base_url: https://bkapi.example.com/api/bk-job/prod
+
+# 作业平台 Web 根 URL；plan-execute 成功后拼接 {job_base_url}/api_execute/{job_instance_id}
+job_base_url: https://job.example.com

@@ -47,6 +47,11 @@ data:
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
       mq:
+        # MQ消息消费延迟模拟配置，仅用于测试环境复现依赖不稳定时序的问题，默认关闭
+        consume:
+          simulate-delay:
+            enabled: {{ .Values.job.mq.consume.simulateDelay.enabled }}
+            delay-ms: {{ .Values.job.mq.consume.simulateDelay.delayMs }}
         metrics:
           {{- toYaml .Values.job.mq.metrics | nindent 10 }}
     management:

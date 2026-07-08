@@ -28,6 +28,7 @@ import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 /**
@@ -66,6 +67,7 @@ public class TaskPlanCreateUpdateReq {
      * 执行方案变量
      */
     @Schema(description = "执行方案变量，新增、修改时需要传入", required = true)
+    @Valid
     private List<TaskVariableVO> variables;
 
 }

@@ -511,6 +511,15 @@ appCode: bk_job
 ## appSecret
 appSecret: ""
 
+# 公共应用配置：个人轻量场景下使用公共应用凭证为当前登录用户换取个人 access_token
+publicApp:
+  # 是否开启「公共应用个人凭证」能力
+  enabled: false
+  # 公共应用 app_code
+  code: ""
+  # 公共应用 app_secret
+  secret: ""
+
 ## 其他平台调用Job接口使用的APP_CODE
 ## 标准运维
 bkSopsAppCode: "bk_sops"
@@ -573,6 +582,10 @@ bkFeedBackUrl: "https://bk.tencent.com/s-mart/community"
 bkSharedResUrl: ""
 # 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件base.js路径
 bkSharedBaseJsPath: "/bk_job/base.js"
+# 内部版 auth_api（bkoauth）根地址，生成个人凭证时拼接 /token
+bkAuthApiUrl: ""
+# 社区版 bkssm 直连根地址（不走网关），生成个人凭证时拼接 /api/v1/auth/access-tokens
+bkSsmUrl: ""
 
 # MockAPI配置：构造依赖系统（CMDB、IAM等）的Mock数据用于联调前的自测
 mockApi:
@@ -902,6 +915,13 @@ job:
       # Trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
       ratio: 0.1
   mq:
+    # MQ消息消费延迟模拟配置，仅用于测试环境复现依赖不稳定时序的问题，默认关闭，不影响生产默认行为
+    consume:
+      simulateDelay:
+        # 是否开启消息消费延迟模拟，默认关闭
+        enabled: false
+        # 模拟的延迟时长，单位毫秒，仅在开启且大于0时生效
+        delayMs: 0
     metrics:
       # 是否开启MQ指标采集，默认开启
       enabled: true
@@ -919,6 +939,9 @@ job:
 #          delayMs: 1000
 #        # analysis模块延迟消费阈值，不配置使用defaultDelayMs
 #        jobAnalysis:
+#          delayMs: 1000
+#        # assemble模块（轻量化部署模式）延迟消费阈值，不配置使用defaultDelayMs
+#        jobAssemble:
 #          delayMs: 1000
 
   migration:

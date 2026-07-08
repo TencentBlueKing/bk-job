@@ -1,0 +1,24 @@
+| Field                | Type  | Required | Description |
+|----------------------|-------|----------|-------------|
+| host_list            | array | No       | Static host list |
+| dynamic_group_list   | array | No       | Dynamic group list |
+| topo_node_list       | array | No       | CMDB topology node list |
+
+When `execute_target` is provided, at least one of `host_list`, `dynamic_group_list`, and `topo_node_list` must be non-empty.
+
+##### host_list[] element
+
+{% include '_generic_v4_host.md.j2' %}
+
+##### dynamic_group_list[] element
+
+| Field | Type   | Required | Description |
+|-------|--------|----------|-------------|
+| id    | string | Yes      | Dynamic group ID |
+
+##### topo_node_list[] element
+
+| Field      | Type   | Required | Description |
+|------------|--------|----------|-------------|
+| id         | long   | Yes      | Topology node ID |
+| node_type  | string | Yes      | Topology node type. Allowed values: `module`, `set` |

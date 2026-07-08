@@ -64,6 +64,15 @@ class TicketManage extends ModuleBase {
   delete({ id }) {
     return Request.delete(`${this.path}/ids/${id}`);
   }
+
+  // 校验凭证名称是否唯一
+  check(options = {}) {
+    return Request.get(`${this.path}/${options.id}/check_name`, {
+      params: {
+        name: options.name,
+      },
+    });
+  }
 }
 
 export default new TicketManage();

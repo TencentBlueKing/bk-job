@@ -91,7 +91,7 @@ public class TaskPlanInfoDTO {
     private String creator;
 
     /**
-     * 创建时间
+     * 创建时间，Unix时间戳，单位秒
      */
     private Long createTime;
 
@@ -101,7 +101,7 @@ public class TaskPlanInfoDTO {
     private String lastModifyUser;
 
     /**
-     * 更新时间
+     * 更新时间，Unix时间戳，单位秒
      */
     private Long lastModifyTime;
 

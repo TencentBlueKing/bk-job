@@ -60,6 +60,7 @@ public class ServiceBackupResourceImpl implements ServiceBackupResource {
     @Override
     public Response<TaskTemplateVO> getTemplateById(Long appId, Long templateId) {
         TaskTemplateInfoDTO templateInfo = taskTemplateService.getTaskTemplateById(appId, templateId);
+        // 填充 step.refVariables，供备份/内部 VO 的 ref_variables
         StepRefVariableParser.parseStepRefVars(templateInfo.getStepList(), templateInfo.getVariableList());
         TaskTemplateVO taskTemplateVO = TaskTemplateInfoDTO.toVO(templateInfo);
         return Response.buildSuccessResp(taskTemplateVO);
@@ -73,6 +74,7 @@ public class ServiceBackupResourceImpl implements ServiceBackupResource {
         TaskTemplateInfoDTO taskTemplateBasicInfo =
             taskTemplateService.getTaskTemplateBasicInfoById(appResourceScope.getAppId(), templateId);
         TaskPlanInfoDTO taskPlan = planService.getTaskPlanById(appResourceScope.getAppId(), templateId, planId);
+        // 填充 step.refVariables，供备份/内部 VO 的 ref_variables
         StepRefVariableParser.parseStepRefVars(taskPlan.getStepList(), taskPlan.getVariableList());
         final String templateVersion = taskTemplateBasicInfo.getVersion();
         if (StringUtils.isNotEmpty(templateVersion)) {

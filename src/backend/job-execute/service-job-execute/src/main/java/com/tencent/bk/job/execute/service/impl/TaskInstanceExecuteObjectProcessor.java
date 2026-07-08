@@ -49,6 +49,7 @@ import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
 import com.tencent.bk.job.execute.common.cache.WhiteHostCache;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
+import com.tencent.bk.job.execute.config.GseConfig;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.metrics.ExecuteObjectSampler;
@@ -70,6 +71,7 @@ import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -108,6 +110,7 @@ public class TaskInstanceExecuteObjectProcessor {
                                               ContainerService containerService,
                                               AppScopeMappingService appScopeMappingService,
                                               WhiteHostCache whiteHostCache,
+                                              @Qualifier(GseConfig.EXECUTE_BEAN_AGENT_STATE_CLIENT)
                                               AgentStateClient agentStateClient,
                                               IBizCmdbClient bizCmdbClient,
                                               ExecuteObjectSampler executeObjectSampler) {

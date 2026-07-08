@@ -33,6 +33,7 @@ CODEBUDDY.md
 .cursor/
 .claude/
 openspec/
+.codegraph/
 
 pre-*-bkcodeai
 
@@ -40,3 +41,4 @@ tests/openapi/bin/
 
 # Claude Code
 .claude/
+**/__pycache__/

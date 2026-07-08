@@ -1,0 +1,253 @@
+### Description
+
+Query job template details within the specified resource scope (business or business set) by job template ID, including global variables and all steps (including disabled steps).
+
+Prerequisites: the target job template must exist; the caller must have permission to view the template in the resource scope.
+
+### Request Parameters
+
+#### Query Parameters
+
+| Field             | Type   | Required | Description |
+|-------------------|--------|----------|-------------|
+| bk_scope_type     | string | Yes      | Resource scope type. Optional values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id       | string | Yes      | Resource scope ID, must match `bk_scope_type` |
+| id                | long   | Yes      | Job template ID, must be greater than 0 and the template must exist |
+
+### Request Example
+
+- GET
+
+```json
+/api/v4/get_job_template_detail?bk_scope_type=biz&bk_scope_id=2&id=1000
+```
+
+### Response Examples
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "id": 1000,
+        "name": "demo-template",
+        "description": "Sample template",
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "last_modify_user": "admin",
+        "last_modify_time": 1738221000000,
+        "global_var_list": [
+            {
+                "name": "TARGET_DIR",
+                "type": 1,
+                "description": "Target directory",
+                "required": 0,
+                "value": "/data/release"
+            },
+            {
+                "name": "HOST_TARGET",
+                "type": 3,
+                "description": "Execute target",
+                "required": 1,
+                "execute_target": {
+                    "host_list": [
+                        {
+                            "bk_host_id": 10001
+                        },
+                        {
+                            "bk_cloud_id": 0,
+                            "ip": "127.0.0.1"
+                        }
+                    ],
+                    "dynamic_group_list": [
+                        {
+                            "id": "dg-001"
+                        }
+                    ],
+                    "topo_node_list": [
+                        {
+                            "id": 2001,
+                            "node_type": "module"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "DB_PASSWORD",
+                "type": 4,
+                "description": "Database password",
+                "required": 1,
+                "value": "******"
+            }
+        ],
+        "step_list": [
+            {
+                "id": 101,
+                "name": "Run script",
+                "type": 1,
+                "script_info": {
+                    "script_type": 1,
+                    "script_id": "SOPS123",
+                    "script_version_id": 10001,
+                    "script_content": "ZWNobyBoZWxsbw==",
+                    "script_language": 1,
+                    "script_param": "",
+                    "windows_interpreter": "",
+                    "script_timeout": 1000,
+                    "is_param_sensitive": 0,
+                    "is_ignore_error": 0,
+                    "account": {
+                        "id": 100
+                    },
+                    "execute_target": {
+                        "host_list": [
+                            {
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.2"
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                "id": 102,
+                "name": "Manual approval",
+                "type": 3,
+                "approval_info": {
+                    "approval_type": 1,
+                    "approval_user": {
+                        "user_list": ["admin"],
+                        "role_list": []
+                    },
+                    "approval_message": "Please confirm to continue",
+                    "notify_channel": ["mail"]
+                }
+            }
+        ]
+    }
+}
+```
+
+### Response Parameter Description
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field              | Type   | Always Present | Description |
+|--------------------|--------|----------------|-------------|
+| bk_scope_type      | string | Yes            | Resource scope type. Optional values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id        | string | Yes            | Resource scope ID |
+| id                 | long   | Yes            | Job template ID |
+| name               | string | Yes            | Job template name |
+| description        | string | Yes            | Job template description; empty string if none |
+| creator            | string | Yes            | Creator |
+| create_time        | long   | Yes            | Create time, Unix timestamp in milliseconds |
+| last_modify_user   | string | Yes            | Last modifier |
+| last_modify_time   | long   | Yes            | Last modify time, Unix timestamp in milliseconds |
+| global_var_list    | array  | Yes            | Global variable list; empty array if none |
+| step_list          | array  | Yes            | Step list including all template steps (including disabled); empty array if none |
+
+##### global_var_list[] element
+
+| Field        | Type   | Always Present | Description |
+|--------------|--------|----------------|-------------|
+| name         | string | Yes            | Global variable name |
+| type         | int    | Yes            | Variable type. Optional values: `1` (string), `2` (namespace), `3` (execute target list), `4` (cipher), `5` (associative array), `6` (index array) |
+| description  | string | Yes            | Variable description |
+| required     | int    | Yes            | Required flag. Optional values: `1` (yes), `0` (no) |
+| value        | string | No             | Variable value when `type` is `1`, `2`, `4`, `5`, or `6`; cipher type returns `******` |
+| execute_target | object | No             | Execute target when `type` is `3` |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target_without_container_resp.md.j2' %}
+
+##### step_list[] element
+
+| Field           | Type   | Always Present | Description |
+|-----------------|--------|----------------|-------------|
+| id              | long   | Yes            | Step ID |
+| name            | string | Yes            | Step name |
+| type            | int    | Yes            | Step type. Optional values: `1` (script), `2` (file), `3` (approval) |
+| script_info     | object | No             | Script step info when `type=1` |
+| file_info       | object | No             | File step info when `type=2` |
+| approval_info   | object | No             | Approval step info when `type=3` |
+
+##### script_info
+
+| Field                | Type   | Always Present | Description |
+|----------------------|--------|----------------|-------------|
+| script_type          | int    | Yes            | Script source type. Optional values: `1` (local script), `2` (referenced script), `3` (public script) |
+| script_id            | string | No             | Script ID |
+| script_version_id    | long   | No             | Script version ID |
+| script_content       | string | No             | Script content, Base64 encoded |
+| script_language      | int    | Yes            | Script language. Optional values: `1` (shell), `2` (bat), `3` (perl), `4` (python), `5` (powershell), `6` (SQL) |
+| script_param         | string | No             | Script parameters, Base64 encoded |
+| windows_interpreter  | string | No             | Windows interpreter path |
+| script_timeout       | long   | Yes            | Script timeout in seconds |
+| is_param_sensitive   | int    | Yes            | Whether script params are sensitive. Optional values: `1` (yes), `0` (no) |
+| is_ignore_error      | int    | Yes            | Whether to ignore errors. Optional values: `1` (yes), `0` (no) |
+| account              | object | Yes            | Execute account |
+| execute_target       | object | No             | Execute target |
+
+##### file_info
+
+| Field                     | Type  | Always Present | Description |
+|---------------------------|-------|----------------|-------------|
+| file_source_list          | array | Yes            | File source list |
+| file_destination          | object | Yes           | File destination |
+| timeout                   | long  | Yes            | File transfer timeout in seconds |
+| transfer_mode             | int   | Yes            | Transfer mode. Optional values: `1` (strict), `2` (force), `3` (safety FILE_SRC_IP), `4` (safety YYYY-MM-DD) |
+| source_speed_limit        | long  | No             | Upload speed limit in MB/s; no value indicates no speed limit |
+| destination_speed_limit   | long  | No             | Download speed limit in MB/s; no value indicates no speed limit |
+| is_ignore_error           | int   | Yes            | Whether to ignore errors. Optional values: `1` (yes), `0` (no) |
+
+##### file_source_list[] element
+
+| Field             | Type   | Always Present | Description |
+|-------------------|--------|----------------|-------------|
+| file_list         | array  | Yes            | File path list |
+| file_type         | int    | Yes            | File source type. Optional values: `1` (server file), `2` (local file), `3` (file source file), `4` (Base64-encoded file) |
+| file_source_code  | string | No             | File source code |
+| account           | object | Yes            | Execute account |
+| execute_target    | object | No             | Source execute target |
+
+##### file_destination
+
+| Field    | Type   | Always Present | Description |
+|----------|--------|----------------|-------------|
+| path     | string | Yes            | Destination path |
+| account  | object | Yes            | Execute account |
+| execute_target | object | No             | Destination execute target |
+
+##### account
+
+| Field | Type   | Always Present | Description |
+|-------|--------|----------------|-------------|
+| id    | long   | Yes            | Account ID |
+| name  | string | No             | Account name |
+| alias | string | No             | Account alias |
+
+##### approval_info
+
+| Field             | Type   | Always Present | Description |
+|-------------------|--------|----------------|-------------|
+| approval_type     | int    | Yes            | Approval type. Optional values: `1` (anyone), `2` (all) |
+| approval_user     | object | Yes            | Approval user info |
+| approval_message  | string | Yes            | Approval message |
+| notify_channel    | array  | Yes            | Notify channel list; each element is a channel type string. Common values: `mail`, `weixin`, `rtx` |
+
+##### approval_user
+
+| Field      | Type  | Always Present | Description |
+|------------|-------|----------------|-------------|
+| user_list  | array | Yes            | User list |
+| role_list  | array | Yes            | Role list |
