@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.validation;
 import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
 import com.tencent.bk.job.common.model.vo.WebKubeClusterObject;
 import com.tencent.bk.job.common.model.vo.WebKubeNamespaceObject;
+import com.tencent.bk.job.common.model.vo.WebKubeTopo;
 import com.tencent.bk.job.common.model.vo.WebKubeWorkloadObject;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -75,84 +76,95 @@ class WebContainerConditionFilterBeanValidationTest {
     }
 
     @Test
-    @DisplayName("clusterList = null → 触发 @NotEmpty")
-    void clusterListNullViolation() {
+    @DisplayName("kubeTopoList = null → 触发 @NotEmpty")
+    void kubeTopoListNullViolation() {
         WebContainerConditionFilter filter = new WebContainerConditionFilter();
         Set<ConstraintViolation<WebContainerConditionFilter>> violations = validator.validate(filter);
         assertThat(violations).anySatisfy(v ->
-            assertThat(v.getPropertyPath().toString()).isEqualTo("clusterList"));
+            assertThat(v.getPropertyPath().toString()).isEqualTo("kubeTopoList"));
     }
 
     @Test
-    @DisplayName("clusterList 为空集合 → 触发 @NotEmpty")
-    void clusterListEmptyViolation() {
+    @DisplayName("kubeTopoList 为空集合 → 触发 @NotEmpty")
+    void kubeTopoListEmptyViolation() {
         WebContainerConditionFilter filter = new WebContainerConditionFilter();
-        filter.setClusterList(Collections.emptyList());
+        filter.setKubeTopoList(Collections.emptyList());
         Set<ConstraintViolation<WebContainerConditionFilter>> violations = validator.validate(filter);
         assertThat(violations).anySatisfy(v ->
-            assertThat(v.getPropertyPath().toString()).isEqualTo("clusterList"));
+            assertThat(v.getPropertyPath().toString()).isEqualTo("kubeTopoList"));
     }
 
     @Test
-    @DisplayName("clusterList 元素 id/name 缺失 → @Valid 级联触发 @NotNull/@NotBlank，每个字段单独报错")
+    @DisplayName("topo 缺 cluster → @Valid 级联触发 WebKubeTopo.cluster @NotNull")
+    void topoClusterMissingViolation() {
+        WebContainerConditionFilter filter = new WebContainerConditionFilter();
+        filter.setKubeTopoList(Collections.singletonList(new WebKubeTopo())); // cluster=null
+        Set<ConstraintViolation<WebContainerConditionFilter>> violations = validator.validate(filter);
+        assertThat(violations).anySatisfy(v ->
+            assertThat(v.getPropertyPath().toString()).isEqualTo("kubeTopoList[0].cluster"));
+    }
+
+    @Test
+    @DisplayName("topo.cluster 元素 id 缺失 → @Valid 两层级联触发 @NotNull")
     void clusterObjectFieldLevelViolations() {
         WebContainerConditionFilter filter = new WebContainerConditionFilter();
-        filter.setClusterList(Collections.singletonList(new WebKubeClusterObject())); // id=null, name=null
+        filter.setKubeTopoList(Collections.singletonList(topo(new WebKubeClusterObject(), null, null)));
         Set<ConstraintViolation<WebContainerConditionFilter>> violations = validator.validate(filter);
         assertThat(violations).anySatisfy(v ->
-            assertThat(v.getPropertyPath().toString()).isEqualTo("clusterList[0].id"));
-        assertThat(violations).anySatisfy(v ->
-            assertThat(v.getPropertyPath().toString()).isEqualTo("clusterList[0].name"));
+            assertThat(v.getPropertyPath().toString()).isEqualTo("kubeTopoList[0].cluster.id"));
     }
 
     @Test
-    @DisplayName("workloadList 元素 kind/id/name 缺失 → @Valid 级联触发字段级约束")
+    @DisplayName("topo.workload 元素 kind/id 缺失 → @Valid 级联触发字段级约束")
     void workloadObjectFieldLevelViolations() {
         WebContainerConditionFilter filter = new WebContainerConditionFilter();
-        filter.setClusterList(Collections.singletonList(cluster(1000L, "集群1000")));
-        filter.setWorkloadList(Collections.singletonList(new WebKubeWorkloadObject()));
+        filter.setKubeTopoList(Collections.singletonList(
+            topo(cluster(1000L), null, new WebKubeWorkloadObject())));
         Set<ConstraintViolation<WebContainerConditionFilter>> violations = validator.validate(filter);
         assertThat(violations).anySatisfy(v ->
-            assertThat(v.getPropertyPath().toString()).isEqualTo("workloadList[0].kind"));
+            assertThat(v.getPropertyPath().toString()).isEqualTo("kubeTopoList[0].workload.kind"));
         assertThat(violations).anySatisfy(v ->
-            assertThat(v.getPropertyPath().toString()).isEqualTo("workloadList[0].id"));
-        assertThat(violations).anySatisfy(v ->
-            assertThat(v.getPropertyPath().toString()).isEqualTo("workloadList[0].name"));
+            assertThat(v.getPropertyPath().toString()).isEqualTo("kubeTopoList[0].workload.id"));
     }
 
     @Test
-    @DisplayName("完整合法 filter（含多 kind workload）无任何 violation")
+    @DisplayName("完整合法 filter（多条 topo、多 kind workload）无任何 violation")
     void fullyValidFilterPasses() {
         WebContainerConditionFilter filter = new WebContainerConditionFilter();
-        filter.setClusterList(Collections.singletonList(cluster(1000L, "集群1000")));
-        filter.setNamespaceList(Collections.singletonList(namespace(10000L, "命名空间10000")));
-        filter.setWorkloadList(Arrays.asList(
-            workload("deployment", 20000L, "deployment20000"),
-            workload("daemonSet", 20001L, "daemonSet20001")
+        filter.setKubeTopoList(Arrays.asList(
+            topo(cluster(1000L), namespace(10000L), workload("deployment", 20000L)),
+            topo(cluster(1001L), null, workload("daemonSet", 20001L))
         ));
         Set<ConstraintViolation<WebContainerConditionFilter>> violations = validator.validate(filter);
         assertThat(violations).isEmpty();
     }
 
-    private static WebKubeClusterObject cluster(Long id, String name) {
+    private static WebKubeTopo topo(WebKubeClusterObject cluster,
+                                    WebKubeNamespaceObject namespace,
+                                    WebKubeWorkloadObject workload) {
+        WebKubeTopo t = new WebKubeTopo();
+        t.setCluster(cluster);
+        t.setNamespace(namespace);
+        t.setWorkload(workload);
+        return t;
+    }
+
+    private static WebKubeClusterObject cluster(Long id) {
         WebKubeClusterObject c = new WebKubeClusterObject();
         c.setId(id);
-        c.setName(name);
         return c;
     }
 
-    private static WebKubeNamespaceObject namespace(Long id, String name) {
+    private static WebKubeNamespaceObject namespace(Long id) {
         WebKubeNamespaceObject ns = new WebKubeNamespaceObject();
         ns.setId(id);
-        ns.setName(name);
         return ns;
     }
 
-    private static WebKubeWorkloadObject workload(String kind, Long id, String name) {
+    private static WebKubeWorkloadObject workload(String kind, Long id) {
         WebKubeWorkloadObject w = new WebKubeWorkloadObject();
         w.setKind(kind);
         w.setId(id);
-        w.setName(name);
         return w;
     }
 }

@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
 import com.tencent.bk.job.common.model.vo.WebKubeClusterObject;
 import com.tencent.bk.job.common.model.vo.WebKubeNamespaceObject;
+import com.tencent.bk.job.common.model.vo.WebKubeTopo;
 import com.tencent.bk.job.common.util.converter.WebContainerConditionFilterConverter;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import jakarta.validation.ConstraintViolation;
@@ -190,14 +191,16 @@ class ExecuteTargetEndToEndCompatibilityTest {
     class NewFeature {
 
         @Test
-        @DisplayName("F1 — Web 新格式（clusterList/namespaceList + propConditions）端到端：Validate→Convert→入库→出库→下游可用")
+        @DisplayName("F1 — Web 新格式（kubeTopoList + propConditions）端到端：Validate→Convert→入库→出库→下游可用")
         void containerConditionsEndToEnd() {
             // 模拟前端真实 JSON 请求体：拓扑节点 id+name 直接来自 /topology/container
             String webJson = "{"
                 + "\"executeObjectsInfo\":{"
                 + "  \"containerFilterList\":[{"
-                + "    \"clusterList\":[{\"id\":1000,\"name\":\"集群1000\"}],"
-                + "    \"namespaceList\":[{\"id\":10000,\"name\":\"命名空间10000\"}],"
+                + "    \"kubeTopoList\":[{"
+                + "      \"cluster\":{\"id\":1000},"
+                + "      \"namespace\":{\"id\":10000}"
+                + "    }],"
                 + "    \"propConditions\":["
                 + "      {\"field\":\"container_container_uid\",\"operator\":\"contains\",\"value\":\"docker://nginx\"},"
                 + "      {\"field\":\"pod_name\",\"operator\":\"equal\",\"value\":\"pod-a\"}"
@@ -208,7 +211,7 @@ class ExecuteTargetEndToEndCompatibilityTest {
 
             TaskTargetVO web = JsonUtils.fromJson(webJson, TaskTargetVO.class);
 
-            // 1. 真实 Bean Validation 跑一次：clusterList 非空 + 元素字段非空，必须无 violation
+            // 1. 真实 Bean Validation 跑一次：kubeTopoList 非空 + 每条 topo cluster 非空 + 元素字段非空，必须无 violation
             Set<ConstraintViolation<WebContainerConditionFilter>> violations = validator.validate(
                 web.getExecuteObjectsInfo().getContainerFilterList().get(0));
             assertThat(violations).isEmpty();
@@ -222,8 +225,8 @@ class ExecuteTargetEndToEndCompatibilityTest {
             // 3. 入库：ns/cluster 仅写入 id，name 不落库
             String dbJson = JsonUtils.toJson(target);
             assertThat(dbJson).contains("\"containerFilters\"")
-                .contains("\"clusterNodes\"")
-                .doesNotContain("\"集癀1000\"")  // name 已从 DTO 移除，不落库
+                .contains("\"kubeTopoList\"")
+                .doesNotContain("集群1000")  // name 已从 DTO 移除，不落库
                 .contains("\"propConditions\"")
                 .contains("\"container_container_uid\"")
                 .contains("\"pod_name\"");
@@ -232,8 +235,8 @@ class ExecuteTargetEndToEndCompatibilityTest {
             ExecuteTargetDTO reloaded = JsonUtils.fromJson(dbJson, ExecuteTargetDTO.class);
             assertThat(reloaded.hasContainerExecuteObject()).isTrue();
             KubeContainerFilter cf = reloaded.getContainerFilters().get(0);
-            assertThat(cf.getClusterNodes()).hasSize(1);
-            assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
+            assertThat(cf.getKubeTopoList()).hasSize(1);
+            assertThat(cf.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
             assertThat(cf.hasPropConditions()).isTrue();
             assertThat(cf.getPropConditions()).hasSize(2);
             assertThat(cf.getPropConditions().get(0).getValue()).isEqualTo("docker://nginx");
@@ -244,9 +247,8 @@ class ExecuteTargetEndToEndCompatibilityTest {
             List<WebContainerConditionFilter> echoedFilters =
                 echoed.getExecuteObjectsInfo().getContainerFilterList();
             assertThat(echoedFilters).hasSize(1);
-            assertThat(echoedFilters.get(0).getClusterList()).hasSize(1);
-            assertThat(echoedFilters.get(0).getClusterList().get(0).getId()).isEqualTo(1000L);
-            assertThat(echoedFilters.get(0).getClusterList().get(0).getName()).isNull();
+            assertThat(echoedFilters.get(0).getKubeTopoList()).hasSize(1);
+            assertThat(echoedFilters.get(0).getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
             assertThat(echoedFilters.get(0).getPropConditions()).hasSize(2);
         }
 
@@ -266,7 +268,7 @@ class ExecuteTargetEndToEndCompatibilityTest {
         }
 
         @Test
-        @DisplayName("F3 — Web Bean Validation 反例：clusterList 缺失被拦截，不流入下游")
+        @DisplayName("F3 — Web Bean Validation 反例：kubeTopoList 缺失被拦截，不流入下游")
         void invalidWebRequestRejectedByValidation() {
             String webJson = "{"
                 + "\"executeObjectsInfo\":{"
@@ -284,7 +286,7 @@ class ExecuteTargetEndToEndCompatibilityTest {
 
             assertThat(violations).isNotEmpty();
             assertThat(violations).anySatisfy(v ->
-                assertThat(v.getPropertyPath().toString()).isEqualTo("clusterList"));
+                assertThat(v.getPropertyPath().toString()).isEqualTo("kubeTopoList"));
             // 注意：本测试只断言被识别出违反，不断言生产路径会自动拒绝：
             //   实际拒绝点在 @Valid 修饰的 controller 入参上，那由 Spring MVC 框架兜底，不在本类目标内。
         }
@@ -315,10 +317,9 @@ class ExecuteTargetEndToEndCompatibilityTest {
             // 经过 4 跳后：id / propConditions 保真（name 已从 DTO 移除）
             assertThat(dto4.getContainerFilters()).hasSize(1);
             KubeContainerFilter cf = dto4.getContainerFilters().get(0);
-            assertThat(cf.getClusterNodes()).hasSize(1);
-            assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-            assertThat(cf.getNamespaceNodes()).hasSize(1);
-            assertThat(cf.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
+            assertThat(cf.getKubeTopoList()).hasSize(1);
+            assertThat(cf.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
+            assertThat(cf.getKubeTopoList().get(0).getNamespace().getId()).isEqualTo(10000L);
             assertThat(cf.getPropConditions()).hasSize(2);
             assertThat(cf.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
             assertThat(cf.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
@@ -358,12 +359,12 @@ class ExecuteTargetEndToEndCompatibilityTest {
         WebContainerConditionFilter web = new WebContainerConditionFilter();
         WebKubeClusterObject cluster = new WebKubeClusterObject();
         cluster.setId(1000L);
-        cluster.setName("集群1000");
-        web.setClusterList(Collections.singletonList(cluster));
         WebKubeNamespaceObject ns = new WebKubeNamespaceObject();
         ns.setId(10000L);
-        ns.setName("命名空间10000");
-        web.setNamespaceList(Collections.singletonList(ns));
+        WebKubeTopo topo = new WebKubeTopo();
+        topo.setCluster(cluster);
+        topo.setNamespace(ns);
+        web.setKubeTopoList(Collections.singletonList(topo));
         web.setPropConditions(Arrays.asList(
             new KubePropCondition("container_container_uid", "contains", "docker://nginx"),
             new KubePropCondition("pod_name", "equal", "pod-a")

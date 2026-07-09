@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.service.TopoService;
@@ -175,7 +176,8 @@ class ExecuteAuthServiceImplContainerAuthTest {
 
     private static KubeContainerFilter buildContainerFilter() {
         KubeContainerFilter cf = new KubeContainerFilter();
-        cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
+        cf.setKubeTopoList(Collections.singletonList(
+            new KubeTopoDTO(new KubeClusterObjectDTO(1000L), null, null)));
         cf.setPropConditions(Collections.singletonList(
             new KubePropCondition("pod_name", "equal", "pod-a")));
         return cf;

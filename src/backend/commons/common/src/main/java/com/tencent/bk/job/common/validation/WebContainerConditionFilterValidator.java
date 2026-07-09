@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.validation;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
+import com.tencent.bk.job.common.model.vo.WebKubeTopo;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.List;
  * <p>
  * 跨字段 / 依赖 OperatorDispatcher 的校验放在此处：
  * <ul>
- *   <li>clusterList 必填（双重兜底：Bean Validation 失败时仍能在程序式调用路径上拦住）</li>
+ *   <li>kubeTopoList 必填非空，且每条 topo 的 cluster 必填（双重兜底：Bean Validation 失败时仍能在程序式调用路径上拦住）</li>
  *   <li>propConditions 逐条委托 {@link KubePropConditionValidator}（字段白名单 / 运算符派发 / value 形态）</li>
  * </ul>
  * 拓扑对象（cluster/namespace/workload）的 id/name 字段级非空已由 {@code WebKubeXxxObject} 上的
@@ -60,8 +61,13 @@ public final class WebContainerConditionFilterValidator {
         if (filter == null) {
             throwInvalid("container condition filter can not be null");
         }
-        if (CollectionUtils.isEmpty(filter.getClusterList())) {
-            throwInvalid("clusterList is required");
+        if (CollectionUtils.isEmpty(filter.getKubeTopoList())) {
+            throwInvalid("kubeTopoList is required");
+        }
+        for (WebKubeTopo topo : filter.getKubeTopoList()) {
+            if (topo == null || topo.getCluster() == null) {
+                throwInvalid("cluster is required in each kube topo");
+            }
         }
         KubePropConditionValidator.validate(filter.getPropConditions());
     }

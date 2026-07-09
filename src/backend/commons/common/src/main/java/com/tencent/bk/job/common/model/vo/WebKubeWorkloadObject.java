@@ -32,9 +32,9 @@ import lombok.Data;
 /**
  * 动态条件过滤器-workload 拓扑对象（Web 层入参契约面）。
  * <p>
- * 与 cluster/namespace 不同，workload 的「类型」是节点本身的属性，每一项独立携带 {@code kind}
+ * 与 cluster/namespace 不同，workload 的「类型」是节点本身的属性，独立携带 {@code kind}
  * （对应 {@code /topology/container} 返回中的 {@code objectId}，取值如 deployment / daemonSet /
- * statefulSet 等），因此一个 workloadList 内允许混合多种类型。
+ * statefulSet 等）；不同 topo 可携带不同 kind 的 workload，允许混合多种类型。
  */
 @Data
 @Schema(description = "动态条件过滤器-workload 拓扑对象（Web 层入参）")
@@ -48,8 +48,4 @@ public class WebKubeWorkloadObject {
     @Schema(description = "workload ID（CMDB 内部 ID，对应拓扑树 instanceId）")
     @NotNull(message = "{validation.constraints.WebKubeWorkloadObject_idMissing.message}")
     private Long id;
-
-    @Schema(description = "workload 展示名（对应拓扑树 instanceName，仅用于回显）")
-    @NotBlank(message = "{validation.constraints.WebKubeWorkloadObject_nameMissing.message}")
-    private String name;
 }

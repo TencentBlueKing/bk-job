@@ -172,18 +172,19 @@ class KubeContainerFilterJsonCompatibilityTest {
     }
 
     @Nested
-    @DisplayName("Web 入口形态：clusterNodes/namespaceNodes/workloadNodes 对象列表")
+    @DisplayName("Web 入口形态：kubeTopoList 拓扑路径列表")
     class WebObjectForm {
 
         @Test
-        @DisplayName("反序列化：Web 入口写入的 JSON（历史 id+name 三段式，name 已废弃）→ DTO 仅保留 id，name 被忽略")
+        @DisplayName("反序列化：Web 入口写入的 kubeTopoList JSON（对象内可能含已废弃 name）→ DTO 仅保留 id，name 被忽略")
         void webObjectFormDeserializes() {
             String json = "{"
-                + "\"clusterNodes\":[{\"id\":1000,\"name\":\"集癀1000\"}],"
-                + "\"namespaceNodes\":[{\"id\":10000,\"name\":\"命名空间10000\"}],"
-                + "\"workloadNodes\":["
-                + "  {\"kind\":\"deployment\",\"id\":20000,\"name\":\"deployment20000\"},"
-                + "  {\"kind\":\"daemonSet\",\"id\":20001,\"name\":\"daemonSet20001\"}"
+                + "\"kubeTopoList\":["
+                + "  {\"cluster\":{\"id\":1000,\"name\":\"集群1000\"},"
+                + "   \"namespace\":{\"id\":10000},"
+                + "   \"workload\":{\"kind\":\"deployment\",\"id\":20000}},"
+                + "  {\"cluster\":{\"id\":1001},"
+                + "   \"workload\":{\"kind\":\"daemonSet\",\"id\":20001}}"
                 + "],"
                 + "\"propConditions\":[{\"field\":\"pod_name\",\"operator\":\"equal\",\"value\":\"pod-a\"}]"
                 + "}";
@@ -191,12 +192,15 @@ class KubeContainerFilterJsonCompatibilityTest {
             KubeContainerFilter filter = JsonUtils.fromJson(json, KubeContainerFilter.class);
 
             assertThat(filter.hasKubeTopoObjects()).isTrue();
-            assertThat(filter.getClusterNodes()).hasSize(1);
-            assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-            assertThat(filter.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
-            assertThat(filter.getWorkloadNodes()).hasSize(2);
-            assertThat(filter.getWorkloadNodes().get(0).getKind()).isEqualTo("deployment");
-            assertThat(filter.getWorkloadNodes().get(1).getKind()).isEqualTo("daemonSet");
+            assertThat(filter.getKubeTopoList()).hasSize(2);
+            KubeTopoDTO topo0 = filter.getKubeTopoList().get(0);
+            assertThat(topo0.getCluster().getId()).isEqualTo(1000L);
+            assertThat(topo0.getNamespace().getId()).isEqualTo(10000L);
+            assertThat(topo0.getWorkload().getKind()).isEqualTo("deployment");
+            KubeTopoDTO topo1 = filter.getKubeTopoList().get(1);
+            assertThat(topo1.getCluster().getId()).isEqualTo(1001L);
+            assertThat(topo1.getNamespace()).isNull();
+            assertThat(topo1.getWorkload().getKind()).isEqualTo("daemonSet");
             // v4 字段未被污染
             assertThat(filter.getClusterFilter()).isNull();
             assertThat(filter.getNamespaceFilter()).isNull();
@@ -207,13 +211,14 @@ class KubeContainerFilterJsonCompatibilityTest {
         @DisplayName("序列化：Web 入口 DTO → JSON，仅写出 id（name 已从 DTO 移除）")
         void webObjectFormSerializes() {
             KubeContainerFilter filter = new KubeContainerFilter();
-            filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
-            filter.setNamespaceNodes(Collections.singletonList(new KubeNamespaceObjectDTO(10000L)));
-            filter.setWorkloadNodes(Collections.singletonList(
-                new KubeWorkloadObjectDTO("deployment", 20000L)));
+            filter.setKubeTopoList(Collections.singletonList(new KubeTopoDTO(
+                new KubeClusterObjectDTO(1000L),
+                new KubeNamespaceObjectDTO(10000L),
+                new KubeWorkloadObjectDTO("deployment", 20000L))));
 
             String json = JsonUtils.toJson(filter);
-            assertThat(json).contains("\"clusterNodes\"")
+            assertThat(json).contains("\"kubeTopoList\"")
+                .contains("\"cluster\"")
                 .contains("\"id\":1000")
                 .contains("\"kind\":\"deployment\"")
                 .doesNotContain("\"name\"");
@@ -223,23 +228,21 @@ class KubeContainerFilterJsonCompatibilityTest {
         @DisplayName("Round-trip：Web 入口 → JSON → DTO 字段保真")
         void webObjectFormRoundTrip() {
             KubeContainerFilter original = new KubeContainerFilter();
-            original.setClusterNodes(Arrays.asList(
-                new KubeClusterObjectDTO(1000L),
-                new KubeClusterObjectDTO(1001L)
-            ));
-            original.setWorkloadNodes(Arrays.asList(
-                new KubeWorkloadObjectDTO("deployment", 20000L),
-                new KubeWorkloadObjectDTO("daemonSet", 20001L)
+            original.setKubeTopoList(Arrays.asList(
+                new KubeTopoDTO(new KubeClusterObjectDTO(1000L), null,
+                    new KubeWorkloadObjectDTO("deployment", 20000L)),
+                new KubeTopoDTO(new KubeClusterObjectDTO(1001L), null,
+                    new KubeWorkloadObjectDTO("daemonSet", 20001L))
             ));
 
             KubeContainerFilter back = JsonUtils.fromJson(JsonUtils.toJson(original), KubeContainerFilter.class);
 
-            assertThat(back.getClusterNodes()).extracting(KubeClusterObjectDTO::getId)
-                .containsExactly(1000L, 1001L);
-            assertThat(back.getWorkloadNodes()).extracting(KubeWorkloadObjectDTO::getKind)
-                .containsExactly("deployment", "daemonSet");
-            assertThat(back.getWorkloadNodes()).extracting(KubeWorkloadObjectDTO::getId)
-                .containsExactly(20000L, 20001L);
+            assertThat(back.getKubeTopoList()).hasSize(2);
+            assertThat(back.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
+            assertThat(back.getKubeTopoList().get(0).getWorkload().getKind()).isEqualTo("deployment");
+            assertThat(back.getKubeTopoList().get(0).getWorkload().getId()).isEqualTo(20000L);
+            assertThat(back.getKubeTopoList().get(1).getCluster().getId()).isEqualTo(1001L);
+            assertThat(back.getKubeTopoList().get(1).getWorkload().getKind()).isEqualTo("daemonSet");
         }
     }
 }

@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.util.KubePropConditionTranslator;
+import com.tencent.bk.job.common.cc.util.KubeTopoUtil;
 import com.tencent.bk.job.common.constant.LabelSelectorOperatorEnum;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -231,21 +232,9 @@ public class ContainerServiceImpl implements ContainerService {
     }
 
     private List<KubeNodeID> computeKubeTopoNode(long bizId, KubeContainerFilter filter) {
-        // Web 入口形态：id 直接是 CMDB 拓扑节点 ID，无需访 CMDB 翻译；取最精细维度作为 nodeIdList
+        // Web 入口形态：id 直接是 CMDB 拓扑节点 ID，无需访 CMDB 翻译；逐 topo 取最精细节点作为 nodeIdList
         if (filter.hasKubeTopoObjects()) {
-            if (CollectionUtils.isNotEmpty(filter.getWorkloadNodes())) {
-                return filter.getWorkloadNodes().stream()
-                    .map(w -> new KubeNodeID(w.getKind(), w.getId()))
-                    .collect(Collectors.toList());
-            }
-            if (CollectionUtils.isNotEmpty(filter.getNamespaceNodes())) {
-                return filter.getNamespaceNodes().stream()
-                    .map(ns -> new KubeNodeID(KubeTopoNodeTypeEnum.NAMESPACE.getValue(), ns.getId()))
-                    .collect(Collectors.toList());
-            }
-            return filter.getClusterNodes().stream()
-                .map(c -> new KubeNodeID(KubeTopoNodeTypeEnum.CLUSTER.getValue(), c.getId()))
-                .collect(Collectors.toList());
+            return KubeTopoUtil.toNodeIdList(filter.getKubeTopoList());
         }
         // filter / 历史形态：UIDs / 名称 → 查 CMDB 翻译为 ID
         List<KubeNodeID> kubeNodes;

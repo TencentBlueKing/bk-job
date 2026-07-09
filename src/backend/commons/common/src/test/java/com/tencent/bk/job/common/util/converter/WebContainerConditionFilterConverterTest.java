@@ -27,9 +27,11 @@ package com.tencent.bk.job.common.util.converter;
 import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
 import com.tencent.bk.job.common.model.vo.WebKubeClusterObject;
 import com.tencent.bk.job.common.model.vo.WebKubeNamespaceObject;
+import com.tencent.bk.job.common.model.vo.WebKubeTopo;
 import com.tencent.bk.job.common.model.vo.WebKubeWorkloadObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,8 +44,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 校验 Web ↔ 内部 双向转换：Web 拓扑对象只把 ID 映射到内部 KubeContainerFilter 的
- * Web 侧字段；name 不落库、不回显；不污染 v4 sub-filter；Web 不暴露 emptyFilter/fetchAnyOneContainer 两个内部开关。
+ * 校验 Web ↔ 内部 双向转换：Web 每条拓扑路径只把 ID 逐条映射到内部 KubeContainerFilter 的
+ * kubeTopoList；name 不落库、不回显；不污染 v4 sub-filter；Web 不暴露 emptyFilter/fetchAnyOneContainer 两个内部开关。
  */
 @DisplayName("WebContainerConditionFilterConverter: Web 入参 ↔ 内部 DTO")
 class WebContainerConditionFilterConverterTest {
@@ -55,22 +57,23 @@ class WebContainerConditionFilterConverterTest {
     }
 
     @Test
-    @DisplayName("toKubeContainerFilter: 完整 Web 入参 → 内部 Web 侧字段；v4 字段保持 null；开关固定 false")
+    @DisplayName("toKubeContainerFilter: 完整 Web 入参 → 内部 kubeTopoList；v4 字段保持 null；开关固定 false")
     void toKubeFilterFullMapping() {
         WebContainerConditionFilter web = buildFullWebFilter();
 
         KubeContainerFilter kube = WebContainerConditionFilterConverter.toKubeContainerFilter(web);
 
         assertThat(kube).isNotNull();
-        assertThat(kube.getClusterNodes()).hasSize(2);
-        assertThat(kube.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(kube.getClusterNodes().get(1).getId()).isEqualTo(1001L);
-        assertThat(kube.getNamespaceNodes()).hasSize(2);
-        assertThat(kube.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
-        assertThat(kube.getWorkloadNodes()).hasSize(2);
-        assertThat(kube.getWorkloadNodes().get(0).getKind()).isEqualTo("deployment");
-        assertThat(kube.getWorkloadNodes().get(0).getId()).isEqualTo(20000L);
-        assertThat(kube.getWorkloadNodes().get(1).getKind()).isEqualTo("daemonSet");
+        assertThat(kube.getKubeTopoList()).hasSize(2);
+        KubeTopoDTO topo0 = kube.getKubeTopoList().get(0);
+        assertThat(topo0.getCluster().getId()).isEqualTo(1000L);
+        assertThat(topo0.getNamespace().getId()).isEqualTo(10000L);
+        assertThat(topo0.getWorkload().getKind()).isEqualTo("deployment");
+        assertThat(topo0.getWorkload().getId()).isEqualTo(20000L);
+        KubeTopoDTO topo1 = kube.getKubeTopoList().get(1);
+        assertThat(topo1.getCluster().getId()).isEqualTo(1001L);
+        assertThat(topo1.getNamespace().getId()).isEqualTo(1L);
+        assertThat(topo1.getWorkload().getKind()).isEqualTo("daemonSet");
         assertThat(kube.getPropConditions()).hasSize(2);
         assertThat(kube.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
         assertThat(kube.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
@@ -84,16 +87,18 @@ class WebContainerConditionFilterConverterTest {
     }
 
     @Test
-    @DisplayName("toKubeContainerFilter: 仅 clusterList 时 namespaces/workloads/propConditions 保持 null")
+    @DisplayName("toKubeContainerFilter: 单条 topo 仅 cluster 时 namespace/workload/propConditions 保持 null")
     void toKubeFilterMinimal() {
         WebContainerConditionFilter web = new WebContainerConditionFilter();
-        web.setClusterList(Collections.singletonList(cluster(1000L, "集群1000")));
+        web.setKubeTopoList(Collections.singletonList(topo(cluster(1000L), null, null)));
 
         KubeContainerFilter kube = WebContainerConditionFilterConverter.toKubeContainerFilter(web);
 
-        assertThat(kube.getClusterNodes()).extracting(KubeClusterObjectDTO::getId).containsExactly(1000L);
-        assertThat(kube.getNamespaceNodes()).isNull();
-        assertThat(kube.getWorkloadNodes()).isNull();
+        assertThat(kube.getKubeTopoList()).hasSize(1);
+        KubeTopoDTO topo = kube.getKubeTopoList().get(0);
+        assertThat(topo.getCluster().getId()).isEqualTo(1000L);
+        assertThat(topo.getNamespace()).isNull();
+        assertThat(topo.getWorkload()).isNull();
         assertThat(kube.getPropConditions()).isNull();
     }
 
@@ -109,7 +114,7 @@ class WebContainerConditionFilterConverterTest {
     }
 
     @Test
-    @DisplayName("fromKubeContainerFilter: 反向回显 Web 侧字段；不外露 v4 字段；不外露内部开关")
+    @DisplayName("fromKubeContainerFilter: 反向回显 kubeTopoList；只带 id 不带 name；不外露 v4 字段；不外露内部开关")
     void fromKubeFilterReverse() {
         KubeContainerFilter kube = WebContainerConditionFilterConverter.toKubeContainerFilter(buildFullWebFilter());
         // 模拟运行时把这两个开关置 true（v4 路径可能写过），反向回显不应回到 Web
@@ -119,12 +124,11 @@ class WebContainerConditionFilterConverterTest {
         WebContainerConditionFilter back = WebContainerConditionFilterConverter.fromKubeContainerFilter(kube);
 
         assertThat(back).isNotNull();
-        assertThat(back.getClusterList()).hasSize(2);
-        assertThat(back.getClusterList().get(0).getId()).isEqualTo(1000L);
-        assertThat(back.getClusterList().get(0).getName()).isNull();
-        assertThat(back.getNamespaceList()).hasSize(2);
-        assertThat(back.getWorkloadList()).hasSize(2);
-        assertThat(back.getWorkloadList().get(0).getKind()).isEqualTo("deployment");
+        assertThat(back.getKubeTopoList()).hasSize(2);
+        WebKubeTopo topo0 = back.getKubeTopoList().get(0);
+        assertThat(topo0.getCluster().getId()).isEqualTo(1000L);
+        assertThat(topo0.getNamespace().getId()).isEqualTo(10000L);
+        assertThat(topo0.getWorkload().getKind()).isEqualTo("deployment");
         assertThat(back.getPropConditions()).hasSize(2);
     }
 
@@ -132,7 +136,8 @@ class WebContainerConditionFilterConverterTest {
     @DisplayName("propConditions 的 List value 做了防御性拷贝（KubePropCondition.clone 兜底）")
     void fromKubeFilterDefensiveCopyOnPropConditionValue() {
         KubeContainerFilter kube = new KubeContainerFilter();
-        kube.setClusterNodes(Collections.singletonList(internalCluster(1000L)));
+        kube.setKubeTopoList(Collections.singletonList(
+            new KubeTopoDTO(new KubeClusterObjectDTO(1000L), null, null)));
         kube.setPropConditions(Collections.singletonList(
             new KubePropCondition("container_container_uid", "in",
                 new ArrayList<>(Arrays.asList("docker://nginx", "docker://redis")))));
@@ -149,17 +154,9 @@ class WebContainerConditionFilterConverterTest {
 
     private static WebContainerConditionFilter buildFullWebFilter() {
         WebContainerConditionFilter web = new WebContainerConditionFilter();
-        web.setClusterList(Arrays.asList(
-            cluster(1000L, "集群1000"),
-            cluster(1001L, "集群1001")
-        ));
-        web.setNamespaceList(Arrays.asList(
-            namespace(10000L, "命名空间10000"),
-            namespace(1L, "ns1")
-        ));
-        web.setWorkloadList(Arrays.asList(
-            workload("deployment", 20000L, "deployment20000"),
-            workload("daemonSet", 20001L, "daemonSet20001")
+        web.setKubeTopoList(Arrays.asList(
+            topo(cluster(1000L), namespace(10000L), workload("deployment", 20000L)),
+            topo(cluster(1001L), namespace(1L), workload("daemonSet", 20001L))
         ));
         web.setPropConditions(Arrays.asList(
             new KubePropCondition("container_container_uid", "contains", "docker://abcdefg"),
@@ -168,29 +165,32 @@ class WebContainerConditionFilterConverterTest {
         return web;
     }
 
-    private static WebKubeClusterObject cluster(Long id, String name) {
+    private static WebKubeTopo topo(WebKubeClusterObject cluster,
+                                    WebKubeNamespaceObject namespace,
+                                    WebKubeWorkloadObject workload) {
+        WebKubeTopo t = new WebKubeTopo();
+        t.setCluster(cluster);
+        t.setNamespace(namespace);
+        t.setWorkload(workload);
+        return t;
+    }
+
+    private static WebKubeClusterObject cluster(Long id) {
         WebKubeClusterObject c = new WebKubeClusterObject();
         c.setId(id);
-        c.setName(name);
         return c;
     }
 
-    private static WebKubeNamespaceObject namespace(Long id, String name) {
+    private static WebKubeNamespaceObject namespace(Long id) {
         WebKubeNamespaceObject ns = new WebKubeNamespaceObject();
         ns.setId(id);
-        ns.setName(name);
         return ns;
     }
 
-    private static WebKubeWorkloadObject workload(String kind, Long id, String name) {
+    private static WebKubeWorkloadObject workload(String kind, Long id) {
         WebKubeWorkloadObject w = new WebKubeWorkloadObject();
         w.setKind(kind);
         w.setId(id);
-        w.setName(name);
         return w;
-    }
-
-    private static KubeClusterObjectDTO internalCluster(Long id) {
-        return new KubeClusterObjectDTO(id);
     }
 }

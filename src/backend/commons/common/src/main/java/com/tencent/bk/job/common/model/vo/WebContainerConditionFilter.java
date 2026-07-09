@@ -41,11 +41,12 @@ import java.util.List;
  * 转换为内部统一的 {@link com.tencent.bk.job.common.model.dto.KubeContainerFilter}，
  * 之后所有后端逻辑都只处理 KubeContainerFilter。
  * <p>
- * 拓扑维度（cluster/namespace/workload）直接拿前端从 {@code /topology/container} 拉到的拓扑节点
- * {@code (instanceId, instanceName)}，每个节点是一个 Web Object（含 id+name）。三类节点都允许多选，
- * 持久化时 id 与 name 同存，详情页回显时无需再访 CMDB。
+ * 结构为「多条拓扑路径 + 一组共享条件」：{@code kubeTopoList} 里每条 {@link WebKubeTopo} 是一个精确的
+ * cluster→namespace→workload 路径（cluster 必填、其余可选），拓扑节点直接取前端从
+ * {@code /topology/container} 拉到的 {@code (instanceId, instanceName)}；{@code propConditions} 是所有
+ * 拓扑路径共用的字段级 AND 条件。
  * <p>
- * Web 入口语义：clusterList 必填非空（Web 不存在「全业务执行」入口），由字段级 Bean Validation 兜底；
+ * Web 入口语义：kubeTopoList 必填非空（Web 不存在「全业务执行」入口），由字段级 Bean Validation 兜底；
  * propConditions 字段白名单/运算符派发/value 形态等业务校验依赖 OperatorDispatcher，由程序式校验器
  * {@code WebContainerConditionFilterValidator} 在 WebResource 内完成。
  */
@@ -54,18 +55,10 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WebContainerConditionFilter {
 
-    @Schema(description = "集群拓扑对象列表，至少一项")
-    @NotEmpty(message = "{validation.constraints.WebContainerConditionFilter_clusterListEmpty.message}")
+    @Schema(description = "拓扑路径列表，至少一项；多条路径共用同一组 propConditions")
+    @NotEmpty(message = "{validation.constraints.WebContainerConditionFilter_kubeTopoListEmpty.message}")
     @Valid
-    private List<WebKubeClusterObject> clusterList;
-
-    @Schema(description = "namespace 拓扑对象列表；可选，未传则在所选集群下不收窄 namespace")
-    @Valid
-    private List<WebKubeNamespaceObject> namespaceList;
-
-    @Schema(description = "workload 拓扑对象列表；可选，每项独立携带 kind，允许混合多种 workload 类型")
-    @Valid
-    private List<WebKubeWorkloadObject> workloadList;
+    private List<WebKubeTopo> kubeTopoList;
 
     @Schema(description = "字段级 AND 条件，承载产品上「动态条件」的 field/operator/value 三元组列表")
     private List<KubePropCondition> propConditions;

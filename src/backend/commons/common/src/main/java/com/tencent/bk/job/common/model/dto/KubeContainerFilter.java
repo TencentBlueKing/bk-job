@@ -43,9 +43,9 @@ import java.util.List;
  * <ul>
  *   <li>OpenAPI：{@link #clusterFilter}/{@link #namespaceFilter}/{@link #workloadFilter}
  *       —— 字符串 UID/名称形态，不含 CMDB 内部 ID，沿用既有契约不动</li>
- *   <li>Web 动态条件入口：{@link #clusterNodes}/{@link #namespaceNodes}/{@link #workloadNodes}
- *       —— Object 形态，每项仅含 {@code id}（workload 还有 {@code kind}），ID 用于 CMDB 查询；
- *       展示名不落库，详情页回显时由前端携带或运行时查询</li>
+ *   <li>Web 动态条件入口：{@link #kubeTopoList} —— 每条是一个精确的 cluster→namespace→workload 路径
+ *       （cluster 必填、其余可选），仅含 CMDB 内部 {@code id}（workload 还有 {@code kind}），ID 用于 CMDB 查询；
+ *       展示名不落库，详情页回显时前端拿 id 走别的接口查名</li>
  * </ul>
  * 同一实例两套字段不应同时出现：openapi 转换器只填前者、Web 转换器只填后者。
  */
@@ -90,19 +90,9 @@ public class KubeContainerFilter implements Cloneable {
     private boolean fetchAnyOneContainer;
 
     /**
-     * 集群拓扑对象列表（Web 入口；每项含 {id}）
+     * 拓扑路径列表（Web 入口；每条是一个 cluster→namespace→workload 路径，共用 propConditions）
      */
-    private List<KubeClusterObjectDTO> clusterNodes;
-
-    /**
-     * namespace 拓扑对象列表（Web 入口；每项含 {id}）
-     */
-    private List<KubeNamespaceObjectDTO> namespaceNodes;
-
-    /**
-     * workload 拓扑对象列表（Web 入口；每项含 {kind, id}，允许混合多种 kind）
-     */
-    private List<KubeWorkloadObjectDTO> workloadNodes;
+    private List<KubeTopoDTO> kubeTopoList;
 
     /**
      * 字段级 AND 条件，承载动态条件过滤器（field/operator/value 三元组）。
@@ -127,20 +117,10 @@ public class KubeContainerFilter implements Cloneable {
         if (workloadFilter != null) {
             clone.setWorkloadFilter(workloadFilter.clone());
         }
-        if (CollectionUtils.isNotEmpty(clusterNodes)) {
-            List<KubeClusterObjectDTO> cloneClusters = new ArrayList<>(clusterNodes.size());
-            clusterNodes.forEach(cluster -> cloneClusters.add(cluster.clone()));
-            clone.setClusterNodes(cloneClusters);
-        }
-        if (CollectionUtils.isNotEmpty(namespaceNodes)) {
-            List<KubeNamespaceObjectDTO> cloneNamespaces = new ArrayList<>(namespaceNodes.size());
-            namespaceNodes.forEach(namespace -> cloneNamespaces.add(namespace.clone()));
-            clone.setNamespaceNodes(cloneNamespaces);
-        }
-        if (CollectionUtils.isNotEmpty(workloadNodes)) {
-            List<KubeWorkloadObjectDTO> cloneWorkloads = new ArrayList<>(workloadNodes.size());
-            workloadNodes.forEach(workload -> cloneWorkloads.add(workload.clone()));
-            clone.setWorkloadNodes(cloneWorkloads);
+        if (CollectionUtils.isNotEmpty(kubeTopoList)) {
+            List<KubeTopoDTO> cloneTopos = new ArrayList<>(kubeTopoList.size());
+            kubeTopoList.forEach(topo -> cloneTopos.add(topo.clone()));
+            clone.setKubeTopoList(cloneTopos);
         }
         if (podFilter != null) {
             clone.setPodFilter(podFilter.clone());
@@ -173,19 +153,15 @@ public class KubeContainerFilter implements Cloneable {
             return false;
         }
         return clusterFilter != null || namespaceFilter != null || workloadFilter != null
-            || CollectionUtils.isNotEmpty(clusterNodes)
-            || CollectionUtils.isNotEmpty(namespaceNodes)
-            || CollectionUtils.isNotEmpty(workloadNodes);
+            || CollectionUtils.isNotEmpty(kubeTopoList);
     }
 
     /**
-     * 是否携带 Web 入口形态的拓扑对象（任一非空）。
+     * 是否携带 Web 入口形态的拓扑路径（任一非空）。
      */
     @JsonIgnore
     public boolean hasKubeTopoObjects() {
-        return CollectionUtils.isNotEmpty(clusterNodes)
-            || CollectionUtils.isNotEmpty(namespaceNodes)
-            || CollectionUtils.isNotEmpty(workloadNodes);
+        return CollectionUtils.isNotEmpty(kubeTopoList);
     }
 
     /**

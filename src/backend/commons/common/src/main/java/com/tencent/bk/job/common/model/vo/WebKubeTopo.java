@@ -25,20 +25,31 @@
 package com.tencent.bk.job.common.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 动态条件过滤器-集群拓扑对象（Web 层入参契约面）。
+ * 动态条件过滤器-单条拓扑路径（Web 层入参契约面）。
  * <p>
- * 只取前端从 {@code /topology/container} 拉到的拓扑树节点 {@code instanceId} 作为 {@code id}
- * （CMDB 集群内部 ID）。展示名不落库、后端不使用，回显时前端拿 id 走别的接口查名。
+ * 一条 topo 表示一个精确的 cluster→namespace→workload 路径：cluster 必填，namespace / workload 可选。
+ * 多条 topo 与外层的 propConditions 组合，语义为「这些拓扑路径共用同一组字段级条件」。
+ * 运行时对每条 topo 各自取其最精细的已选节点（workload → namespace → cluster）作为 CMDB 拓扑节点。
  */
 @Data
-@Schema(description = "动态条件过滤器-集群拓扑对象（Web 层入参）")
-public class WebKubeClusterObject {
+@Schema(description = "动态条件过滤器-拓扑路径（Web 层入参）")
+public class WebKubeTopo {
 
-    @Schema(description = "集群 ID（CMDB 内部 ID，对应拓扑树 instanceId）")
-    @NotNull(message = "{validation.constraints.WebKubeClusterObject_idMissing.message}")
-    private Long id;
+    @Schema(description = "集群拓扑对象，必填")
+    @NotNull(message = "{validation.constraints.WebKubeTopo_clusterMissing.message}")
+    @Valid
+    private WebKubeClusterObject cluster;
+
+    @Schema(description = "namespace 拓扑对象；可选，未传则在所选集群下不收窄 namespace")
+    @Valid
+    private WebKubeNamespaceObject namespace;
+
+    @Schema(description = "workload 拓扑对象；可选，携带 kind 表示具体 workload 类型")
+    @Valid
+    private WebKubeWorkloadObject workload;
 }

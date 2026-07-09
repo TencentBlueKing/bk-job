@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubeNamespaceObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
@@ -255,11 +256,9 @@ class TaskTemplateScriptStepDAOImplIntegrationTest {
         assertThat(target.getContainerFilters()).hasSize(1);
 
         KubeContainerFilter filter = target.getContainerFilters().get(0);
-        assertThat(filter.getClusterNodes()).hasSize(1);
-        assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(filter.getNamespaceNodes()).hasSize(1);
-        assertThat(filter.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
+        assertThat(filter.getKubeTopoList()).hasSize(1);
+        assertThat(filter.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
+        assertThat(filter.getKubeTopoList().get(0).getNamespace().getId()).isEqualTo(10000L);
         assertThat(filter.getPropConditions()).hasSize(2);
         assertThat(filter.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
         assertThat(filter.getPropConditions().get(0).getOperator()).isEqualTo("contains");
@@ -300,8 +299,8 @@ class TaskTemplateScriptStepDAOImplIntegrationTest {
     private TaskTargetDTO buildTargetWithContainerFilters() {
         KubeContainerFilter filter = new KubeContainerFilter();
 
-        filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
-        filter.setNamespaceNodes(Collections.singletonList(new KubeNamespaceObjectDTO(10000L)));
+        filter.setKubeTopoList(Collections.singletonList(
+            new KubeTopoDTO(new KubeClusterObjectDTO(1000L), new KubeNamespaceObjectDTO(10000L), null)));
 
         filter.setPropConditions(Arrays.asList(
             new KubePropCondition("container_container_uid", "contains", "docker://abcdefg"),

@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubeNamespaceObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
@@ -589,9 +590,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(cf.hasPropConditions()).isFalse();
         assertThat(cf.getPropConditions()).isNull();
         assertThat(cf.hasKubeTopoObjects()).isFalse();
-        assertThat(cf.getClusterNodes()).isNull();
-        assertThat(cf.getNamespaceNodes()).isNull();
-        assertThat(cf.getWorkloadNodes()).isNull();
+        assertThat(cf.getKubeTopoList()).isNull();
     }
 
     /**
@@ -615,10 +614,9 @@ public class StepInstanceDAOImplIntegrationTest {
         KubeContainerFilter cf = filters.get(0);
         // Web 入口形态：仅保真 id（name 已从 DTO 移除）
         assertThat(cf.hasKubeTopoObjects()).isTrue();
-        assertThat(cf.getClusterNodes()).hasSize(1);
-        assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(cf.getNamespaceNodes()).hasSize(1);
-        assertThat(cf.getNamespaceNodes().get(0).getId()).isEqualTo(10000L);
+        assertThat(cf.getKubeTopoList()).hasSize(1);
+        assertThat(cf.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
+        assertThat(cf.getKubeTopoList().get(0).getNamespace().getId()).isEqualTo(10000L);
         // v4 字符串字段保持 null，不污染 Web 入口数据
         assertThat(cf.getClusterFilter()).isNull();
         assertThat(cf.getNamespaceFilter()).isNull();
@@ -653,10 +651,10 @@ public class StepInstanceDAOImplIntegrationTest {
 
         ExecuteTargetDTO target = new ExecuteTargetDTO();
         KubeContainerFilter filter = new KubeContainerFilter();
-        filter.setClusterNodes(Lists.newArrayList(new KubeClusterObjectDTO(1001L)));
-        filter.setNamespaceNodes(Lists.newArrayList(
-            new KubeNamespaceObjectDTO(1L),
-            new KubeNamespaceObjectDTO(2L)
+        // 同一集群下两个 namespace，用两条拓扑路径表达
+        filter.setKubeTopoList(Lists.newArrayList(
+            new KubeTopoDTO(new KubeClusterObjectDTO(1001L), new KubeNamespaceObjectDTO(1L), null),
+            new KubeTopoDTO(new KubeClusterObjectDTO(1001L), new KubeNamespaceObjectDTO(2L), null)
         ));
         filter.setPropConditions(Lists.newArrayList(
             new KubePropCondition("container_container_uid", "equal",
@@ -690,11 +688,10 @@ public class StepInstanceDAOImplIntegrationTest {
         KubeContainerFilter reloadedFilter = reloadedFilters.get(0);
 
         // Web 拓扑对象保真：仅保留 id（name 已从 DTO 移除，回显时由前端携带或运行时查询）
-        assertThat(reloadedFilter.getClusterNodes()).hasSize(1);
-        assertThat(reloadedFilter.getClusterNodes().get(0).getId()).isEqualTo(1001L);
-        assertThat(reloadedFilter.getNamespaceNodes()).hasSize(2);
-        assertThat(reloadedFilter.getNamespaceNodes().get(0).getId()).isEqualTo(1L);
-        assertThat(reloadedFilter.getNamespaceNodes().get(1).getId()).isEqualTo(2L);
+        assertThat(reloadedFilter.getKubeTopoList()).hasSize(2);
+        assertThat(reloadedFilter.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1001L);
+        assertThat(reloadedFilter.getKubeTopoList().get(0).getNamespace().getId()).isEqualTo(1L);
+        assertThat(reloadedFilter.getKubeTopoList().get(1).getNamespace().getId()).isEqualTo(2L);
         // v4 字符串字段保持 null
         assertThat(reloadedFilter.getClusterFilter()).isNull();
         assertThat(reloadedFilter.getNamespaceFilter()).isNull();

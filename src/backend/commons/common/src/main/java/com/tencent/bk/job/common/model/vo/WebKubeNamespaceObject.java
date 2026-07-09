@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -39,8 +38,4 @@ public class WebKubeNamespaceObject {
     @Schema(description = "namespace ID（CMDB 内部 ID，对应拓扑树 instanceId）")
     @NotNull(message = "{validation.constraints.WebKubeNamespaceObject_idMissing.message}")
     private Long id;
-
-    @Schema(description = "namespace 展示名（对应拓扑树 instanceName，仅用于回显）")
-    @NotBlank(message = "{validation.constraints.WebKubeNamespaceObject_nameMissing.message}")
-    private String name;
 }

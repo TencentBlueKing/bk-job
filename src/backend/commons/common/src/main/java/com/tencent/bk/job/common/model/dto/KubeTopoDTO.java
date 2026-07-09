@@ -22,23 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.vo;
+package com.tencent.bk.job.common.model.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * 动态条件过滤器-集群拓扑对象（Web 层入参契约面）。
+ * 容器拓扑路径（Web 入口的内部流转 / 持久化形态）。
  * <p>
- * 只取前端从 {@code /topology/container} 拉到的拓扑树节点 {@code instanceId} 作为 {@code id}
- * （CMDB 集群内部 ID）。展示名不落库、后端不使用，回显时前端拿 id 走别的接口查名。
+ * 一条 topo 表示一个精确的 cluster→namespace→workload 路径：cluster 必填，namespace / workload 可选。
+ * 只持久化 CMDB 内部 ID：ID 用于运行时 CMDB 查询；展示名不落库，回显时前端拿 id 走别的接口查名。
+ * 运行时对每条 topo 取其最精细的已选节点（workload → namespace → cluster）作为拓扑节点。
  */
 @Data
-@Schema(description = "动态条件过滤器-集群拓扑对象（Web 层入参）")
-public class WebKubeClusterObject {
+@NoArgsConstructor
+@AllArgsConstructor
+@PersistenceObject
+public class KubeTopoDTO implements Cloneable {
 
-    @Schema(description = "集群 ID（CMDB 内部 ID，对应拓扑树 instanceId）")
-    @NotNull(message = "{validation.constraints.WebKubeClusterObject_idMissing.message}")
-    private Long id;
+    private KubeClusterObjectDTO cluster;
+    private KubeNamespaceObjectDTO namespace;
+    private KubeWorkloadObjectDTO workload;
+
+    @Override
+    public KubeTopoDTO clone() {
+        KubeTopoDTO clone = new KubeTopoDTO();
+        if (cluster != null) {
+            clone.setCluster(cluster.clone());
+        }
+        if (namespace != null) {
+            clone.setNamespace(namespace.clone());
+        }
+        if (workload != null) {
+            clone.setWorkload(workload.clone());
+        }
+        return clone;
+    }
 }

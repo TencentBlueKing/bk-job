@@ -103,6 +103,7 @@ import com.tencent.bk.job.common.cc.model.result.SearchAppResult;
 import com.tencent.bk.job.common.cc.model.result.SearchCloudAreaResult;
 import com.tencent.bk.job.common.cc.model.result.SearchDynamicGroupResult;
 import com.tencent.bk.job.common.cc.util.KubePropConditionTranslator;
+import com.tencent.bk.job.common.cc.util.KubeTopoUtil;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
@@ -2020,32 +2021,10 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      */
     private List<KubeNodeID> computeKubeTopoNodeForCondition(long bizId, KubeContainerFilter filter) {
         if (filter.hasKubeTopoObjects()) {
-            return computeKubeTopoNodeFromObjects(filter);
+            // Web 入口形态：id 已是 CMDB 拓扑节点 ID，逐 topo 取最精细节点，无需二次访问 CMDB
+            return KubeTopoUtil.toNodeIdList(filter.getKubeTopoList());
         }
         return computeKubeTopoNodeFromFilters(bizId, filter);
-    }
-
-    /**
-     * Web 入口形态：cluster/namespace/workload 的 id 直接是 CMDB 拓扑节点 ID。
-     * 取最精细维度（workloads → namespaces → clusters）作为 nodeIdList。
-     */
-    private List<KubeNodeID> computeKubeTopoNodeFromObjects(KubeContainerFilter filter) {
-        if (CollectionUtils.isNotEmpty(filter.getWorkloadNodes())) {
-            return filter.getWorkloadNodes().stream()
-                .map(w -> new KubeNodeID(w.getKind(), w.getId()))
-                .collect(Collectors.toList());
-        }
-        if (CollectionUtils.isNotEmpty(filter.getNamespaceNodes())) {
-            return filter.getNamespaceNodes().stream()
-                .map(ns -> new KubeNodeID(KubeTopoNodeTypeEnum.NAMESPACE.getValue(), ns.getId()))
-                .collect(Collectors.toList());
-        }
-        if (CollectionUtils.isNotEmpty(filter.getClusterNodes())) {
-            return filter.getClusterNodes().stream()
-                .map(c -> new KubeNodeID(KubeTopoNodeTypeEnum.CLUSTER.getValue(), c.getId()))
-                .collect(Collectors.toList());
-        }
-        return Collections.emptyList();
     }
 
     /**

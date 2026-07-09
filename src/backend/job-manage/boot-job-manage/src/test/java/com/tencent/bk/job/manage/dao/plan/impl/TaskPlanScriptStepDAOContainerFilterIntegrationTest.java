@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubeNamespaceObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
@@ -89,11 +90,11 @@ class TaskPlanScriptStepDAOContainerFilterIntegrationTest {
         assertThat(reloaded.getExecuteTarget().getContainerFilters()).hasSize(1);
 
         KubeContainerFilter filter = reloaded.getExecuteTarget().getContainerFilters().get(0);
-        assertThat(filter.getClusterNodes()).hasSize(1);
-        assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(1001L);
-        assertThat(filter.getNamespaceNodes()).hasSize(2);
-        assertThat(filter.getNamespaceNodes().get(0).getId()).isEqualTo(1L);
-        assertThat(filter.getNamespaceNodes().get(1).getId()).isEqualTo(2L);
+        assertThat(filter.getKubeTopoList()).hasSize(2);
+        assertThat(filter.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1001L);
+        assertThat(filter.getKubeTopoList().get(0).getNamespace().getId()).isEqualTo(1L);
+        assertThat(filter.getKubeTopoList().get(1).getCluster().getId()).isEqualTo(1001L);
+        assertThat(filter.getKubeTopoList().get(1).getNamespace().getId()).isEqualTo(2L);
         assertThat(filter.getPropConditions()).hasSize(2);
         assertThat(filter.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
         assertThat(filter.getPropConditions().get(0).getValue()).isEqualTo("docker://abcdefg");
@@ -121,10 +122,10 @@ class TaskPlanScriptStepDAOContainerFilterIntegrationTest {
 
     private TaskTargetDTO buildTargetWithContainerFilters() {
         KubeContainerFilter filter = new KubeContainerFilter();
-        filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1001L)));
-        filter.setNamespaceNodes(Arrays.asList(
-            new KubeNamespaceObjectDTO(1L),
-            new KubeNamespaceObjectDTO(2L)
+        // 同一集群下两个 namespace，用两条拓扑路径表达，共用同一组 propConditions
+        filter.setKubeTopoList(Arrays.asList(
+            new KubeTopoDTO(new KubeClusterObjectDTO(1001L), new KubeNamespaceObjectDTO(1L), null),
+            new KubeTopoDTO(new KubeClusterObjectDTO(1001L), new KubeNamespaceObjectDTO(2L), null)
         ));
         filter.setPropConditions(Arrays.asList(
             new KubePropCondition("container_container_uid", "contains", "docker://abcdefg"),

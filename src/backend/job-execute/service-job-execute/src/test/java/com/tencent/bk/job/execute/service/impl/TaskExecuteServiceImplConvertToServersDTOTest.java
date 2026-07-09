@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
@@ -149,9 +150,8 @@ class TaskExecuteServiceImplConvertToServersDTOTest {
 
         assertThat(result.getContainerFilters()).hasSize(1);
         KubeContainerFilter cf = result.getContainerFilters().get(0);
-        assertThat(cf.getClusterNodes()).hasSize(1);
-        assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
-        assertThat(cf.getClusterNodes().get(0).getId()).isEqualTo(1000L);
+        assertThat(cf.getKubeTopoList()).hasSize(1);
+        assertThat(cf.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
         assertThat(cf.getPropConditions()).hasSize(2);
         assertThat(cf.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
         assertThat(cf.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
@@ -189,11 +189,11 @@ class TaskExecuteServiceImplConvertToServersDTOTest {
         ExecuteTargetDTO result = invoke(source);
         KubeContainerFilter outputFilter = result.getContainerFilters().get(0);
 
-        outputFilter.getClusterNodes().clear();
+        outputFilter.getKubeTopoList().clear();
         outputFilter.getPropConditions().clear();
 
-        assertThat(sourceFilter.getClusterNodes()).hasSize(1);
-        assertThat(sourceFilter.getClusterNodes().get(0).getId()).isEqualTo(1000L);
+        assertThat(sourceFilter.getKubeTopoList()).hasSize(1);
+        assertThat(sourceFilter.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
         assertThat(sourceFilter.getPropConditions()).hasSize(2);
     }
 
@@ -225,7 +225,8 @@ class TaskExecuteServiceImplConvertToServersDTOTest {
 
     private static KubeContainerFilter buildFullFilter() {
         KubeContainerFilter cf = new KubeContainerFilter();
-        cf.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(1000L)));
+        cf.setKubeTopoList(Collections.singletonList(
+            new KubeTopoDTO(new KubeClusterObjectDTO(1000L), null, null)));
         cf.setPropConditions(Arrays.asList(
             new KubePropCondition("container_container_uid", "contains", "docker://abcdefg"),
             new KubePropCondition("pod_name", "equal", "pod-a")

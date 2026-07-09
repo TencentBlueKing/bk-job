@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubeNamespaceObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -526,10 +527,9 @@ public class CronJobDAOImplIntegrationTest {
         assertThat(reloadedVar.getServer().getContainerFilters()).hasSize(1);
 
         KubeContainerFilter filter = reloadedVar.getServer().getContainerFilters().get(0);
-        assertThat(filter.getClusterNodes()).hasSize(1);
-        assertThat(filter.getClusterNodes().get(0).getId()).isEqualTo(100L);
-        assertThat(filter.getNamespaceNodes()).hasSize(1);
-        assertThat(filter.getNamespaceNodes().get(0).getId()).isEqualTo(1000L);
+        assertThat(filter.getKubeTopoList()).hasSize(1);
+        assertThat(filter.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(100L);
+        assertThat(filter.getKubeTopoList().get(0).getNamespace().getId()).isEqualTo(1000L);
         assertThat(filter.getPropConditions()).hasSize(2);
         assertThat(filter.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
         assertThat(filter.getPropConditions().get(0).getValue()).isInstanceOf(List.class);
@@ -552,8 +552,8 @@ public class CronJobDAOImplIntegrationTest {
 
     private ServerDTO buildServerWithContainerFilters() {
         KubeContainerFilter filter = new KubeContainerFilter();
-        filter.setClusterNodes(Collections.singletonList(new KubeClusterObjectDTO(100L)));
-        filter.setNamespaceNodes(Collections.singletonList(new KubeNamespaceObjectDTO(1000L)));
+        filter.setKubeTopoList(Collections.singletonList(
+            new KubeTopoDTO(new KubeClusterObjectDTO(100L), new KubeNamespaceObjectDTO(1000L), null)));
         filter.setPropConditions(Arrays.asList(
             new KubePropCondition("container_container_uid", "in", Arrays.asList("nginx:1.24", "redis:7.2")),
             new KubePropCondition("pod_name", "equal", "pod-a")

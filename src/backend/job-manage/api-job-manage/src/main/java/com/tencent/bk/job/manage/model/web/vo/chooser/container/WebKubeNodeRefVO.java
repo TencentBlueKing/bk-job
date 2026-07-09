@@ -42,11 +42,11 @@ import lombok.Data;
 public class WebKubeNodeRefVO {
 
     @Schema(description = "节点类型：cluster / namespace / deployment / daemonSet / statefulSet / cronJob / job "
-        + "/ customResource", required = true)
+        + "/ customResource")
     @NotBlank(message = "{validation.constraints.KubeNodeType_empty.message}")
     private String type;
 
-    @Schema(description = "CMDB 中的实例 ID", required = true)
+    @Schema(description = "CMDB 中的实例 ID")
     @NotNull(message = "{validation.constraints.KubeNodeId_empty.message}")
     private Long id;
 }

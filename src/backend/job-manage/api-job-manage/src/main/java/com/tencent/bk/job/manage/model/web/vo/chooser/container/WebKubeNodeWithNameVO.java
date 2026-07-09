@@ -35,7 +35,6 @@ import lombok.Data;
  * name 可能为空，前端应给出"已失效"标注。
  */
 @Data
-@JsonInclude(JsonInclude.Include.ALWAYS)
 @Schema(description = "容器拓扑节点回显信息")
 public class WebKubeNodeWithNameVO {
 

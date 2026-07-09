@@ -39,7 +39,7 @@ import java.util.List;
 @Schema(description = "批量查询 kube 拓扑节点展示名请求")
 public class QueryKubeNodeNamesReq {
 
-    @Schema(description = "需要反查名称的节点列表（(type, id) 二元组）", required = true)
+    @Schema(description = "需要反查名称的节点列表（(type, id) 二元组）")
     @NotEmpty(message = "{validation.constraints.KubeNodeList_empty.message}")
     @Valid
     private List<WebKubeNodeRefVO> nodes;

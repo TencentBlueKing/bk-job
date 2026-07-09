@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.dto.KubePropCondition;
 import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
 import com.tencent.bk.job.common.model.vo.WebKubeClusterObject;
 import com.tencent.bk.job.common.model.vo.WebKubeNamespaceObject;
+import com.tencent.bk.job.common.model.vo.WebKubeTopo;
 import com.tencent.bk.job.common.model.vo.WebKubeWorkloadObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * 校验 {@link WebContainerConditionFilterValidator}：
  * <ul>
- *   <li>clusterList 必填非空（程序式兜底，Bean Validation 缺位时也能拦）</li>
+ *   <li>kubeTopoList 必填非空、每条 topo 的 cluster 必填（程序式兜底，Bean Validation 缺位时也能拦）</li>
  *   <li>propConditions 逐条委托给 {@link KubePropConditionValidator}</li>
  *   <li>namespace/workload 字段级 id/name 非空由 Bean Validation 兜底，本类不重复校验</li>
  * </ul>
@@ -59,18 +60,27 @@ class WebContainerConditionFilterValidatorTest {
     }
 
     @Test
-    @DisplayName("clusterList 缺失 → 非法")
-    void clusterListMissing() {
+    @DisplayName("kubeTopoList 缺失 → 非法")
+    void kubeTopoListMissing() {
         WebContainerConditionFilter filter = new WebContainerConditionFilter();
         assertThatThrownBy(() -> WebContainerConditionFilterValidator.validate(filter))
             .isInstanceOf(InvalidParamException.class);
     }
 
     @Test
-    @DisplayName("clusterList 为空集合 → 非法")
-    void clusterListEmpty() {
+    @DisplayName("kubeTopoList 为空集合 → 非法")
+    void kubeTopoListEmpty() {
         WebContainerConditionFilter filter = new WebContainerConditionFilter();
-        filter.setClusterList(Collections.emptyList());
+        filter.setKubeTopoList(Collections.emptyList());
+        assertThatThrownBy(() -> WebContainerConditionFilterValidator.validate(filter))
+            .isInstanceOf(InvalidParamException.class);
+    }
+
+    @Test
+    @DisplayName("某条 topo 缺 cluster → 非法")
+    void topoClusterMissing() {
+        WebContainerConditionFilter filter = new WebContainerConditionFilter();
+        filter.setKubeTopoList(Collections.singletonList(topo(null, null, null)));
         assertThatThrownBy(() -> WebContainerConditionFilterValidator.validate(filter))
             .isInstanceOf(InvalidParamException.class);
     }
@@ -83,21 +93,22 @@ class WebContainerConditionFilterValidatorTest {
     }
 
     @Test
-    @DisplayName("workload 多种 kind 混合 → 通过（每个 workload 自带 kind，不再有成对校验约束）")
+    @DisplayName("多条 topo 混合不同 workload kind → 通过")
     void mixedWorkloadKindsOk() {
-        WebContainerConditionFilter filter = buildWithCluster();
-        filter.setWorkloadList(Arrays.asList(
-            workload("deployment", 20000L, "deployment20000"),
-            workload("daemonSet", 20001L, "daemonSet20001")
+        WebContainerConditionFilter filter = new WebContainerConditionFilter();
+        filter.setKubeTopoList(Arrays.asList(
+            topo(cluster(1000L), null, workload("deployment", 20000L)),
+            topo(cluster(1001L), null, workload("daemonSet", 20001L))
         ));
         assertThatCode(() -> WebContainerConditionFilterValidator.validate(filter)).doesNotThrowAnyException();
     }
 
     @Test
-    @DisplayName("namespace 可选：仅传 namespace 不传 workload 也通过")
+    @DisplayName("namespace 可选：topo 仅传 namespace 不传 workload 也通过")
     void namespaceOptional() {
-        WebContainerConditionFilter filter = buildWithCluster();
-        filter.setNamespaceList(Collections.singletonList(namespace(10000L, "命名空间10000")));
+        WebContainerConditionFilter filter = new WebContainerConditionFilter();
+        filter.setKubeTopoList(Collections.singletonList(
+            topo(cluster(1000L), namespace(10000L), null)));
         assertThatCode(() -> WebContainerConditionFilterValidator.validate(filter)).doesNotThrowAnyException();
     }
 
@@ -132,36 +143,43 @@ class WebContainerConditionFilterValidatorTest {
     @Test
     @DisplayName("列表入口：逐个校验，遇到非法立即抛")
     void listEntryShortCircuits() {
-        WebContainerConditionFilter bad = new WebContainerConditionFilter(); // 没有 cluster
+        WebContainerConditionFilter bad = new WebContainerConditionFilter(); // 没有 topo
         assertThatThrownBy(() -> WebContainerConditionFilterValidator.validate(Collections.singletonList(bad)))
             .isInstanceOf(InvalidParamException.class);
     }
 
     private static WebContainerConditionFilter buildWithCluster() {
         WebContainerConditionFilter filter = new WebContainerConditionFilter();
-        filter.setClusterList(Collections.singletonList(cluster(1000L, "集群1000")));
+        filter.setKubeTopoList(Collections.singletonList(topo(cluster(1000L), null, null)));
         return filter;
     }
 
-    private static WebKubeClusterObject cluster(Long id, String name) {
+    private static WebKubeTopo topo(WebKubeClusterObject cluster,
+                                    WebKubeNamespaceObject namespace,
+                                    WebKubeWorkloadObject workload) {
+        WebKubeTopo t = new WebKubeTopo();
+        t.setCluster(cluster);
+        t.setNamespace(namespace);
+        t.setWorkload(workload);
+        return t;
+    }
+
+    private static WebKubeClusterObject cluster(Long id) {
         WebKubeClusterObject c = new WebKubeClusterObject();
         c.setId(id);
-        c.setName(name);
         return c;
     }
 
-    private static WebKubeNamespaceObject namespace(Long id, String name) {
+    private static WebKubeNamespaceObject namespace(Long id) {
         WebKubeNamespaceObject ns = new WebKubeNamespaceObject();
         ns.setId(id);
-        ns.setName(name);
         return ns;
     }
 
-    private static WebKubeWorkloadObject workload(String kind, Long id, String name) {
+    private static WebKubeWorkloadObject workload(String kind, Long id) {
         WebKubeWorkloadObject w = new WebKubeWorkloadObject();
         w.setKind(kind);
         w.setId(id);
-        w.setName(name);
         return w;
     }
 }

@@ -28,10 +28,12 @@ import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubeNamespaceObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.common.model.dto.KubeWorkloadObjectDTO;
 import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
 import com.tencent.bk.job.common.model.vo.WebKubeClusterObject;
 import com.tencent.bk.job.common.model.vo.WebKubeNamespaceObject;
+import com.tencent.bk.job.common.model.vo.WebKubeTopo;
 import com.tencent.bk.job.common.model.vo.WebKubeWorkloadObject;
 
 import java.util.List;
@@ -40,8 +42,8 @@ import java.util.stream.Collectors;
 /**
  * Web 入参 ↔ 内部流转 DTO 转换器。
  * <p>
- * Web 入参的拓扑对象（{@code WebKubeXxxObject}）中的 ID 会被搬到内部 {@link KubeContainerFilter}
- * 的 Web 侧字段（{@code clusters/namespaces/workloads}）；展示名不落库，反向回显时也不透出。
+ * Web 入参的每条拓扑路径（{@link WebKubeTopo}）逐条映射为内部 {@link KubeContainerFilter} 的
+ * {@code kubeTopoList}，只搬 ID（workload 还有 kind）；展示名不落库，反向回显时也不透出。
  * 不触碰 v4 OpenAPI 入口的旧字符串 sub-filter。
  * Web 不暴露 {@code emptyFilter / fetchAnyOneContainer} 两个内部开关，转换时固定置 false。
  */
@@ -55,40 +57,43 @@ public final class WebContainerConditionFilterConverter {
             return null;
         }
         KubeContainerFilter kube = new KubeContainerFilter();
-        kube.setClusterNodes(toClusterObjects(web.getClusterList()));
-        kube.setNamespaceNodes(toNamespaceObjects(web.getNamespaceList()));
-        kube.setWorkloadNodes(toWorkloadObjects(web.getWorkloadList()));
+        kube.setKubeTopoList(toKubeTopoList(web.getKubeTopoList()));
         kube.setPropConditions(clonePropConditions(web.getPropConditions()));
         kube.setEmptyFilter(false);
         kube.setFetchAnyOneContainer(false);
         return kube;
     }
 
-    private static List<KubeClusterObjectDTO> toClusterObjects(List<WebKubeClusterObject> webList) {
+    private static List<KubeTopoDTO> toKubeTopoList(List<WebKubeTopo> webList) {
         if (webList == null) {
             return null;
         }
         return webList.stream()
-            .map(web -> web == null ? null : new KubeClusterObjectDTO(web.getId()))
+            .map(WebContainerConditionFilterConverter::toKubeTopo)
             .collect(Collectors.toList());
     }
 
-    private static List<KubeNamespaceObjectDTO> toNamespaceObjects(List<WebKubeNamespaceObject> webList) {
-        if (webList == null) {
+    private static KubeTopoDTO toKubeTopo(WebKubeTopo web) {
+        if (web == null) {
             return null;
         }
-        return webList.stream()
-            .map(web -> web == null ? null : new KubeNamespaceObjectDTO(web.getId()))
-            .collect(Collectors.toList());
+        KubeTopoDTO topo = new KubeTopoDTO();
+        topo.setCluster(toClusterObject(web.getCluster()));
+        topo.setNamespace(toNamespaceObject(web.getNamespace()));
+        topo.setWorkload(toWorkloadObject(web.getWorkload()));
+        return topo;
     }
 
-    private static List<KubeWorkloadObjectDTO> toWorkloadObjects(List<WebKubeWorkloadObject> webList) {
-        if (webList == null) {
-            return null;
-        }
-        return webList.stream()
-            .map(web -> web == null ? null : new KubeWorkloadObjectDTO(web.getKind(), web.getId()))
-            .collect(Collectors.toList());
+    private static KubeClusterObjectDTO toClusterObject(WebKubeClusterObject web) {
+        return web == null ? null : new KubeClusterObjectDTO(web.getId());
+    }
+
+    private static KubeNamespaceObjectDTO toNamespaceObject(WebKubeNamespaceObject web) {
+        return web == null ? null : new KubeNamespaceObjectDTO(web.getId());
+    }
+
+    private static KubeWorkloadObjectDTO toWorkloadObject(WebKubeWorkloadObject web) {
+        return web == null ? null : new KubeWorkloadObjectDTO(web.getKind(), web.getId());
     }
 
     private static List<KubePropCondition> clonePropConditions(List<KubePropCondition> propConditions) {
@@ -111,67 +116,65 @@ public final class WebContainerConditionFilterConverter {
 
     /**
      * 反向：KubeContainerFilter → Web 入参 DTO，用于回显模板/方案/定时任务详情。
-     * 只透出 Web 入口形态的拓扑对象；v4 形态字段（clusterFilter 等）不外露给 Web，避免回显错位。
+     * 只透出 Web 入口形态的拓扑路径；v4 形态字段（clusterFilter 等）不外露给 Web，避免回显错位。
+     * 展示名不落库，回显只带 id，前端拿 id 走别的接口查名。
      */
     public static WebContainerConditionFilter fromKubeContainerFilter(KubeContainerFilter kube) {
         if (kube == null) {
             return null;
         }
         WebContainerConditionFilter web = new WebContainerConditionFilter();
-        web.setClusterList(fromClusterObjects(kube.getClusterNodes()));
-        web.setNamespaceList(fromNamespaceObjects(kube.getNamespaceNodes()));
-        web.setWorkloadList(fromWorkloadObjects(kube.getWorkloadNodes()));
+        web.setKubeTopoList(fromKubeTopoList(kube.getKubeTopoList()));
         web.setPropConditions(clonePropConditions(kube.getPropConditions()));
         return web;
     }
 
-    private static List<WebKubeClusterObject> fromClusterObjects(List<KubeClusterObjectDTO> internalList) {
+    private static List<WebKubeTopo> fromKubeTopoList(List<KubeTopoDTO> internalList) {
         if (internalList == null) {
             return null;
         }
         return internalList.stream()
-            .map(internal -> {
-                if (internal == null) {
-                    return null;
-                }
-                WebKubeClusterObject web = new WebKubeClusterObject();
-                web.setId(internal.getId());
-                return web;
-            })
+            .map(WebContainerConditionFilterConverter::fromKubeTopo)
             .collect(Collectors.toList());
     }
 
-    private static List<WebKubeNamespaceObject> fromNamespaceObjects(List<KubeNamespaceObjectDTO> internalList) {
-        if (internalList == null) {
+    private static WebKubeTopo fromKubeTopo(KubeTopoDTO internal) {
+        if (internal == null) {
             return null;
         }
-        return internalList.stream()
-            .map(internal -> {
-                if (internal == null) {
-                    return null;
-                }
-                WebKubeNamespaceObject web = new WebKubeNamespaceObject();
-                web.setId(internal.getId());
-                return web;
-            })
-            .collect(Collectors.toList());
+        WebKubeTopo web = new WebKubeTopo();
+        web.setCluster(fromClusterObject(internal.getCluster()));
+        web.setNamespace(fromNamespaceObject(internal.getNamespace()));
+        web.setWorkload(fromWorkloadObject(internal.getWorkload()));
+        return web;
     }
 
-    private static List<WebKubeWorkloadObject> fromWorkloadObjects(List<KubeWorkloadObjectDTO> internalList) {
-        if (internalList == null) {
+    private static WebKubeClusterObject fromClusterObject(KubeClusterObjectDTO internal) {
+        if (internal == null) {
             return null;
         }
-        return internalList.stream()
-            .map(internal -> {
-                if (internal == null) {
-                    return null;
-                }
-                WebKubeWorkloadObject web = new WebKubeWorkloadObject();
-                web.setKind(internal.getKind());
-                web.setId(internal.getId());
-                return web;
-            })
-            .collect(Collectors.toList());
+        WebKubeClusterObject web = new WebKubeClusterObject();
+        web.setId(internal.getId());
+        return web;
+    }
+
+    private static WebKubeNamespaceObject fromNamespaceObject(KubeNamespaceObjectDTO internal) {
+        if (internal == null) {
+            return null;
+        }
+        WebKubeNamespaceObject web = new WebKubeNamespaceObject();
+        web.setId(internal.getId());
+        return web;
+    }
+
+    private static WebKubeWorkloadObject fromWorkloadObject(KubeWorkloadObjectDTO internal) {
+        if (internal == null) {
+            return null;
+        }
+        WebKubeWorkloadObject web = new WebKubeWorkloadObject();
+        web.setKind(internal.getKind());
+        web.setId(internal.getId());
+        return web;
     }
 
     public static List<WebContainerConditionFilter> fromKubeContainerFilters(List<KubeContainerFilter> kubeList) {
