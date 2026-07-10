@@ -75,4 +75,37 @@ public class ScatterBatchTimeCalculator {
                                                long randomMaxMs) {
         return previousDispatchTime + computeBatchInterval(fixedMs, randomMinMs, randomMaxMs);
     }
+
+    /**
+     * 累积式计算各批次的绝对下发时刻序列（纯函数，无副作用，可单测）。
+     * <p>
+     * 结果下标与批次一一对应：{@code result[0]} 为批 1（= baseTime，立即下发），
+     * {@code result[k-1]} 为批 k（= 批(k-1) 下发时刻 + fixed + random(min,max)，随机每批独立采样）。
+     * 供「首批启动后调度后续批次」与「整步重试重算各批下发时刻」两处共用同一累积序列语义。
+     *
+     * @param baseTime    批 1 的基准下发时刻(epoch millis)
+     * @param totalBatch  总批次数（≥1）
+     * @param fixedMs     批次间固定间隔
+     * @param randomMinMs 批次间随机延迟下限
+     * @param randomMaxMs 批次间随机延迟上限
+     * @return 长度为 totalBatch 的下发时刻数组，严格递增
+     */
+    public static long[] computeDispatchTimes(long baseTime,
+                                              int totalBatch,
+                                              long fixedMs,
+                                              long randomMinMs,
+                                              long randomMaxMs) {
+        int size = Math.max(0, totalBatch);
+        long[] dispatchTimes = new long[size];
+        if (size == 0) {
+            return dispatchTimes;
+        }
+        dispatchTimes[0] = baseTime;
+        long previous = baseTime;
+        for (int i = 1; i < size; i++) {
+            previous = computeNextDispatchTime(previous, fixedMs, randomMinMs, randomMaxMs);
+            dispatchTimes[i] = previous;
+        }
+        return dispatchTimes;
+    }
 }

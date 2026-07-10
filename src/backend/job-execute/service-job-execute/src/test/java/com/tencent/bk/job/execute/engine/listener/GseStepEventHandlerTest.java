@@ -35,6 +35,7 @@ import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchFinishResult;
 import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchManager;
+import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterStepConverger;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
@@ -109,6 +110,12 @@ class GseStepEventHandlerTest {
         fileExecuteObjectTaskService = mock(FileExecuteObjectTaskService.class);
         StepInstanceFileBatchService stepInstanceFileBatchService = mock(StepInstanceFileBatchService.class);
         scatterDispatchManager = mock(ScatterDispatchManager.class);
+        // 使用真实收敛器（注入同一批 mock 服务），使 finishParallelBatch/cancel 的聚合与收敛行为可被断言
+        ScatterStepConverger scatterStepConverger = new ScatterStepConverger(
+            stepInstanceService,
+            stepInstanceRollingTaskService,
+            taskExecuteMQEventDispatcher,
+            filePrepareService);
 
         handler = new GseStepEventHandler(
             taskInstanceService,
@@ -121,7 +128,8 @@ class GseStepEventHandlerTest {
             scriptExecuteObjectTaskService,
             fileExecuteObjectTaskService,
             stepInstanceFileBatchService,
-            scatterDispatchManager);
+            scatterDispatchManager,
+            scatterStepConverger);
     }
 
     @Test

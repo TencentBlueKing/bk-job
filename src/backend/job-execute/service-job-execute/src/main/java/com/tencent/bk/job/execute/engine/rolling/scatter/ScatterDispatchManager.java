@@ -29,6 +29,7 @@ import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.listener.event.RollingBatchDispatchResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
+import com.tencent.bk.job.execute.monitor.metrics.ScatterDispatchMonitor;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,7 @@ public class ScatterDispatchManager implements SmartLifecycle {
      * 日志调用链Tracer，用于在到点触发线程重建 trace 上下文，使错峰批次日志带上可追踪的 traceId
      */
     private final Tracer tracer;
+    private final ScatterDispatchMonitor scatterDispatchMonitor;
     private final int workerNum;
 
     private final DelayQueue<ScatterDispatchTask> tasksQueue = new DelayQueue<>();
@@ -76,12 +78,16 @@ public class ScatterDispatchManager implements SmartLifecycle {
     public ScatterDispatchManager(ScatterBatchDispatcher scatterBatchDispatcher,
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   Tracer tracer,
+                                  ScatterDispatchMonitor scatterDispatchMonitor,
                                   JobExecuteConfig jobExecuteConfig) {
         this.scatterBatchDispatcher = scatterBatchDispatcher;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.tracer = tracer;
+        this.scatterDispatchMonitor = scatterDispatchMonitor;
         int configuredWorkerNum = jobExecuteConfig.getRollingScatterWorkerNum();
         this.workerNum = configuredWorkerNum > 0 ? configuredWorkerNum : 5;
+        // 绑定延迟队列积压数量 Gauge，反映待下发批次堆积情况
+        this.scatterDispatchMonitor.registerQueueSizeGauge(tasksQueue::size);
     }
 
     /**
@@ -223,6 +229,8 @@ public class ScatterDispatchManager implements SmartLifecycle {
         Span span = (parent != null ? tracer.nextSpan(parent) : tracer.nextSpan()).name("scatter-dispatch");
         try (Tracer.SpanInScope ignored = tracer.withSpan(span.start())) {
             JobExecuteContextThreadLocalRepo.set(task.getJobExecuteContext());
+            // 记录批次下发延迟：实际下发时刻 - 计划下发时刻，反映到点触发准时性与队列调度压力
+            scatterDispatchMonitor.recordDispatchDelay(System.currentTimeMillis() - task.getDispatchTime());
             log.info("Scatter dispatch task fired: {}", task);
             scatterBatchDispatcher.dispatchBatch(
                 task.getTaskInstanceId(),

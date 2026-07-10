@@ -28,6 +28,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
@@ -35,6 +36,7 @@ import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -56,6 +58,8 @@ public class ScatterBatchDispatcher {
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
+    private final RollingConfigService rollingConfigService;
+    private final ScatterStepConverger scatterStepConverger;
 
     @Autowired
     public ScatterBatchDispatcher(StepInstanceService stepInstanceService,
@@ -63,13 +67,17 @@ public class ScatterBatchDispatcher {
                                   ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                   FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                   StepInstanceRollingTaskService stepInstanceRollingTaskService,
-                                  TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
+                                  TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                                  RollingConfigService rollingConfigService,
+                                  ScatterStepConverger scatterStepConverger) {
         this.stepInstanceService = stepInstanceService;
         this.gseTaskService = gseTaskService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
+        this.rollingConfigService = rollingConfigService;
+        this.scatterStepConverger = scatterStepConverger;
     }
 
     /**
@@ -92,12 +100,22 @@ public class ScatterBatchDispatcher {
             return;
         }
         RunStatusEnum stepStatus = stepInstance.getStatus();
+        boolean executeCountMatched = executeCount == stepInstance.getExecuteCount();
         if (stepStatus != RunStatusEnum.RUNNING) {
-            log.info("Scatter dispatch skip, step is not running. stepInstanceId={}, batch={}, status={}",
-                stepInstanceId, batch, stepStatus);
+            // 到点兜底收敛：步骤已进入终止/终态语义（如整步终止落到非调度副本时，本副本队列中的未下发批次
+            // 未被取消，到点仍会走到这里），此时不能只“跳过下发”，否则该批 rolling_task 永不置终态，
+            // finishBatchAndCheckAllDone 的终态计数永远达不到 totalBatch，步骤永久卡在 STOPPING。
+            // 因此把该未下发批次经收敛器置为终止成功并参与完成判定（幂等闸门保证重复回调/多副本安全）。
+            if (executeCountMatched
+                && (stepStatus == RunStatusEnum.STOPPING || RunStatusEnum.isFinishedStatus(stepStatus))) {
+                convergeUnDispatchedBatchOnStop(stepInstance, executeCount, batch);
+            } else {
+                log.info("Scatter dispatch skip, step is not running. stepInstanceId={}, batch={}, status={}",
+                    stepInstanceId, batch, stepStatus);
+            }
             return;
         }
-        if (executeCount != stepInstance.getExecuteCount()) {
+        if (!executeCountMatched) {
             log.info("Scatter dispatch skip, execute count changed. stepInstanceId={}, batch={}, "
                     + "eventExecuteCount={}, curExecuteCount={}", stepInstanceId, batch, executeCount,
                 stepInstance.getExecuteCount());
@@ -146,6 +164,31 @@ public class ScatterBatchDispatcher {
             GseTaskEvent.startGseTask(taskInstanceId, stepInstanceId, executeCount, batch, gseTaskId, null));
         log.info("Scatter dispatch batch done. stepInstanceId={}, executeCount={}, batch={}, gseTaskId={}",
             stepInstanceId, executeCount, batch, gseTaskId);
+    }
+
+    /**
+     * 到点兜底：步骤已终止/终态时，把本未下发批次置为终止成功并参与步骤完成判定，避免步骤永久卡在 STOPPING。
+     * <p>
+     * 仅在并行错峰模式下执行；非并行模式无该收敛语义，直接跳过。
+     *
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        未下发批次
+     */
+    private void convergeUnDispatchedBatchOnStop(StepInstanceDTO stepInstance, int executeCount, int batch) {
+        RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+            stepInstance.getTaskInstanceId(), stepInstance.getRollingConfigId());
+        if (rollingConfig == null || !rollingConfig.isParallelExecution()) {
+            log.info("Scatter dispatch skip converge, not parallel scatter. stepInstanceId={}, batch={}",
+                stepInstance.getId(), batch);
+            return;
+        }
+        int totalBatch = rollingConfig.getExecuteObjectRollingConfig().getTotalBatch();
+        long now = System.currentTimeMillis();
+        scatterStepConverger.finishBatchAndConverge(
+            stepInstance, executeCount, batch, RunStatusEnum.STOP_SUCCESS, now, totalBatch, true);
+        log.info("Scatter dispatch converge un-dispatched batch on stop, stepInstanceId={}, executeCount={}, "
+                + "batch={}, stepStatus={}", stepInstance.getId(), executeCount, batch, stepInstance.getStatus());
     }
 
     private Long saveInitialGseTask(StepInstanceDTO stepInstance) {

@@ -89,4 +89,52 @@ class ScatterBatchTimeCalculatorTest {
             previous = dispatchTime;
         }
     }
+
+    @Test
+    @DisplayName("computeDispatchTimes：totalBatch=1 仅批1=baseTime")
+    void computeDispatchTimesSingleBatch() {
+        long base = 1700000000000L;
+        long[] times = ScatterBatchTimeCalculator.computeDispatchTimes(base, 1, 1000, 200, 800);
+        assertThat(times).hasSize(1);
+        assertThat(times[0]).isEqualTo(base);
+    }
+
+    @Test
+    @DisplayName("computeDispatchTimes：totalBatch=2 批1=baseTime，批2=base+间隔(确定)")
+    void computeDispatchTimesTwoBatches() {
+        long base = 1700000000000L;
+        long[] times = ScatterBatchTimeCalculator.computeDispatchTimes(base, 2, 1000, 200, 200);
+        assertThat(times).hasSize(2);
+        assertThat(times[0]).isEqualTo(base);
+        assertThat(times[1]).isEqualTo(base + 1200);
+    }
+
+    @Test
+    @DisplayName("computeDispatchTimes：totalBatch=N 与逐批computeNextDispatchTime等价(确定间隔)")
+    void computeDispatchTimesEquivalentToStepwiseDeterministic() {
+        long base = 1700000000000L;
+        long[] times = ScatterBatchTimeCalculator.computeDispatchTimes(base, 5, 1000, 200, 200);
+        assertThat(times).containsExactly(base, base + 1200, base + 2400, base + 3600, base + 4800);
+    }
+
+    @Test
+    @DisplayName("computeDispatchTimes：批1恒为baseTime，其余严格递增且间隔∈[fixed+min,fixed+max]")
+    void computeDispatchTimesMonotonicWithinBounds() {
+        long base = 1700000000000L;
+        int totalBatch = 30;
+        long[] times = ScatterBatchTimeCalculator.computeDispatchTimes(base, totalBatch, 500, 100, 900);
+        assertThat(times).hasSize(totalBatch);
+        assertThat(times[0]).isEqualTo(base);
+        for (int i = 1; i < totalBatch; i++) {
+            long interval = times[i] - times[i - 1];
+            assertThat(interval).isBetween(500L + 100L, 500L + 900L);
+        }
+    }
+
+    @Test
+    @DisplayName("computeDispatchTimes：totalBatch<=0 返回空数组，不抛异常")
+    void computeDispatchTimesNonPositive() {
+        assertThat(ScatterBatchTimeCalculator.computeDispatchTimes(1L, 0, 1000, 0, 0)).isEmpty();
+        assertThat(ScatterBatchTimeCalculator.computeDispatchTimes(1L, -3, 1000, 0, 0)).isEmpty();
+    }
 }

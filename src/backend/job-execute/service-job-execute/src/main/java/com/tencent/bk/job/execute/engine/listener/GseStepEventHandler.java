@@ -40,9 +40,9 @@ import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispat
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchTimeCalculator;
-import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchFinishResult;
 import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchManager;
 import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchTask;
+import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterStepConverger;
 import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -87,6 +87,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final StepInstanceFileBatchService stepInstanceFileBatchService;
     private final ScatterDispatchManager scatterDispatchManager;
+    private final ScatterStepConverger scatterStepConverger;
 
     @Autowired
     public GseStepEventHandler(TaskInstanceService taskInstanceService,
@@ -99,7 +100,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                                ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                StepInstanceFileBatchService stepInstanceFileBatchService,
-                               ScatterDispatchManager scatterDispatchManager) {
+                               ScatterDispatchManager scatterDispatchManager,
+                               ScatterStepConverger scatterStepConverger) {
         super(taskInstanceService, stepInstanceService, taskExecuteMQEventDispatcher);
         this.filePrepareService = filePrepareService;
         this.gseTaskService = gseTaskService;
@@ -109,6 +111,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceFileBatchService = stepInstanceFileBatchService;
         this.scatterDispatchManager = scatterDispatchManager;
+        this.scatterStepConverger = scatterStepConverger;
     }
 
     @Override
@@ -248,16 +251,16 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long randomMaxMs = detail.getBatchStartWaitRandomMaxMs() == null ? 0L : detail.getBatchStartWaitRandomMaxMs();
         long baseTime = stepInstance.getStartTime() != null ? stepInstance.getStartTime() : System.currentTimeMillis();
 
+        // 累积式错峰：批1下发时刻=baseTime；批k=批(k-1)下发时刻+fixed+random(min,max)，随机每批独立采样
+        long[] dispatchTimes = ScatterBatchTimeCalculator.computeDispatchTimes(
+            baseTime, totalBatch, fixedMs, randomMinMs, randomMaxMs);
+
         // 第一批次已即时下发，补登记下发信息（批1下发时刻=baseTime，偏移0）
         stepInstanceRollingTaskService.updateDispatchInfo(taskInstanceId, stepInstanceId, executeCount, 1,
-            baseTime, Boolean.TRUE);
+            dispatchTimes[0], Boolean.TRUE);
 
-        // 累积式错峰：下一批下发时刻 = 上一批下发时刻 + fixed + random(min,max)，随机每批独立采样
-        long previousDispatchTime = baseTime;
         for (int batch = 2; batch <= totalBatch; batch++) {
-            long dispatchTime = ScatterBatchTimeCalculator.computeNextDispatchTime(
-                previousDispatchTime, fixedMs, randomMinMs, randomMaxMs);
-            previousDispatchTime = dispatchTime;
+            long dispatchTime = dispatchTimes[batch - 1];
             // 预登记批次滚动任务（未下发）
             StepInstanceRollingTaskDTO rollingTask = new StepInstanceRollingTaskDTO();
             rollingTask.setTaskInstanceId(taskInstanceId);
@@ -621,7 +624,12 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
     }
 
     /**
-     * 并行错峰模式整步终止：取消未下发批次（从延迟队列移除），并将其置为终止成功以参与完成判定。
+     * 并行错峰模式整步终止：取消本副本延迟队列中未下发的批次，并将其置为终止成功以参与完成判定。
+     * <p>
+     * 注意：未下发批次仅存在于「触发调度副本」的本地内存队列，而终止事件经 MQ 被任一副本竞争消费，
+     * 故本副本可能取消到 0 个批次（终止落到非调度副本）。这是允许的：未被本副本取消的未下发批次，
+     * 会在其所属副本到点触发下发时，由 {@link com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchDispatcher}
+     * 感知步骤已处于终止/终态语义而自行收敛（到点兜底），最终仍能使步骤正常收敛，不会永久卡在 STOPPING。
      */
     private void cancelUnDispatchedBatchesForStop(StepInstanceDTO stepInstance, RollingConfigDTO rollingConfig) {
         long taskInstanceId = stepInstance.getTaskInstanceId();
@@ -631,20 +639,16 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
 
         List<ScatterDispatchTask> canceled = scatterDispatchManager.cancelStepTasks(
             taskInstanceId, stepInstanceId, executeCount);
+        if (CollectionUtils.isEmpty(canceled)) {
+            log.info("No un-dispatched scatter batch canceled on this replica, stepInstanceId={}, executeCount={}. "
+                    + "Remaining un-dispatched batches (if any) will self-converge at dispatch time on their "
+                    + "holding replica.", stepInstanceId, executeCount);
+            return;
+        }
+        long now = System.currentTimeMillis();
         for (ScatterDispatchTask task : canceled) {
-            long now = System.currentTimeMillis();
-            ScatterBatchFinishResult result = stepInstanceRollingTaskService.finishBatchAndCheckAllDone(
-                taskInstanceId, stepInstanceId, executeCount, task.getBatch(),
-                RunStatusEnum.STOP_SUCCESS, now, now, 0L, totalBatch);
-            if (result == ScatterBatchFinishResult.LAST_BATCH) {
-                RunStatusEnum stepStatus = aggregateParallelStepStatus(taskInstanceId, stepInstanceId, executeCount);
-                long startTime = stepInstance.getStartTime() != null ? stepInstance.getStartTime() : now;
-                stepInstanceService.updateStepExecutionInfo(
-                    taskInstanceId, stepInstanceId, stepStatus, startTime, now, now - startTime);
-                taskExecuteMQEventDispatcher.dispatchJobEvent(
-                    JobEvent.refreshJob(taskInstanceId,
-                        EventSource.buildStepEventSource(taskInstanceId, stepInstanceId)));
-            }
+            scatterStepConverger.finishBatchAndConverge(stepInstance, executeCount, task.getBatch(),
+                RunStatusEnum.STOP_SUCCESS, now, totalBatch, true);
         }
     }
 
@@ -737,7 +741,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             stepInstance.getStartTime(), null, null);
 
         // 累积式错峰：批1下发时刻=baseTime，批k = 批(k-1)下发时刻 + fixed + random(min,max)，随机每批独立采样
-        long previousDispatchTime = baseTime;
+        long[] dispatchTimes = ScatterBatchTimeCalculator.computeDispatchTimes(
+            baseTime, totalBatch, fixedMs, randomMinMs, randomMaxMs);
         for (int batch = 1; batch <= totalBatch; batch++) {
             stepInstance.setBatch(batch);
             // 登记批次滚动任务
@@ -746,10 +751,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             rollingTask.setStepInstanceId(stepInstanceId);
             rollingTask.setExecuteCount(executeCount);
             rollingTask.setBatch(batch);
-            long dispatchTime = batch == 1 ? baseTime
-                : ScatterBatchTimeCalculator.computeNextDispatchTime(
-                    previousDispatchTime, fixedMs, randomMinMs, randomMaxMs);
-            previousDispatchTime = dispatchTime;
+            long dispatchTime = dispatchTimes[batch - 1];
             rollingTask.setDispatchTime(dispatchTime);
             if (batch == 1) {
                 rollingTask.setStatus(RunStatusEnum.RUNNING);
@@ -1261,60 +1263,9 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long batchStartTime = (rollingTask != null && rollingTask.getStartTime() != null)
             ? rollingTask.getStartTime() : now;
 
-        ScatterBatchFinishResult result = stepInstanceRollingTaskService.finishBatchAndCheckAllDone(
-            taskInstanceId, stepInstanceId, executeCount, batch, batchStatus,
-            batchStartTime, now, now - batchStartTime, totalBatch);
-
-        log.info("Finish parallel batch, stepInstanceId={}, executeCount={}, batch={}, batchStatus={}, result={}",
-            stepInstanceId, executeCount, batch, batchStatus, result);
-
-        if (result == ScatterBatchFinishResult.LAST_BATCH) {
-            // 最后一个到达终态的批次，唯一收敛整个步骤
-            RunStatusEnum stepStatus = aggregateParallelStepStatus(taskInstanceId, stepInstanceId, executeCount);
-            long startTime = stepInstance.getStartTime() != null ? stepInstance.getStartTime() : batchStartTime;
-            stepInstanceService.updateStepExecutionInfo(
-                taskInstanceId, stepInstanceId, stepStatus, startTime, now, now - startTime);
-            if (stepStatus == RunStatusEnum.SUCCESS || stepStatus == RunStatusEnum.IGNORE_ERROR) {
-                clearStep(stepInstance);
-            }
-        }
-        // NOT_LAST_BATCH / ALREADY_FINAL：不改步骤状态，步骤仍为 RUNNING，等待其它批次
-    }
-
-    /**
-     * 并行错峰模式：按各批次终态聚合步骤终态（任一批失败=步骤失败）。
-     */
-    private RunStatusEnum aggregateParallelStepStatus(Long taskInstanceId, long stepInstanceId, int executeCount) {
-        List<StepInstanceRollingTaskDTO> rollingTasks =
-            stepInstanceRollingTaskService.listRollingTasksByStep(taskInstanceId, stepInstanceId);
-        boolean hasFail = false;
-        boolean hasStopSuccess = false;
-        boolean hasIgnoreError = false;
-        for (StepInstanceRollingTaskDTO task : rollingTasks) {
-            if (task.getExecuteCount() != executeCount) {
-                continue;
-            }
-            RunStatusEnum status = task.getStatus();
-            if (status == RunStatusEnum.FAIL
-                || status == RunStatusEnum.ABNORMAL_STATE
-                || status == RunStatusEnum.ABANDONED) {
-                hasFail = true;
-            } else if (status == RunStatusEnum.STOP_SUCCESS) {
-                hasStopSuccess = true;
-            } else if (status == RunStatusEnum.IGNORE_ERROR) {
-                hasIgnoreError = true;
-            }
-        }
-        if (hasFail) {
-            return RunStatusEnum.FAIL;
-        }
-        if (hasStopSuccess) {
-            return RunStatusEnum.STOP_SUCCESS;
-        }
-        if (hasIgnoreError) {
-            return RunStatusEnum.IGNORE_ERROR;
-        }
-        return RunStatusEnum.SUCCESS;
+        // GSE 回调路径：由 refreshStep 末尾统一发送 refreshJob，故此处传 dispatchRefreshJob=false 以免重复发送
+        scatterStepConverger.finishBatchAndConverge(
+            stepInstance, executeCount, batch, batchStatus, batchStartTime, totalBatch, false);
     }
 
     private void finishRollingTask(Long taskInstanceId,
