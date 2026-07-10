@@ -30,11 +30,13 @@ import com.tencent.bk.job.execute.engine.listener.JobListener;
 import com.tencent.bk.job.execute.engine.listener.NotifyMsgListener;
 import com.tencent.bk.job.execute.engine.listener.ResultHandleResumeListener;
 import com.tencent.bk.job.execute.engine.listener.RollingBatchDispatchResumeListener;
+import com.tencent.bk.job.execute.engine.listener.ScatterBatchCancelListener;
 import com.tencent.bk.job.execute.engine.listener.StepListener;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.RollingBatchDispatchResumeEvent;
+import com.tencent.bk.job.execute.engine.listener.event.ScatterBatchCancelEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
@@ -85,6 +87,13 @@ public class JobFunctionConfiguration {
         @Autowired RollingBatchDispatchResumeListener rollingBatchDispatchResumeListener) {
         log.info("Init handleRollingBatchDispatchResumeEvent consumer");
         return rollingBatchDispatchResumeListener::onEvent;
+    }
+
+    @Bean
+    public Consumer<Message<ScatterBatchCancelEvent>> handleScatterBatchCancelFanoutEvent(
+        @Autowired ScatterBatchCancelListener scatterBatchCancelListener) {
+        log.info("Init handleScatterBatchCancelFanoutEvent consumer");
+        return scatterBatchCancelListener::onEvent;
     }
 
     @Bean

@@ -57,6 +57,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ScatterDispatchManager implements SmartLifecycle {
 
+    /**
+     * 批次下发延迟告警阈值(ms)，超过该阈值说明到点触发不准时，日志升级为 WARN
+     */
+    private static final long DISPATCH_DELAY_WARN_THRESHOLD_MS = 1000L;
+
     private final ScatterBatchDispatcher scatterBatchDispatcher;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     /**
@@ -230,8 +235,14 @@ public class ScatterDispatchManager implements SmartLifecycle {
         try (Tracer.SpanInScope ignored = tracer.withSpan(span.start())) {
             JobExecuteContextThreadLocalRepo.set(task.getJobExecuteContext());
             // 记录批次下发延迟：实际下发时刻 - 计划下发时刻，反映到点触发准时性与队列调度压力
-            scatterDispatchMonitor.recordDispatchDelay(System.currentTimeMillis() - task.getDispatchTime());
-            log.info("Scatter dispatch task fired: {}", task);
+            long dispatchDelayMs = System.currentTimeMillis() - task.getDispatchTime();
+            scatterDispatchMonitor.recordDispatchDelay(dispatchDelayMs);
+            // 延迟超过阈值说明到点触发不准时（队列积压/worker 繁忙），升级为 WARN 以便告警观测
+            if (dispatchDelayMs > DISPATCH_DELAY_WARN_THRESHOLD_MS) {
+                log.warn("Scatter dispatch task fired with high delay: {}ms, task: {}", dispatchDelayMs, task);
+            } else {
+                log.info("Scatter dispatch task fired, delay: {}ms, task: {}", dispatchDelayMs, task);
+            }
             scatterBatchDispatcher.dispatchBatch(
                 task.getTaskInstanceId(),
                 task.getStepInstanceId(),

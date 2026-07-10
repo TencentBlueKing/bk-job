@@ -48,7 +48,7 @@ data:
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
-          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback
+          source: task;step;gseTask;resultHandleTaskResume;rollingBatchDispatchResume;notifyMsg;callback;scatterBatchCancelFanout
           bindings:
             handleJobEvent-in-0:
               destination: task
@@ -98,6 +98,18 @@ data:
               binder: jobExecute
               consumer:
                 concurrency: 5
+            handleRollingBatchDispatchResumeEvent-in-0:
+              destination: rolling.batch.dispatch.resume
+              group: service.job.execute
+              binder: jobExecute
+              consumer:
+                concurrency: 5
+            rollingBatchDispatchResume-out-0:
+              destination: rolling.batch.dispatch.resume
+              group: service.job.execute
+              binder: jobExecute
+              consumer:
+                concurrency: 5
             handleNotifyMsg-in-0:
               destination: notify.msg
               group: service.job.execute
@@ -119,6 +131,16 @@ data:
             callback-out-0:
               destination: task.callback
               group: service.job.execute
+              binder: jobExecute
+              consumer:
+                concurrency: 5
+            handleScatterBatchCancelFanoutEvent-in-0:
+              destination: execute.scatter.cancel.fanout
+              binder: jobExecute
+              consumer:
+                concurrency: 5
+            scatterBatchCancelFanout-out-0:
+              destination: execute.scatter.cancel.fanout
               binder: jobExecute
               consumer:
                 concurrency: 5
@@ -148,6 +170,12 @@ data:
               resultHandleTaskResume-out-0:
                 consumer:
                   maxConcurrency: 10
+              handleRollingBatchDispatchResumeEvent-in-0:
+                consumer:
+                  maxConcurrency: 10
+              rollingBatchDispatchResume-out-0:
+                consumer:
+                  maxConcurrency: 10
               handleNotifyMsg-in-0:
                 consumer:
                   maxConcurrency: 10
@@ -160,8 +188,18 @@ data:
               callback-out-0:
                 consumer:
                   maxConcurrency: 10
+              handleScatterBatchCancelFanoutEvent-in-0:
+                consumer:
+                  maxConcurrency: 5
+                  exchangeType: fanout
+              scatterBatchCancelFanout-out-0:
+                producer:
+                  exchangeType: fanout
+                consumer:
+                  maxConcurrency: 5
+                  exchangeType: fanout
         function:
-          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
+          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleRollingBatchDispatchResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer;handleScatterBatchCancelFanoutEvent
       datasource:
         {{- if .Values.executeConfig.mysql.standalone.enabled }}
         job-execute:

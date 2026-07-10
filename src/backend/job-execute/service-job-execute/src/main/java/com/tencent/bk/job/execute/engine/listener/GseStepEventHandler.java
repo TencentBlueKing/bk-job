@@ -35,6 +35,7 @@ import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.ScatterBatchCancelEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -617,7 +618,15 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
                     taskInstanceId, stepInstance.getRollingConfigId());
                 if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                    // 本副本直接取消并收敛（即时性）
                     cancelUnDispatchedBatchesForStop(stepInstance, rollingConfig);
+                    // #3A 广播到所有副本（fanout，含自身），让其它副本即时取消并收敛其本地队列中的未下发批次。
+                    // 未下发批次仅存在于唯一持有副本队列：若终止落到该持有副本，上面已就地取消，自身广播到达时
+                    // 队列已空（cancelStepTasks 返回空）天然幂等；若落到非持有副本，则由广播抵达持有副本完成取消。
+                    // 广播仅作即时性优化，即使丢失仍由 ScatterBatchDispatcher 到点兜底收敛保证最终正确性。
+                    taskExecuteMQEventDispatcher.broadcastScatterBatchCancelEvent(
+                        ScatterBatchCancelEvent.cancel(taskInstanceId, stepInstanceId,
+                            stepInstance.getExecuteCount()));
                 }
             }
         }
@@ -627,9 +636,14 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
      * 并行错峰模式整步终止：取消本副本延迟队列中未下发的批次，并将其置为终止成功以参与完成判定。
      * <p>
      * 注意：未下发批次仅存在于「触发调度副本」的本地内存队列，而终止事件经 MQ 被任一副本竞争消费，
-     * 故本副本可能取消到 0 个批次（终止落到非调度副本）。这是允许的：未被本副本取消的未下发批次，
-     * 会在其所属副本到点触发下发时，由 {@link com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchDispatcher}
-     * 感知步骤已处于终止/终态语义而自行收敛（到点兜底），最终仍能使步骤正常收敛，不会永久卡在 STOPPING。
+     * 故本副本可能取消到 0 个批次（终止落到非调度副本）。此时依靠两道保障使步骤仍能正常收敛，不会永久卡在 STOPPING：
+     * <ul>
+     *     <li>#3A 广播即时取消：终止路径另发 {@link ScatterBatchCancelEvent} 广播到所有副本，持有队列副本收到后
+     *     就地取消并收敛（见 {@link ScatterBatchCancelListener}）；</li>
+     *     <li>B 兜底：即使广播丢失，未取消批次到点触发下发时由
+     *     {@link com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchDispatcher} 感知步骤处于终止/终态
+     *     语义而自行收敛。</li>
+     * </ul>
      */
     private void cancelUnDispatchedBatchesForStop(StepInstanceDTO stepInstance, RollingConfigDTO rollingConfig) {
         long taskInstanceId = stepInstance.getTaskInstanceId();
