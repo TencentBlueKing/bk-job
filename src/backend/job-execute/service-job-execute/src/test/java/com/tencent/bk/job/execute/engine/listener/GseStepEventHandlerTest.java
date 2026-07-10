@@ -274,11 +274,20 @@ class GseStepEventHandlerTest {
         stepInstance.setStatus(RunStatusEnum.STOP_SUCCESS);
         when(gseTaskService.saveGseTask(any())).thenReturn(GSE_TASK_ID);
         when(filePrepareService.needToPrepareSourceFilesForGseTask(any())).thenReturn(false);
-        // 模拟真实 DAO：每次查询上一次执行的执行对象任务都返回「全批次」的新副本
+        // 模拟真实 DAO 的按批次查询：携带具体 batch 时仅返回该批次的执行对象任务；
+        // batch 为 null 时才返回全批次（与 FileExecuteObjectTaskDAOImpl.listTasks 的 batch 过滤语义一致）
         when(fileExecuteObjectTaskService.listTasks(any(), eq(retryExecuteCount - 1), any(), any()))
-            .thenAnswer(invocation -> buildAllBatchExecuteObjectTasks(totalBatch, retryExecuteCount - 1));
+            .thenAnswer(invocation -> buildBatchExecuteObjectTasks(
+                totalBatch, retryExecuteCount - 1, invocation.getArgument(2)));
 
         handler.handleEvent(StepEvent.retryStepAll(JOB_INSTANCE_ID, STEP_INSTANCE_ID), stepInstance);
+
+        // 关键优化断言：并行重试在查询层就按批次过滤，每批仅查询「当前 batch」的执行对象任务，
+        // 而非查询全量后在内存中过滤，故 listTasks 被逐批调用且批次参数恰为 1..totalBatch。
+        ArgumentCaptor<Integer> queryBatchCaptor = ArgumentCaptor.forClass(Integer.class);
+        verify(fileExecuteObjectTaskService, org.mockito.Mockito.times(totalBatch))
+            .listTasks(any(), eq(retryExecuteCount - 1), queryBatchCaptor.capture(), any());
+        assertThat(queryBatchCaptor.getAllValues()).containsExactlyInAnyOrder(1, 2, 3, 4);
 
         // 批1 立即下发（MQ 事件），批2..N 进入错峰延迟队列
         verify(taskExecuteMQEventDispatcher, org.mockito.Mockito.times(1)).dispatchGseTaskEvent(any());
@@ -364,9 +373,21 @@ class GseStepEventHandlerTest {
         return stepInstance;
     }
 
-    private java.util.List<ExecuteObjectTask> buildAllBatchExecuteObjectTasks(int totalBatch, int executeCount) {
+    /**
+     * 构造模拟 DAO 返回的执行对象任务：
+     * <ul>
+     *     <li>{@code queryBatch} 为 null：返回全批次（每批一个执行对象），模拟不带 batch 条件的查询；</li>
+     *     <li>{@code queryBatch} 非 null：仅返回该批次的执行对象，模拟带 batch=? 条件的查询。</li>
+     * </ul>
+     */
+    private java.util.List<ExecuteObjectTask> buildBatchExecuteObjectTasks(int totalBatch,
+                                                                           int executeCount,
+                                                                           Integer queryBatch) {
         java.util.List<ExecuteObjectTask> tasks = new java.util.ArrayList<>();
         for (int batch = 1; batch <= totalBatch; batch++) {
+            if (queryBatch != null && batch != queryBatch) {
+                continue;
+            }
             ExecuteObject executeObject = mock(ExecuteObject.class);
             when(executeObject.isExecutable()).thenReturn(true);
             when(executeObject.getId()).thenReturn("eo-" + batch);

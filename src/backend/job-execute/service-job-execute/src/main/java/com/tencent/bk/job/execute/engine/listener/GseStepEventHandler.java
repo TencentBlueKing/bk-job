@@ -850,13 +850,10 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                                                              int batch,
                                                              Long gseTaskId,
                                                              boolean retryAll) {
-        List<ExecuteObjectTask> previousExecuteObjectTasks =
-            listTargetExecuteObjectTasks(stepInstance, executeCount - 1);
-        List<ExecuteObjectTask> batchExecuteObjectTasks = new ArrayList<>();
-        for (ExecuteObjectTask executeObjectTask : previousExecuteObjectTasks) {
-            if (executeObjectTask.getBatch() != batch) {
-                continue;
-            }
+        // 仅查询「当前批次」的前序执行对象任务，避免逐批循环时重复加载全量数据造成的查询与内存浪费
+        List<ExecuteObjectTask> batchExecuteObjectTasks =
+            listTargetExecuteObjectTasks(stepInstance, executeCount - 1, batch);
+        for (ExecuteObjectTask executeObjectTask : batchExecuteObjectTasks) {
             executeObjectTask.setExecuteCount(executeCount);
             boolean needRetry = retryAll
                 || !ExecuteObjectTaskStatusEnum.isSuccess(executeObjectTask.getStatus());
@@ -867,17 +864,29 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 }
                 executeObjectTask.setGseTaskId(gseTaskId);
             }
-            batchExecuteObjectTasks.add(executeObjectTask);
         }
         saveExecuteObjectTasks(stepInstance, batchExecuteObjectTasks);
     }
 
     private List<ExecuteObjectTask> listTargetExecuteObjectTasks(StepInstanceBaseDTO stepInstance, int executeCount) {
+        return listTargetExecuteObjectTasks(stepInstance, executeCount, null);
+    }
+
+    /**
+     * 查询步骤的目标执行对象任务，可按批次过滤。
+     *
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        目标批次；为 {@code null} 时查询全部批次
+     */
+    private List<ExecuteObjectTask> listTargetExecuteObjectTasks(StepInstanceBaseDTO stepInstance,
+                                                                 int executeCount,
+                                                                 Integer batch) {
         List<ExecuteObjectTask> executeObjectTasks = Collections.emptyList();
         if (stepInstance.isScriptStep()) {
-            executeObjectTasks = scriptExecuteObjectTaskService.listTasks(stepInstance, executeCount, null);
+            executeObjectTasks = scriptExecuteObjectTaskService.listTasks(stepInstance, executeCount, batch);
         } else if (stepInstance.isFileStep()) {
-            executeObjectTasks = fileExecuteObjectTaskService.listTasks(stepInstance, executeCount, null,
+            executeObjectTasks = fileExecuteObjectTaskService.listTasks(stepInstance, executeCount, batch,
                 FileTaskModeEnum.DOWNLOAD);
         }
         return executeObjectTasks;
