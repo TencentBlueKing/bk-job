@@ -95,7 +95,7 @@ public class ScatterDispatchManager implements SmartLifecycle {
             return;
         }
         // 在登记线程（原始请求/MQ 消费线程，携带 trace 上下文）捕获 Span 与作业执行上下文，
-        // 供到点触发线程重建 trace，使错峰批次（批2/3/4）日志带上可追踪的 traceId。
+        // 供到点触发线程重建 trace，使错峰批次日志带上可追踪的 traceId。
         task.bindTraceContext(tracer.currentSpan(), JobExecuteContextThreadLocalRepo.get());
         log.info("Add scatter dispatch task: {}", task);
         tasksQueue.add(task);

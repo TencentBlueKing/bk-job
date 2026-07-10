@@ -73,24 +73,12 @@ public class ScatterBatchDispatcher {
     }
 
     /**
-     * 下发指定批次。幂等：若步骤已非运行态或该批次已下发则跳过。
-     *
-     * @param taskInstanceId 作业实例ID
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动批次
-     */
-    public void dispatchBatch(Long taskInstanceId, long stepInstanceId, int executeCount, int batch) {
-        dispatchBatch(taskInstanceId, stepInstanceId, executeCount, batch, null);
-    }
-
-    /**
      * 下发指定批次。
      *
-     * @param taskInstanceId     作业实例ID
-     * @param stepInstanceId     步骤实例ID
-     * @param executeCount       执行次数
-     * @param batch              滚动批次
+     * @param taskInstanceId       作业实例ID
+     * @param stepInstanceId       步骤实例ID
+     * @param executeCount         执行次数
+     * @param batch                滚动批次
      * @param preassignedGseTaskId 预分配的 GSE 任务ID；非 null 则直接发事件、不再创建/绑定
      */
     public void dispatchBatch(Long taskInstanceId,
@@ -111,7 +99,7 @@ public class ScatterBatchDispatcher {
         }
         if (executeCount != stepInstance.getExecuteCount()) {
             log.info("Scatter dispatch skip, execute count changed. stepInstanceId={}, batch={}, "
-                + "eventExecuteCount={}, curExecuteCount={}", stepInstanceId, batch, executeCount,
+                    + "eventExecuteCount={}, curExecuteCount={}", stepInstanceId, batch, executeCount,
                 stepInstance.getExecuteCount());
             return;
         }

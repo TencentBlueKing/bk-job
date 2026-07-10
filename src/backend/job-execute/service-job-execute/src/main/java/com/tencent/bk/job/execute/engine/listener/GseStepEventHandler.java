@@ -614,7 +614,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
                     taskInstanceId, stepInstance.getRollingConfigId());
                 if (rollingConfig != null && rollingConfig.isParallelExecution()) {
-                    cancelUndispatchedBatchesForStop(stepInstance, rollingConfig);
+                    cancelUnDispatchedBatchesForStop(stepInstance, rollingConfig);
                 }
             }
         }
@@ -623,7 +623,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
     /**
      * 并行错峰模式整步终止：取消未下发批次（从延迟队列移除），并将其置为终止成功以参与完成判定。
      */
-    private void cancelUndispatchedBatchesForStop(StepInstanceDTO stepInstance, RollingConfigDTO rollingConfig) {
+    private void cancelUnDispatchedBatchesForStop(StepInstanceDTO stepInstance, RollingConfigDTO rollingConfig) {
         long taskInstanceId = stepInstance.getTaskInstanceId();
         long stepInstanceId = stepInstance.getId();
         int executeCount = stepInstance.getExecuteCount();

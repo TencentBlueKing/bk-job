@@ -31,8 +31,8 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchFinishResult;
 import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchManager;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -54,8 +54,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -295,20 +299,20 @@ class GseStepEventHandlerTest {
             ArgumentCaptor.forClass(com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchTask.class);
         verify(scatterDispatchManager, org.mockito.Mockito.times(totalBatch - 1)).addTask(scatterCaptor.capture());
         // 入队批次为 2..N，且 executeCount 使用递增后的新执行次数
-        java.util.List<Integer> scatterBatches = scatterCaptor.getAllValues().stream()
+        List<Integer> scatterBatches = scatterCaptor.getAllValues().stream()
             .peek(task -> assertThat(task.getExecuteCount()).isEqualTo(retryExecuteCount))
             .map(com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchTask::getBatch)
             .sorted()
-            .collect(java.util.stream.Collectors.toList());
+            .collect(Collectors.toList());
         assertThat(scatterBatches).containsExactly(2, 3, 4);
 
         // 关键回归断言：各批执行对象任务只按「本批次」插入一次，(batch, executeObjectId) 不重复，
         // 避免逐批循环重复插入全批次而违反唯一键 uk_step_id_execute_count_batch_mode_execute_obj_id。
-        ArgumentCaptor<java.util.Collection<ExecuteObjectTask>> saveCaptor =
-            ArgumentCaptor.forClass(java.util.Collection.class);
+        ArgumentCaptor<Collection<ExecuteObjectTask>> saveCaptor =
+            ArgumentCaptor.forClass(Collection.class);
         verify(fileExecuteObjectTaskService, org.mockito.Mockito.atLeastOnce()).batchSaveTasks(saveCaptor.capture());
-        java.util.List<String> savedKeys = new java.util.ArrayList<>();
-        for (java.util.Collection<ExecuteObjectTask> saved : saveCaptor.getAllValues()) {
+        List<String> savedKeys = new ArrayList<>();
+        for (Collection<ExecuteObjectTask> saved : saveCaptor.getAllValues()) {
             for (ExecuteObjectTask task : saved) {
                 // 所有落库执行对象任务都必须使用递增后的新执行次数
                 assertThat(task.getExecuteCount()).isEqualTo(retryExecuteCount);
@@ -380,10 +384,10 @@ class GseStepEventHandlerTest {
      *     <li>{@code queryBatch} 非 null：仅返回该批次的执行对象，模拟带 batch=? 条件的查询。</li>
      * </ul>
      */
-    private java.util.List<ExecuteObjectTask> buildBatchExecuteObjectTasks(int totalBatch,
-                                                                           int executeCount,
-                                                                           Integer queryBatch) {
-        java.util.List<ExecuteObjectTask> tasks = new java.util.ArrayList<>();
+    private List<ExecuteObjectTask> buildBatchExecuteObjectTasks(int totalBatch,
+                                                                 int executeCount,
+                                                                 Integer queryBatch) {
+        List<ExecuteObjectTask> tasks = new ArrayList<>();
         for (int batch = 1; batch <= totalBatch; batch++) {
             if (queryBatch != null && batch != queryBatch) {
                 continue;

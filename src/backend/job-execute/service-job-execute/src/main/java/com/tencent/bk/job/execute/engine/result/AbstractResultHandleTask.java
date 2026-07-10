@@ -253,7 +253,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.gseTask = gseTask;
         // 并行错峰模式下 step_instance.batch 恒为初始批次，不随各并发批次推进；而每个 GSE 任务对应确定的批次。
         // 结果处理(含优雅停机后在其它实例的续跑重建)按当前 GSE 任务所属批次校正 stepInstance，
-        // 使结果日志写入(addFileTaskLog 依据 stepInstance.getBatch())按各自 batch 隔离，避免 2/3/4 批日志被写到 batch=1。
+        // 使结果日志写入(addFileTaskLog 依据 stepInstance.getBatch())按各自 batch 隔离，避免其他批日志被写到 batch=1。
         // 串行/非滚动场景 gseTask.getBatch() 与 stepInstance.getBatch() 本就一致，此处为无副作用的对齐。
         stepInstance.setBatch(gseTask.getBatch());
         this.executeObjectTasks = executeObjectTasks;
