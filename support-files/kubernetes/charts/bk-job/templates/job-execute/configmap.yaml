@@ -278,6 +278,9 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        runningJobQuota:
+          reconcile:
+            enabled: {{ .Values.executeConfig.runningJobQuota.reconcile.enabled }}
         check-callback-url:
           {{- toYaml .Values.executeConfig.checkCallbackUrl | nindent 10 }}
         result:

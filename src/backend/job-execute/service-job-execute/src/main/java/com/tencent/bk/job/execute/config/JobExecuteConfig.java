@@ -86,4 +86,10 @@ public class JobExecuteConfig {
      */
     @Value("${job.execute.rolling.scatter.worker-num:5}")
     private int rollingScatterWorkerNum;
+
+    /**
+     * 是否启用「运行中作业配额」系统级加权计数的周期性对账任务，默认启用
+     */
+    @Value("${job.execute.runningJobQuota.reconcile.enabled:true}")
+    private boolean runningJobQuotaReconcileEnabled;
 }

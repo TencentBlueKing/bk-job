@@ -252,3 +252,7 @@ job:
       # 存储要分发的文件的根目录，二进制环境下与存储临时文件的根目录一致
       distribute:
         root-path: __BK_HOME__/public/job
+    # 运行中作业配额系统级加权计数的周期性对账（每5分钟，多副本下分布式唯一执行），默认开启
+    runningJobQuota:
+      reconcile:
+        enabled: true
