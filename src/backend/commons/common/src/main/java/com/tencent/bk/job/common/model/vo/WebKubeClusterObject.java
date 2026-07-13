@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -33,12 +32,12 @@ import lombok.Data;
  * <p>
  * 只取前端从 {@code /topology/container} 拉到的拓扑树节点 {@code instanceId} 作为 {@code id}
  * （CMDB 集群内部 ID）。展示名不落库、后端不使用，回显时前端拿 id 走别的接口查名。
+ * id 非空由 {@code WebContainerConditionFilterValidator} 统一校验。
  */
 @Data
 @Schema(description = "动态条件过滤器-集群拓扑对象（Web 层入参）")
 public class WebKubeClusterObject {
 
     @Schema(description = "集群 ID（CMDB 内部 ID，对应拓扑树 instanceId）")
-    @NotNull(message = "{validation.constraints.WebKubeClusterObject_idMissing.message}")
     private Long id;
 }

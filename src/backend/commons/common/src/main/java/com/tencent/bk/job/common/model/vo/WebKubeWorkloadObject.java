@@ -25,8 +25,6 @@
 package com.tencent.bk.job.common.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -35,17 +33,16 @@ import lombok.Data;
  * 与 cluster/namespace 不同，workload 的「类型」是节点本身的属性，独立携带 {@code kind}
  * （对应 {@code /topology/container} 返回中的 {@code objectId}，取值如 deployment / daemonSet /
  * statefulSet 等）；不同 topo 可携带不同 kind 的 workload，允许混合多种类型。
+ * kind 非空且需为合法 workload 类型、id 非空，均由 {@code WebContainerConditionFilterValidator} 统一校验。
  */
 @Data
 @Schema(description = "动态条件过滤器-workload 拓扑对象（Web 层入参）")
 public class WebKubeWorkloadObject {
 
-    @Schema(description = "workload 类型，对应拓扑树 objectId："
-        + "deployment / daemonSet / statefulSet / gameStatefulSet / gameDeployment / cronJob / job / customResource")
-    @NotBlank(message = "{validation.constraints.WebKubeWorkloadObject_kindMissing.message}")
+    @Schema(description = "workload 类型，对应拓扑树 objectId，取值见 KubeTopoNodeTypeEnum 的 workload 类型："
+        + "deployment / daemonSet / statefulSet / cronJob / job / customResource")
     private String kind;
 
     @Schema(description = "workload ID（CMDB 内部 ID，对应拓扑树 instanceId）")
-    @NotNull(message = "{validation.constraints.WebKubeWorkloadObject_idMissing.message}")
     private Long id;
 }

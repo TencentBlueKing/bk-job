@@ -24,9 +24,10 @@
 
 package com.tencent.bk.job.common.cc.util;
 
-import com.tencent.bk.job.common.cc.constants.KubeTopoNodeTypeEnum;
 import com.tencent.bk.job.common.cc.model.container.KubeNodeID;
+import com.tencent.bk.job.common.constant.KubeTopoNodeTypeEnum;
 import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
+import com.tencent.bk.job.common.model.dto.KubeWorkloadObjectDTO;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
@@ -36,7 +37,8 @@ import java.util.List;
  * 容器拓扑路径工具：把 Web 入口形态的拓扑路径列表（{@link KubeTopoDTO}）解析为 CMDB 拓扑节点 ID 列表。
  * <p>
  * Web 入口的 id 已经是 CMDB 内部拓扑节点 ID，无需二次访问 CMDB。每条 topo 取其「最精细的已选节点」：
- * workload → namespace → cluster（cluster 必填兜底）。cmdb-sdk 查询与 job-execute 运行时解析共用同一套规则。
+ * 选了 workloads 则逐个展开为 workload 节点，否则退到 namespace，再退到 cluster（cluster 必填兜底）。
+ * cmdb-sdk 查询与 job-execute 运行时解析共用同一套规则。
  */
 public final class KubeTopoUtil {
 
@@ -45,7 +47,7 @@ public final class KubeTopoUtil {
 
     /**
      * 逐条拓扑路径取最精细节点，汇总为 CMDB 拓扑节点 ID 列表。
-     * 入参为空时返回空列表。
+     * 一条 topo 若选了多个 workload 会展开为多个节点。入参为空时返回空列表。
      */
     public static List<KubeNodeID> toNodeIdList(List<KubeTopoDTO> kubeTopoList) {
         if (CollectionUtils.isEmpty(kubeTopoList)) {
@@ -53,30 +55,33 @@ public final class KubeTopoUtil {
         }
         List<KubeNodeID> nodeIdList = new ArrayList<>(kubeTopoList.size());
         for (KubeTopoDTO topo : kubeTopoList) {
-            KubeNodeID nodeId = toNodeId(topo);
-            if (nodeId != null) {
-                nodeIdList.add(nodeId);
-            }
+            nodeIdList.addAll(toNodeIds(topo));
         }
         return nodeIdList;
     }
 
     /**
-     * 单条拓扑路径取最精细节点：workload → namespace → cluster；均为空则返回 null。
+     * 单条拓扑路径取最精细节点：选了 workloads 则逐个展开为 workload 节点；否则退到 namespace，再退到 cluster；
+     * 均为空则返回空列表。
      */
-    public static KubeNodeID toNodeId(KubeTopoDTO topo) {
+    public static List<KubeNodeID> toNodeIds(KubeTopoDTO topo) {
+        List<KubeNodeID> nodeIdList = new ArrayList<>();
         if (topo == null) {
-            return null;
+            return nodeIdList;
         }
-        if (topo.getWorkload() != null) {
-            return new KubeNodeID(topo.getWorkload().getKind(), topo.getWorkload().getId());
+        if (CollectionUtils.isNotEmpty(topo.getWorkloads())) {
+            for (KubeWorkloadObjectDTO workload : topo.getWorkloads()) {
+                nodeIdList.add(new KubeNodeID(workload.getKind(), workload.getId()));
+            }
+            return nodeIdList;
         }
         if (topo.getNamespace() != null) {
-            return new KubeNodeID(KubeTopoNodeTypeEnum.NAMESPACE.getValue(), topo.getNamespace().getId());
+            nodeIdList.add(new KubeNodeID(KubeTopoNodeTypeEnum.NAMESPACE.getValue(), topo.getNamespace().getId()));
+            return nodeIdList;
         }
         if (topo.getCluster() != null) {
-            return new KubeNodeID(KubeTopoNodeTypeEnum.CLUSTER.getValue(), topo.getCluster().getId());
+            nodeIdList.add(new KubeNodeID(KubeTopoNodeTypeEnum.CLUSTER.getValue(), topo.getCluster().getId()));
         }
-        return null;
+        return nodeIdList;
     }
 }

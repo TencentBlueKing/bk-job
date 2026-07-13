@@ -80,7 +80,7 @@ public final class WebContainerConditionFilterConverter {
         KubeTopoDTO topo = new KubeTopoDTO();
         topo.setCluster(toClusterObject(web.getCluster()));
         topo.setNamespace(toNamespaceObject(web.getNamespace()));
-        topo.setWorkload(toWorkloadObject(web.getWorkload()));
+        topo.setWorkloads(toWorkloadObjects(web.getWorkloads()));
         return topo;
     }
 
@@ -92,8 +92,13 @@ public final class WebContainerConditionFilterConverter {
         return web == null ? null : new KubeNamespaceObjectDTO(web.getId());
     }
 
-    private static KubeWorkloadObjectDTO toWorkloadObject(WebKubeWorkloadObject web) {
-        return web == null ? null : new KubeWorkloadObjectDTO(web.getKind(), web.getId());
+    private static List<KubeWorkloadObjectDTO> toWorkloadObjects(List<WebKubeWorkloadObject> webList) {
+        if (webList == null) {
+            return null;
+        }
+        return webList.stream()
+            .map(web -> web == null ? null : new KubeWorkloadObjectDTO(web.getKind(), web.getId()))
+            .collect(Collectors.toList());
     }
 
     private static List<KubePropCondition> clonePropConditions(List<KubePropCondition> propConditions) {
@@ -145,7 +150,7 @@ public final class WebContainerConditionFilterConverter {
         WebKubeTopo web = new WebKubeTopo();
         web.setCluster(fromClusterObject(internal.getCluster()));
         web.setNamespace(fromNamespaceObject(internal.getNamespace()));
-        web.setWorkload(fromWorkloadObject(internal.getWorkload()));
+        web.setWorkloads(fromWorkloadObjects(internal.getWorkloads()));
         return web;
     }
 
@@ -165,6 +170,15 @@ public final class WebContainerConditionFilterConverter {
         WebKubeNamespaceObject web = new WebKubeNamespaceObject();
         web.setId(internal.getId());
         return web;
+    }
+
+    private static List<WebKubeWorkloadObject> fromWorkloadObjects(List<KubeWorkloadObjectDTO> internalList) {
+        if (internalList == null) {
+            return null;
+        }
+        return internalList.stream()
+            .map(WebContainerConditionFilterConverter::fromWorkloadObject)
+            .collect(Collectors.toList());
     }
 
     private static WebKubeWorkloadObject fromWorkloadObject(KubeWorkloadObjectDTO internal) {

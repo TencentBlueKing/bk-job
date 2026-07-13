@@ -182,9 +182,10 @@ class KubeContainerFilterJsonCompatibilityTest {
                 + "\"kubeTopoList\":["
                 + "  {\"cluster\":{\"id\":1000,\"name\":\"集群1000\"},"
                 + "   \"namespace\":{\"id\":10000},"
-                + "   \"workload\":{\"kind\":\"deployment\",\"id\":20000}},"
+                + "   \"workloads\":[{\"kind\":\"deployment\",\"id\":20000},"
+                + "                   {\"kind\":\"statefulSet\",\"id\":20002}]},"
                 + "  {\"cluster\":{\"id\":1001},"
-                + "   \"workload\":{\"kind\":\"daemonSet\",\"id\":20001}}"
+                + "   \"workloads\":[{\"kind\":\"daemonSet\",\"id\":20001}]}"
                 + "],"
                 + "\"propConditions\":[{\"field\":\"pod_name\",\"operator\":\"equal\",\"value\":\"pod-a\"}]"
                 + "}";
@@ -196,11 +197,14 @@ class KubeContainerFilterJsonCompatibilityTest {
             KubeTopoDTO topo0 = filter.getKubeTopoList().get(0);
             assertThat(topo0.getCluster().getId()).isEqualTo(1000L);
             assertThat(topo0.getNamespace().getId()).isEqualTo(10000L);
-            assertThat(topo0.getWorkload().getKind()).isEqualTo("deployment");
+            assertThat(topo0.getWorkloads()).hasSize(2);
+            assertThat(topo0.getWorkloads().get(0).getKind()).isEqualTo("deployment");
+            assertThat(topo0.getWorkloads().get(1).getKind()).isEqualTo("statefulSet");
             KubeTopoDTO topo1 = filter.getKubeTopoList().get(1);
             assertThat(topo1.getCluster().getId()).isEqualTo(1001L);
             assertThat(topo1.getNamespace()).isNull();
-            assertThat(topo1.getWorkload().getKind()).isEqualTo("daemonSet");
+            assertThat(topo1.getWorkloads()).hasSize(1);
+            assertThat(topo1.getWorkloads().get(0).getKind()).isEqualTo("daemonSet");
             // v4 字段未被污染
             assertThat(filter.getClusterFilter()).isNull();
             assertThat(filter.getNamespaceFilter()).isNull();
@@ -214,11 +218,12 @@ class KubeContainerFilterJsonCompatibilityTest {
             filter.setKubeTopoList(Collections.singletonList(new KubeTopoDTO(
                 new KubeClusterObjectDTO(1000L),
                 new KubeNamespaceObjectDTO(10000L),
-                new KubeWorkloadObjectDTO("deployment", 20000L))));
+                Collections.singletonList(new KubeWorkloadObjectDTO("deployment", 20000L)))));
 
             String json = JsonUtils.toJson(filter);
             assertThat(json).contains("\"kubeTopoList\"")
                 .contains("\"cluster\"")
+                .contains("\"workloads\"")
                 .contains("\"id\":1000")
                 .contains("\"kind\":\"deployment\"")
                 .doesNotContain("\"name\"");
@@ -230,19 +235,22 @@ class KubeContainerFilterJsonCompatibilityTest {
             KubeContainerFilter original = new KubeContainerFilter();
             original.setKubeTopoList(Arrays.asList(
                 new KubeTopoDTO(new KubeClusterObjectDTO(1000L), null,
-                    new KubeWorkloadObjectDTO("deployment", 20000L)),
+                    Arrays.asList(new KubeWorkloadObjectDTO("deployment", 20000L),
+                        new KubeWorkloadObjectDTO("statefulSet", 20002L))),
                 new KubeTopoDTO(new KubeClusterObjectDTO(1001L), null,
-                    new KubeWorkloadObjectDTO("daemonSet", 20001L))
+                    Collections.singletonList(new KubeWorkloadObjectDTO("daemonSet", 20001L)))
             ));
 
             KubeContainerFilter back = JsonUtils.fromJson(JsonUtils.toJson(original), KubeContainerFilter.class);
 
             assertThat(back.getKubeTopoList()).hasSize(2);
             assertThat(back.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
-            assertThat(back.getKubeTopoList().get(0).getWorkload().getKind()).isEqualTo("deployment");
-            assertThat(back.getKubeTopoList().get(0).getWorkload().getId()).isEqualTo(20000L);
+            assertThat(back.getKubeTopoList().get(0).getWorkloads()).hasSize(2);
+            assertThat(back.getKubeTopoList().get(0).getWorkloads().get(0).getKind()).isEqualTo("deployment");
+            assertThat(back.getKubeTopoList().get(0).getWorkloads().get(0).getId()).isEqualTo(20000L);
+            assertThat(back.getKubeTopoList().get(0).getWorkloads().get(1).getKind()).isEqualTo("statefulSet");
             assertThat(back.getKubeTopoList().get(1).getCluster().getId()).isEqualTo(1001L);
-            assertThat(back.getKubeTopoList().get(1).getWorkload().getKind()).isEqualTo("daemonSet");
+            assertThat(back.getKubeTopoList().get(1).getWorkloads().get(0).getKind()).isEqualTo("daemonSet");
         }
     }
 }

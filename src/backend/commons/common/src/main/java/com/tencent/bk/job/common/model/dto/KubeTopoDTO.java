@@ -28,13 +28,17 @@ import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 容器拓扑路径（Web 入口的内部流转 / 持久化形态）。
  * <p>
- * 一条 topo 表示一个精确的 cluster→namespace→workload 路径：cluster 必填，namespace / workload 可选。
+ * 一条 topo 表示一个 cluster→namespace→workloads 路径：cluster 必填，namespace 可选，workloads 可选且可多选。
  * 只持久化 CMDB 内部 ID：ID 用于运行时 CMDB 查询；展示名不落库，回显时前端拿 id 走别的接口查名。
- * 运行时对每条 topo 取其最精细的已选节点（workload → namespace → cluster）作为拓扑节点。
+ * 运行时对每条 topo 取其最精细的已选节点：选了 workloads 则逐个展开，否则退到 namespace，再退到 cluster。
  */
 @Data
 @NoArgsConstructor
@@ -44,7 +48,7 @@ public class KubeTopoDTO implements Cloneable {
 
     private KubeClusterObjectDTO cluster;
     private KubeNamespaceObjectDTO namespace;
-    private KubeWorkloadObjectDTO workload;
+    private List<KubeWorkloadObjectDTO> workloads;
 
     @Override
     public KubeTopoDTO clone() {
@@ -55,8 +59,10 @@ public class KubeTopoDTO implements Cloneable {
         if (namespace != null) {
             clone.setNamespace(namespace.clone());
         }
-        if (workload != null) {
-            clone.setWorkload(workload.clone());
+        if (CollectionUtils.isNotEmpty(workloads)) {
+            List<KubeWorkloadObjectDTO> cloneWorkloads = new ArrayList<>(workloads.size());
+            workloads.forEach(workload -> cloneWorkloads.add(workload.clone()));
+            clone.setWorkloads(cloneWorkloads);
         }
         return clone;
     }

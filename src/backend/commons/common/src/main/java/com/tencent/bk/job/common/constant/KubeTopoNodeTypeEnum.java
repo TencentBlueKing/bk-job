@@ -22,20 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.constants;
+package com.tencent.bk.job.common.constant;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
- * 容器拓扑节点资源类型
+ * 容器拓扑节点资源类型。cluster / namespace 是拓扑层级，其余为 workload 的具体类型。
  */
 public enum KubeTopoNodeTypeEnum {
     CLUSTER("cluster"),
     NAMESPACE("namespace"),
+
+    // ----------------------------------- workload 类型 ------------------------------
     DEPLOYMENT("deployment"),
     DAEMON_SET("daemonSet"),
     STATEFUL_SET("statefulSet"),
     CRON_JOB("cronJob"),
     JOB("job"),
-    CUSTOM_RESOURCE("customResource");
+    CUSTOM_RESOURCE("customResource"),
+    GAME_STATEFUL_SET("gameStatefulSet"),
+    GAME_DEPLOYMENT("gameDeployment"),
+    PODS("pods");
+
+    /**
+     * workload 层级的节点类型（排除 cluster / namespace）。
+     */
+    private static final Set<KubeTopoNodeTypeEnum> WORKLOAD_TYPES = EnumSet.of(
+        DEPLOYMENT,
+        DAEMON_SET,
+        STATEFUL_SET,
+        CRON_JOB,
+        JOB,
+        CUSTOM_RESOURCE,
+        GAME_STATEFUL_SET,
+        GAME_DEPLOYMENT,
+        PODS
+    );
 
     private final String value;
 
@@ -45,5 +68,25 @@ public enum KubeTopoNodeTypeEnum {
 
     public String getValue() {
         return value;
+    }
+
+    public static KubeTopoNodeTypeEnum fromValue(String value) {
+        for (KubeTopoNodeTypeEnum type : values()) {
+            if (type.value.equals(value)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 判断给定 kind 是否为合法的 workload 类型。
+     */
+    public static boolean isValidWorkloadKind(String kind) {
+        KubeTopoNodeTypeEnum type = fromValue(kind);
+        if (type == null) {
+            return false;
+        }
+        return WORKLOAD_TYPES.contains(type);
     }
 }

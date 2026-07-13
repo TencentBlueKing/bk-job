@@ -25,17 +25,16 @@
 package com.tencent.bk.job.common.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
  * 动态条件过滤器-namespace 拓扑对象（Web 层入参契约面）。语义见 {@link WebKubeClusterObject}。
+ * id 非空由 {@code WebContainerConditionFilterValidator} 统一校验。
  */
 @Data
 @Schema(description = "动态条件过滤器-namespace 拓扑对象（Web 层入参）")
 public class WebKubeNamespaceObject {
 
     @Schema(description = "namespace ID（CMDB 内部 ID，对应拓扑树 instanceId）")
-    @NotNull(message = "{validation.constraints.WebKubeNamespaceObject_idMissing.message}")
     private Long id;
 }

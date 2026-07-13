@@ -34,7 +34,7 @@ import lombok.Data;
  * <p>
  * 用于详情/编辑页从持久化的 {@code KubeClusterObjectDTO / KubeNamespaceObjectDTO / KubeWorkloadObjectDTO}
  * 反查展示名。type 的取值直接使用 CMDB 的 objectId，即
- * {@link com.tencent.bk.job.common.cc.constants.KubeTopoNodeTypeEnum} 中的枚举值：
+ * {@link com.tencent.bk.job.common.constant.KubeTopoNodeTypeEnum} 中的枚举值：
  * cluster / namespace / deployment / daemonSet / statefulSet / cronJob / job / customResource。
  */
 @Data

@@ -72,8 +72,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
  *   <li>{@link ExecuteTargetDTOJsonCompatibilityTest}：仅覆盖「DAO 出库」一段，断言反序列化保真度</li>
  *   <li>{@code WebContainerConditionFilterConverterTest}：仅覆盖
  *       「Web → 内部」一段的字段映射 / 防御性拷贝</li>
- *   <li>{@code WebContainerConditionFilterBeanValidationTest}：仅覆盖
- *       「Bean Validation」一段</li>
+ *   <li>{@code WebContainerConditionFilterValidatorTest}：仅覆盖 kubeTopoList / propConditions
+ *       的程序式校验规则（cluster/namespace/workload 完整性、kind 合法性等）</li>
  *   <li>本测试：把以上几段串起来跑，确保**生产链路在端到端上**仍兼容老数据，也能正确承载新特性</li>
  * </ul>
  */
@@ -211,7 +211,8 @@ class ExecuteTargetEndToEndCompatibilityTest {
 
             TaskTargetVO web = JsonUtils.fromJson(webJson, TaskTargetVO.class);
 
-            // 1. 真实 Bean Validation 跑一次：kubeTopoList 非空 + 每条 topo cluster 非空 + 元素字段非空，必须无 violation
+            // 1. 真实 Bean Validation 跑一次：kubeTopoList @NotEmpty 兜底，合法入参必须无 violation
+            //    （逐条 topo 的完整性 / 跨字段规则由 WebContainerConditionFilterValidator 程序式校验，见其单测）
             Set<ConstraintViolation<WebContainerConditionFilter>> violations = validator.validate(
                 web.getExecuteObjectsInfo().getContainerFilterList().get(0));
             assertThat(violations).isEmpty();

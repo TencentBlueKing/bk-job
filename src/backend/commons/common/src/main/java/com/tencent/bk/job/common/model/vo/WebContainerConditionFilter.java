@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.model.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
@@ -46,9 +45,9 @@ import java.util.List;
  * {@code /topology/container} 拉到的 {@code (instanceId, instanceName)}；{@code propConditions} 是所有
  * 拓扑路径共用的字段级 AND 条件。
  * <p>
- * Web 入口语义：kubeTopoList 必填非空（Web 不存在「全业务执行」入口），由字段级 Bean Validation 兜底；
- * propConditions 字段白名单/运算符派发/value 形态等业务校验依赖 OperatorDispatcher，由程序式校验器
- * {@code WebContainerConditionFilterValidator} 在 WebResource 内完成。
+ * Web 入口语义：kubeTopoList 必填非空（Web 不存在「全业务执行」入口），非空由 {@code @NotEmpty} 兜底；
+ * 每条 topo 的字段完整性 / 跨字段约束、propConditions 的字段白名单/运算符派发/value 形态等业务校验
+ * 统一由程序式校验器 {@code WebContainerConditionFilterValidator} 在 WebResource 内完成。
  */
 @Data
 @Schema(description = "动态条件过滤器（Web 层入参）")
@@ -57,7 +56,6 @@ public class WebContainerConditionFilter {
 
     @Schema(description = "拓扑路径列表，至少一项；多条路径共用同一组 propConditions")
     @NotEmpty(message = "{validation.constraints.WebContainerConditionFilter_kubeTopoListEmpty.message}")
-    @Valid
     private List<WebKubeTopo> kubeTopoList;
 
     @Schema(description = "字段级 AND 条件，承载产品上「动态条件」的 field/operator/value 三元组列表")

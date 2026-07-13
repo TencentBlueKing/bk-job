@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.cc.constants.KubeTopoNodeTypeEnum;
 import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
@@ -43,6 +42,7 @@ import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.util.KubePropConditionTranslator;
 import com.tencent.bk.job.common.cc.util.KubeTopoUtil;
+import com.tencent.bk.job.common.constant.KubeTopoNodeTypeEnum;
 import com.tencent.bk.job.common.constant.LabelSelectorOperatorEnum;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;

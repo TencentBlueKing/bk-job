@@ -68,12 +68,16 @@ class WebContainerConditionFilterConverterTest {
         KubeTopoDTO topo0 = kube.getKubeTopoList().get(0);
         assertThat(topo0.getCluster().getId()).isEqualTo(1000L);
         assertThat(topo0.getNamespace().getId()).isEqualTo(10000L);
-        assertThat(topo0.getWorkload().getKind()).isEqualTo("deployment");
-        assertThat(topo0.getWorkload().getId()).isEqualTo(20000L);
+        assertThat(topo0.getWorkloads()).hasSize(2);
+        assertThat(topo0.getWorkloads().get(0).getKind()).isEqualTo("deployment");
+        assertThat(topo0.getWorkloads().get(0).getId()).isEqualTo(20000L);
+        assertThat(topo0.getWorkloads().get(1).getKind()).isEqualTo("statefulSet");
+        assertThat(topo0.getWorkloads().get(1).getId()).isEqualTo(20002L);
         KubeTopoDTO topo1 = kube.getKubeTopoList().get(1);
         assertThat(topo1.getCluster().getId()).isEqualTo(1001L);
         assertThat(topo1.getNamespace().getId()).isEqualTo(1L);
-        assertThat(topo1.getWorkload().getKind()).isEqualTo("daemonSet");
+        assertThat(topo1.getWorkloads()).hasSize(1);
+        assertThat(topo1.getWorkloads().get(0).getKind()).isEqualTo("daemonSet");
         assertThat(kube.getPropConditions()).hasSize(2);
         assertThat(kube.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
         assertThat(kube.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
@@ -87,10 +91,10 @@ class WebContainerConditionFilterConverterTest {
     }
 
     @Test
-    @DisplayName("toKubeContainerFilter: 单条 topo 仅 cluster 时 namespace/workload/propConditions 保持 null")
+    @DisplayName("toKubeContainerFilter: 单条 topo 仅 cluster 时 namespace/workloads/propConditions 保持 null")
     void toKubeFilterMinimal() {
         WebContainerConditionFilter web = new WebContainerConditionFilter();
-        web.setKubeTopoList(Collections.singletonList(topo(cluster(1000L), null, null)));
+        web.setKubeTopoList(Collections.singletonList(topo(cluster(1000L), null)));
 
         KubeContainerFilter kube = WebContainerConditionFilterConverter.toKubeContainerFilter(web);
 
@@ -98,7 +102,7 @@ class WebContainerConditionFilterConverterTest {
         KubeTopoDTO topo = kube.getKubeTopoList().get(0);
         assertThat(topo.getCluster().getId()).isEqualTo(1000L);
         assertThat(topo.getNamespace()).isNull();
-        assertThat(topo.getWorkload()).isNull();
+        assertThat(topo.getWorkloads()).isNull();
         assertThat(kube.getPropConditions()).isNull();
     }
 
@@ -128,7 +132,9 @@ class WebContainerConditionFilterConverterTest {
         WebKubeTopo topo0 = back.getKubeTopoList().get(0);
         assertThat(topo0.getCluster().getId()).isEqualTo(1000L);
         assertThat(topo0.getNamespace().getId()).isEqualTo(10000L);
-        assertThat(topo0.getWorkload().getKind()).isEqualTo("deployment");
+        assertThat(topo0.getWorkloads()).hasSize(2);
+        assertThat(topo0.getWorkloads().get(0).getKind()).isEqualTo("deployment");
+        assertThat(topo0.getWorkloads().get(1).getKind()).isEqualTo("statefulSet");
         assertThat(back.getPropConditions()).hasSize(2);
     }
 
@@ -155,7 +161,8 @@ class WebContainerConditionFilterConverterTest {
     private static WebContainerConditionFilter buildFullWebFilter() {
         WebContainerConditionFilter web = new WebContainerConditionFilter();
         web.setKubeTopoList(Arrays.asList(
-            topo(cluster(1000L), namespace(10000L), workload("deployment", 20000L)),
+            topo(cluster(1000L), namespace(10000L),
+                workload("deployment", 20000L), workload("statefulSet", 20002L)),
             topo(cluster(1001L), namespace(1L), workload("daemonSet", 20001L))
         ));
         web.setPropConditions(Arrays.asList(
@@ -167,11 +174,11 @@ class WebContainerConditionFilterConverterTest {
 
     private static WebKubeTopo topo(WebKubeClusterObject cluster,
                                     WebKubeNamespaceObject namespace,
-                                    WebKubeWorkloadObject workload) {
+                                    WebKubeWorkloadObject... workloads) {
         WebKubeTopo t = new WebKubeTopo();
         t.setCluster(cluster);
         t.setNamespace(namespace);
-        t.setWorkload(workload);
+        t.setWorkloads(workloads.length == 0 ? null : Arrays.asList(workloads));
         return t;
     }
 
