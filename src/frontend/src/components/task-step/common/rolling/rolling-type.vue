@@ -26,74 +26,52 @@
 -->
 
 <template>
-  <bk-form-item
-    ref="bkFormItem"
-    class="jb-form-item"
-    :class="classes"
-    :error-display-type="errorDisplayType"
-    :label="label"
-    v-bind="$attrs"
-    v-on="$listeners">
-    <slot />
-  </bk-form-item>
+  <jb-form-item
+    ref="rollingType"
+    :label="$t('滚动对象')"
+    required>
+    <bk-radio-group
+      class="form-item-content radio-check"
+      :value="formData[typeField]"
+      @change="handleRollingTypeChange">
+      <bk-radio :value="1">
+        {{ $t('传输目标') }}
+      </bk-radio>
+      <bk-radio :value="2">
+        {{ $t('源文件') }}
+      </bk-radio>
+    </bk-radio-group>
+  </jb-form-item>
 </template>
-<script>
-  import dispatch from '@/utils/mixins/dispatch';
 
-  export default {
-    name: 'JbFormItem',
-    mixins: [dispatch],
-    inheritAttrs: false,
-    props: {
-      label: {
-        type: String,
-        default: '',
-      },
-      errorDisplayType: {
-        type: String,
-        default: 'normal',
-      },
+<script setup>
+  const props = defineProps({
+    typeField: {
+      type: String,
+      required: true,
     },
+    formData: {
+      type: Object,
+      required: true,
+    },
+  });
 
-    computed: {
-      classes() {
-        const classes = {
-          'label-miss': !this.label,
-        };
-        return classes;
-      },
-    },
-    mounted() {
-      this.dispatch(
-        'JbForm',
-        'form-item-change'
-      );
-    },
-    beforeDestroy() {
-      this.dispatch(
-        'JbForm',
-        'form-item-change'
-      );
-    },
-    methods: {
-      clearValidator() {
-        this.$refs.bkFormItem.clearValidator();
-      },
-    },
+  const emit = defineEmits(['on-change']);
+
+  /**
+   * @desc 滚动对象类型更新
+   * @param { Number } rollingType
+   */
+  const handleRollingTypeChange = (rollingType) => {
+    emit('on-change', props.typeField, rollingType);
   };
 </script>
-<style lang='postcss'>
-  .jb-form-item {
-    &.label-miss {
-      .bk-label {
-        height: 0;
-        min-height: 0;
-        font-size: 0;
-      }
-    }
 
-    .jb-form-item-content {
-      flex: 1;
-    }
+<style lang="postcss" scoped>
+  .radio-check {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    gap: 32px;
   }
 </style>
