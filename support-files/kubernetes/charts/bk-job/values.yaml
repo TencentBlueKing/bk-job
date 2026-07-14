@@ -1332,6 +1332,13 @@ executeConfig:
     reconcile:
       # 是否启用周期性对账（每5分钟，多副本下分布式唯一执行），默认开启
       enabled: true
+  # 滚动执行并行错峰模式配置
+  rolling:
+    scatter:
+      # 并行错峰模式下允许的最大批次总数，超出则校验拒绝，防止并行 GSE 任务规模失控，默认200
+      maxBatch: 200
+      # 并行错峰批次下发调度器的消费者线程数，默认3
+      workerNum: 3
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute

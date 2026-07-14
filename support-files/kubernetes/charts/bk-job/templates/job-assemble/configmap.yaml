@@ -502,6 +502,10 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        rolling:
+          scatter:
+            max-batch: {{ .Values.executeConfig.rolling.scatter.maxBatch }}
+            worker-num: {{ .Values.executeConfig.rolling.scatter.workerNum }}
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
         check-callback-url:

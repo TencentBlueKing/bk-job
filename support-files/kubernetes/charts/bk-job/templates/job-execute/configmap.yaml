@@ -281,6 +281,10 @@ data:
         runningJobQuota:
           reconcile:
             enabled: {{ .Values.executeConfig.runningJobQuota.reconcile.enabled }}
+        rolling:
+          scatter:
+            max-batch: {{ .Values.executeConfig.rolling.scatter.maxBatch }}
+            worker-num: {{ .Values.executeConfig.rolling.scatter.workerNum }}
         check-callback-url:
           {{- toYaml .Values.executeConfig.checkCallbackUrl | nindent 10 }}
         result:

@@ -256,3 +256,10 @@ job:
     runningJobQuota:
       reconcile:
         enabled: true
+    # 滚动执行并行错峰模式配置
+    rolling:
+      scatter:
+        # 并行错峰模式下允许的最大批次总数，超出则校验拒绝，防止并行 GSE 任务规模失控，默认200
+        max-batch: 200
+        # 并行错峰批次下发调度器的消费者线程数，默认3
+        worker-num: 3

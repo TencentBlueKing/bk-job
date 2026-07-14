@@ -84,7 +84,7 @@ public class JobExecuteConfig {
     /**
      * 滚动并行错峰调度器消费者线程数
      */
-    @Value("${job.execute.rolling.scatter.worker-num:5}")
+    @Value("${job.execute.rolling.scatter.worker-num:3}")
     private int rollingScatterWorkerNum;
 
     /**

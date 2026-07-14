@@ -90,7 +90,7 @@ public class ScatterDispatchManager implements SmartLifecycle {
         this.tracer = tracer;
         this.scatterDispatchMonitor = scatterDispatchMonitor;
         int configuredWorkerNum = jobExecuteConfig.getRollingScatterWorkerNum();
-        this.workerNum = configuredWorkerNum > 0 ? configuredWorkerNum : 5;
+        this.workerNum = configuredWorkerNum > 0 ? configuredWorkerNum : 3;
         // 绑定延迟队列积压数量 Gauge，反映待下发批次堆积情况
         this.scatterDispatchMonitor.registerQueueSizeGauge(tasksQueue::size);
     }
