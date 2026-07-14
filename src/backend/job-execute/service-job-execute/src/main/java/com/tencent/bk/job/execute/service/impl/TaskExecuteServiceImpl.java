@@ -232,6 +232,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public TaskInstanceDTO executeFastTask(FastTaskDTO fastTask) {
+        // 滚动配置相关的入参/业务校验，尽早失败（不依赖执行对象解析）
+        rollingConfigService.validateRollingConfigForFastJob(fastTask);
+
         // 设置脚本信息
         checkAndSetScript(fastTask.getOperator().getTenantId(), fastTask.getTaskInstance(), fastTask.getStepInstance());
 
@@ -307,6 +310,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 检查步骤
             watch.start("checkStepInstance");
             checkStepInstance(taskInstance, Collections.singletonList(stepInstance));
+            watch.stop();
+
+            // 校验并行错峰滚动批次总数（依赖执行对象解析结果，须在写DB前完成，避免产生脏数据）
+            watch.start("validateRollingBatchCount");
+            rollingConfigService.validateRollingBatchCountForFastJob(fastTask);
             watch.stop();
 
             // 鉴权

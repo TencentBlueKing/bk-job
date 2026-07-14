@@ -52,7 +52,9 @@ import com.tencent.bk.job.execute.model.db.StepRollingConfigDO;
 import com.tencent.bk.job.execute.service.rolling.FileSourceBatchCalculator;
 import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.rolling.StepInstanceFileBatchService;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -122,9 +124,6 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         taskInstanceRollingConfig.setConfigName(rollingConfigName);
         taskInstanceRollingConfig.setType(rollingConfig.getType());
 
-        // 并行错峰模式的跨字段/上下文校验（type=2+并行、随机上限<下限）
-        validateScatterConfig(rollingConfig);
-
         if (rollingConfig.isTargetExecuteObjectRolling()) {
             ExecuteObjectRollingConfigDetailDO executeObjectRollingConfig = buildExecuteObjectRollingConfig(
                 rollingConfig,
@@ -144,6 +143,53 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         Long rollingConfigId = addRollingConfig(taskInstanceRollingConfig);
         taskInstanceRollingConfig.setId(rollingConfigId);
         return taskInstanceRollingConfig;
+    }
+
+    @Override
+    public void validateRollingConfigForFastJob(FastTaskDTO fastTask) {
+        if (!fastTask.isRollingEnabled()) {
+            return;
+        }
+        StepRollingConfigDTO rollingConfig = fastTask.getRollingConfig();
+        if (rollingConfig == null) {
+            return;
+        }
+        // 并行错峰模式的跨字段/上下文校验（type=2+并行、随机上限<下限）
+        validateScatterConfig(rollingConfig);
+        // 源文件滚动仅支持【服务器文件】作为源文件
+        if (rollingConfig.isFileSourceRolling()) {
+            validateFileSourceRolling(fastTask);
+        }
+    }
+
+    @Override
+    public void validateRollingBatchCountForFastJob(FastTaskDTO fastTask) {
+        if (!fastTask.isRollingEnabled()) {
+            return;
+        }
+        StepRollingConfigDTO rollingConfig = fastTask.getRollingConfig();
+        // 仅并行错峰的执行对象滚动需要限制批次总数，防止并行 GSE 任务规模失控
+        if (rollingConfig == null
+            || !rollingConfig.isParallelExecution()
+            || !rollingConfig.isTargetExecuteObjectRolling()) {
+            return;
+        }
+        RollingBatchExecuteObjectsResolver resolver =
+            new RollingBatchExecuteObjectsResolver(
+                fastTask.getStepInstance().getTargetExecuteObjects().getExecuteObjectsCompatibly(),
+                rollingConfig.getExpr());
+        int totalBatch = resolver.resolve().size();
+        if (totalBatch > jobExecuteConfig.getRollingScatterMaxBatch()) {
+            log.warn("Rolling scatter total batch {} exceed limit {}",
+                totalBatch, jobExecuteConfig.getRollingScatterMaxBatch());
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                new Object[]{
+                    I18nUtil.getI18nMessage(
+                        "validation.constraints.RollingTotalBatchExceedLimit.message",
+                        new Object[]{String.valueOf(jobExecuteConfig.getRollingScatterMaxBatch())})
+                });
+        }
     }
 
     /**
@@ -170,6 +216,29 @@ public class RollingConfigServiceImpl implements RollingConfigService {
                 ErrorCode.ILLEGAL_PARAM_WITH_REASON,
                 new Object[]{
                     I18nUtil.getI18nMessage("validation.constraints.RollingBatchStartWaitRandomMaxLessThanMin.message")
+                });
+        }
+    }
+
+    /**
+     * 源文件滚动校验：源文件仅支持【服务器文件】类型
+     *
+     * @param fastTask 快速任务
+     */
+    private void validateFileSourceRolling(FastTaskDTO fastTask) {
+        List<FileSourceDTO> fileSourceList = fastTask.getStepInstance().getFileSourceList();
+        if (CollectionUtils.isEmpty(fileSourceList)) {
+            return;
+        }
+        boolean allServerFile = fileSourceList.stream()
+            .allMatch(fileSource -> fileSource.getFileType() == null
+                || fileSource.getFileType() == TaskFileTypeEnum.SERVER.getType());
+        if (!allServerFile) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                new Object[]{
+                    I18nUtil.getI18nMessage(
+                        "validation.constraints.RollingFileSourceOnlyServerFileSupported.message")
                 });
         }
     }
@@ -211,18 +280,6 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         executeObjectRollingConfig.setTotalBatch(
             executeObjectRollingConfig.getExecuteObjectsBatchListCompatibly().size()
         );
-
-        // 并行错峰模式：批次总数不得超过系统上限，防止并行 GSE 任务规模失控
-        if (rollingConfig.isParallelExecution()
-            && executeObjectRollingConfig.getTotalBatch() > jobExecuteConfig.getRollingScatterMaxBatch()) {
-            log.warn("Rolling scatter total batch {} exceed limit {}",
-                executeObjectRollingConfig.getTotalBatch(), jobExecuteConfig.getRollingScatterMaxBatch());
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_REASON,
-                new Object[]{
-                    I18nUtil.getI18nMessage("validation.constraints.RollingTotalBatchExceedLimit.message")
-                });
-        }
 
         executeObjectRollingConfig.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
         Map<Long, StepRollingConfigDO> stepRollingConfigs = new HashMap<>();
