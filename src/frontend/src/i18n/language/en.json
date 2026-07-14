@@ -75,6 +75,7 @@
   "个节点_select": "node(s)",
   "个节点_result": "node(s)",
   "个容器_result": "container(s)",
+  "个容器过滤条件_result": "container filter(s)",
   "个动态分组": "group(s) selected",
   "移除全部": "Remove all",
   "现有主机": "Including",

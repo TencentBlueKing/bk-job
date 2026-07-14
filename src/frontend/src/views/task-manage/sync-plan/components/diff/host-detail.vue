@@ -115,6 +115,8 @@
           dynamicGroupList: [],
           hostList: [],
           nodeList: [],
+          containerList: [],
+          containerFilterList: [],
         },
         nodeDiff: {},
         hostDiff: {},
@@ -136,6 +138,10 @@
       this.diffHostMemo = {};
       this.composeGroup = [];
       this.diffGroupMemo = {};
+      this.composeContainer = [];
+      this.diffContainerMemo = {};
+      this.composeContainerFilter = [];
+      this.diffContainerFilterMemo = {};
       this.checkDiff();
     },
     methods: {
@@ -219,6 +225,44 @@
 
         this.composeGroup = Object.freeze(dynamicGroupList);
         this.diffGroupMemo = Object.freeze(groupDiffMap);
+
+        // 对比容器
+        const containerDiffMap = {};
+        const containerList = [];
+        (templateValue.containerList || []).forEach((container) => {
+          containerDiffMap[container.id] = 'new';
+          containerList.push(container);
+        });
+        (planValue.containerList || []).forEach((container) => {
+          if (containerDiffMap[container.id]) {
+            containerDiffMap[container.id] = 'normal';
+          } else {
+            containerDiffMap[container.id] = 'delete';
+            containerList.push(container);
+          }
+        });
+        this.composeContainer = Object.freeze(containerList);
+        this.diffContainerMemo = Object.freeze(containerDiffMap);
+
+        // 对比容器过滤条件
+        const containerFilterDiffMap = {};
+        const containerFilterList = [];
+        const genContainerFilterId = containerFilter => JSON.stringify(containerFilter);
+        (templateValue.containerFilterList || []).forEach((containerFilter) => {
+          containerFilterDiffMap[genContainerFilterId(containerFilter)] = 'new';
+          containerFilterList.push(containerFilter);
+        });
+        (planValue.containerFilterList || []).forEach((containerFilter) => {
+          const realContainerFilterId = genContainerFilterId(containerFilter);
+          if (containerFilterDiffMap[realContainerFilterId]) {
+            containerFilterDiffMap[realContainerFilterId] = 'normal';
+          } else {
+            containerFilterDiffMap[realContainerFilterId] = 'delete';
+            containerFilterList.push(containerFilter);
+          }
+        });
+        this.composeContainerFilter = Object.freeze(containerFilterList);
+        this.diffContainerFilterMemo = Object.freeze(containerFilterDiffMap);
       },
       handlerView() {
         this.executeObjectsInfo = Object.freeze(this.data.executeObjectsInfo);
@@ -233,10 +277,14 @@
             dynamicGroupList: this.composeGroup,
             hostList: this.composeHost,
             nodeList: this.composeNode,
+            containerList: this.composeContainer,
+            containerFilterList: this.composeContainerFilter,
           });
           this.nodeDiff = this.diffNodeMemo;
           this.hostDiff = this.diffHostMemo;
           this.groupDiff = this.diffGroupMemo;
+          this.containerDiff = this.diffContainerMemo;
+          this.containerFilterDiff = this.diffContainerFilterMemo;
         } else {
           this.handlerView();
         }

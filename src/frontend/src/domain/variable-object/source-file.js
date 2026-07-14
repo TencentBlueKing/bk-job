@@ -206,7 +206,13 @@ export default class SourceFile {
       return this.host.variable;
     }
     const textArr = [];
-    const { dynamicGroupList = [], hostList = [], nodeList = [], containerList = [] } = this.host.executeObjectsInfo;
+    const {
+      dynamicGroupList = [],
+      hostList = [],
+      nodeList = [],
+      containerList = [],
+      containerFilterList = [],
+    } = this.host.executeObjectsInfo;
 
     // eslint-disable-next-line max-len
     const getHtml = (len, text) => `<span><span class="strong number">${len}</span>${text}</span>`;
@@ -221,6 +227,9 @@ export default class SourceFile {
     }
     if (containerList.length > 0) {
       textArr.push(getHtml(containerList.length, I18n.t('个容器_result')));
+    }
+    if (containerFilterList.length > 0) {
+      textArr.push(getHtml(containerFilterList.length, I18n.t('个容器过滤条件_result')));
     }
     return `${textArr.join('<span class="sep-location"></span>\n')}`;
   }

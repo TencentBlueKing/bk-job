@@ -25,6 +25,32 @@
 
 import I18n from '@/i18n';
 
+/**
+ * @desc 深拷贝容器过滤条件列表
+ * @param { Array } containerFilterList
+ * @returns { Array }
+ *
+ * containerFilterList 结构：
+ * {
+ *   kubeTopoList: {
+ *     cluster: { id },
+ *     namespace: { id } | null,
+ *     workloads: { kind, id }[],
+ *   }[],
+ *   propConditions: { field, operator, value }[] | null,
+ * }[]
+ */
+const cloneContainerFilterList = (containerFilterList = []) => containerFilterList.map(({ kubeTopoList = [], propConditions = null }) => ({
+  kubeTopoList: kubeTopoList.map(({ cluster, namespace = null, workloads = [] }) => ({
+    cluster: cluster ? { ...cluster } : cluster,
+    namespace: namespace ? { ...namespace } : null,
+    workloads: workloads.map(workload => ({ ...workload })),
+  })),
+  propConditions: propConditions
+    ? propConditions.map(propCondition => ({ ...propCondition }))
+    : null,
+}));
+
 export default class ExecuteObjectsInfo {
   static isExecuteObjectsInfoEmpty(executeObjectsInfo) {
     const {
@@ -32,12 +58,14 @@ export default class ExecuteObjectsInfo {
       hostList = [],
       nodeList = [],
       containerList = [],
+      containerFilterList = [],
     } = executeObjectsInfo;
 
     return dynamicGroupList.length < 1
             && hostList.length < 1
             && nodeList.length < 1
-            && containerList.length < 1;
+            && containerList.length < 1
+            && containerFilterList.length < 1;
   }
 
   static cloneExecuteObjectsInfo(executeObjectsInfo) {
@@ -46,6 +74,7 @@ export default class ExecuteObjectsInfo {
       hostList = [],
       nodeList = [],
       containerList = [],
+      containerFilterList = [],
     } = executeObjectsInfo;
 
     return {
@@ -53,6 +82,7 @@ export default class ExecuteObjectsInfo {
       hostList: [...hostList],
       nodeList: [...nodeList],
       containerList: [...containerList],
+      containerFilterList: cloneContainerFilterList(containerFilterList),
     };
   }
 
@@ -71,6 +101,7 @@ export default class ExecuteObjectsInfo {
       hostList = [],
       nodeList = [],
       containerList = [],
+      containerFilterList = [],
     } = this.executeObjectsInfo;
     const strs = [];
     if (hostList.length > 0) {
@@ -85,6 +116,9 @@ export default class ExecuteObjectsInfo {
     if (containerList.length > 0) {
       strs.push(`${containerList.length} ${I18n.t('个容器_result')}`);
     }
+    if (containerFilterList.length > 0) {
+      strs.push(`${containerFilterList.length} ${I18n.t('个容器过滤条件_result')}`);
+    }
     return strs.length > 0 ? strs.join('，') : '--';
   }
 
@@ -94,6 +128,7 @@ export default class ExecuteObjectsInfo {
       dynamicGroupList,
       nodeList,
       containerList,
+      containerFilterList,
     } = payload;
 
     return Object.freeze({
@@ -101,6 +136,7 @@ export default class ExecuteObjectsInfo {
       dynamicGroupList: dynamicGroupList || [],
       nodeList: nodeList || [],
       containerList: containerList || [],
+      containerFilterList: cloneContainerFilterList(containerFilterList || []),
     });
   }
 }
