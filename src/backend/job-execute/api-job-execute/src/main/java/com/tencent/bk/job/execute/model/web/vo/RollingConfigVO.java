@@ -34,6 +34,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -69,7 +70,12 @@ public class RollingConfigVO {
     @Min(
         value = 0,
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Min.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @Max(
+        value = 3600000,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
     private Long batchStartWaitFixedMs;
 
@@ -81,7 +87,12 @@ public class RollingConfigVO {
     @Min(
         value = 0,
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Min.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @Max(
+        value = 3600000,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
     private Long batchStartWaitRandomMinMs;
 
@@ -93,7 +104,12 @@ public class RollingConfigVO {
     @Min(
         value = 0,
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Min.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @Max(
+        value = 3600000,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
     private Long batchStartWaitRandomMaxMs;
 

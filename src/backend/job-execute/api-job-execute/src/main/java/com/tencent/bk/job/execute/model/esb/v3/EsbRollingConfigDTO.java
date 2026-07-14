@@ -35,6 +35,7 @@ import lombok.Data;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -82,7 +83,12 @@ public class EsbRollingConfigDTO {
     @Min(
         value = 0,
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Min.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @Max(
+        value = 3600000,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
     @JsonProperty("batch_start_wait_fixed_ms")
     private Long batchStartWaitFixedMs;
@@ -97,7 +103,12 @@ public class EsbRollingConfigDTO {
     @Min(
         value = 0,
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Min.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @Max(
+        value = 3600000,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
     @JsonProperty("batch_start_wait_random_min_ms")
     private Long batchStartWaitRandomMinMs;
@@ -112,7 +123,12 @@ public class EsbRollingConfigDTO {
     @Min(
         value = 0,
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Min.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @Max(
+        value = 3600000,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
     @JsonProperty("batch_start_wait_random_max_ms")
     private Long batchStartWaitRandomMaxMs;
