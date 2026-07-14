@@ -192,19 +192,43 @@ public class ScatterDispatchManager implements SmartLifecycle {
         }
         log.info("Handoff pending scatter dispatch tasks, size: {}", pending.size());
         for (ScatterDispatchTask task : pending) {
-            try {
-                taskExecuteMQEventDispatcher.dispatchRollingBatchDispatchResumeEvent(
-                    RollingBatchDispatchResumeEvent.resume(
-                        task.getTaskInstanceId(),
-                        task.getStepInstanceId(),
-                        task.getExecuteCount(),
-                        task.getBatch(),
-                        task.getDispatchTime(),
-                        task.getGseTaskId()
-                    ));
-            } catch (Throwable e) {
-                log.error("Handoff scatter dispatch task failed, task: " + task, e);
-            }
+            handoffTaskWithTrace(task);
+        }
+    }
+
+    /**
+     * 转移单个未下发批次，并在原作业 trace 作用域内发出恢复事件。
+     * <p>
+     * {@link #stop()} 生命周期线程本身无 trace 作用域，若直接发事件则 MQ messaging 埋点无 trace 可透传，
+     * 接收方将在全新的消费 trace 下 {@code addTask}，与原作业 traceId 断链、跨副本日志无法串联。
+     * 因此以登记时捕获的 Span（{@link ScatterDispatchTask#getTraceContext()}）为父重建 trace 作用域后再发事件
+     * （无父上下文时新建可关联的根 Span），使 {@code streamBridge.send} 经 micrometer messaging 埋点携带原 traceId；
+     * 接收端 listener 便在延续原 traceId 的消费 trace 下重新入队，整条转移链路日志不断链。
+     * 同时恢复 {@link JobExecuteContextThreadLocalRepo}，与 {@link #fireTaskWithTrace} 对齐；
+     * start/withSpan/finally end 保证不泄漏 Span。
+     *
+     * @param task 待转移的未下发批次
+     */
+    private void handoffTaskWithTrace(ScatterDispatchTask task) {
+        Span parent = task.getTraceContext();
+        Span span = (parent != null ? tracer.nextSpan(parent) : tracer.nextSpan()).name("scatter-handoff");
+        try (Tracer.SpanInScope ignored = tracer.withSpan(span.start())) {
+            JobExecuteContextThreadLocalRepo.set(task.getJobExecuteContext());
+            taskExecuteMQEventDispatcher.dispatchRollingBatchDispatchResumeEvent(
+                RollingBatchDispatchResumeEvent.resume(
+                    task.getTaskInstanceId(),
+                    task.getStepInstanceId(),
+                    task.getExecuteCount(),
+                    task.getBatch(),
+                    task.getDispatchTime(),
+                    task.getGseTaskId()
+                ));
+        } catch (Throwable e) {
+            span.error(e);
+            log.error("Handoff scatter dispatch task failed, task: " + task, e);
+        } finally {
+            JobExecuteContextThreadLocalRepo.unset();
+            span.end();
         }
     }
 
