@@ -25,12 +25,13 @@
 package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.StringJoiner;
 
 /**
  * 执行引擎-滚动批次并行错峰下发恢复事件。
@@ -40,7 +41,6 @@ import java.time.LocalDateTime;
  */
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RollingBatchDispatchResumeEvent extends Event {
@@ -95,5 +95,17 @@ public class RollingBatchDispatchResumeEvent extends Event {
         event.setGseTaskId(gseTaskId);
         event.setTime(LocalDateTime.now());
         return event;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", RollingBatchDispatchResumeEvent.class.getSimpleName() + "(", ")")
+            .add("jobInstanceId=" + jobInstanceId)
+            .add("stepInstanceId=" + stepInstanceId)
+            .add("executeCount=" + executeCount)
+            .add("batch=" + batch)
+            .add("dispatchTime=" + DateUtils.formatUnixTimestampMillis(dispatchTime))
+            .add("gseTaskId=" + gseTaskId)
+            .toString();
     }
 }

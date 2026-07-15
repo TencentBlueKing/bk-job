@@ -29,8 +29,6 @@ import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import io.micrometer.tracing.Span;
 import lombok.Getter;
 
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.Delayed;
@@ -141,8 +139,7 @@ public class ScatterDispatchTask implements Delayed {
             .add("stepInstanceId=" + stepInstanceId)
             .add("executeCount=" + executeCount)
             .add("batch=" + batch)
-            .add("dispatchTime=" + DateUtils.formatUnixTimestamp(
-                dispatchTime, ChronoUnit.MILLIS, "yyyy-MM-dd HH:mm:ss.SSS", ZoneId.systemDefault()))
+            .add("dispatchTime=" + DateUtils.formatUnixTimestampMillis(dispatchTime))
             .toString();
     }
 }
