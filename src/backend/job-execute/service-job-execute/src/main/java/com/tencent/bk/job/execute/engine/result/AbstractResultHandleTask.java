@@ -394,7 +394,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             if (watch.isRunning()) {
                 watch.stop();
             }
-            if (watch.getTotalTimeMillis() > 1000L) {
+            if (watch.getTotalTimeMillis() > 3000L) {
                 log.warn("AbstractResultHandleTask-> handle task result is slow, run statistics:{}",
                     watch.prettyPrint());
             }
@@ -638,7 +638,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!this.isRunning) {
             log.info("ResultHandleTask-onStop start, task: {}", gseTaskInfo);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
-            runningJobKeepaliveManager.stopKeepaliveTask(taskInstanceId);
+            // 每任务幂等：与正常完成路径(ScheduledContinuousResultHandleTask)竞争时，保证同一任务只释放一次心跳引用
+            if (taskContext.markKeepaliveStopped()) {
+                runningJobKeepaliveManager.stopKeepaliveTask(taskInstanceId);
+            }
 
             taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
                 ResultHandleTaskResumeEvent.resume(stepInstance.getTaskInstanceId(), gseTask.getStepInstanceId(),
