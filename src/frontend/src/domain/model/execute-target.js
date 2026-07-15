@@ -25,31 +25,6 @@
 
 import I18n from '@/i18n';
 
-/**
- * @desc 深拷贝容器过滤条件列表
- * @param { Array } containerFilterList
- * @returns { Array }
- *
- * containerFilterList 结构：
- * {
- *   kubeTopoList: {
- *     cluster: { id },
- *     namespace: { id } | null,
- *     workloads: { kind, id }[],
- *   }[],
- *   propConditions: { field, operator, value }[] | null,
- * }[]
- */
-const cloneContainerFilterList = (containerFilterList = []) => containerFilterList.map(({ kubeTopoList = [], propConditions = null }) => ({
-  kubeTopoList: kubeTopoList.map(({ cluster, namespace = null, workloads = [] }) => ({
-    cluster: cluster ? { ...cluster } : cluster,
-    namespace: namespace ? { ...namespace } : null,
-    workloads: workloads.map(workload => ({ ...workload })),
-  })),
-  propConditions: propConditions
-    ? propConditions.map(propCondition => ({ ...propCondition }))
-    : null,
-}));
 
 export default class ExecuteObjectsInfo {
   static isExecuteObjectsInfoEmpty(executeObjectsInfo) {
@@ -82,7 +57,7 @@ export default class ExecuteObjectsInfo {
       hostList: [...hostList],
       nodeList: [...nodeList],
       containerList: [...containerList],
-      containerFilterList: cloneContainerFilterList(containerFilterList),
+      containerFilterList: [...containerFilterList],
     };
   }
 
@@ -136,7 +111,7 @@ export default class ExecuteObjectsInfo {
       dynamicGroupList: dynamicGroupList || [],
       nodeList: nodeList || [],
       containerList: containerList || [],
-      containerFilterList: cloneContainerFilterList(containerFilterList || []),
+      containerFilterList: containerFilterList || [],
     });
   }
 }
