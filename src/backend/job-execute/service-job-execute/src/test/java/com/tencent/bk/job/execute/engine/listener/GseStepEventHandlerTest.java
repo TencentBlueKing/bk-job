@@ -256,6 +256,89 @@ class GseStepEventHandlerTest {
     }
 
     @Test
+    @DisplayName("并行错峰-非末批完成：不派发 refreshJob（消除无用作业刷新事件与 refresh WARN 噪音）")
+    void parallelNotLastBatch_noRefreshJobDispatched() {
+        mockParallelRollingConfig(4);
+        StepInstanceDTO stepInstance = buildRollingStepInstance(1);
+        mockGseTask(2, RunStatusEnum.SUCCESS);
+        when(stepInstanceRollingTaskService.finishBatchAndCheckAllDone(
+            any(), anyLong(), anyInt(), anyInt(), any(), any(), any(), any(), anyInt()))
+            .thenReturn(ScatterBatchFinishResult.NOT_LAST_BATCH);
+
+        handler.handleEvent(buildRefreshEvent(), stepInstance);
+
+        // 非末批：收敛器不发、refreshStep 末尾也不再无条件补发 → 零 refreshJob
+        verify(taskExecuteMQEventDispatcher, never()).dispatchJobEvent(any());
+    }
+
+    @Test
+    @DisplayName("并行错峰-末批收敛：由收敛器恰好派发一次 refreshJob 推进作业")
+    void parallelLastBatch_dispatchRefreshJobExactlyOnce() {
+        mockParallelRollingConfig(3);
+        StepInstanceDTO stepInstance = buildRollingStepInstance(1);
+        stepInstance.setStartTime(1000L);
+        mockGseTask(3, RunStatusEnum.SUCCESS);
+        when(stepInstanceRollingTaskService.finishBatchAndCheckAllDone(
+            any(), anyLong(), anyInt(), anyInt(), any(), any(), any(), any(), anyInt()))
+            .thenReturn(ScatterBatchFinishResult.LAST_BATCH);
+        when(stepInstanceRollingTaskService.listRollingTasksByStep(JOB_INSTANCE_ID, STEP_INSTANCE_ID))
+            .thenReturn(Arrays.asList(
+                buildRollingTask(1, RunStatusEnum.SUCCESS),
+                buildRollingTask(2, RunStatusEnum.SUCCESS),
+                buildRollingTask(3, RunStatusEnum.SUCCESS)));
+
+        handler.handleEvent(buildRefreshEvent(), stepInstance);
+
+        // 末批：收敛器发一次，refreshStep 末尾不重复补发 → 恰好一次
+        verify(taskExecuteMQEventDispatcher, org.mockito.Mockito.times(1)).dispatchJobEvent(any());
+    }
+
+    @Test
+    @DisplayName("并行错峰-异常状态回调：整步直接终结路径仍派发 refreshJob 收尾")
+    void parallelAbnormalState_stillDispatchRefreshJob() {
+        mockParallelRollingConfig(3);
+        StepInstanceDTO stepInstance = buildRollingStepInstance(1);
+        mockGseTask(2, RunStatusEnum.ABNORMAL_STATE);
+
+        handler.handleEvent(buildRefreshEvent(), stepInstance);
+
+        // ABNORMAL_STATE 不经 finishParallelBatch，仍需发 refreshJob 让作业结束
+        verify(taskExecuteMQEventDispatcher, org.mockito.Mockito.times(1)).dispatchJobEvent(any());
+        // 不走并行批次收敛
+        verify(stepInstanceRollingTaskService, never()).finishBatchAndCheckAllDone(
+            any(), anyLong(), anyInt(), anyInt(), any(), any(), any(), any(), anyInt());
+    }
+
+    @Test
+    @DisplayName("并行错峰-中止状态回调：整步直接终结路径仍派发 refreshJob 收尾")
+    void parallelAbandoned_stillDispatchRefreshJob() {
+        mockParallelRollingConfig(3);
+        StepInstanceDTO stepInstance = buildRollingStepInstance(1);
+        mockGseTask(2, RunStatusEnum.ABANDONED);
+
+        handler.handleEvent(buildRefreshEvent(), stepInstance);
+
+        verify(taskExecuteMQEventDispatcher, org.mockito.Mockito.times(1)).dispatchJobEvent(any());
+        verify(stepInstanceRollingTaskService, never()).finishBatchAndCheckAllDone(
+            any(), anyLong(), anyInt(), anyInt(), any(), any(), any(), any(), anyInt());
+    }
+
+    @Test
+    @DisplayName("串行模式-成功回调：仍在 refreshStep 末尾派发一次 refreshJob（行为不回归）")
+    void serialSuccess_dispatchRefreshJob() {
+        int currentBatch = 2;
+        mockSerialRollingConfig();
+        StepInstanceDTO stepInstance = buildRollingStepInstance(currentBatch);
+        mockGseTask(currentBatch, RunStatusEnum.SUCCESS);
+        when(rollingConfigService.getTotalBatch(JOB_INSTANCE_ID, STEP_INSTANCE_ID, ROLLING_CONFIG_ID))
+            .thenReturn(3);
+
+        handler.handleEvent(buildRefreshEvent(), stepInstance);
+
+        verify(taskExecuteMQEventDispatcher, org.mockito.Mockito.times(1)).dispatchJobEvent(any());
+    }
+
+    @Test
     @DisplayName("串行模式-成功回调：不走并行完成判定，不回填结束批次")
     void serialSuccess_notUseParallelFinish() {
         int currentBatch = 2;

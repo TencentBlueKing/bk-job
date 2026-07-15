@@ -998,10 +998,12 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         // 而并行模式下 JobListener 不逐批 nextStep/不 updateStepCurrentBatch，stepInstance.getBatch() 恒为 1，
         // 故此处按 gseTask 回填结束批次，保证 finishParallelBatch 按真正结束的批次做终态跃迁与完成判定。
         // 串行模式 stepInstance.getBatch() 由 JobListener 逐批维护且与 gseTask 一致，此处不做回填以免影响既有逻辑。
+        boolean parallelExecution = false;
         if (stepInstance.isRollingStep()) {
             RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
                 stepInstance.getTaskInstanceId(), stepInstance.getRollingConfigId());
             if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                parallelExecution = true;
                 stepInstance.setBatch(gseTask.getBatch());
             }
         }
@@ -1034,10 +1036,20 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 break;
         }
 
-        // 更新作业状态
-        taskExecuteMQEventDispatcher.dispatchJobEvent(
-            JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstanceId)));
+        // 并行错峰模式下，SUCCESS/FAIL/STOP_SUCCESS 走 finishParallelBatch 路径，由收敛器仅在末批唯一发送一次
+        // refreshJob，此处不再无条件补发，避免非末批完成产生无用作业刷新事件及 Unsupported ... refresh WARN 噪音。
+        // 串行/非滚动模式，以及并行模式下 ABNORMAL_STATE/ABANDONED/default（整步直接终结，不经 finishParallelBatch）
+        // 仍需在此发送 refreshJob 让作业收尾。
+        boolean convergedByParallelBatch = parallelExecution
+            && (gseTaskStatus == RunStatusEnum.SUCCESS
+            || gseTaskStatus == RunStatusEnum.FAIL
+            || gseTaskStatus == RunStatusEnum.STOP_SUCCESS);
+        if (!convergedByParallelBatch) {
+            // 更新作业状态
+            taskExecuteMQEventDispatcher.dispatchJobEvent(
+                JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                    EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstanceId)));
+        }
     }
 
     private void onSuccess(StepInstanceDTO stepInstance) {
@@ -1277,9 +1289,11 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long batchStartTime = (rollingTask != null && rollingTask.getStartTime() != null)
             ? rollingTask.getStartTime() : now;
 
-        // GSE 回调路径：由 refreshStep 末尾统一发送 refreshJob，故此处传 dispatchRefreshJob=false 以免重复发送
+        // 并行错峰 GSE 回调路径：仅在末批收敛时由收敛器唯一发送一次 refreshJob 推进作业，
+        // 故传 dispatchRefreshJob=true；非末批完成不发，避免无用作业刷新事件与 Unsupported ... refresh WARN 噪音。
+        // refreshStep 末尾对该路径（SUCCESS/FAIL/STOP_SUCCESS）不再无条件补发 refreshJob。
         scatterStepConverger.finishBatchAndConverge(
-            stepInstance, executeCount, batch, batchStatus, batchStartTime, totalBatch, false);
+            stepInstance, executeCount, batch, batchStatus, batchStartTime, totalBatch, true);
     }
 
     private void finishRollingTask(Long taskInstanceId,
