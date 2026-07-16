@@ -25,6 +25,7 @@
 
 import { ordinalSuffixOf } from '@utils/assist';
 
+const BATCH_STATUS_WAITING = 1;
 const BATCH_STATUS_RUNNING = 2;
 const BATCH_STATUS_SUCCESS = 3;
 const BATCH_STATUS_FAIL = 4;
@@ -48,12 +49,11 @@ export default {
     } = context.props;
 
     const active = data.batch === selectBatch;
-    const will = data.batch > currentRunningBatch;
 
     const clasess = {
       'batch-item': true,
       active,
-      will,
+      will: data.status === BATCH_STATUS_WAITING,
       confirm: data.status === BATCH_STATUS_MANUAL_CONFIRM,
       fail: data.status === BATCH_STATUS_FAIL,
     };
