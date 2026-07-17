@@ -1,0 +1,83 @@
+### 功能描述
+
+查询当前用户有权限的资源范围列表（业务、业务集、租户集等），支持分页。
+
+返回结果已按固定规则排序：有权限优先、已收藏优先、收藏时间倒序。默认仅返回前 10 条，避免一次拉取全量数据。本接口不返回权限申请相关字段。
+
+### 请求参数
+
+#### Query参数
+
+| 字段   | 类型 | 必选 | 描述 |
+|--------|------|------|------|
+| offset | int  | 否   | 分页起始偏移，从 0 开始；不传默认为 0；须大于等于 0 |
+| length | int  | 否   | 单页返回条数；不传默认为 10；取值范围为 1 到 200 |
+
+### 请求参数示例
+
+- GET
+
+```json
+/api/v4/get_user_authorized_scopes?offset=0&length=10
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+  "data": {
+    "total": 35,
+    "offset": 0,
+    "length": 10,
+    "scope_list": [
+      {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "name": "示例业务",
+        "favor": true,
+        "favor_time": 1710000000000,
+        "time_zone": "Asia/Shanghai"
+      },
+      {
+        "bk_scope_type": "biz_set",
+        "bk_scope_id": "3",
+        "name": "示例业务集",
+        "favor": false,
+        "time_zone": "Asia/Shanghai"
+      }
+    ]
+  },
+  "job_request_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段       | 类型   | 是否一定存在 | 描述 |
+|------------|--------|--------------|------|
+| total      | long   | 是           | 当前用户有权限的资源范围总数（分页前） |
+| offset     | int    | 是           | 本次查询的分页起始偏移，从 0 开始 |
+| length     | int    | 是           | 本次查询的单页条数 |
+| scope_list | array  | 是           | 有权限的资源范围列表；无数据时为空数组 |
+
+##### scope_list[] 元素
+
+| 字段          | 类型    | 是否一定存在 | 描述 |
+|---------------|---------|--------------|------|
+| bk_scope_type | string  | 是           | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集）、`tenant_set`（租户集） |
+| bk_scope_id   | string  | 是           | 资源范围 ID，须与 `bk_scope_type` 对应，表示业务 ID、业务集 ID 或租户集 ID |
+| name          | string  | 是           | 资源范围名称 |
+| favor         | boolean | 是           | 是否收藏。可选值：`true`（已收藏）、`false`（未收藏） |
+| favor_time    | long    | 否           | 收藏时间，Unix 时间戳，单位毫秒；未收藏时不返回该字段 |
+| time_zone     | string  | 否           | 资源范围时区，例如 `Asia/Shanghai` |
