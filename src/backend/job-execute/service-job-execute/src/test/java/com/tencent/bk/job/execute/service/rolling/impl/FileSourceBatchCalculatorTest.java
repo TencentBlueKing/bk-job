@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceFileBatchDTO;
 import com.tencent.bk.job.execute.model.db.StepFileSourceRollingConfigDO;
 import com.tencent.bk.job.execute.service.rolling.FileSourceBatchCalculator;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -314,6 +315,7 @@ public class FileSourceBatchCalculatorTest {
             executeObjects.add(executeObject);
         }
         servers.setExecuteObjects(executeObjects);
+        fileSource.setFileType(TaskFileTypeEnum.SERVER.getType());
         fileSource.setServers(servers);
         List<FileDetailDTO> fileList = new ArrayList<>();
         for (String filePath : filePaths) {
