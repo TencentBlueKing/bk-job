@@ -66,16 +66,16 @@ public class ScatterStepConverger {
     }
 
     /**
-     * 单批次终态跃迁 + 完成判定，若为最后一批则按各批聚合步骤终态并收敛。
+     * 单批次终态跃迁 + 完成判定，若为最后一批则按各批聚合步骤终态并收敛，并唯一发送一次 refreshJob。
+     * <p>
+     * refreshStep 末尾对并行 SUCCESS/FAIL/STOP_SUCCESS 路径不再补发 refreshJob，避免重复。
      *
-     * @param stepInstance      步骤实例
-     * @param executeCount      执行次数
-     * @param batch             当前到达终态的批次
-     * @param batchStatus       当前批次终态
-     * @param batchStartTime    当前批次开始时间
-     * @param totalBatch        步骤总批次数
-     * @param dispatchRefreshJob 收敛步骤时是否发送 refreshJob 事件（GSE 回调路径由 refreshStep 末尾统一发送，
-     *                          此处传 false 以免重复；终止取消/到点兜底路径无外部 refreshJob，传 true）
+     * @param stepInstance   步骤实例
+     * @param executeCount   执行次数
+     * @param batch          当前到达终态的批次
+     * @param batchStatus    当前批次终态
+     * @param batchStartTime 当前批次开始时间
+     * @param totalBatch     步骤总批次数
      * @return 完成判定结果
      */
     public ScatterBatchFinishResult finishBatchAndConverge(StepInstanceDTO stepInstance,
@@ -83,8 +83,7 @@ public class ScatterStepConverger {
                                                            int batch,
                                                            RunStatusEnum batchStatus,
                                                            long batchStartTime,
-                                                           int totalBatch,
-                                                           boolean dispatchRefreshJob) {
+                                                           int totalBatch) {
         long taskInstanceId = stepInstance.getTaskInstanceId();
         long stepInstanceId = stepInstance.getId();
         long now = System.currentTimeMillis();
@@ -105,11 +104,9 @@ public class ScatterStepConverger {
             if (stepStatus == RunStatusEnum.SUCCESS || stepStatus == RunStatusEnum.IGNORE_ERROR) {
                 clearStep(stepInstance);
             }
-            if (dispatchRefreshJob) {
-                taskExecuteMQEventDispatcher.dispatchJobEvent(
-                    JobEvent.refreshJob(taskInstanceId,
-                        EventSource.buildStepEventSource(taskInstanceId, stepInstanceId)));
-            }
+            taskExecuteMQEventDispatcher.dispatchJobEvent(
+                JobEvent.refreshJob(taskInstanceId,
+                    EventSource.buildStepEventSource(taskInstanceId, stepInstanceId)));
         }
         // NOT_LAST_BATCH / ALREADY_FINAL：不改步骤状态，步骤仍为 RUNNING/STOPPING，等待其它批次
         return result;

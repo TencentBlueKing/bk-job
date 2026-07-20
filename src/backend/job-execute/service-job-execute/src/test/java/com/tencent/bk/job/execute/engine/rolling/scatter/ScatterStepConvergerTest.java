@@ -153,7 +153,7 @@ class ScatterStepConvergerTest {
     }
 
     @Test
-    @DisplayName("收敛：最后一批终态且开启refreshJob时，收敛步骤并发送refreshJob")
+    @DisplayName("收敛：最后一批终态时，收敛步骤并发送refreshJob")
     void converge_lastBatchWithRefreshJob() {
         StepInstanceDTO stepInstance = buildStepInstance();
         when(stepInstanceRollingTaskService.finishBatchAndCheckAllDone(
@@ -164,7 +164,7 @@ class ScatterStepConvergerTest {
             buildRollingTask(2, RunStatusEnum.STOP_SUCCESS));
 
         ScatterBatchFinishResult result = converger.finishBatchAndConverge(
-            stepInstance, EXECUTE_COUNT, 2, RunStatusEnum.STOP_SUCCESS, 1000L, 2, true);
+            stepInstance, EXECUTE_COUNT, 2, RunStatusEnum.STOP_SUCCESS, 1000L, 2);
 
         assertThat(result).isEqualTo(ScatterBatchFinishResult.LAST_BATCH);
         verify(stepInstanceService).updateStepExecutionInfo(
@@ -181,7 +181,7 @@ class ScatterStepConvergerTest {
             .thenReturn(ScatterBatchFinishResult.NOT_LAST_BATCH);
 
         ScatterBatchFinishResult result = converger.finishBatchAndConverge(
-            stepInstance, EXECUTE_COUNT, 1, RunStatusEnum.STOP_SUCCESS, 1000L, 3, true);
+            stepInstance, EXECUTE_COUNT, 1, RunStatusEnum.STOP_SUCCESS, 1000L, 3);
 
         assertThat(result).isEqualTo(ScatterBatchFinishResult.NOT_LAST_BATCH);
         verify(stepInstanceService, never()).updateStepExecutionInfo(
@@ -190,8 +190,8 @@ class ScatterStepConvergerTest {
     }
 
     @Test
-    @DisplayName("收敛：最后一批但关闭refreshJob(GSE回调路径)时，收敛步骤但不重复发refreshJob")
-    void converge_lastBatchWithoutRefreshJob() {
+    @DisplayName("收敛：最后一批成功时，收敛步骤、清理文件并发送refreshJob")
+    void converge_lastBatchSuccessClearsFileAndRefreshJob() {
         StepInstanceDTO stepInstance = buildStepInstance();
         when(stepInstanceRollingTaskService.finishBatchAndCheckAllDone(
             any(), anyLong(), anyInt(), anyInt(), any(), any(), any(), any(), anyInt()))
@@ -201,13 +201,12 @@ class ScatterStepConvergerTest {
             buildRollingTask(2, RunStatusEnum.SUCCESS));
 
         converger.finishBatchAndConverge(
-            stepInstance, EXECUTE_COUNT, 2, RunStatusEnum.SUCCESS, 1000L, 2, false);
+            stepInstance, EXECUTE_COUNT, 2, RunStatusEnum.SUCCESS, 1000L, 2);
 
         verify(stepInstanceService).updateStepExecutionInfo(
             eq(JOB_INSTANCE_ID), eq(STEP_INSTANCE_ID), eq(RunStatusEnum.SUCCESS), any(), any(), any());
-        // 成功收敛后清理文件；但不重复发送 refreshJob
         verify(filePrepareService).clearPreparedTmpFile(JOB_INSTANCE_ID, STEP_INSTANCE_ID);
-        verify(taskExecuteMQEventDispatcher, never()).dispatchJobEvent(any());
+        verify(taskExecuteMQEventDispatcher).dispatchJobEvent(any());
     }
 
     private void mockRollingTasks(StepInstanceRollingTaskDTO... tasks) {

@@ -620,7 +620,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 if (rollingConfig != null && rollingConfig.isParallelExecution()) {
                     // 本副本直接取消并收敛（即时性）
                     cancelUnDispatchedBatchesForStop(stepInstance, rollingConfig);
-                    // #3A 广播到所有副本（fanout，含自身），让其它副本即时取消并收敛其本地队列中的未下发批次。
+                    // 广播到所有副本（fanout，含自身），让其它副本即时取消并收敛其本地队列中的未下发批次。
                     // 未下发批次仅存在于唯一持有副本队列：若终止落到该持有副本，上面已就地取消，自身广播到达时
                     // 队列已空（cancelStepTasks 返回空）天然幂等；若落到非持有副本，则由广播抵达持有副本完成取消。
                     // 广播仅作即时性优化，即使丢失仍由 ScatterBatchDispatcher 到点兜底收敛保证最终正确性。
@@ -638,9 +638,9 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
      * 注意：未下发批次仅存在于「触发调度副本」的本地内存队列，而终止事件经 MQ 被任一副本竞争消费，
      * 故本副本可能取消到 0 个批次（终止落到非调度副本）。此时依靠两道保障使步骤仍能正常收敛，不会永久卡在 STOPPING：
      * <ul>
-     *     <li>#3A 广播即时取消：终止路径另发 {@link ScatterBatchCancelEvent} 广播到所有副本，持有队列副本收到后
+     *     <li>广播即时取消：终止路径另发 {@link ScatterBatchCancelEvent} 广播到所有副本，持有队列副本收到后
      *     就地取消并收敛（见 {@link ScatterBatchCancelListener}）；</li>
-     *     <li>B 兜底：即使广播丢失，未取消批次到点触发下发时由
+     *     <li>到点兜底：即使广播丢失，未取消批次到点触发下发时由
      *     {@link com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchDispatcher} 感知步骤处于终止/终态
      *     语义而自行收敛。</li>
      * </ul>
@@ -662,7 +662,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long now = System.currentTimeMillis();
         for (ScatterDispatchTask task : canceled) {
             scatterStepConverger.finishBatchAndConverge(stepInstance, executeCount, task.getBatch(),
-                RunStatusEnum.STOP_SUCCESS, now, totalBatch, true);
+                RunStatusEnum.STOP_SUCCESS, now, totalBatch);
         }
     }
 
@@ -1289,11 +1289,11 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long batchStartTime = (rollingTask != null && rollingTask.getStartTime() != null)
             ? rollingTask.getStartTime() : now;
 
-        // 并行错峰 GSE 回调路径：仅在末批收敛时由收敛器唯一发送一次 refreshJob 推进作业，
-        // 故传 dispatchRefreshJob=true；非末批完成不发，避免无用作业刷新事件与 Unsupported ... refresh WARN 噪音。
+        // 并行错峰 GSE 回调路径：仅在末批收敛时由收敛器唯一发送一次 refreshJob 推进作业；
+        // 非末批完成不发，避免无用作业刷新事件与 Unsupported ... refresh WARN 噪音。
         // refreshStep 末尾对该路径（SUCCESS/FAIL/STOP_SUCCESS）不再无条件补发 refreshJob。
         scatterStepConverger.finishBatchAndConverge(
-            stepInstance, executeCount, batch, batchStatus, batchStartTime, totalBatch, true);
+            stepInstance, executeCount, batch, batchStatus, batchStartTime, totalBatch);
     }
 
     private void finishRollingTask(Long taskInstanceId,

@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Executor;
@@ -125,7 +126,7 @@ public class ScatterDispatchManager implements SmartLifecycle {
         for (ScatterDispatchTask task : new ArrayList<>(tasksQueue)) {
             if (task.getStepInstanceId() == stepInstanceId
                 && task.getExecuteCount() == executeCount
-                && java.util.Objects.equals(task.getTaskInstanceId(), taskInstanceId)) {
+                && Objects.equals(task.getTaskInstanceId(), taskInstanceId)) {
                 if (tasksQueue.remove(task)) {
                     removed.add(task);
                 }

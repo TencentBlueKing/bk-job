@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.constant.RollingExecutionModeEnum;
 import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
@@ -131,6 +132,6 @@ public class StepRollingConfigDTO {
      * @return 布尔值
      */
     public boolean isParallelExecution() {
-        return com.tencent.bk.job.common.constant.RollingExecutionModeEnum.isParallel(executionMode);
+        return RollingExecutionModeEnum.isParallel(executionMode);
     }
 }

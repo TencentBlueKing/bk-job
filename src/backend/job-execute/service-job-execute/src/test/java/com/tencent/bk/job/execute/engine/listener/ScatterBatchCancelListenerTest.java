@@ -61,7 +61,7 @@ import static org.mockito.Mockito.when;
 /**
  * {@link ScatterBatchCancelListener} 单元测试。
  * <p>
- * 覆盖 Issue #4368 #3A 广播即时取消：副本收到广播后对本地队列取消未下发批次并收敛为终止成功；
+ * 覆盖广播即时取消：副本收到广播后对本地队列取消未下发批次并收敛为终止成功；
  * 未持有该步骤批次的副本取消 0 个而不做收敛（幂等）；非并行配置不收敛。
  */
 class ScatterBatchCancelListenerTest {
@@ -114,12 +114,12 @@ class ScatterBatchCancelListenerTest {
         verify(scatterDispatchManager).cancelStepTasks(JOB_INSTANCE_ID, STEP_INSTANCE_ID, EXECUTE_COUNT);
         verify(scatterStepConverger).finishBatchAndConverge(
             eq(stepInstance), eq(EXECUTE_COUNT), eq(3), eq(RunStatusEnum.STOP_SUCCESS),
-            anyLong(), eq(TOTAL_BATCH), eq(true));
+            anyLong(), eq(TOTAL_BATCH));
         verify(scatterStepConverger).finishBatchAndConverge(
             eq(stepInstance), eq(EXECUTE_COUNT), eq(4), eq(RunStatusEnum.STOP_SUCCESS),
-            anyLong(), eq(TOTAL_BATCH), eq(true));
+            anyLong(), eq(TOTAL_BATCH));
         verify(scatterStepConverger, times(2)).finishBatchAndConverge(
-            any(), anyInt(), anyInt(), any(), anyLong(), anyInt(), org.mockito.ArgumentMatchers.anyBoolean());
+            any(), anyInt(), anyInt(), any(), anyLong(), anyInt());
     }
 
     @Test
@@ -134,7 +134,7 @@ class ScatterBatchCancelListenerTest {
         verify(scatterDispatchManager).cancelStepTasks(JOB_INSTANCE_ID, STEP_INSTANCE_ID, EXECUTE_COUNT);
         verify(stepInstanceService, never()).getStepInstanceDetail(anyLong(), anyLong());
         verify(scatterStepConverger, never()).finishBatchAndConverge(
-            any(), anyInt(), anyInt(), any(), anyLong(), anyInt(), org.mockito.ArgumentMatchers.anyBoolean());
+            any(), anyInt(), anyInt(), any(), anyLong(), anyInt());
     }
 
     @Test
@@ -151,7 +151,7 @@ class ScatterBatchCancelListenerTest {
             ScatterBatchCancelEvent.cancel(JOB_INSTANCE_ID, STEP_INSTANCE_ID, EXECUTE_COUNT)));
 
         verify(scatterStepConverger, never()).finishBatchAndConverge(
-            any(), anyInt(), anyInt(), any(), anyLong(), anyInt(), org.mockito.ArgumentMatchers.anyBoolean());
+            any(), anyInt(), anyInt(), any(), anyLong(), anyInt());
     }
 
     private Message<ScatterBatchCancelEvent> buildMessage(ScatterBatchCancelEvent event) {

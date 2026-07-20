@@ -108,10 +108,10 @@ class ScatterBatchDispatcherTest {
 
         dispatcher.dispatchBatch(JOB_INSTANCE_ID, STEP_INSTANCE_ID, EXECUTE_COUNT, 3, null);
 
-        // 到点兜底收敛：以 STOP_SUCCESS 置终态并参与完成判定，dispatchRefreshJob=true
+        // 到点兜底收敛：以 STOP_SUCCESS 置终态并参与完成判定
         verify(scatterStepConverger).finishBatchAndConverge(
             eq(stepInstance), eq(EXECUTE_COUNT), eq(3), eq(RunStatusEnum.STOP_SUCCESS),
-            anyLong(), eq(TOTAL_BATCH), eq(true));
+            anyLong(), eq(TOTAL_BATCH));
         // 终止语义下绝不再发 GSE 下发事件
         verify(taskExecuteMQEventDispatcher, never()).dispatchGseTaskEvent(any());
     }
@@ -127,7 +127,7 @@ class ScatterBatchDispatcherTest {
 
         verify(scatterStepConverger).finishBatchAndConverge(
             eq(stepInstance), eq(EXECUTE_COUNT), eq(4), eq(RunStatusEnum.STOP_SUCCESS),
-            anyLong(), eq(TOTAL_BATCH), eq(true));
+            anyLong(), eq(TOTAL_BATCH));
         verify(taskExecuteMQEventDispatcher, never()).dispatchGseTaskEvent(any());
     }
 
@@ -141,7 +141,7 @@ class ScatterBatchDispatcherTest {
         dispatcher.dispatchBatch(JOB_INSTANCE_ID, STEP_INSTANCE_ID, EXECUTE_COUNT, 3, null);
 
         verify(scatterStepConverger, never()).finishBatchAndConverge(
-            any(), anyInt(), anyInt(), any(), anyLong(), anyInt(), org.mockito.ArgumentMatchers.anyBoolean());
+            any(), anyInt(), anyInt(), any(), anyLong(), anyInt());
         verify(taskExecuteMQEventDispatcher, never()).dispatchGseTaskEvent(any());
     }
 
@@ -155,7 +155,7 @@ class ScatterBatchDispatcherTest {
         dispatcher.dispatchBatch(JOB_INSTANCE_ID, STEP_INSTANCE_ID, EXECUTE_COUNT, 3, null);
 
         verify(scatterStepConverger, never()).finishBatchAndConverge(
-            any(), anyInt(), anyInt(), any(), anyLong(), anyInt(), org.mockito.ArgumentMatchers.anyBoolean());
+            any(), anyInt(), anyInt(), any(), anyLong(), anyInt());
         verify(taskExecuteMQEventDispatcher, never()).dispatchGseTaskEvent(any());
     }
 
@@ -175,7 +175,7 @@ class ScatterBatchDispatcherTest {
 
         verify(taskExecuteMQEventDispatcher).dispatchGseTaskEvent(any());
         verify(scatterStepConverger, never()).finishBatchAndConverge(
-            any(), anyInt(), anyInt(), any(), anyLong(), anyInt(), org.mockito.ArgumentMatchers.anyBoolean());
+            any(), anyInt(), anyInt(), any(), anyLong(), anyInt());
     }
 
     private void mockParallelRollingConfig() {

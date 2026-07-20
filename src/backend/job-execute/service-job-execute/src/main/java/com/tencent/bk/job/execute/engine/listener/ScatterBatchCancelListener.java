@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 执行引擎事件处理-并行错峰批次取消广播（#3A 广播即时取消）。
+ * 执行引擎事件处理-并行错峰批次取消广播（广播即时取消）。
  * <p>
  * 并行错峰整步终止时，终止副本广播 {@link ScatterBatchCancelEvent} 到所有副本（fanout，含自身）。
  * 每个副本收到后对本地 {@link ScatterDispatchManager} 延迟队列执行取消，并把取消到的未下发批次经
@@ -128,7 +128,7 @@ public class ScatterBatchCancelListener extends BaseJobMqListener {
         long now = System.currentTimeMillis();
         for (ScatterDispatchTask task : canceled) {
             scatterStepConverger.finishBatchAndConverge(stepInstance, executeCount, task.getBatch(),
-                RunStatusEnum.STOP_SUCCESS, now, totalBatch, true);
+                RunStatusEnum.STOP_SUCCESS, now, totalBatch);
         }
         log.info("Converge canceled scatter batches by broadcast, stepInstanceId={}, executeCount={}, canceled={}",
             stepInstanceId, executeCount, canceled.size());

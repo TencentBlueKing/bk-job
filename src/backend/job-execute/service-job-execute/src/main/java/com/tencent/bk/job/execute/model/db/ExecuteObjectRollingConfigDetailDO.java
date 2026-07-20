@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.constant.RollingExecutionModeEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -118,7 +119,7 @@ public class ExecuteObjectRollingConfigDetailDO {
      */
     @JsonIgnore
     public boolean isParallelExecution() {
-        return com.tencent.bk.job.common.constant.RollingExecutionModeEnum.isParallel(executionMode);
+        return RollingExecutionModeEnum.isParallel(executionMode);
     }
 
     /**

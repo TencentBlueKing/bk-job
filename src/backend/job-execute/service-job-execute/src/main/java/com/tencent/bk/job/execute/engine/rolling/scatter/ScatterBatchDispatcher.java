@@ -186,7 +186,7 @@ public class ScatterBatchDispatcher {
         int totalBatch = rollingConfig.getExecuteObjectRollingConfig().getTotalBatch();
         long now = System.currentTimeMillis();
         scatterStepConverger.finishBatchAndConverge(
-            stepInstance, executeCount, batch, RunStatusEnum.STOP_SUCCESS, now, totalBatch, true);
+            stepInstance, executeCount, batch, RunStatusEnum.STOP_SUCCESS, now, totalBatch);
         log.info("Scatter dispatch converge un-dispatched batch on stop, stepInstanceId={}, executeCount={}, "
                 + "batch={}, stepStatus={}", stepInstance.getId(), executeCount, batch, stepInstance.getStatus());
     }
