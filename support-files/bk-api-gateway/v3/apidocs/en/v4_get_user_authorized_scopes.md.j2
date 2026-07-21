@@ -42,7 +42,7 @@ Results are sorted by a fixed rule: authorized scopes first, then favorited scop
         "bk_scope_id": "2",
         "name": "demo-biz",
         "favor": true,
-        "favor_time": 1710000000000,
+        "favor_time": "2024-03-10 00:00:00.000",
         "time_zone": "Asia/Shanghai"
       },
       {
@@ -79,5 +79,5 @@ Results are sorted by a fixed rule: authorized scopes first, then favorited scop
 | bk_scope_id   | string  | Yes            | Resource scope ID corresponding to `bk_scope_type`, representing a business ID, business-set ID, or tenant-set ID |
 | name          | string  | Yes            | Resource scope name |
 | favor         | boolean | Yes            | Whether the scope is favorited. Possible values: `true` (favorited), `false` (not favorited) |
-| favor_time    | long    | No             | Favor time as a Unix timestamp in milliseconds; omitted when not favorited |
+| favor_time    | string  | No             | Favor time in format `yyyy-MM-dd HH:mm:ss.SSS`; omitted when not favorited |
 | time_zone     | string  | No             | Time zone of the resource scope, for example `Asia/Shanghai` |

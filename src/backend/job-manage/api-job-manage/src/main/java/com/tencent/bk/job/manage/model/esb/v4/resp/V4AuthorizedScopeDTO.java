@@ -52,7 +52,7 @@ public class V4AuthorizedScopeDTO {
     private Boolean favor;
 
     @JsonProperty("favor_time")
-    private Long favorTime;
+    private String favorTime;
 
     @JsonProperty("time_zone")
     private String timeZone;

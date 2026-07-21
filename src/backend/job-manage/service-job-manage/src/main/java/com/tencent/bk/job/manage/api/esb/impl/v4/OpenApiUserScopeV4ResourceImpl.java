@@ -24,21 +24,23 @@
 
 package com.tencent.bk.job.manage.api.esb.impl.v4;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.v4.OpenApiUserScopeV4Resource;
 import com.tencent.bk.job.manage.model.dto.UserAppScopeDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4AuthorizedScopeDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4GetUserAuthorizedScopesResult;
 import com.tencent.bk.job.manage.service.scope.UserAppScopeQueryService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,9 +49,7 @@ import java.util.stream.Collectors;
 @RestController
 public class OpenApiUserScopeV4ResourceImpl implements OpenApiUserScopeV4Resource {
 
-    private static final int DEFAULT_OFFSET = 0;
-    private static final int DEFAULT_LENGTH = 10;
-    private static final int MAX_LENGTH = 200;
+    private static final String FAVOR_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
 
     private final UserAppScopeQueryService userAppScopeQueryService;
 
@@ -64,44 +64,15 @@ public class OpenApiUserScopeV4ResourceImpl implements OpenApiUserScopeV4Resourc
                                                                                   String appCode,
                                                                                   Integer offset,
                                                                                   Integer length) {
-        int normalizedOffset = normalizeOffset(offset);
-        int normalizedLength = normalizeLength(length);
-
         PageData<UserAppScopeDTO> pageData =
-            userAppScopeQueryService.listAuthorizedScopesPaged(username, normalizedOffset, normalizedLength);
+            userAppScopeQueryService.listAuthorizedScopesPaged(username, offset, length);
 
         V4GetUserAuthorizedScopesResult result = new V4GetUserAuthorizedScopesResult();
         result.setTotal(pageData.getTotal());
-        result.setOffset(normalizedOffset);
-        result.setLength(normalizedLength);
+        result.setOffset(offset);
+        result.setLength(length);
         result.setScopeList(toScopeList(pageData.getData()));
         return EsbV4Response.success(result);
-    }
-
-    private int normalizeOffset(Integer offset) {
-        if (offset == null) {
-            return DEFAULT_OFFSET;
-        }
-        if (offset < 0) {
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new Object[]{"offset", "offset must be greater than or equal to 0"}
-            );
-        }
-        return offset;
-    }
-
-    private int normalizeLength(Integer length) {
-        if (length == null) {
-            return DEFAULT_LENGTH;
-        }
-        if (length < 1 || length > MAX_LENGTH) {
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new Object[]{"length", "length must be between 1 and " + MAX_LENGTH}
-            );
-        }
-        return length;
     }
 
     private List<V4AuthorizedScopeDTO> toScopeList(List<UserAppScopeDTO> data) {
@@ -117,7 +88,13 @@ public class OpenApiUserScopeV4ResourceImpl implements OpenApiUserScopeV4Resourc
         dto.setScopeId(scope.getScopeId());
         dto.setName(scope.getName());
         dto.setFavor(scope.getFavor());
-        dto.setFavorTime(scope.getFavorTime());
+        if (scope.getFavorTime() != null) {
+            ZoneId zone = StringUtils.isNotBlank(scope.getTimeZone())
+                ? ZoneId.of(scope.getTimeZone())
+                : ZoneId.systemDefault();
+            dto.setFavorTime(DateUtils.formatUnixTimestamp(
+                scope.getFavorTime(), ChronoUnit.MILLIS, FAVOR_TIME_PATTERN, zone));
+        }
         dto.setTimeZone(scope.getTimeZone());
         return dto;
     }
