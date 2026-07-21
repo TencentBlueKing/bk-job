@@ -298,7 +298,8 @@ class TaskTemplateVariableDAOImplIntegrationTest {
     @Test
     @DisplayName("default_value 老 JSON（无 containerFilters）反序列化后 containerFilters = null")
     void givenLegacyExecuteObjectListDefaultValueReturnContainerFiltersNull() {
-        String legacyJson = "{\"hostNodeList\":{\"hostList\":[{\"hostId\":101,\"cloudAreaId\":0,\"ip\":\"10.0.0.1\"}]}}";
+        String legacyJson =
+            "{\"hostNodeList\":{\"hostList\":[{\"hostId\":101,\"cloudAreaId\":0,\"ip\":\"127.0.0.1\"}]}}";
         TaskVariableDTO variable = new TaskVariableDTO();
         variable.setTemplateId(getRandomPositiveLong());
         variable.setName(UUID.randomUUID().toString());

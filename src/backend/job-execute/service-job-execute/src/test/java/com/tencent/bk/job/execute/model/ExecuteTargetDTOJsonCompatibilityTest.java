@@ -82,7 +82,7 @@ class ExecuteTargetDTOJsonCompatibilityTest {
         @DisplayName("含 staticIpList + topoNodes + dynamicServerGroups 的老 JSON")
         void legacyMultiSource() {
             String json = "{"
-                + "\"staticIpList\":[{\"hostId\":101,\"ip\":\"10.0.0.1\"}],"
+                + "\"staticIpList\":[{\"hostId\":101,\"ip\":\"127.0.0.1\"}],"
                 + "\"topoNodes\":[{\"topoNodeId\":1001,\"nodeType\":\"module\"}],"
                 + "\"dynamicServerGroups\":[{\"groupId\":\"dyngrp-1\"}]"
                 + "}";

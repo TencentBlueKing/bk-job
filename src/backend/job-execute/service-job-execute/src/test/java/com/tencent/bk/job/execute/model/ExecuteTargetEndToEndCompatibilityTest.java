@@ -104,7 +104,7 @@ class ExecuteTargetEndToEndCompatibilityTest {
             // 模拟前端真实 JSON 请求体（不含 containerFilterList，等价于本特性发布前所有用户的请求形态）
             String webJson = "{"
                 + "\"executeObjectsInfo\":{"
-                + "  \"hostList\":[{\"hostId\":101,\"cloudAreaId\":0,\"ip\":\"10.0.0.1\"}]"
+                + "  \"hostList\":[{\"hostId\":101,\"cloudAreaId\":0,\"ip\":\"127.0.0.1\"}]"
                 + "}"
                 + "}";
 
