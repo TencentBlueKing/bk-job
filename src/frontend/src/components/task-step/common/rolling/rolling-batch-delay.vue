@@ -26,74 +26,66 @@
 -->
 
 <template>
-  <bk-form-item
-    ref="bkFormItem"
-    class="jb-form-item"
-    :class="classes"
-    :error-display-type="errorDisplayType"
-    :label="label"
-    v-bind="$attrs"
-    v-on="$listeners">
-    <slot />
-  </bk-form-item>
+  <div ref="batchStartWait">
+    <jb-form-item
+      v-for="item in fields"
+      :key="item.field"
+      :ref="item.field"
+      :label="$t(item.label)"
+      required>
+      <div class="form-item-content">
+        <bk-input
+          :max="3600000"
+          :min="0"
+          type="number"
+          :value="formData[item.field]"
+          @change="handleChange(item.field, $event)" />
+      </div>
+    </jb-form-item>
+  </div>
 </template>
-<script>
-  import dispatch from '@/utils/mixins/dispatch';
 
-  export default {
-    name: 'JbFormItem',
-    mixins: [dispatch],
-    inheritAttrs: false,
-    props: {
-      label: {
-        type: String,
-        default: '',
-      },
-      errorDisplayType: {
-        type: String,
-        default: 'normal',
-      },
+<script setup>
+  const props = defineProps({
+    batchStartWaitFixedMsField: {
+      type: String,
+      required: true,
     },
 
-    computed: {
-      classes() {
-        const classes = {
-          'label-miss': !this.label,
-        };
-        return classes;
-      },
+    batchStartWaitRandomMinMsField: {
+      type: String,
+      required: true,
     },
-    mounted() {
-      this.dispatch(
-        'JbForm',
-        'form-item-change'
-      );
+
+    batchStartWaitRandomMaxMsField: {
+      type: String,
+      required: true,
     },
-    beforeDestroy() {
-      this.dispatch(
-        'JbForm',
-        'form-item-change'
-      );
+
+    formData: {
+      type: Object,
+      required: true,
     },
-    methods: {
-      clearValidator() {
-        this.$refs.bkFormItem.clearValidator();
-      },
+  });
+
+  const emit = defineEmits(['on-change']);
+
+  const fields = [
+    {
+      field: props.batchStartWaitFixedMsField,
+      label: '批次间固定延迟（ms）',
     },
+    {
+      field: props.batchStartWaitRandomMinMsField,
+      label: '批次间随机延迟下限（ms）',
+    },
+    {
+      field: props.batchStartWaitRandomMaxMsField,
+      label: '批次间随机延迟上限（ms）',
+    },
+  ];
+
+  const handleChange = (field, value) => {
+    emit('on-change', field, +value);
   };
 </script>
-<style lang='postcss'>
-  .jb-form-item {
-    &.label-miss {
-      .bk-label {
-        height: 0;
-        min-height: 0;
-        font-size: 0;
-      }
-    }
-
-    .jb-form-item-content {
-      flex: 1;
-    }
-  }
-</style>
