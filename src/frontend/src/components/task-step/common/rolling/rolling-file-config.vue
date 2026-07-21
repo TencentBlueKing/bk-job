@@ -139,10 +139,11 @@
   ]);
 
   const handleChange = (field, value) => {
+    if(Number.isNaN(+value)) return;
     emit(
       'on-change',
       field,
-      props.formData[field] === +value ? undefined : +value,
+      +value,
     );
   };
 </script>
