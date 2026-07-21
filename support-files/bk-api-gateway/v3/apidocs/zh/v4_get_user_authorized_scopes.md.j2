@@ -42,7 +42,7 @@
         "bk_scope_id": "2",
         "name": "示例业务",
         "favor": true,
-        "favor_time": 1710000000000,
+        "favor_time": "2024-03-10 00:00:00.000",
         "time_zone": "Asia/Shanghai"
       },
       {
@@ -79,5 +79,5 @@
 | bk_scope_id   | string  | 是           | 资源范围 ID，须与 `bk_scope_type` 对应，表示业务 ID、业务集 ID 或租户集 ID |
 | name          | string  | 是           | 资源范围名称 |
 | favor         | boolean | 是           | 是否收藏。可选值：`true`（已收藏）、`false`（未收藏） |
-| favor_time    | long    | 否           | 收藏时间，Unix 时间戳，单位毫秒；未收藏时不返回该字段 |
+| favor_time    | string  | 否           | 收藏时间，格式 `yyyy-MM-dd HH:mm:ss.SSS`；未收藏时不返回该字段 |
 | time_zone     | string  | 否           | 资源范围时区，例如 `Asia/Shanghai` |

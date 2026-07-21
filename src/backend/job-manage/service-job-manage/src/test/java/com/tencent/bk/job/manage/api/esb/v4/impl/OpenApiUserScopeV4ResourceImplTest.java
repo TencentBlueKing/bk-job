@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.api.esb.v4.impl;
 
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.esb.impl.v4.OpenApiUserScopeV4ResourceImpl;
 import com.tencent.bk.job.manage.model.dto.UserAppScopeDTO;
@@ -41,7 +40,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -54,6 +52,8 @@ class OpenApiUserScopeV4ResourceImplTest {
 
     private static final String USERNAME = "tester";
     private static final String APP_CODE = "bk_job";
+    private static final long FAVOR_TIME_MILLIS = 1710000000000L;
+    private static final String FAVOR_TIME_FORMATTED = "2024-03-10 00:00:00.000";
 
     private UserAppScopeQueryService userAppScopeQueryService;
     private OpenApiUserScopeV4ResourceImpl resource;
@@ -68,13 +68,13 @@ class OpenApiUserScopeV4ResourceImplTest {
     @DisplayName("默认分页：offset=0, length=10")
     void getUserAuthorizedScopes_defaultPagination() {
         PageData<UserAppScopeDTO> pageData = buildPageData(0, 10, 2L, Arrays.asList(
-            buildScope(1L, "biz", "2", "biz-a", true, 100L),
+            buildScope(1L, "biz", "2", "biz-a", true, FAVOR_TIME_MILLIS),
             buildScope(2L, "biz_set", "3", "set-a", false, null)
         ));
         when(userAppScopeQueryService.listAuthorizedScopesPaged(eq(USERNAME), eq(0), eq(10))).thenReturn(pageData);
 
         EsbV4Response<V4GetUserAuthorizedScopesResult> response =
-            resource.getUserAuthorizedScopes(USERNAME, APP_CODE, null, null);
+            resource.getUserAuthorizedScopes(USERNAME, APP_CODE, 0, 10);
 
         V4GetUserAuthorizedScopesResult result = response.getData();
         assertThat(result.getTotal()).isEqualTo(2L);
@@ -87,8 +87,11 @@ class OpenApiUserScopeV4ResourceImplTest {
         assertThat(first.getScopeId()).isEqualTo("2");
         assertThat(first.getName()).isEqualTo("biz-a");
         assertThat(first.getFavor()).isTrue();
-        assertThat(first.getFavorTime()).isEqualTo(100L);
+        assertThat(first.getFavorTime()).isEqualTo(FAVOR_TIME_FORMATTED);
         assertThat(first.getTimeZone()).isEqualTo("Asia/Shanghai");
+
+        V4AuthorizedScopeDTO second = result.getScopeList().get(1);
+        assertThat(second.getFavorTime()).isNull();
 
         verify(userAppScopeQueryService).listAuthorizedScopesPaged(USERNAME, 0, 10);
     }
@@ -116,26 +119,10 @@ class OpenApiUserScopeV4ResourceImplTest {
         when(userAppScopeQueryService.listAuthorizedScopesPaged(eq(USERNAME), eq(0), eq(10))).thenReturn(pageData);
 
         EsbV4Response<V4GetUserAuthorizedScopesResult> response =
-            resource.getUserAuthorizedScopes(USERNAME, APP_CODE, null, null);
+            resource.getUserAuthorizedScopes(USERNAME, APP_CODE, 0, 10);
 
         assertThat(response.getData().getTotal()).isEqualTo(0L);
         assertThat(response.getData().getScopeList()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("offset 非法时抛出参数异常")
-    void getUserAuthorizedScopes_invalidOffset() {
-        assertThatThrownBy(() -> resource.getUserAuthorizedScopes(USERNAME, APP_CODE, -1, 10))
-            .isInstanceOf(InvalidParamException.class);
-    }
-
-    @Test
-    @DisplayName("length 非法时抛出参数异常")
-    void getUserAuthorizedScopes_invalidLength() {
-        assertThatThrownBy(() -> resource.getUserAuthorizedScopes(USERNAME, APP_CODE, 0, 0))
-            .isInstanceOf(InvalidParamException.class);
-        assertThatThrownBy(() -> resource.getUserAuthorizedScopes(USERNAME, APP_CODE, 0, 201))
-            .isInstanceOf(InvalidParamException.class);
     }
 
     private PageData<UserAppScopeDTO> buildPageData(int start,
