@@ -50,6 +50,7 @@
         :rules="item.rules">
         <bk-input
           class="form-item-content"
+          :max="item.max"
           :min="1"
           type="number"
           :value="formData[item.field]"
@@ -130,19 +131,22 @@
       field: props.maxExecuteObjectNumField,
       label: '单批次最大并发源主机/容器数',
       rules: maxExecuteObjectNumRule.value,
+      max: 10000,
     },
     {
       field: props.maxFileNumField,
       label: '源单主机/容器最大并发文件数',
       rules: maxFileNumRule.value,
+      max: 2000,
     },
   ]);
 
   const handleChange = (field, value) => {
+    if(Number.isNaN(+value)) return;
     emit(
       'on-change',
       field,
-      props.formData[field] === +value ? undefined : +value,
+      +value,
     );
   };
 </script>
