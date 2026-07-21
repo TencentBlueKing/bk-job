@@ -66,7 +66,7 @@ class TaskTargetDTOJsonCompatibilityTest {
             // 历史持久化样本（来自 task_template_step_script.destination_host_list 典型形态）
             String json = "{"
                 + "\"hostNodeList\":{"
-                + "  \"hostList\":[{\"hostId\":101,\"cloudAreaId\":0,\"ip\":\"10.0.0.1\"}],"
+                + "  \"hostList\":[{\"hostId\":101,\"cloudAreaId\":0,\"ip\":\"127.0.0.1\"}],"
                 + "  \"dynamicGroupId\":[\"dg-1\"]"
                 + "},"
                 + "\"containerList\":[{\"id\":555,\"containerId\":\"docker://abc\"}]"
