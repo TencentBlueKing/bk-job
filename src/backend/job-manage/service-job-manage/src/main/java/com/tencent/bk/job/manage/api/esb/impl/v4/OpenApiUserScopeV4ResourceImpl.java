@@ -49,8 +49,6 @@ import java.util.stream.Collectors;
 @RestController
 public class OpenApiUserScopeV4ResourceImpl implements OpenApiUserScopeV4Resource {
 
-    private static final String FAVOR_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
-
     private final UserAppScopeQueryService userAppScopeQueryService;
 
     @Autowired
@@ -93,7 +91,7 @@ public class OpenApiUserScopeV4ResourceImpl implements OpenApiUserScopeV4Resourc
                 ? ZoneId.of(scope.getTimeZone())
                 : ZoneId.systemDefault();
             dto.setFavorTime(DateUtils.formatUnixTimestamp(
-                scope.getFavorTime(), ChronoUnit.MILLIS, FAVOR_TIME_PATTERN, zone));
+                scope.getFavorTime(), ChronoUnit.MILLIS, DateUtils.DATETIME_PATTERN_WITH_MILLIS, zone));
         }
         dto.setTimeZone(scope.getTimeZone());
         return dto;

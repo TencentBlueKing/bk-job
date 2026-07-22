@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4GetUserAuthorizedScopesResult;
+import jakarta.validation.constraints.Min;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,10 +54,10 @@ public interface OpenApiUserScopeV4Resource {
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestParam(value = "offset", required = false, defaultValue = "0")
-        @Range(min = 0L, max = 10000L, message = "{validation.constraints.InvalidJobInstanceOffset.message}")
+        @Min(value = 0L, message = "{validation.constraints.InvalidPageOffset.message}")
             Integer offset,
         @RequestParam(value = "length", required = false, defaultValue = "10")
-        @Range(min = 1L, max = 200L, message = "{validation.constraints.InvalidJobInstanceLength.message}")
+        @Range(min = 1L, max = 200L, message = "{validation.constraints.InvalidPageLength.message}")
             Integer length
     );
 }
