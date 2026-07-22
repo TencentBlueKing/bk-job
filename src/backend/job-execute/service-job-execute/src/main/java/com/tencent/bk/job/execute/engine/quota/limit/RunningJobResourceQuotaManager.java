@@ -37,8 +37,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
@@ -69,6 +72,15 @@ public class RunningJobResourceQuotaManager {
     private static final String RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY =
         "job:execute:running:job:count:resource_scope";
     private static final String APP_RUNNING_JOB_COUNT_HASH_KEY = "job:execute:running:job:count:app";
+    /**
+     * 作业权重记忆 Hash：jobInstanceId -> weight。用于 remove/崩溃回收在不知权重的情况下精确回退，
+     * 同时作为对账时的权重真值来源
+     */
+    private static final String RUNNING_JOB_WEIGHT_HASH_KEY = "job:execute:running:job:weight";
+    /**
+     * 系统级加权计数：所有在跑作业的权重之和。定位为可被周期性对账重算刷新的缓存，用于系统级限额与展示 total
+     */
+    private static final String SYSTEM_WEIGHTED_COUNT_KEY = "job:execute:running:job:weighted:count:system";
 
     private static final List<String> LUA_SCRIPT_KEYS = new ArrayList<>();
 
@@ -86,6 +98,8 @@ public class RunningJobResourceQuotaManager {
         LUA_SCRIPT_KEYS.add(RedisKeys.RUNNING_JOB_ZSET_KEY);
         LUA_SCRIPT_KEYS.add(RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY);
         LUA_SCRIPT_KEYS.add(APP_RUNNING_JOB_COUNT_HASH_KEY);
+        LUA_SCRIPT_KEYS.add(RUNNING_JOB_WEIGHT_HASH_KEY);
+        LUA_SCRIPT_KEYS.add(SYSTEM_WEIGHTED_COUNT_KEY);
 
         loadLuaScript();
     }
@@ -122,6 +136,18 @@ public class RunningJobResourceQuotaManager {
     }
 
     public void addJob(String appCode, ResourceScope resourceScope, long jobInstanceId) {
+        addJob(appCode, resourceScope, jobInstanceId, 1);
+    }
+
+    /**
+     * 记录正在运行的作业，按权重占用配额。
+     *
+     * @param appCode       作业发起的蓝鲸应用 code
+     * @param resourceScope 资源管理空间
+     * @param jobInstanceId 作业实例 ID
+     * @param weight        本作业占用的配额权重（并行错峰任务=总批次数 totalBatch，普通任务=1）
+     */
+    public void addJob(String appCode, ResourceScope resourceScope, long jobInstanceId, int weight) {
         long startTime = System.currentTimeMillis();
         RedisScript<Void> script = RedisScript.of(ADD_JOB_LUA_SCRIPT, Void.class);
 
@@ -131,7 +157,8 @@ public class RunningJobResourceQuotaManager {
             String.valueOf(jobInstanceId),
             resourceScope.toResourceScopeUniqueId(),
             convertAppCode(appCode),
-            String.valueOf(System.currentTimeMillis())
+            String.valueOf(System.currentTimeMillis()),
+            String.valueOf(Math.max(1, weight))
         );
 
         long cost = System.currentTimeMillis() - startTime;
@@ -215,8 +242,63 @@ public class RunningJobResourceQuotaManager {
     }
 
     public long getRunningJobTotal() {
-        Long count = redisTemplate.opsForZSet().size(RedisKeys.RUNNING_JOB_ZSET_KEY);
-        return count != null ? count : 0L;
+        String value = redisTemplate.opsForValue().get(SYSTEM_WEIGHTED_COUNT_KEY);
+        if (StringUtils.isBlank(value)) {
+            return 0L;
+        }
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            log.warn("Invalid system weighted count value: {}", value);
+            return 0L;
+        }
+    }
+
+    /**
+     * 对账系统级加权计数：以当前在跑作业（ZSet 成员）的权重之和为真值，重算并覆盖写入缓存 key。
+     * <p>
+     * 用于纠正滚动升级/混版窗口/崩溃部分更新导致的增量漂移。为避免长时间阻塞 Redis 单线程，
+     * 采用分片 SCAN 读取 + 应用侧求和 + 单次 SET，不使用 O(N) 的 Lua 脚本。
+     */
+    public void reconcileSystemWeightedCount() {
+        long startTime = System.currentTimeMillis();
+        ScanOptions scanOptions = ScanOptions.scanOptions().count(1000).build();
+
+        // 先分片读取权重记忆表：jobInstanceId -> weight
+        Map<String, Long> weightMap = new HashMap<>();
+        try (Cursor<Map.Entry<Object, Object>> cursor =
+                 redisTemplate.opsForHash().scan(RUNNING_JOB_WEIGHT_HASH_KEY, scanOptions)) {
+            while (cursor.hasNext()) {
+                Map.Entry<Object, Object> entry = cursor.next();
+                try {
+                    weightMap.put(String.valueOf(entry.getKey()), Long.parseLong(String.valueOf(entry.getValue())));
+                } catch (NumberFormatException e) {
+                    log.warn("Skip invalid job weight entry: {} -> {}", entry.getKey(), entry.getValue());
+                }
+            }
+        }
+
+        // 分片遍历在跑作业成员，权重缺失（旧任务）按 1 计
+        long weightedTotal = 0L;
+        long memberCount = 0L;
+        try (Cursor<ZSetOperations.TypedTuple<String>> cursor =
+                 redisTemplate.opsForZSet().scan(RedisKeys.RUNNING_JOB_ZSET_KEY, scanOptions)) {
+            while (cursor.hasNext()) {
+                ZSetOperations.TypedTuple<String> tuple = cursor.next();
+                String member = tuple.getValue();
+                if (StringUtils.isBlank(member)) {
+                    continue;
+                }
+                memberCount++;
+                Long weight = weightMap.get(member);
+                weightedTotal += (weight != null && weight >= 1) ? weight : 1L;
+            }
+        }
+
+        redisTemplate.opsForValue().set(SYSTEM_WEIGHTED_COUNT_KEY, String.valueOf(weightedTotal));
+        long cost = System.currentTimeMillis() - startTime;
+        log.info("Reconcile system weighted count done, runningJob={}, weightedTotal={}, cost={} ms",
+            memberCount, weightedTotal, cost);
     }
 
     public Map<String, Long> getAppRunningJobCount() {

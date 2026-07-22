@@ -45,6 +45,22 @@ public interface RollingConfigService {
     List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
 
     /**
+     * 校验快速执行作业的滚动配置（不依赖执行对象解析的入参/业务校验，应在执行流程尽早调用以快速失败）
+     *
+     * @param fastTask 快速执行作业
+     */
+    void validateRollingConfigForFastJob(FastTaskDTO fastTask);
+
+    /**
+     * 校验快速执行作业的并行错峰滚动批次总数是否超过系统上限。
+     * 该校验依赖执行对象解析结果（批次总数由已解析的执行对象分批得到），须在执行对象解析完成之后、写入DB之前调用，
+     * 以保证校验不通过时不产生脏数据。
+     *
+     * @param fastTask 快速执行作业
+     */
+    void validateRollingBatchCountForFastJob(FastTaskDTO fastTask);
+
+    /**
      * 保存快速执行作业滚动配置
      *
      * @param fastTask 快速执行作业
