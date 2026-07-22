@@ -38,4 +38,14 @@ public class EsbRollingConfigGroupSequenceProvider
     Integer getRollingType(EsbRollingConfigDTO rollingConfigDTO) {
         return rollingConfigDTO.getType();
     }
+
+    @Override
+    Integer getExecutionMode(EsbRollingConfigDTO rollingConfigDTO) {
+        return rollingConfigDTO.getExecutionMode();
+    }
+
+    @Override
+    Class<?> getBeanClass() {
+        return EsbRollingConfigDTO.class;
+    }
 }

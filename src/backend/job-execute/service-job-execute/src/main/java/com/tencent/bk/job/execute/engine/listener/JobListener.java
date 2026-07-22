@@ -229,6 +229,18 @@ public class JobListener extends BaseJobMqListener {
                 currentStepInstance.getTaskInstanceId(),
                 currentStepInstance.getRollingConfigId()
             );
+            // 并行错峰模式：整步（所有批次）已由 ScatterDispatchManager 驱动并完成，
+            // 此处不再逐批推进，直接进入下一个真实步骤或结束作业
+            if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                StepInstanceBaseDTO nextStepInstance = stepInstanceService.getNextStepInstance(
+                    taskInstance.getId(), currentStepInstance.getStepOrder());
+                if (nextStepInstance == null) {
+                    finishJob(taskInstance, currentStepInstance, RunStatusEnum.SUCCESS);
+                } else {
+                    startStep(nextStepInstance);
+                }
+                return;
+            }
             StepInstanceBaseDTO nextStepInstance = getNextStepInstance(
                 taskInstance,
                 currentStepInstance,

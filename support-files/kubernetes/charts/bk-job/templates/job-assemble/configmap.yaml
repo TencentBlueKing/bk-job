@@ -41,7 +41,7 @@ data:
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
           outputBindings: sendBackGroundTask
-          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback;crontabFanout;sendBackGroundTask;aiChatOperationFanout
+          source: task;step;gseTask;resultHandleTaskResume;rollingBatchDispatchResume;notifyMsg;callback;crontabFanout;sendBackGroundTask;aiChatOperationFanout;scatterBatchCancelFanout
           bindings:
             handleJobEvent-in-0:
               destination: task
@@ -87,6 +87,18 @@ data:
                 concurrency: 5
             resultHandleTaskResume-out-0:
               destination: result.handle.task.resume
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            handleRollingBatchDispatchResumeEvent-in-0:
+              destination: rolling.batch.dispatch.resume
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            rollingBatchDispatchResume-out-0:
+              destination: rolling.batch.dispatch.resume
               group: service.job.execute
               binder: jobCommon
               consumer:
@@ -145,6 +157,16 @@ data:
             aiChatOperationFanout-out-0:
               destination: analysis.aiChatOperation.fanout
               binder: jobCommon
+            handleScatterBatchCancelFanoutEvent-in-0:
+              destination: execute.scatter.cancel.fanout
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            scatterBatchCancelFanout-out-0:
+              destination: execute.scatter.cancel.fanout
+              binder: jobCommon
+              consumer:
+                concurrency: 5
           rabbit:
             bindings:
               handleJobEvent-in-0:
@@ -169,6 +191,12 @@ data:
                 consumer:
                   maxConcurrency: 10
               resultHandleTaskResume-out-0:
+                consumer:
+                  maxConcurrency: 10
+              handleRollingBatchDispatchResumeEvent-in-0:
+                consumer:
+                  maxConcurrency: 10
+              rollingBatchDispatchResume-out-0:
                 consumer:
                   maxConcurrency: 10
               handleNotifyMsg-in-0:
@@ -203,8 +231,18 @@ data:
               aiChatOperationFanout-out-0:
                 producer:
                   exchangeType: fanout
+              handleScatterBatchCancelFanoutEvent-in-0:
+                consumer:
+                  maxConcurrency: 5
+                  exchangeType: fanout
+              scatterBatchCancelFanout-out-0:
+                producer:
+                  exchangeType: fanout
+                consumer:
+                  maxConcurrency: 5
+                  exchangeType: fanout
         function:
-          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer;handleCrontabFanoutEvent;handleBackGroundTask;handleAIChatOperationEvent
+          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleRollingBatchDispatchResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer;handleCrontabFanoutEvent;handleBackGroundTask;handleAIChatOperationEvent;handleScatterBatchCancelFanoutEvent
       datasource:
         job-manage:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -464,6 +502,10 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        rolling:
+          scatter:
+            max-batch: {{ .Values.executeConfig.rolling.scatter.maxBatch }}
+            worker-num: {{ .Values.executeConfig.rolling.scatter.workerNum }}
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
         check-callback-url:

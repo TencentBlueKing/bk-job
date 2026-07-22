@@ -148,7 +148,7 @@ public class FileSourceDTO implements Cloneable {
      */
     public int getExecuteObjectNum() {
         // 本地文件与第三方源文件只有一台源机器
-        if (localUpload || fileSourceId != null) {
+        if (isLocalUploadFileSource() || isThirdFileSource()) {
             return 1;
         }
         List<ExecuteObject> executeObjects = servers.getExecuteObjects();
@@ -179,6 +179,16 @@ public class FileSourceDTO implements Cloneable {
         sb.append(",fileNum=").append(getFileNum());
         sb.append(")");
         return sb.toString();
+    }
+
+    @JsonIgnore
+    private boolean isLocalUploadFileSource() {
+        return localUpload || fileType == TaskFileTypeEnum.LOCAL.getType();
+    }
+
+    @JsonIgnore
+    private boolean isThirdFileSource() {
+        return fileType == TaskFileTypeEnum.FILE_SOURCE.getType();
     }
 
     /**

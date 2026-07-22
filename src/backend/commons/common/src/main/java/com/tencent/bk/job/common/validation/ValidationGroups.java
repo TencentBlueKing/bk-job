@@ -65,6 +65,23 @@ public interface ValidationGroups {
     }
 
     /**
+     * 滚动批次执行模式
+     */
+    interface RollingExecutionMode {
+        /**
+         * 串行执行
+         */
+        interface Serial {
+        }
+
+        /**
+         * 并行执行（错峰）
+         */
+        interface Parallel {
+        }
+    }
+
+    /**
      * 主机类型（hostId or cloudId+ip）
      */
     interface HostType {

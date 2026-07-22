@@ -359,6 +359,8 @@ CREATE TABLE IF NOT EXISTS `step_instance_rolling_task`
     `start_time`       bigint(20)           DEFAULT NULL,
     `end_time`         bigint(20)           DEFAULT NULL,
     `total_time`       bigint(11)           DEFAULT NULL,
+    `dispatch_time`    bigint(20)           DEFAULT NULL,
+    `dispatched`       tinyint(1)  NOT NULL DEFAULT '0',
     `status`           tinyint(4)  NOT NULL DEFAULT '1',
     `row_create_time`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

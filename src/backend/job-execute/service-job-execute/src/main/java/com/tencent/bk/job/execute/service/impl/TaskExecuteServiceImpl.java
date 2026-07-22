@@ -232,6 +232,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public TaskInstanceDTO executeFastTask(FastTaskDTO fastTask) {
+        // 滚动配置相关的入参/业务校验，尽早失败（不依赖执行对象解析）
+        rollingConfigService.validateRollingConfigForFastJob(fastTask);
+
         // 设置脚本信息
         checkAndSetScript(fastTask.getOperator().getTenantId(), fastTask.getTaskInstance(), fastTask.getStepInstance());
 
@@ -307,6 +310,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 检查步骤
             watch.start("checkStepInstance");
             checkStepInstance(taskInstance, Collections.singletonList(stepInstance));
+            watch.stop();
+
+            // 校验并行错峰滚动批次总数（依赖执行对象解析结果，须在写DB前完成，避免产生脏数据）
+            watch.start("validateRollingBatchCount");
+            rollingConfigService.validateRollingBatchCountForFastJob(fastTask);
             watch.stop();
 
             // 鉴权
@@ -501,6 +509,40 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    /**
+     * 计算作业占用的运行中作业配额权重：并行错峰滚动任务按总批次数 totalBatch 计，其余（普通/串行滚动）按 1 计。
+     *
+     * @param rollingConfig 滚动配置，可为 null
+     * @return 配额权重，至少为 1
+     */
+    private int resolveRunningJobQuotaWeight(RollingConfigDTO rollingConfig) {
+        if (rollingConfig == null
+            || !rollingConfig.isParallelExecution()
+            || rollingConfig.getExecuteObjectRollingConfig() == null) {
+            return 1;
+        }
+        int totalBatch = rollingConfig.getExecuteObjectRollingConfig().getTotalBatch();
+        return totalBatch > 0 ? totalBatch : 1;
+    }
+
+    /**
+     * 按步骤的滚动配置计算作业占用的运行中作业配额权重（用于操作入口重新登记运行中作业时复用）。
+     *
+     * @param taskInstance 作业实例
+     * @param stepInstance 被操作的步骤实例
+     * @return 配额权重，至少为 1
+     */
+    private int resolveRunningJobQuotaWeight(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
+        if (stepInstance == null
+            || stepInstance.getRollingConfigId() == null
+            || stepInstance.getRollingConfigId() <= 0) {
+            return 1;
+        }
+        RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+            taskInstance.getId(), stepInstance.getRollingConfigId());
+        return resolveRunningJobQuotaWeight(rollingConfig);
+    }
+
     private void saveTaskInstance(StopWatch watch,
                                   FastTaskDTO fastTask,
                                   TaskInstanceDTO taskInstance,
@@ -527,11 +569,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         watch.stop();
 
         // 保存滚动配置
+        int quotaWeight = 1;
         if (fastTask.isRollingEnabled()) {
             watch.start("saveRollingConfig");
             RollingConfigDTO rollingConfig = rollingConfigService.saveRollingConfigForFastJob(fastTask);
             long rollingConfigId = rollingConfig.getId();
             stepInstanceService.updateStepRollingConfigId(taskInstanceId, stepInstanceId, rollingConfigId);
+            // 并行错峰任务按总批次数加权占用配额，反映其真实在飞资源规模
+            quotaWeight = resolveRunningJobQuotaWeight(rollingConfig);
             watch.stop();
         }
 
@@ -540,7 +585,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         runningJobResourceQuotaManager.addJob(
             taskInstance.getAppCode(),
             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
-            taskInstanceId
+            taskInstanceId,
+            quotaWeight
         );
         watch.stop();
     }
@@ -2268,7 +2314,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         runningJobResourceQuotaManager.addJob(
             taskInstance.getAppCode(),
             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
-            taskInstance.getId()
+            taskInstance.getId(),
+            resolveRunningJobQuotaWeight(taskInstance, stepInstance)
         );
         taskOperationLogService.saveOperationLog(buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.NEXT_STEP));
@@ -2288,7 +2335,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         runningJobResourceQuotaManager.addJob(
             taskInstance.getAppCode(),
             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
-            taskInstance.getId()
+            taskInstance.getId(),
+            resolveRunningJobQuotaWeight(taskInstance, stepInstance)
         );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
@@ -2310,7 +2358,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         runningJobResourceQuotaManager.addJob(
             taskInstance.getAppCode(),
             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
-            taskInstance.getId()
+            taskInstance.getId(),
+            resolveRunningJobQuotaWeight(taskInstance, stepInstance)
         );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
@@ -2340,7 +2389,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         runningJobResourceQuotaManager.addJob(
             taskInstance.getAppCode(),
             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
-            taskInstance.getId()
+            taskInstance.getId(),
+            resolveRunningJobQuotaWeight(taskInstance, stepInstance)
         );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
@@ -2361,7 +2411,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         runningJobResourceQuotaManager.addJob(
             taskInstance.getAppCode(),
             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
-            taskInstance.getId()
+            taskInstance.getId(),
+            resolveRunningJobQuotaWeight(taskInstance, stepInstance)
         );
         taskExecuteMQEventDispatcher.dispatchStepEvent(
             StepEvent.skipStep(stepInstance.getTaskInstanceId(), stepInstance.getId()));

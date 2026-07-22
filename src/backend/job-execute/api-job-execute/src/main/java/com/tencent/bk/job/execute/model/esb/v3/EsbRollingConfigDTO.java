@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.esb.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.constant.RollingExecutionModeEnum;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.common.validation.CheckEnum;
@@ -34,6 +35,8 @@ import lombok.Data;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -59,6 +62,76 @@ public class EsbRollingConfigDTO {
      */
     @CheckEnum(enumClass = RollingModeEnum.class, message = "{validation.constraints.RollingMode_illegal.message}")
     private Integer mode = RollingModeEnum.PAUSE_IF_FAIL.getValue();
+
+    /**
+     * 滚动批次执行模式，1-串行(默认)；2-并行(错峰)
+     *
+     * @see com.tencent.bk.job.common.constant.RollingExecutionModeEnum
+     */
+    @CheckEnum(enumClass = RollingExecutionModeEnum.class,
+        message = "{validation.constraints.RollingExecutionMode_illegal.message}")
+    @JsonProperty("execution_mode")
+    private Integer executionMode = RollingExecutionModeEnum.SERIAL.getValue();
+
+    /**
+     * 批次间固定间隔（累积式相邻批），单位毫秒，仅并行模式使用且必填
+     */
+    @NotNull(
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitFixedMs_NotNull.message}"
+    )
+    @Min(
+        value = 0,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @Max(
+        value = 3600000,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @JsonProperty("batch_start_wait_fixed_ms")
+    private Long batchStartWaitFixedMs;
+
+    /**
+     * 批次间随机延迟下限，单位毫秒，仅并行模式使用且必填
+     */
+    @NotNull(
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitRandomMinMs_NotNull.message}"
+    )
+    @Min(
+        value = 0,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @Max(
+        value = 3600000,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @JsonProperty("batch_start_wait_random_min_ms")
+    private Long batchStartWaitRandomMinMs;
+
+    /**
+     * 批次间随机延迟上限，单位毫秒，仅并行模式使用且必填，需 ≥ batch_start_wait_random_min_ms
+     */
+    @NotNull(
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitRandomMaxMs_NotNull.message}"
+    )
+    @Min(
+        value = 0,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @Max(
+        value = 3600000,
+        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
+        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
+    )
+    @JsonProperty("batch_start_wait_random_max_ms")
+    private Long batchStartWaitRandomMaxMs;
 
     /**
      * 滚动对象为【传输目标】的配置项

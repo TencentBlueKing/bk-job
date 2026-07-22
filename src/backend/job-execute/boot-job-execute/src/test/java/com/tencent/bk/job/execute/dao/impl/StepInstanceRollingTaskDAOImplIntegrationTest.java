@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
+import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchFinishResult;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -136,5 +137,47 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
         assertThat(savedRollingTask.getEndTime()).isEqualTo(endTime);
         assertThat(savedRollingTask.getTotalTime()).isEqualTo(totalTime);
 
+    }
+
+    @Test
+    @DisplayName("更新批次下发信息 dispatch_time / dispatched")
+    void updateDispatchInfo() {
+        long dispatchTime = 1700000000000L;
+        stepInstanceRollingTaskDAO.updateDispatchInfo(1L, 1L, 0, 1, dispatchTime, Boolean.TRUE);
+
+        StepInstanceRollingTaskDTO rollingTask = stepInstanceRollingTaskDAO.queryRollingTask(1L, 1L, 0, 1);
+        assertThat(rollingTask).isNotNull();
+        assertThat(rollingTask.getDispatchTime()).isEqualTo(dispatchTime);
+        assertThat(rollingTask.getDispatched()).isTrue();
+    }
+
+    @Test
+    @DisplayName("并行完成判定：非最后批次返回NOT_LAST_BATCH，最后批次返回LAST_BATCH，重复回调返回ALREADY_FINAL")
+    void finishBatchAndCheckAllDone() {
+        long now = System.currentTimeMillis();
+        int totalBatch = 3;
+
+        // step 2 共 3 批次，初始均为 BLANK(未终态)
+        ScatterBatchFinishResult r1 = stepInstanceRollingTaskDAO.finishBatchAndCheckAllDone(
+            2L, 2L, 0, 1, RunStatusEnum.SUCCESS, now, now, 0L, totalBatch);
+        assertThat(r1).isEqualTo(ScatterBatchFinishResult.NOT_LAST_BATCH);
+
+        // 重复回调批次1，幂等
+        ScatterBatchFinishResult rDup = stepInstanceRollingTaskDAO.finishBatchAndCheckAllDone(
+            2L, 2L, 0, 1, RunStatusEnum.SUCCESS, now, now, 0L, totalBatch);
+        assertThat(rDup).isEqualTo(ScatterBatchFinishResult.ALREADY_FINAL);
+
+        ScatterBatchFinishResult r2 = stepInstanceRollingTaskDAO.finishBatchAndCheckAllDone(
+            2L, 2L, 0, 2, RunStatusEnum.SUCCESS, now, now, 0L, totalBatch);
+        assertThat(r2).isEqualTo(ScatterBatchFinishResult.NOT_LAST_BATCH);
+
+        // 最后一个批次，唯一收敛
+        ScatterBatchFinishResult r3 = stepInstanceRollingTaskDAO.finishBatchAndCheckAllDone(
+            2L, 2L, 0, 3, RunStatusEnum.FAIL, now, now, 0L, totalBatch);
+        assertThat(r3).isEqualTo(ScatterBatchFinishResult.LAST_BATCH);
+
+        // 各批终态已落库
+        StepInstanceRollingTaskDTO b3 = stepInstanceRollingTaskDAO.queryRollingTask(2L, 2L, 0, 3);
+        assertThat(b3.getStatus()).isEqualTo(RunStatusEnum.FAIL);
     }
 }

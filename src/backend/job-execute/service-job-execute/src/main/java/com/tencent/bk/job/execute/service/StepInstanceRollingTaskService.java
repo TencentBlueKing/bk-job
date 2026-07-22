@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchFinishResult;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 
 import java.util.List;
@@ -106,4 +107,45 @@ public interface StepInstanceRollingTaskService {
      * @return 步骤滚动任务
      */
     List<StepInstanceRollingTaskDTO> listRollingTasksByStep(Long taskInstanceId, long stepInstanceId);
+
+    /**
+     * 更新滚动任务下发信息（并行错峰模式）
+     *
+     * @param taskInstanceId 作业实例 ID
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   步骤执行次数
+     * @param batch          滚动执行批次
+     * @param dispatchTime   计划下发时刻；如果不更新传入null
+     * @param dispatched     是否已下发；如果不更新传入null
+     */
+    void updateDispatchInfo(Long taskInstanceId,
+                            long stepInstanceId,
+                            int executeCount,
+                            int batch,
+                            Long dispatchTime,
+                            Boolean dispatched);
+
+    /**
+     * 并行错峰模式：单批次终态跃迁 + 步骤完成的并发安全判定
+     *
+     * @param taskInstanceId 作业实例 ID
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   步骤执行次数
+     * @param batch          当前到达终态的批次
+     * @param status         批次终态
+     * @param startTime      批次开始时间
+     * @param endTime        批次结束时间
+     * @param totalTime      批次总耗时
+     * @param totalBatch     步骤总批次数
+     * @return 完成判定结果
+     */
+    ScatterBatchFinishResult finishBatchAndCheckAllDone(Long taskInstanceId,
+                                                        long stepInstanceId,
+                                                        int executeCount,
+                                                        int batch,
+                                                        RunStatusEnum status,
+                                                        Long startTime,
+                                                        Long endTime,
+                                                        Long totalTime,
+                                                        int totalBatch);
 }

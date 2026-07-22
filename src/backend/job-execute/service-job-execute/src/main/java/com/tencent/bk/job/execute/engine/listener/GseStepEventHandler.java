@@ -35,10 +35,16 @@ import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.ScatterBatchCancelEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
+import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchTimeCalculator;
+import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchManager;
+import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterDispatchTask;
+import com.tencent.bk.job.execute.engine.rolling.scatter.ScatterStepConverger;
+import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
@@ -81,6 +87,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final StepInstanceFileBatchService stepInstanceFileBatchService;
+    private final ScatterDispatchManager scatterDispatchManager;
+    private final ScatterStepConverger scatterStepConverger;
 
     @Autowired
     public GseStepEventHandler(TaskInstanceService taskInstanceService,
@@ -92,7 +100,9 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                                StepInstanceRollingTaskService stepInstanceRollingTaskService,
                                ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                               StepInstanceFileBatchService stepInstanceFileBatchService) {
+                               StepInstanceFileBatchService stepInstanceFileBatchService,
+                               ScatterDispatchManager scatterDispatchManager,
+                               ScatterStepConverger scatterStepConverger) {
         super(taskInstanceService, stepInstanceService, taskExecuteMQEventDispatcher);
         this.filePrepareService = filePrepareService;
         this.gseTaskService = gseTaskService;
@@ -101,6 +111,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceFileBatchService = stepInstanceFileBatchService;
+        this.scatterDispatchManager = scatterDispatchManager;
+        this.scatterStepConverger = scatterStepConverger;
     }
 
     @Override
@@ -210,10 +222,62 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             }
 
             startGseTask(stepInstance, gseTaskId);
+
+            // 并行错峰模式：第一批次启动后，预登记并调度后续批次错峰下发
+            if (isRollingStep && rollingConfig != null
+                && rollingConfig.isParallelExecution() && stepInstance.isFirstRollingBatch()) {
+                scheduleParallelScatterBatches(stepInstance, rollingConfig);
+            }
         } else {
             log.warn("Unsupported step instance run status for starting step, stepInstanceId={}, status={}",
                 stepInstanceId, stepStatus);
         }
+    }
+
+    /**
+     * 并行错峰模式：登记并调度第一批次之后的所有批次错峰下发。
+     * 仅创建/更新滚动任务的下发登记信息与延迟入队，不在此直接执行 GSE 下发。
+     *
+     * @param stepInstance  步骤实例（batch 为第一批次）
+     * @param rollingConfig 滚动配置
+     */
+    private void scheduleParallelScatterBatches(StepInstanceDTO stepInstance, RollingConfigDTO rollingConfig) {
+        long taskInstanceId = stepInstance.getTaskInstanceId();
+        long stepInstanceId = stepInstance.getId();
+        int executeCount = stepInstance.getExecuteCount();
+        ExecuteObjectRollingConfigDetailDO detail = rollingConfig.getExecuteObjectRollingConfig();
+        int totalBatch = detail.getTotalBatch();
+        long fixedMs = detail.getBatchStartWaitFixedMs() == null ? 0L : detail.getBatchStartWaitFixedMs();
+        long randomMinMs = detail.getBatchStartWaitRandomMinMs() == null ? 0L : detail.getBatchStartWaitRandomMinMs();
+        long randomMaxMs = detail.getBatchStartWaitRandomMaxMs() == null ? 0L : detail.getBatchStartWaitRandomMaxMs();
+        long baseTime = stepInstance.getStartTime() != null ? stepInstance.getStartTime() : System.currentTimeMillis();
+
+        // 累积式错峰：批1下发时刻=baseTime；批k=批(k-1)下发时刻+fixed+random(min,max)，随机每批独立采样
+        long[] dispatchTimes = ScatterBatchTimeCalculator.computeDispatchTimes(
+            baseTime, totalBatch, fixedMs, randomMinMs, randomMaxMs);
+
+        // 第一批次已即时下发，补登记下发信息（批1下发时刻=baseTime，偏移0）
+        stepInstanceRollingTaskService.updateDispatchInfo(taskInstanceId, stepInstanceId, executeCount, 1,
+            dispatchTimes[0], Boolean.TRUE);
+
+        for (int batch = 2; batch <= totalBatch; batch++) {
+            long dispatchTime = dispatchTimes[batch - 1];
+            // 预登记批次滚动任务（未下发）
+            StepInstanceRollingTaskDTO rollingTask = new StepInstanceRollingTaskDTO();
+            rollingTask.setTaskInstanceId(taskInstanceId);
+            rollingTask.setStepInstanceId(stepInstanceId);
+            rollingTask.setExecuteCount(executeCount);
+            rollingTask.setBatch(batch);
+            rollingTask.setStatus(RunStatusEnum.BLANK);
+            rollingTask.setDispatchTime(dispatchTime);
+            rollingTask.setDispatched(Boolean.FALSE);
+            stepInstanceRollingTaskService.saveRollingTask(rollingTask);
+            // 入延迟队列
+            scatterDispatchManager.addTask(new ScatterDispatchTask(
+                taskInstanceId, stepInstanceId, executeCount, batch, dispatchTime));
+        }
+        log.info("Scheduled parallel scatter batches, stepInstanceId={}, executeCount={}, totalBatch={}",
+            stepInstanceId, executeCount, totalBatch);
     }
 
     /**
@@ -549,6 +613,56 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         } else if (stepStatus == RunStatusEnum.RUNNING) {
             // 正在运行中的任务无法立即结束，需要等待任务调度引擎检测到停止状态;这里只需要处理设置步骤状态即可
             stepInstanceService.updateStepStatus(taskInstanceId, stepInstanceId, RunStatusEnum.STOPPING.getValue());
+            // 并行错峰模式：取消队列中尚未下发的批次，并把它们标记为终止成功，便于完成判定收敛
+            if (stepInstance.isRollingStep()) {
+                RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+                    taskInstanceId, stepInstance.getRollingConfigId());
+                if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                    // 本副本直接取消并收敛（即时性）
+                    cancelUnDispatchedBatchesForStop(stepInstance, rollingConfig);
+                    // 广播到所有副本（fanout，含自身），让其它副本即时取消并收敛其本地队列中的未下发批次。
+                    // 未下发批次仅存在于唯一持有副本队列：若终止落到该持有副本，上面已就地取消，自身广播到达时
+                    // 队列已空（cancelStepTasks 返回空）天然幂等；若落到非持有副本，则由广播抵达持有副本完成取消。
+                    // 广播仅作即时性优化，即使丢失仍由 ScatterBatchDispatcher 到点兜底收敛保证最终正确性。
+                    taskExecuteMQEventDispatcher.broadcastScatterBatchCancelEvent(
+                        ScatterBatchCancelEvent.cancel(taskInstanceId, stepInstanceId,
+                            stepInstance.getExecuteCount()));
+                }
+            }
+        }
+    }
+
+    /**
+     * 并行错峰模式整步终止：取消本副本延迟队列中未下发的批次，并将其置为终止成功以参与完成判定。
+     * <p>
+     * 注意：未下发批次仅存在于「触发调度副本」的本地内存队列，而终止事件经 MQ 被任一副本竞争消费，
+     * 故本副本可能取消到 0 个批次（终止落到非调度副本）。此时依靠两道保障使步骤仍能正常收敛，不会永久卡在 STOPPING：
+     * <ul>
+     *     <li>广播即时取消：终止路径另发 {@link ScatterBatchCancelEvent} 广播到所有副本，持有队列副本收到后
+     *     就地取消并收敛（见 {@link ScatterBatchCancelListener}）；</li>
+     *     <li>到点兜底：即使广播丢失，未取消批次到点触发下发时由
+     *     {@link com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchDispatcher} 感知步骤处于终止/终态
+     *     语义而自行收敛。</li>
+     * </ul>
+     */
+    private void cancelUnDispatchedBatchesForStop(StepInstanceDTO stepInstance, RollingConfigDTO rollingConfig) {
+        long taskInstanceId = stepInstance.getTaskInstanceId();
+        long stepInstanceId = stepInstance.getId();
+        int executeCount = stepInstance.getExecuteCount();
+        int totalBatch = rollingConfig.getExecuteObjectRollingConfig().getTotalBatch();
+
+        List<ScatterDispatchTask> canceled = scatterDispatchManager.cancelStepTasks(
+            taskInstanceId, stepInstanceId, executeCount);
+        if (CollectionUtils.isEmpty(canceled)) {
+            log.info("No un-dispatched scatter batch canceled on this replica, stepInstanceId={}, executeCount={}. "
+                    + "Remaining un-dispatched batches (if any) will self-converge at dispatch time on their "
+                    + "holding replica.", stepInstanceId, executeCount);
+            return;
+        }
+        long now = System.currentTimeMillis();
+        for (ScatterDispatchTask task : canceled) {
+            scatterStepConverger.finishBatchAndConverge(stepInstance, executeCount, task.getBatch(),
+                RunStatusEnum.STOP_SUCCESS, now, totalBatch);
         }
     }
 
@@ -584,6 +698,16 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         RunStatusEnum stepStatus = stepInstance.getStatus();
         if (isStepSupportRetry(stepStatus)) {
 
+            // 并行错峰模式：重试作用域为整步所有批次，重算各批错峰下发
+            if (isRollingStep) {
+                RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+                    stepInstance.getTaskInstanceId(), stepInstance.getRollingConfigId());
+                if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                    retryParallelStep(stepInstance, rollingConfig, false);
+                    return;
+                }
+            }
+
             resetExecutionInfoForRetry(stepInstance);
 
             if (isRollingStep) {
@@ -600,6 +724,76 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             log.warn("Unsupported step instance run status for retry step, stepInstanceId={}, status={}",
                 stepInstanceId, stepStatus);
         }
+    }
+
+    /**
+     * 并行错峰模式整步重试：为所有批次重新准备执行对象任务与 GSE 任务，
+     * 第一批次即时下发，其余批次重算 dispatch_time 后错峰下发。
+     *
+     * @param stepInstance  步骤实例
+     * @param rollingConfig 滚动配置
+     * @param retryAll      true-从头重试全部；false-仅重试失败
+     */
+    private void retryParallelStep(StepInstanceDTO stepInstance, RollingConfigDTO rollingConfig, boolean retryAll) {
+        long taskInstanceId = stepInstance.getTaskInstanceId();
+        long stepInstanceId = stepInstance.getId();
+
+        resetExecutionInfoForRetry(stepInstance);
+
+        int executeCount = stepInstance.getExecuteCount();
+        ExecuteObjectRollingConfigDetailDO detail = rollingConfig.getExecuteObjectRollingConfig();
+        int totalBatch = detail.getTotalBatch();
+        long fixedMs = detail.getBatchStartWaitFixedMs() == null ? 0L : detail.getBatchStartWaitFixedMs();
+        long randomMinMs = detail.getBatchStartWaitRandomMinMs() == null ? 0L : detail.getBatchStartWaitRandomMinMs();
+        long randomMaxMs = detail.getBatchStartWaitRandomMaxMs() == null ? 0L : detail.getBatchStartWaitRandomMaxMs();
+        long baseTime = System.currentTimeMillis();
+
+        if (stepInstance.getStartTime() == null) {
+            stepInstance.setStartTime(baseTime);
+        }
+        stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.RUNNING,
+            stepInstance.getStartTime(), null, null);
+
+        // 累积式错峰：批1下发时刻=baseTime，批k = 批(k-1)下发时刻 + fixed + random(min,max)，随机每批独立采样
+        long[] dispatchTimes = ScatterBatchTimeCalculator.computeDispatchTimes(
+            baseTime, totalBatch, fixedMs, randomMinMs, randomMaxMs);
+        for (int batch = 1; batch <= totalBatch; batch++) {
+            stepInstance.setBatch(batch);
+            // 登记批次滚动任务
+            StepInstanceRollingTaskDTO rollingTask = new StepInstanceRollingTaskDTO();
+            rollingTask.setTaskInstanceId(taskInstanceId);
+            rollingTask.setStepInstanceId(stepInstanceId);
+            rollingTask.setExecuteCount(executeCount);
+            rollingTask.setBatch(batch);
+            long dispatchTime = dispatchTimes[batch - 1];
+            rollingTask.setDispatchTime(dispatchTime);
+            if (batch == 1) {
+                rollingTask.setStatus(RunStatusEnum.RUNNING);
+                rollingTask.setStartTime(baseTime);
+                rollingTask.setDispatched(Boolean.TRUE);
+            } else {
+                rollingTask.setStatus(RunStatusEnum.BLANK);
+                rollingTask.setDispatched(Boolean.FALSE);
+            }
+            stepInstanceRollingTaskService.saveRollingTask(rollingTask);
+
+            // 为该批次准备 GSE 任务与执行对象任务（尊重失败重试/全部重试语义）
+            // 注意：并行重试按批次逐次调用，必须仅保存「本批次」的执行对象任务；
+            // 若沿用串行的整表保存逻辑，会在后续批次迭代时重复插入前序批次的行，
+            // 触发 gse_file_execute_obj_task 唯一键 uk_step_id_execute_count_batch_mode_execute_obj_id
+            // 冲突导致循环中断，出现「仅批1重试、批2..N不下发、整步卡 RUNNING」的缺陷。
+            Long gseTaskId = saveInitialGseTask(stepInstance);
+            saveExecuteObjectTasksForParallelRetryBatch(stepInstance, executeCount, batch, gseTaskId, retryAll);
+
+            if (batch == 1) {
+                startGseTask(stepInstance, gseTaskId);
+            } else {
+                scatterDispatchManager.addTask(new ScatterDispatchTask(
+                    taskInstanceId, stepInstanceId, executeCount, batch, dispatchTime, gseTaskId));
+            }
+        }
+        log.info("Retry parallel step scheduled, stepInstanceId={}, executeCount={}, totalBatch={}, retryAll={}",
+            stepInstanceId, executeCount, totalBatch, retryAll);
     }
 
     private boolean isStepSupportRetry(RunStatusEnum stepStatus) {
@@ -654,12 +848,61 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         saveExecuteObjectTasks(stepInstance, retryExecuteObjectTasks);
     }
 
+    /**
+     * 并行错峰模式整步重试：仅为「单个批次」准备并保存执行对象任务。
+     * <p>
+     * 与串行重试的 {@link #saveExecuteObjectTasksForRetryAll}/{@link #saveExecuteObjectTasksForRetryFail}
+     * 不同，本方法在保存前按 batch 过滤，保证每个批次的执行对象任务只在其对应迭代中插入一次，
+     * 避免并行重试逐批循环时对同一 (step, executeCount, batch, mode, executeObject) 重复插入而违反唯一键。
+     *
+     * @param stepInstance 步骤实例
+     * @param executeCount 本次重试的执行次数
+     * @param batch        目标批次
+     * @param gseTaskId    本批次的 GSE 任务ID
+     * @param retryAll     true-全部重试（所有可执行对象重跑）；false-失败重试（仅失败对象重跑，成功对象结转）
+     */
+    private void saveExecuteObjectTasksForParallelRetryBatch(StepInstanceBaseDTO stepInstance,
+                                                             int executeCount,
+                                                             int batch,
+                                                             Long gseTaskId,
+                                                             boolean retryAll) {
+        // 仅查询「当前批次」的前序执行对象任务，避免逐批循环时重复加载全量数据造成的查询与内存浪费
+        List<ExecuteObjectTask> batchExecuteObjectTasks =
+            listTargetExecuteObjectTasks(stepInstance, executeCount - 1, batch);
+        for (ExecuteObjectTask executeObjectTask : batchExecuteObjectTasks) {
+            executeObjectTask.setExecuteCount(executeCount);
+            boolean needRetry = retryAll
+                || !ExecuteObjectTaskStatusEnum.isSuccess(executeObjectTask.getStatus());
+            if (needRetry) {
+                if (executeObjectTask.getExecuteObject().isExecutable()) {
+                    executeObjectTask.setActualExecuteCount(executeCount);
+                    executeObjectTask.resetTaskInitialStatus();
+                }
+                executeObjectTask.setGseTaskId(gseTaskId);
+            }
+        }
+        saveExecuteObjectTasks(stepInstance, batchExecuteObjectTasks);
+    }
+
     private List<ExecuteObjectTask> listTargetExecuteObjectTasks(StepInstanceBaseDTO stepInstance, int executeCount) {
+        return listTargetExecuteObjectTasks(stepInstance, executeCount, null);
+    }
+
+    /**
+     * 查询步骤的目标执行对象任务，可按批次过滤。
+     *
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        目标批次；为 {@code null} 时查询全部批次
+     */
+    private List<ExecuteObjectTask> listTargetExecuteObjectTasks(StepInstanceBaseDTO stepInstance,
+                                                                 int executeCount,
+                                                                 Integer batch) {
         List<ExecuteObjectTask> executeObjectTasks = Collections.emptyList();
         if (stepInstance.isScriptStep()) {
-            executeObjectTasks = scriptExecuteObjectTaskService.listTasks(stepInstance, executeCount, null);
+            executeObjectTasks = scriptExecuteObjectTaskService.listTasks(stepInstance, executeCount, batch);
         } else if (stepInstance.isFileStep()) {
-            executeObjectTasks = fileExecuteObjectTaskService.listTasks(stepInstance, executeCount, null,
+            executeObjectTasks = fileExecuteObjectTaskService.listTasks(stepInstance, executeCount, batch,
                 FileTaskModeEnum.DOWNLOAD);
         }
         return executeObjectTasks;
@@ -691,6 +934,16 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
 
         RunStatusEnum stepStatus = stepInstance.getStatus();
         if (isStepSupportRetry(stepStatus)) {
+
+            // 并行错峰模式：重试作用域为整步所有批次
+            if (isRollingStep) {
+                RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+                    stepInstance.getTaskInstanceId(), stepInstance.getRollingConfigId());
+                if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                    retryParallelStep(stepInstance, rollingConfig, true);
+                    return;
+                }
+            }
 
             resetExecutionInfoForRetry(stepInstance);
 
@@ -741,9 +994,23 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
 
         GseTaskDTO gseTask = gseTaskService.getGseTask(eventSource.getJobInstanceId(), eventSource.getGseTaskId());
 
+        // 并行错峰模式：各批次并发执行，GSE 任务终态回调携带真正结束的批次；
+        // 而并行模式下 JobListener 不逐批 nextStep/不 updateStepCurrentBatch，stepInstance.getBatch() 恒为 1，
+        // 故此处按 gseTask 回填结束批次，保证 finishParallelBatch 按真正结束的批次做终态跃迁与完成判定。
+        // 串行模式 stepInstance.getBatch() 由 JobListener 逐批维护且与 gseTask 一致，此处不做回填以免影响既有逻辑。
+        boolean parallelExecution = false;
+        if (stepInstance.isRollingStep()) {
+            RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+                stepInstance.getTaskInstanceId(), stepInstance.getRollingConfigId());
+            if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                parallelExecution = true;
+                stepInstance.setBatch(gseTask.getBatch());
+            }
+        }
+
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
-        log.info("Refresh step according to gse task status, stepInstanceId: {}, gseTaskStatus: {}",
-            stepInstance.getId(), gseTaskStatus.name());
+        log.info("Refresh step according to gse task status, stepInstanceId: {}, gseTaskStatus: {}, batch: {}",
+            stepInstance.getId(), gseTaskStatus.name(), stepInstance.getBatch());
 
         switch (gseTaskStatus) {
             case SUCCESS:
@@ -769,10 +1036,20 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 break;
         }
 
-        // 更新作业状态
-        taskExecuteMQEventDispatcher.dispatchJobEvent(
-            JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstanceId)));
+        // 并行错峰模式下，SUCCESS/FAIL/STOP_SUCCESS 走 finishParallelBatch 路径，由收敛器仅在末批唯一发送一次
+        // refreshJob，此处不再无条件补发，避免非末批完成产生无用作业刷新事件及 Unsupported ... refresh WARN 噪音。
+        // 串行/非滚动模式，以及并行模式下 ABNORMAL_STATE/ABANDONED/default（整步直接终结，不经 finishParallelBatch）
+        // 仍需在此发送 refreshJob 让作业收尾。
+        boolean convergedByParallelBatch = parallelExecution
+            && (gseTaskStatus == RunStatusEnum.SUCCESS
+            || gseTaskStatus == RunStatusEnum.FAIL
+            || gseTaskStatus == RunStatusEnum.STOP_SUCCESS);
+        if (!convergedByParallelBatch) {
+            // 更新作业状态
+            taskExecuteMQEventDispatcher.dispatchJobEvent(
+                JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                    EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstanceId)));
+        }
     }
 
     private void onSuccess(StepInstanceDTO stepInstance) {
@@ -781,6 +1058,16 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long endTime = System.currentTimeMillis();
         long startTime = stepInstance.getStartTime();
         long totalTime = endTime - startTime;
+
+        // 并行错峰模式：单批次成功，走并发安全的完成判定
+        if (stepInstance.isRollingStep()) {
+            RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+                taskInstanceId, stepInstance.getRollingConfigId());
+            if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                finishParallelBatch(stepInstance, rollingConfig, RunStatusEnum.SUCCESS);
+                return;
+            }
+        }
 
         if (stepInstance.isRollingStep()) {
             finishRollingTask(
@@ -837,6 +1124,19 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long endTime = System.currentTimeMillis();
         long startTime = stepInstance.getStartTime();
         long totalTime = endTime - startTime;
+
+        // 并行错峰模式：单批次失败不中断其它批，走并发安全的完成判定；任一批失败=步骤失败
+        if (stepInstance.isRollingStep()) {
+            RollingConfigDTO parallelRollingConfig = rollingConfigService.getRollingConfig(
+                taskInstanceId, stepInstance.getRollingConfigId());
+            if (parallelRollingConfig != null && parallelRollingConfig.isParallelExecution()) {
+                RunStatusEnum batchStatus = stepInstance.isIgnoreError()
+                    ? RunStatusEnum.IGNORE_ERROR : RunStatusEnum.FAIL;
+                finishParallelBatch(stepInstance, parallelRollingConfig, batchStatus);
+                return;
+            }
+        }
+
         if (stepInstance.isIgnoreError()) {
             log.info("Ignore error for step: {}", stepInstanceId);
             stepInstanceService.updateStepExecutionInfo(
@@ -925,6 +1225,16 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long totalTime = endTime - startTime;
         RunStatusEnum stepStatus = stepInstance.getStatus();
 
+        // 并行错峰模式：单批次停止成功，走并发安全的完成判定
+        if (stepInstance.isRollingStep()) {
+            RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+                taskInstanceId, stepInstance.getRollingConfigId());
+            if (rollingConfig != null && rollingConfig.isParallelExecution()) {
+                finishParallelBatch(stepInstance, rollingConfig, RunStatusEnum.STOP_SUCCESS);
+                return;
+            }
+        }
+
         if (stepStatus == RunStatusEnum.STOPPING || stepStatus == RunStatusEnum.RUNNING) {
             stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.STOP_SUCCESS,
                 startTime, endTime, totalTime);
@@ -952,6 +1262,38 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             finishRollingTask(stepInstance.getTaskInstanceId(), stepInstance.getId(), stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), RunStatusEnum.ABANDONED);
         }
+    }
+
+    /**
+     * 并行错峰模式：某批次到达终态时的处理。
+     * <p>
+     * 通过 DAO 层锚点行锁 + 幂等闸门 + 终态计数，实现并发安全的“单批次终态跃迁 + 步骤完成判定”，
+     * 只有最后一个到达终态的批次唯一收敛整个步骤（按各批聚合，任一批失败=步骤失败）。
+     *
+     * @param stepInstance  步骤实例
+     * @param rollingConfig 滚动配置
+     * @param batchStatus   当前批次终态
+     */
+    private void finishParallelBatch(StepInstanceDTO stepInstance,
+                                     RollingConfigDTO rollingConfig,
+                                     RunStatusEnum batchStatus) {
+        long taskInstanceId = stepInstance.getTaskInstanceId();
+        long stepInstanceId = stepInstance.getId();
+        int executeCount = stepInstance.getExecuteCount();
+        int batch = stepInstance.getBatch();
+        int totalBatch = rollingConfig.getExecuteObjectRollingConfig().getTotalBatch();
+
+        StepInstanceRollingTaskDTO rollingTask = stepInstanceRollingTaskService.queryRollingTask(
+            taskInstanceId, stepInstanceId, executeCount, batch);
+        long now = System.currentTimeMillis();
+        long batchStartTime = (rollingTask != null && rollingTask.getStartTime() != null)
+            ? rollingTask.getStartTime() : now;
+
+        // 并行错峰 GSE 回调路径：仅在末批收敛时由收敛器唯一发送一次 refreshJob 推进作业；
+        // 非末批完成不发，避免无用作业刷新事件与 Unsupported ... refresh WARN 噪音。
+        // refreshStep 末尾对该路径（SUCCESS/FAIL/STOP_SUCCESS）不再无条件补发 refreshJob。
+        scatterStepConverger.finishBatchAndConverge(
+            stepInstance, executeCount, batch, batchStatus, batchStartTime, totalBatch);
     }
 
     private void finishRollingTask(Long taskInstanceId,
