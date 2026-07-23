@@ -6033,10 +6033,10 @@ paths:
                               description: '是否收藏。可选值: true - 已收藏，false - 未收藏'
                             favor_time:
                               type: string
-                              description: 收藏时间，格式 yyyy-MM-dd HH:mm:ss.SSS；未收藏时不返回该字段
+                              description: 收藏时间，格式 yyyy-MM-dd HH:mm:ss.SSS，按当前用户时区（Header 缺失时默认 Asia/Shanghai）格式化；未收藏时不返回该字段
                             time_zone:
                               type: string
-                              description: 资源范围时区，例如 Asia/Shanghai
+                              description: 资源范围（业务）时区，例如 Asia/Shanghai；与 favor_time 采用的用户时区相互独立，不代表 favor_time 的时区
                           description: 有权限的资源范围
                         description: 有权限的资源范围列表；按有权限优先、已收藏优先、收藏时间倒序排序后分页返回；无数据时为空数组
                     description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
