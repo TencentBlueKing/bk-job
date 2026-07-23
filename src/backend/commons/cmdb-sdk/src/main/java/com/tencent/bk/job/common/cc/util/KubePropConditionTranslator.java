@@ -48,58 +48,40 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 动态条件 propConditions → bk-cmdb 查询规则的翻译工具。
+ * 把动态条件 propConditions 翻译成 bk-cmdb 查询规则。
  * <p>
- * 字段按 {@code container_} / {@code pod_} 前缀分别落到 cmdb 的 container / pod 过滤器；cmdb 模型字段名
- * 为去掉该前缀后的部分（如 {@code container_container_uid} → {@code container_uid}、{@code pod_name} → {@code name}）。
+ * 字段按 container_ / pod_ 前缀分别落到 container / pod 过滤器，cmdb 字段名去掉前缀。
+ * pod_labels 走 K8s label selector 表达式解析，落到 podFilter 的嵌套 filter_object 规则。
  * <p>
- * 特例：{@link QueryableContainerField#POD_LABELS} 的 value 为 K8s label selector 表达式字符串
- * （如 {@code "k1=v1,k2=v2"}），翻译时使用 {@link LabelSelectorParse} 解析为结构化表达式列表，
- * 再以 {@link RuleOperatorEnum#FILTER_OBJECT} 形态构造嵌套 cmdb 规则（条件 AND）落到 podFilter。
- * <p>
- * 多值分隔符 {@code |}（仅适用于以下字段+运算符组合，与前端"多标签输入框"配套；K8s 名称与 UID 均不允许 {@code |}，
- * 语义无歧义）：
- * <ul>
- *   <li>{@link QueryableContainerField#CONTAINER_NAME} + {@code equal / contains}</li>
- *   <li>{@link QueryableContainerField#POD_NAME} + {@code equal / contains}</li>
- *   <li>{@link QueryableContainerField#CONTAINER_CONTAINER_UID} + {@code equal}</li>
- * </ul>
- * 拆分规则：value 按 {@code |} 切分 → 逐段 trim → 去空段 → 保序去重。规则化后：
- * <ul>
- *   <li>{@code contains} 单值 → {@code contains}；多值 → {@link RuleConditionEnum#OR} 折叠 N 条 contains</li>
- *   <li>{@code equal} 单值 → {@code equal}；多值 → {@code in([...])}（语义等价，更简洁）</li>
- * </ul>
- * 空/仅 {@code |}/仅空段等规则化后为空的输入，直接抛 {@link InvalidParamException}（400）。
- * <p>
- * 未对外暴露（{@link com.tencent.bk.job.common.util.OperatorDispatcher}）的运算符在校验阶段已被拒绝；
- * 但 translator 是协议层底座，对所有 {@link KubeContainerOperator} 取值均可正确翻译，未知运算符抛
- * {@link IllegalArgumentException} 暴露漏配。
+ * 白名单字段（container_name / pod_name 的 equal|contains、container_container_uid 的 equal）
+ * 支持 value 用 "," 分隔多值：单值保持原运算符；多值时 equal 折叠为 in、contains 折叠为 OR(contains...)。
+ * 规则化后为空则抛 InvalidParamException（400）。
  */
 public final class KubePropConditionTranslator {
 
     /**
-     * pod_labels 在 cmdb pod 模型中的字段名（去掉 {@code pod_} 前缀）。
+     * pod_labels 在 cmdb pod 模型中的字段名（去掉 pod_ 前缀）。
      */
     private static final String LABELS_CMDB_FIELD = "labels";
 
     /**
-     * 多值分隔符（仅在 {@link #PIPE_SPLIT_OPERATORS} 声明的 字段+运算符 组合下生效）。
+     * 多值分隔符，仅在下面 MULTI_VALUE_SPLIT_OPERATORS 白名单里的 字段+运算符 组合下生效。
      */
-    private static final String MULTI_VALUE_DELIMITER = "|";
+    private static final String MULTI_VALUE_DELIMITER = ",";
 
     /**
-     * 支持 {@code |} 多值拆分的 字段 → 允许运算符 白名单。
-     * 其它字段/运算符组合一律走标量翻译，避免误伤（例如 pod_labels 表达式、数值/时间字段等）。
+     * 允许 "," 多值拆分的 字段 → 运算符 白名单。
+     * 白名单外的组合走标量翻译，避免误伤 pod_labels 表达式、数值/时间字段等。
      */
-    private static final Map<QueryableContainerField, Set<KubeContainerOperator>> PIPE_SPLIT_OPERATORS;
+    private static final Map<QueryableContainerField, Set<KubeContainerOperator>> MULTI_VALUE_SPLIT_OPERATORS;
 
     static {
-        PIPE_SPLIT_OPERATORS = new EnumMap<>(QueryableContainerField.class);
-        PIPE_SPLIT_OPERATORS.put(QueryableContainerField.CONTAINER_NAME,
+        MULTI_VALUE_SPLIT_OPERATORS = new EnumMap<>(QueryableContainerField.class);
+        MULTI_VALUE_SPLIT_OPERATORS.put(QueryableContainerField.CONTAINER_NAME,
             EnumSet.of(KubeContainerOperator.EQUAL, KubeContainerOperator.CONTAINS));
-        PIPE_SPLIT_OPERATORS.put(QueryableContainerField.POD_NAME,
+        MULTI_VALUE_SPLIT_OPERATORS.put(QueryableContainerField.POD_NAME,
             EnumSet.of(KubeContainerOperator.EQUAL, KubeContainerOperator.CONTAINS));
-        PIPE_SPLIT_OPERATORS.put(QueryableContainerField.CONTAINER_CONTAINER_UID,
+        MULTI_VALUE_SPLIT_OPERATORS.put(QueryableContainerField.CONTAINER_CONTAINER_UID,
             EnumSet.of(KubeContainerOperator.EQUAL));
     }
 
@@ -119,7 +101,7 @@ public final class KubePropConditionTranslator {
             QueryableContainerField field = QueryableContainerField.fromFieldName(condition.getField());
             KubeContainerOperator operator = KubeContainerOperator.fromValue(condition.getOperator());
 
-            // pod_labels 走标签选择器表达式特殊翻译（不适用 | 多值语义）
+            // pod_labels 走标签选择器表达式特殊翻译（不适用 ',' 多值语义）
             if (field == QueryableContainerField.POD_LABELS) {
                 podFilter.addRule(buildPodLabelsFilterRule(condition.getValue()));
                 continue;
@@ -129,8 +111,8 @@ public final class KubePropConditionTranslator {
             String cmdbField = fieldName.substring(fieldName.indexOf('_') + 1);
 
             IRule rule;
-            if (isPipeSplitEnabled(field, operator)) {
-                rule = toCmdbRuleWithPipeSplit(field, cmdbField, operator, condition.getValue());
+            if (isMultiValueSplitEnabled(field, operator)) {
+                rule = toCmdbRuleWithMultiValueSplit(field, cmdbField, operator, condition.getValue());
             } else {
                 rule = toCmdbRule(cmdbField, operator, condition.getValue());
             }
@@ -143,34 +125,27 @@ public final class KubePropConditionTranslator {
         }
     }
 
-    private static boolean isPipeSplitEnabled(QueryableContainerField field, KubeContainerOperator operator) {
-        Set<KubeContainerOperator> allowed = PIPE_SPLIT_OPERATORS.get(field);
+    private static boolean isMultiValueSplitEnabled(QueryableContainerField field, KubeContainerOperator operator) {
+        Set<KubeContainerOperator> allowed = MULTI_VALUE_SPLIT_OPERATORS.get(field);
         return allowed != null && allowed.contains(operator);
     }
 
     /**
-     * 处理白名单字段的 {@code |} 多值语义。规则化后的关键字列表：
-     * <ul>
-     *   <li>为空 → 抛 {@link InvalidParamException}（400）</li>
-     *   <li>单个 → 退化为原运算符（{@code equal} / {@code contains}）单值规则</li>
-     *   <li>多个 →
-     *     <ul>
-     *       <li>{@code equal} 折叠为 {@code in([...])}</li>
-     *       <li>{@code contains} 折叠为 {@link RuleConditionEnum#OR} 组合的 N 条 {@code contains}</li>
-     *     </ul>
-     *   </li>
-     * </ul>
+     * 处理白名单字段的 "," 多值语义。value 规则化后：
+     * - 为空：抛 InvalidParamException（400）
+     * - 单值：走原运算符（equal 或 contains）
+     * - 多值：equal 折叠为 in([...])，contains 折叠为 OR(contains, contains, ...)
      */
-    private static IRule toCmdbRuleWithPipeSplit(QueryableContainerField field,
-                                                 String cmdbField,
-                                                 KubeContainerOperator operator,
-                                                 Object value) {
-        List<String> keywords = splitPipeKeywords(value);
+    private static IRule toCmdbRuleWithMultiValueSplit(QueryableContainerField field,
+                                                       String cmdbField,
+                                                       KubeContainerOperator operator,
+                                                       Object value) {
+        List<String> keywords = splitMultiValueKeywords(value);
         if (keywords.isEmpty()) {
             throw new InvalidParamException(
                 ErrorCode.ILLEGAL_PARAM_WITH_REASON,
                 new Object[]{"field [" + field.getFieldName() + "] operator [" + operator.getValue()
-                    + "] requires a non-empty value (after '|' split & trim)"});
+                    + "] requires a non-empty value (after ',' split & trim)"});
         }
         if (keywords.size() == 1) {
             String single = keywords.get(0);
@@ -192,13 +167,13 @@ public final class KubePropConditionTranslator {
     }
 
     /**
-     * 按 {@code |} 切分并规范化：trim → 丢弃空段 → 保序去重。
+     * 按 "," 切分并规范化：trim → 丢弃空段 → 保序去重。
      */
-    private static List<String> splitPipeKeywords(Object rawValue) {
+    private static List<String> splitMultiValueKeywords(Object rawValue) {
         if (rawValue == null) {
             return new ArrayList<>();
         }
-        String[] parts = rawValue.toString().split("\\" + MULTI_VALUE_DELIMITER, -1);
+        String[] parts = rawValue.toString().split(MULTI_VALUE_DELIMITER, -1);
         Set<String> result = new LinkedHashSet<>();
         for (String part : parts) {
             String trimmed = part.trim();
@@ -243,16 +218,9 @@ public final class KubePropConditionTranslator {
 
     /**
      * 把 pod_labels 的标签选择器表达式字符串翻译为 cmdb 嵌套 filter_object 规则。
-     * <p>
-     * 例：{@code "app=nginx,env in (prod,test)"} →
-     * <pre>
-     * filter_object("labels", ComposeRule(AND, [
-     *     equal("app", "nginx"),
-     *     in("env", ["prod", "test"])
-     * ]))
-     * </pre>
-     * <p>
-     * value 校验在 {@code KubePropConditionValidator#validatePodLabelsExpression} 已完成，此处直接信任入参。
+     * 例："app=nginx,env in (prod,test)" 会翻译为
+     * filter_object("labels", AND[ equal(app,nginx), in(env,[prod,test]) ])。
+     * value 校验在 KubePropConditionValidator.validatePodLabelsExpression 已完成，此处直接信任入参。
      */
     private static BaseRuleDTO buildPodLabelsFilterRule(Object value) {
         String expression = (String) value;
@@ -265,7 +233,7 @@ public final class KubePropConditionTranslator {
     }
 
     /**
-     * 单条标签选择器表达式 → cmdb 规则（沿用 cmdb 标签查询协议）。
+     * 单条标签选择器表达式翻译为 cmdb 规则（沿用 cmdb 标签查询协议）。
      */
     private static BaseRuleDTO buildLabelFilterRule(LabelSelectExprDTO expr) {
         switch (expr.getOperator()) {
