@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.v4.OpenApiUserScopeV4Resource;
 import com.tencent.bk.job.manage.model.dto.UserAppScopeDTO;
@@ -35,7 +36,6 @@ import com.tencent.bk.job.manage.model.esb.v4.resp.V4AuthorizedScopeDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4GetUserAuthorizedScopesResult;
 import com.tencent.bk.job.manage.service.scope.UserAppScopeQueryService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -87,11 +87,10 @@ public class OpenApiUserScopeV4ResourceImpl implements OpenApiUserScopeV4Resourc
         dto.setName(scope.getName());
         dto.setFavor(scope.getFavor());
         if (scope.getFavorTime() != null) {
-            ZoneId zone = StringUtils.isNotBlank(scope.getTimeZone())
-                ? ZoneId.of(scope.getTimeZone())
-                : ZoneId.systemDefault();
+            // 收藏是用户行为，按当前用户时区（由网关注入、拦截器写入上下文，缺失时兜底东八区）格式化收藏时间
+            ZoneId userZone = JobContextUtil.getTimeZone();
             dto.setFavorTime(DateUtils.formatUnixTimestamp(
-                scope.getFavorTime(), ChronoUnit.MILLIS, DateUtils.DATETIME_PATTERN_WITH_MILLIS, zone));
+                scope.getFavorTime(), ChronoUnit.MILLIS, DateUtils.DATETIME_PATTERN_WITH_MILLIS, userZone));
         }
         dto.setTimeZone(scope.getTimeZone());
         return dto;

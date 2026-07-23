@@ -79,5 +79,5 @@
 | bk_scope_id   | string  | 是           | 资源范围 ID，须与 `bk_scope_type` 对应，表示业务 ID、业务集 ID 或租户集 ID |
 | name          | string  | 是           | 资源范围名称 |
 | favor         | boolean | 是           | 是否收藏。可选值：`true`（已收藏）、`false`（未收藏） |
-| favor_time    | string  | 否           | 收藏时间，格式 `yyyy-MM-dd HH:mm:ss.SSS`；未收藏时不返回该字段 |
-| time_zone     | string  | 否           | 资源范围时区，例如 `Asia/Shanghai` |
+| favor_time    | string  | 否           | 收藏时间，格式 `yyyy-MM-dd HH:mm:ss.SSS`，按当前用户时区（Header 缺失时默认 `Asia/Shanghai`）格式化；未收藏时不返回该字段 |
+| time_zone     | string  | 否           | 资源范围（业务）时区，例如 `Asia/Shanghai`；与 `favor_time` 采用的用户时区相互独立，不代表 `favor_time` 的时区 |
