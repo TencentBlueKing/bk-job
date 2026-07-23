@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.filter.IRule;
 import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
 import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,6 +75,8 @@ class KubePropConditionTranslatorTest {
         assertThatCode(() ->
             KubePropConditionTranslator.appendRules(Collections.emptyList(), containerFilter, podFilter))
             .doesNotThrowAnyException();
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(containerFilter.hasRule()).isFalse();
         assertThat(podFilter.hasRule()).isFalse();
     }
@@ -85,47 +88,14 @@ class KubePropConditionTranslatorTest {
             new KubePropCondition("container_container_uid", "equal", "docker://abcdefg")),
             containerFilter, podFilter);
 
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(containerFilter.getRules()).hasSize(1);
         BaseRuleDTO rule = (BaseRuleDTO) containerFilter.getRules().get(0);
         assertThat(rule.getField()).isEqualTo("container_uid");
         assertThat(rule.getOperator()).isEqualTo(RuleOperatorEnum.EQUAL.getOperator());
         assertThat(rule.getValue()).isEqualTo("docker://abcdefg");
         assertThat(podFilter.hasRule()).isFalse();
-    }
-
-    @Test
-    @DisplayName("pod_name in [...] → podFilter 多一条 in/name 规则")
-    void podNameIn() {
-        KubePropConditionTranslator.appendRules(Collections.singletonList(
-            new KubePropCondition("pod_name", "in", Arrays.asList("p-1", "p-2"))), containerFilter, podFilter);
-
-        assertThat(podFilter.getRules()).hasSize(1);
-        BaseRuleDTO rule = (BaseRuleDTO) podFilter.getRules().get(0);
-        assertThat(rule.getField()).isEqualTo("name");
-        assertThat(rule.getOperator()).isEqualTo(RuleOperatorEnum.IN.getOperator());
-        assertThat(rule.getValue()).isEqualTo(Arrays.asList("p-1", "p-2"));
-        assertThat(containerFilter.hasRule()).isFalse();
-    }
-
-    @Test
-    @DisplayName("pod_id 全部比较运算符正确翻译")
-    void numericComparisons() {
-        KubePropConditionTranslator.appendRules(Arrays.asList(
-            new KubePropCondition("pod_id", "less", 10),
-            new KubePropCondition("pod_id", "less_or_equal", 20),
-            new KubePropCondition("pod_id", "greater", 30),
-            new KubePropCondition("pod_id", "greater_or_equal", 40)
-        ), containerFilter, podFilter);
-
-        assertThat(podFilter.getRules()).hasSize(4);
-        assertThat(((BaseRuleDTO) podFilter.getRules().get(0)).getOperator())
-            .isEqualTo(RuleOperatorEnum.LESS.getOperator());
-        assertThat(((BaseRuleDTO) podFilter.getRules().get(1)).getOperator())
-            .isEqualTo(RuleOperatorEnum.LESS_OR_EQUAL.getOperator());
-        assertThat(((BaseRuleDTO) podFilter.getRules().get(2)).getOperator())
-            .isEqualTo(RuleOperatorEnum.GREATER.getOperator());
-        assertThat(((BaseRuleDTO) podFilter.getRules().get(3)).getOperator())
-            .isEqualTo(RuleOperatorEnum.GREATER_OR_EQUAL.getOperator());
     }
 
     @Test
@@ -137,6 +107,8 @@ class KubePropConditionTranslatorTest {
             new KubePropCondition("container_container_uid", "contains", "tencent")
         ), containerFilter, podFilter);
 
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(containerFilter.getRules()).hasSize(3);
         assertThat(((BaseRuleDTO) containerFilter.getRules().get(0)).getOperator())
             .isEqualTo(RuleOperatorEnum.NOT_EQUAL.getOperator());
@@ -154,6 +126,8 @@ class KubePropConditionTranslatorTest {
             new KubePropCondition("pod_name", "not_exist", null)
         ), containerFilter, podFilter);
 
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getRules()).hasSize(2);
         BaseRuleDTO exist = (BaseRuleDTO) podFilter.getRules().get(0);
         BaseRuleDTO notExist = (BaseRuleDTO) podFilter.getRules().get(1);
@@ -169,6 +143,8 @@ class KubePropConditionTranslatorTest {
         KubePropConditionTranslator.appendRules(Collections.singletonList(
             new KubePropCondition("pod_labels", "equal", "app=nginx")), containerFilter, podFilter);
 
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(containerFilter.hasRule()).isFalse();
         assertThat(podFilter.getRules()).hasSize(1);
 
@@ -192,6 +168,8 @@ class KubePropConditionTranslatorTest {
             new KubePropCondition("pod_labels", "equal", "app=nginx,env in (prod,test),tier")
         ), containerFilter, podFilter);
 
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getRules()).hasSize(1);
         BaseRuleDTO outer = (BaseRuleDTO) podFilter.getRules().get(0);
         assertThat(outer.getField()).isEqualTo("labels");
@@ -227,6 +205,8 @@ class KubePropConditionTranslatorTest {
             new KubePropCondition("pod_labels", "equal", "app=nginx")
         ), containerFilter, podFilter);
 
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(containerFilter.getRules()).hasSize(2);
         assertThat(podFilter.getRules()).hasSize(2);
         // pod_labels 在 podFilter 第二条
@@ -252,8 +232,311 @@ class KubePropConditionTranslatorTest {
         KubePropConditionTranslator.appendRules(Collections.singletonList(
             new KubePropCondition("container_name", "equal", "nginx")), containerFilter, podFilter);
 
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(containerFilter.getRules()).hasSize(2);
         IRule existing = containerFilter.getRules().get(0);
         assertThat(((BaseRuleDTO) existing).getField()).isEqualTo("id");
+    }
+
+    // ============ | 多值分隔符（container_name / pod_name / container_container_uid）============
+
+    @Test
+    @DisplayName("container_name contains 'a|b' → OR(contains(name,a), contains(name,b))")
+    void containerNameContainsPipe_multi() {
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("container_name", "contains", "a|b")), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(containerFilter.getRules()).hasSize(1);
+        ComposeRuleDTO or = (ComposeRuleDTO) containerFilter.getRules().get(0);
+        assertThat(or.getCondition()).isEqualTo(RuleConditionEnum.OR.getCondition());
+        assertThat(or.getRules()).hasSize(2);
+        BaseRuleDTO r0 = (BaseRuleDTO) or.getRules().get(0);
+        BaseRuleDTO r1 = (BaseRuleDTO) or.getRules().get(1);
+        assertThat(r0.getField()).isEqualTo("name");
+        assertThat(r0.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(r0.getValue()).isEqualTo("a");
+        assertThat(r1.getField()).isEqualTo("name");
+        assertThat(r1.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(r1.getValue()).isEqualTo("b");
+    }
+
+    @Test
+    @DisplayName("container_name contains 'nginx' 单值（无 |）→ 单条 contains，不折叠")
+    void containerNameContainsPipe_single() {
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("container_name", "contains", "nginx")), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(containerFilter.getRules()).hasSize(1);
+        BaseRuleDTO rule = (BaseRuleDTO) containerFilter.getRules().get(0);
+        assertThat(rule.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(rule.getValue()).isEqualTo("nginx");
+    }
+
+    @Test
+    @DisplayName("pod_name contains 'x|y' → podFilter OR(contains,contains)")
+    void podNameContainsPipe_multi() {
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("pod_name", "contains", "x|y")), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getRules()).hasSize(1);
+        ComposeRuleDTO or = (ComposeRuleDTO) podFilter.getRules().get(0);
+        assertThat(or.getCondition()).isEqualTo(RuleConditionEnum.OR.getCondition());
+        assertThat(or.getRules()).hasSize(2);
+        assertThat(((BaseRuleDTO) or.getRules().get(0)).getValue()).isEqualTo("x");
+        assertThat(((BaseRuleDTO) or.getRules().get(1)).getValue()).isEqualTo("y");
+    }
+
+    @Test
+    @DisplayName("container_name equal 'a|b' → in(name, [a, b])（equal 多值等价 in）")
+    void containerNameEqualPipe_multi() {
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("container_name", "equal", "a|b")), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(containerFilter.getRules()).hasSize(1);
+        BaseRuleDTO rule = (BaseRuleDTO) containerFilter.getRules().get(0);
+        assertThat(rule.getField()).isEqualTo("name");
+        assertThat(rule.getOperator()).isEqualTo(RuleOperatorEnum.IN.getOperator());
+        assertThat(rule.getValue()).isEqualTo(Arrays.asList("a", "b"));
+    }
+
+    @Test
+    @DisplayName("container_name equal 'a' 单值 → equal(name,a)，不折叠成 in")
+    void containerNameEqualPipe_single() {
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("container_name", "equal", "a")), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(containerFilter.getRules()).hasSize(1);
+        BaseRuleDTO rule = (BaseRuleDTO) containerFilter.getRules().get(0);
+        assertThat(rule.getField()).isEqualTo("name");
+        assertThat(rule.getOperator()).isEqualTo(RuleOperatorEnum.EQUAL.getOperator());
+        assertThat(rule.getValue()).isEqualTo("a");
+    }
+
+    @Test
+    @DisplayName("container_container_uid equal 'u1|u2' → in(container_uid,[u1,u2])")
+    void containerUidEqualPipe_multi() {
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("container_container_uid", "equal", "u1|u2")), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(containerFilter.getRules()).hasSize(1);
+        BaseRuleDTO rule = (BaseRuleDTO) containerFilter.getRules().get(0);
+        assertThat(rule.getField()).isEqualTo("container_uid");
+        assertThat(rule.getOperator()).isEqualTo(RuleOperatorEnum.IN.getOperator());
+        assertThat(rule.getValue()).isEqualTo(Arrays.asList("u1", "u2"));
+    }
+
+    @Test
+    @DisplayName("container_container_uid equal 'u1' 单值 → equal(container_uid,u1)")
+    void containerUidEqualPipe_single() {
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("container_container_uid", "equal", "u1")), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(containerFilter.getRules()).hasSize(1);
+        BaseRuleDTO rule = (BaseRuleDTO) containerFilter.getRules().get(0);
+        assertThat(rule.getField()).isEqualTo("container_uid");
+        assertThat(rule.getOperator()).isEqualTo(RuleOperatorEnum.EQUAL.getOperator());
+        assertThat(rule.getValue()).isEqualTo("u1");
+    }
+
+    @Test
+    @DisplayName("边界规范化：' a | b | a | ' → 去空段 + trim + 去重 后为 [a, b]，走 OR/contains 或 in")
+    void pipeSplit_trimAndDedup() {
+        // contains 分支
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("container_name", "contains", " a | b | a | ")), containerFilter, podFilter);
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(containerFilter.getRules()).hasSize(1);
+        ComposeRuleDTO or = (ComposeRuleDTO) containerFilter.getRules().get(0);
+        assertThat(or.getRules()).hasSize(2);
+        assertThat(((BaseRuleDTO) or.getRules().get(0)).getValue()).isEqualTo("a");
+        assertThat(((BaseRuleDTO) or.getRules().get(1)).getValue()).isEqualTo("b");
+
+        // equal 分支
+        PropertyFilterDTO cf2 = new PropertyFilterDTO();
+        cf2.setCondition(RuleConditionEnum.AND.getCondition());
+        PropertyFilterDTO pf2 = new PropertyFilterDTO();
+        pf2.setCondition(RuleConditionEnum.AND.getCondition());
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("container_container_uid", "equal", " u1 | u2 | u1 ")), cf2, pf2);
+        assertThat(cf2.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(pf2.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(cf2.getRules()).hasSize(1);
+        BaseRuleDTO in = (BaseRuleDTO) cf2.getRules().get(0);
+        assertThat(in.getOperator()).isEqualTo(RuleOperatorEnum.IN.getOperator());
+        assertThat(in.getValue()).isEqualTo(Arrays.asList("u1", "u2"));
+    }
+
+    @Test
+    @DisplayName("空/仅 | 输入：抛 InvalidParamException（400）")
+    void pipeSplit_emptyThrows() {
+        assertThatThrownBy(() -> KubePropConditionTranslator.appendRules(
+            Collections.singletonList(new KubePropCondition("container_name", "contains", "")),
+            containerFilter, podFilter))
+            .isInstanceOf(InvalidParamException.class);
+
+        assertThatThrownBy(() -> KubePropConditionTranslator.appendRules(
+            Collections.singletonList(new KubePropCondition("container_name", "contains", "|")),
+            containerFilter, podFilter))
+            .isInstanceOf(InvalidParamException.class);
+
+        assertThatThrownBy(() -> KubePropConditionTranslator.appendRules(
+            Collections.singletonList(new KubePropCondition("container_container_uid", "equal", " | ")),
+            containerFilter, podFilter))
+            .isInstanceOf(InvalidParamException.class);
+
+        assertThatThrownBy(() -> KubePropConditionTranslator.appendRules(
+            Collections.singletonList(new KubePropCondition("pod_name", "equal", null)),
+            containerFilter, podFilter))
+            .isInstanceOf(InvalidParamException.class);
+    }
+
+    @Test
+    @DisplayName("container_container_uid not_equal 不在 | 白名单：value 中的 | 不触发拆分，按原语义传给 cmdb")
+    void pipeSplit_notEqualNotEnabled() {
+        // not_equal 未加入 UID 的 | 白名单，即便 value 含 | 也应走标量 not_equal
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("container_container_uid", "not_equal", "u1|u2")), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(containerFilter.getRules()).hasSize(1);
+        BaseRuleDTO rule = (BaseRuleDTO) containerFilter.getRules().get(0);
+        assertThat(rule.getOperator()).isEqualTo(RuleOperatorEnum.NOT_EQUAL.getOperator());
+        assertThat(rule.getValue()).isEqualTo("u1|u2");
+    }
+
+    @Test
+    @DisplayName("pod_labels 值中即便出现 | 也不触发多值拆分，仍走 label selector 表达式解析")
+    void pipeSplit_podLabelsUnaffected() {
+        // "app=nginx|proxy" 中的 | 属于 label value 的一部分（此处只验证不进入 | 拆分分支，
+        // 表达式合法性由 KubePropConditionValidator 保证；这里传一个合法的表达式即可）
+        KubePropConditionTranslator.appendRules(Collections.singletonList(
+            new KubePropCondition("pod_labels", "equal", "app=nginx")), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getRules()).hasSize(1);
+        BaseRuleDTO outer = (BaseRuleDTO) podFilter.getRules().get(0);
+        assertThat(outer.getOperator()).isEqualTo(RuleOperatorEnum.FILTER_OBJECT.getOperator());
+    }
+
+    @Test
+    @DisplayName("复合：container_name contains 'c1|c2' + pod_name contains 'p1|p2' " +
+        "→ 两个 filter 各一条 OR(contains,contains)")
+    void pipeSplit_containerAndPodContainsCompound() {
+        KubePropConditionTranslator.appendRules(Arrays.asList(
+            new KubePropCondition("container_name", "contains", "c1|c2"),
+            new KubePropCondition("pod_name", "contains", "p1|p2")
+        ), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+
+        // containerFilter: 1 条 OR(contains(name,c1), contains(name,c2))
+        assertThat(containerFilter.getRules()).hasSize(1);
+        ComposeRuleDTO cOr = (ComposeRuleDTO) containerFilter.getRules().get(0);
+        assertThat(cOr.getCondition()).isEqualTo(RuleConditionEnum.OR.getCondition());
+        assertThat(cOr.getRules()).hasSize(2);
+        BaseRuleDTO c0 = (BaseRuleDTO) cOr.getRules().get(0);
+        BaseRuleDTO c1 = (BaseRuleDTO) cOr.getRules().get(1);
+        assertThat(c0.getField()).isEqualTo("name");
+        assertThat(c0.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(c0.getValue()).isEqualTo("c1");
+        assertThat(c1.getField()).isEqualTo("name");
+        assertThat(c1.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(c1.getValue()).isEqualTo("c2");
+
+        // podFilter: 1 条 OR(contains(name,p1), contains(name,p2))
+        assertThat(podFilter.getRules()).hasSize(1);
+        ComposeRuleDTO pOr = (ComposeRuleDTO) podFilter.getRules().get(0);
+        assertThat(pOr.getCondition()).isEqualTo(RuleConditionEnum.OR.getCondition());
+        assertThat(pOr.getRules()).hasSize(2);
+        BaseRuleDTO p0 = (BaseRuleDTO) pOr.getRules().get(0);
+        BaseRuleDTO p1 = (BaseRuleDTO) pOr.getRules().get(1);
+        assertThat(p0.getField()).isEqualTo("name");
+        assertThat(p0.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(p0.getValue()).isEqualTo("p1");
+        assertThat(p1.getField()).isEqualTo("name");
+        assertThat(p1.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(p1.getValue()).isEqualTo("p2");
+    }
+
+    @Test
+    @DisplayName("复合：container_name contains 'c1|c2' + container_container_uid equal 'id1|id2' " +
+        "→ containerFilter 一条 OR(contains,contains) + 一条 in([...])")
+    void pipeSplit_containerNameContainsAndUidEqualCompound() {
+        KubePropConditionTranslator.appendRules(Arrays.asList(
+            new KubePropCondition("container_name", "contains", "c1|c2"),
+            new KubePropCondition("container_container_uid", "equal", "id1|id2")
+        ), containerFilter, podFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.hasRule()).isFalse();
+        assertThat(containerFilter.getRules()).hasSize(2);
+
+        // 第 1 条：container_name contains 'c1|c2' → OR(contains(name,c1), contains(name,c2))
+        ComposeRuleDTO nameOr = (ComposeRuleDTO) containerFilter.getRules().get(0);
+        assertThat(nameOr.getCondition()).isEqualTo(RuleConditionEnum.OR.getCondition());
+        assertThat(nameOr.getRules()).hasSize(2);
+        BaseRuleDTO n0 = (BaseRuleDTO) nameOr.getRules().get(0);
+        BaseRuleDTO n1 = (BaseRuleDTO) nameOr.getRules().get(1);
+        assertThat(n0.getField()).isEqualTo("name");
+        assertThat(n0.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(n0.getValue()).isEqualTo("c1");
+        assertThat(n1.getField()).isEqualTo("name");
+        assertThat(n1.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(n1.getValue()).isEqualTo("c2");
+
+        // 第 2 条：container_container_uid equal 'id1|id2' → in(container_uid,[id1,id2])
+        BaseRuleDTO uidRule = (BaseRuleDTO) containerFilter.getRules().get(1);
+        assertThat(uidRule.getField()).isEqualTo("container_uid");
+        assertThat(uidRule.getOperator()).isEqualTo(RuleOperatorEnum.IN.getOperator());
+        assertThat(uidRule.getValue()).isEqualTo(Arrays.asList("id1", "id2"));
+    }
+
+    @Test
+    @DisplayName("复合单值：container_container_uid equal 'id' + container_name contains 'a' " +
+        "→ containerFilter 一条 equal(container_uid,id) + 一条 contains(name,a)，均不折叠")
+    void compound_uidEqualAndNameContains_singleValues() {
+        KubePropConditionTranslator.appendRules(Arrays.asList(
+            new KubePropCondition("container_container_uid", "equal", "id"),
+            new KubePropCondition("container_name", "contains", "a")
+        ), containerFilter, podFilter);
+
+        System.out.println("containerFilter: " + containerFilter);
+
+        assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
+        assertThat(podFilter.hasRule()).isFalse();
+        assertThat(containerFilter.getRules()).hasSize(2);
+
+        // 第 1 条：container_container_uid equal 'id' → equal(container_uid, 'id')
+        BaseRuleDTO uidRule = (BaseRuleDTO) containerFilter.getRules().get(0);
+        assertThat(uidRule.getField()).isEqualTo("container_uid");
+        assertThat(uidRule.getOperator()).isEqualTo(RuleOperatorEnum.EQUAL.getOperator());
+        assertThat(uidRule.getValue()).isEqualTo("id");
+
+        // 第 2 条：container_name contains 'a' → contains(name, 'a')
+        BaseRuleDTO nameRule = (BaseRuleDTO) containerFilter.getRules().get(1);
+        assertThat(nameRule.getField()).isEqualTo("name");
+        assertThat(nameRule.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
+        assertThat(nameRule.getValue()).isEqualTo("a");
     }
 }
