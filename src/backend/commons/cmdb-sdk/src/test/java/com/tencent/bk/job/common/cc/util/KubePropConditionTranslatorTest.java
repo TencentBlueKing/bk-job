@@ -239,13 +239,13 @@ class KubePropConditionTranslatorTest {
         assertThat(((BaseRuleDTO) existing).getField()).isEqualTo("id");
     }
 
-    // ============ | 多值分隔符（container_name / pod_name / container_container_uid）============
+    // ============ , 多值分隔符（container_name / pod_name / container_container_uid）============
 
     @Test
-    @DisplayName("container_name contains 'a|b' → OR(contains(name,a), contains(name,b))")
-    void containerNameContainsPipe_multi() {
+    @DisplayName("container_name contains 'a,b' → OR(contains(name,a), contains(name,b))")
+    void containerNameContainsMultiValue_multi() {
         KubePropConditionTranslator.appendRules(Collections.singletonList(
-            new KubePropCondition("container_name", "contains", "a|b")), containerFilter, podFilter);
+            new KubePropCondition("container_name", "contains", "a,b")), containerFilter, podFilter);
 
         assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
@@ -264,8 +264,8 @@ class KubePropConditionTranslatorTest {
     }
 
     @Test
-    @DisplayName("container_name contains 'nginx' 单值（无 |）→ 单条 contains，不折叠")
-    void containerNameContainsPipe_single() {
+    @DisplayName("container_name contains 'nginx' 单值（无 ,）→ 单条 contains，不折叠")
+    void containerNameContainsMultiValue_single() {
         KubePropConditionTranslator.appendRules(Collections.singletonList(
             new KubePropCondition("container_name", "contains", "nginx")), containerFilter, podFilter);
 
@@ -278,10 +278,10 @@ class KubePropConditionTranslatorTest {
     }
 
     @Test
-    @DisplayName("pod_name contains 'x|y' → podFilter OR(contains,contains)")
-    void podNameContainsPipe_multi() {
+    @DisplayName("pod_name contains 'x,y' → podFilter OR(contains,contains)")
+    void podNameContainsMultiValue_multi() {
         KubePropConditionTranslator.appendRules(Collections.singletonList(
-            new KubePropCondition("pod_name", "contains", "x|y")), containerFilter, podFilter);
+            new KubePropCondition("pod_name", "contains", "x,y")), containerFilter, podFilter);
 
         assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
@@ -294,10 +294,10 @@ class KubePropConditionTranslatorTest {
     }
 
     @Test
-    @DisplayName("container_name equal 'a|b' → in(name, [a, b])（equal 多值等价 in）")
-    void containerNameEqualPipe_multi() {
+    @DisplayName("container_name equal 'a,b' → in(name, [a, b])（equal 多值等价 in）")
+    void containerNameEqualMultiValue_multi() {
         KubePropConditionTranslator.appendRules(Collections.singletonList(
-            new KubePropCondition("container_name", "equal", "a|b")), containerFilter, podFilter);
+            new KubePropCondition("container_name", "equal", "a,b")), containerFilter, podFilter);
 
         assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
@@ -310,7 +310,7 @@ class KubePropConditionTranslatorTest {
 
     @Test
     @DisplayName("container_name equal 'a' 单值 → equal(name,a)，不折叠成 in")
-    void containerNameEqualPipe_single() {
+    void containerNameEqualMultiValue_single() {
         KubePropConditionTranslator.appendRules(Collections.singletonList(
             new KubePropCondition("container_name", "equal", "a")), containerFilter, podFilter);
 
@@ -324,10 +324,10 @@ class KubePropConditionTranslatorTest {
     }
 
     @Test
-    @DisplayName("container_container_uid equal 'u1|u2' → in(container_uid,[u1,u2])")
-    void containerUidEqualPipe_multi() {
+    @DisplayName("container_container_uid equal 'u1,u2' → in(container_uid,[u1,u2])")
+    void containerUidEqualMultiValue_multi() {
         KubePropConditionTranslator.appendRules(Collections.singletonList(
-            new KubePropCondition("container_container_uid", "equal", "u1|u2")), containerFilter, podFilter);
+            new KubePropCondition("container_container_uid", "equal", "u1,u2")), containerFilter, podFilter);
 
         assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
@@ -340,7 +340,7 @@ class KubePropConditionTranslatorTest {
 
     @Test
     @DisplayName("container_container_uid equal 'u1' 单值 → equal(container_uid,u1)")
-    void containerUidEqualPipe_single() {
+    void containerUidEqualMultiValue_single() {
         KubePropConditionTranslator.appendRules(Collections.singletonList(
             new KubePropCondition("container_container_uid", "equal", "u1")), containerFilter, podFilter);
 
@@ -354,11 +354,11 @@ class KubePropConditionTranslatorTest {
     }
 
     @Test
-    @DisplayName("边界规范化：' a | b | a | ' → 去空段 + trim + 去重 后为 [a, b]，走 OR/contains 或 in")
-    void pipeSplit_trimAndDedup() {
+    @DisplayName("边界规范化：' a , b , a , ' → 去空段 + trim + 去重 后为 [a, b]，走 OR/contains 或 in")
+    void multiValueSplit_trimAndDedup() {
         // contains 分支
         KubePropConditionTranslator.appendRules(Collections.singletonList(
-            new KubePropCondition("container_name", "contains", " a | b | a | ")), containerFilter, podFilter);
+            new KubePropCondition("container_name", "contains", " a , b , a , ")), containerFilter, podFilter);
         assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(containerFilter.getRules()).hasSize(1);
@@ -373,7 +373,7 @@ class KubePropConditionTranslatorTest {
         PropertyFilterDTO pf2 = new PropertyFilterDTO();
         pf2.setCondition(RuleConditionEnum.AND.getCondition());
         KubePropConditionTranslator.appendRules(Collections.singletonList(
-            new KubePropCondition("container_container_uid", "equal", " u1 | u2 | u1 ")), cf2, pf2);
+            new KubePropCondition("container_container_uid", "equal", " u1 , u2 , u1 ")), cf2, pf2);
         assertThat(cf2.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(pf2.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(cf2.getRules()).hasSize(1);
@@ -383,20 +383,20 @@ class KubePropConditionTranslatorTest {
     }
 
     @Test
-    @DisplayName("空/仅 | 输入：抛 InvalidParamException（400）")
-    void pipeSplit_emptyThrows() {
+    @DisplayName("空/仅 , 输入：抛 InvalidParamException（400）")
+    void multiValueSplit_emptyThrows() {
         assertThatThrownBy(() -> KubePropConditionTranslator.appendRules(
             Collections.singletonList(new KubePropCondition("container_name", "contains", "")),
             containerFilter, podFilter))
             .isInstanceOf(InvalidParamException.class);
 
         assertThatThrownBy(() -> KubePropConditionTranslator.appendRules(
-            Collections.singletonList(new KubePropCondition("container_name", "contains", "|")),
+            Collections.singletonList(new KubePropCondition("container_name", "contains", ",")),
             containerFilter, podFilter))
             .isInstanceOf(InvalidParamException.class);
 
         assertThatThrownBy(() -> KubePropConditionTranslator.appendRules(
-            Collections.singletonList(new KubePropCondition("container_container_uid", "equal", " | ")),
+            Collections.singletonList(new KubePropCondition("container_container_uid", "equal", " , ")),
             containerFilter, podFilter))
             .isInstanceOf(InvalidParamException.class);
 
@@ -407,42 +407,46 @@ class KubePropConditionTranslatorTest {
     }
 
     @Test
-    @DisplayName("container_container_uid not_equal 不在 | 白名单：value 中的 | 不触发拆分，按原语义传给 cmdb")
-    void pipeSplit_notEqualNotEnabled() {
-        // not_equal 未加入 UID 的 | 白名单，即便 value 含 | 也应走标量 not_equal
+    @DisplayName("container_container_uid not_equal 不在 , 白名单：value 中的 , 不触发拆分，按原语义传给 cmdb")
+    void multiValueSplit_notEqualNotEnabled() {
+        // not_equal 未加入 UID 的 , 白名单，即便 value 含 , 也应走标量 not_equal
         KubePropConditionTranslator.appendRules(Collections.singletonList(
-            new KubePropCondition("container_container_uid", "not_equal", "u1|u2")), containerFilter, podFilter);
+            new KubePropCondition("container_container_uid", "not_equal", "u1,u2")), containerFilter, podFilter);
 
         assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(containerFilter.getRules()).hasSize(1);
         BaseRuleDTO rule = (BaseRuleDTO) containerFilter.getRules().get(0);
         assertThat(rule.getOperator()).isEqualTo(RuleOperatorEnum.NOT_EQUAL.getOperator());
-        assertThat(rule.getValue()).isEqualTo("u1|u2");
+        assertThat(rule.getValue()).isEqualTo("u1,u2");
     }
 
     @Test
-    @DisplayName("pod_labels 值中即便出现 | 也不触发多值拆分，仍走 label selector 表达式解析")
-    void pipeSplit_podLabelsUnaffected() {
-        // "app=nginx|proxy" 中的 | 属于 label value 的一部分（此处只验证不进入 | 拆分分支，
-        // 表达式合法性由 KubePropConditionValidator 保证；这里传一个合法的表达式即可）
+    @DisplayName("pod_labels 值中即便出现 , 也不触发多值拆分，仍走 label selector 表达式解析")
+    void multiValueSplit_podLabelsUnaffected() {
+        // pod_labels 表达式本身就用 , 分隔多项（如 "k1=v1,k2 in (a,b)"），
+        // 白名单机制保证 pod_labels 绝不进入多值拆分分支。此处直接验证含 , 的表达式仍能正确解析。
         KubePropConditionTranslator.appendRules(Collections.singletonList(
-            new KubePropCondition("pod_labels", "equal", "app=nginx")), containerFilter, podFilter);
+            new KubePropCondition("pod_labels", "equal", "app=nginx,env in (prod,test)")
+        ), containerFilter, podFilter);
 
         assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
         assertThat(podFilter.getRules()).hasSize(1);
         BaseRuleDTO outer = (BaseRuleDTO) podFilter.getRules().get(0);
         assertThat(outer.getOperator()).isEqualTo(RuleOperatorEnum.FILTER_OBJECT.getOperator());
+        // 内部表达式应被正确解析为 2 项（app=nginx 、 env in (prod,test)）
+        ComposeRuleDTO inner = (ComposeRuleDTO) outer.getValue();
+        assertThat(inner.getRules()).hasSize(2);
     }
 
     @Test
-    @DisplayName("复合：container_name contains 'c1|c2' + pod_name contains 'p1|p2' " +
+    @DisplayName("复合：container_name contains 'c1,c2' + pod_name contains 'p1,p2' " +
         "→ 两个 filter 各一条 OR(contains,contains)")
-    void pipeSplit_containerAndPodContainsCompound() {
+    void multiValueSplit_containerAndPodContainsCompound() {
         KubePropConditionTranslator.appendRules(Arrays.asList(
-            new KubePropCondition("container_name", "contains", "c1|c2"),
-            new KubePropCondition("pod_name", "contains", "p1|p2")
+            new KubePropCondition("container_name", "contains", "c1,c2"),
+            new KubePropCondition("pod_name", "contains", "p1,p2")
         ), containerFilter, podFilter);
 
         assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
@@ -478,12 +482,12 @@ class KubePropConditionTranslatorTest {
     }
 
     @Test
-    @DisplayName("复合：container_name contains 'c1|c2' + container_container_uid equal 'id1|id2' " +
+    @DisplayName("复合：container_name contains 'c1,c2' + container_container_uid equal 'id1,id2' " +
         "→ containerFilter 一条 OR(contains,contains) + 一条 in([...])")
-    void pipeSplit_containerNameContainsAndUidEqualCompound() {
+    void multiValueSplit_containerNameContainsAndUidEqualCompound() {
         KubePropConditionTranslator.appendRules(Arrays.asList(
-            new KubePropCondition("container_name", "contains", "c1|c2"),
-            new KubePropCondition("container_container_uid", "equal", "id1|id2")
+            new KubePropCondition("container_name", "contains", "c1,c2"),
+            new KubePropCondition("container_container_uid", "equal", "id1,id2")
         ), containerFilter, podFilter);
 
         assertThat(containerFilter.getCondition()).isEqualTo(RuleConditionEnum.AND.getCondition());
@@ -491,7 +495,7 @@ class KubePropConditionTranslatorTest {
         assertThat(podFilter.hasRule()).isFalse();
         assertThat(containerFilter.getRules()).hasSize(2);
 
-        // 第 1 条：container_name contains 'c1|c2' → OR(contains(name,c1), contains(name,c2))
+        // 第 1 条：container_name contains 'c1,c2' → OR(contains(name,c1), contains(name,c2))
         ComposeRuleDTO nameOr = (ComposeRuleDTO) containerFilter.getRules().get(0);
         assertThat(nameOr.getCondition()).isEqualTo(RuleConditionEnum.OR.getCondition());
         assertThat(nameOr.getRules()).hasSize(2);
@@ -504,7 +508,7 @@ class KubePropConditionTranslatorTest {
         assertThat(n1.getOperator()).isEqualTo(RuleOperatorEnum.CONTAINS.getOperator());
         assertThat(n1.getValue()).isEqualTo("c2");
 
-        // 第 2 条：container_container_uid equal 'id1|id2' → in(container_uid,[id1,id2])
+        // 第 2 条：container_container_uid equal 'id1,id2' → in(container_uid,[id1,id2])
         BaseRuleDTO uidRule = (BaseRuleDTO) containerFilter.getRules().get(1);
         assertThat(uidRule.getField()).isEqualTo("container_uid");
         assertThat(uidRule.getOperator()).isEqualTo(RuleOperatorEnum.IN.getOperator());
