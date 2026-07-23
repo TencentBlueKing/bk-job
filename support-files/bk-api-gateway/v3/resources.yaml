@@ -5989,6 +5989,119 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Get job template detail
+  /api/v4/get_user_authorized_scopes:
+    get:
+      operationId: v4_get_user_authorized_scopes
+      description: 查询当前用户有权限的资源范围列表（分页）
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: number
+                        description: 当前用户有权限的资源范围总数（分页前）
+                      offset:
+                        type: number
+                        description: 本次查询的分页起始偏移，从0开始
+                      length:
+                        type: number
+                        description: 本次查询的单页条数
+                      scope_list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_scope_type:
+                              type: string
+                              description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集，tenant_set - 租户集'
+                            bk_scope_id:
+                              type: string
+                              description: 资源范围ID，与bk_scope_type对应，表示业务ID、业务集ID或租户集ID
+                            name:
+                              type: string
+                              description: 资源范围名称
+                            favor:
+                              type: boolean
+                              description: '是否收藏。可选值: true - 已收藏，false - 未收藏'
+                            favor_time:
+                              type: string
+                              description: 收藏时间，格式 yyyy-MM-dd HH:mm:ss.SSS，按当前用户时区（Header 缺失时默认 Asia/Shanghai）格式化；未收藏时不返回该字段
+                            time_zone:
+                              type: string
+                              description: 资源范围（业务）时区，例如 Asia/Shanghai；与 favor_time 采用的用户时区相互独立，不代表 favor_time 的时区
+                          description: 有权限的资源范围
+                        description: 有权限的资源范围列表；按有权限优先、已收藏优先、收藏时间倒序排序后分页返回；无数据时为空数组
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 0
+        description: 分页起始偏移，从0开始；不传默认为0；须大于等于0
+      - name: length
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 10
+        description: 单页返回条数；不传默认为10；取值范围为1到200
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: get
+          path: /{env.api_path_prefix}api/job/v4/job-manage/get_user_authorized_scopes
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get the current user's authorized resource scopes
   /api/v4/get_job_instance_list:
     get:
       operationId: v4_get_job_instance_list

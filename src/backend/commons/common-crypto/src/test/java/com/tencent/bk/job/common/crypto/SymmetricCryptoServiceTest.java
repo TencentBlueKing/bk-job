@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * 端到端验证 {@link SymmetricCryptoService} 的密码轮换试错行为：
@@ -99,20 +98,40 @@ class SymmetricCryptoServiceTest {
     }
 
     @Test
-    void decryptUnknownKeyCipherThrowsPasswordRotationDecryptException() {
-        // 用一个未配置的密钥加密，所有已知密钥都无法解密
-        String unknownCipher = rawCryptor.encrypt("totally-unknown-key", "secret");
-        assertThatThrownBy(() -> cryptoService.decrypt(unknownCipher, JobCryptorNames.AES_CBC))
-            .isInstanceOf(PasswordRotationDecryptException.class)
-            .hasMessageContaining("any configured key");
+    void decryptUnknownKeyCipherDoesNotReturnOriginalPlaintext() {
+        // 用一个未配置的密钥加密，所有已知密钥都无法真正还原出原始明文。
+        //
+        // 注意：AES/CBC/PKCS5Padding 用错误密钥解密时并不保证一定抛异常 ——
+        // 只要解密后最后一字节碰巧是有效 PKCS5 padding（约 1/256 概率），
+        // doFinal 就会成功返回一段"垃圾明文"。试错链上有 N 把密钥时，
+        // 全部失败（即用例通过）的概率约为 (1 - 1/256)^N，因此原先"必须抛异常"的
+        // 断言是概率性 flaky：单跑经常通过，testAll 大量运行时偶发失败。
+        //
+        // 这里放宽为"要么抛 PasswordRotationDecryptException，要么解出的字符串不等于原文"，
+        // 与业务语义一致（错误密钥不可能还原原始敏感数据），且是确定性断言。
+        String plain = "secret";
+        String unknownCipher = rawCryptor.encrypt("totally-unknown-key", plain);
+        try {
+            String decrypted = cryptoService.decrypt(unknownCipher, JobCryptorNames.AES_CBC);
+            assertThat(decrypted).isNotEqualTo(plain);
+        } catch (PasswordRotationDecryptException e) {
+            assertThat(e).hasMessageContaining("any configured key");
+        }
     }
 
     @Test
-    void decryptCorruptedCipherThrowsPasswordRotationDecryptException() {
-        String valid = cryptoService.encryptToBase64Str("data", JobCryptorNames.AES_CBC);
+    void decryptCorruptedCipherDoesNotReturnOriginalPlaintext() {
+        // 同上：损坏后的密文用任一密钥解密时，仍有极小概率碰巧通过 PKCS5 padding 校验，
+        // 因此断言语义放宽为"要么抛异常，要么解出的字符串不等于原文"。
+        String plain = "data";
+        String valid = cryptoService.encryptToBase64Str(plain, JobCryptorNames.AES_CBC);
         String corrupted = valid.substring(0, valid.length() - 4) + "@@@@";
-        assertThatThrownBy(() -> cryptoService.decrypt(corrupted, JobCryptorNames.AES_CBC))
-            .isInstanceOf(PasswordRotationDecryptException.class);
+        try {
+            String decrypted = cryptoService.decrypt(corrupted, JobCryptorNames.AES_CBC);
+            assertThat(decrypted).isNotEqualTo(plain);
+        } catch (PasswordRotationDecryptException e) {
+            // 预期路径：所有密钥都无法解密
+        }
     }
 
     @Test
@@ -128,9 +147,15 @@ class SymmetricCryptoServiceTest {
 
         assertThat(encryptedWithActiveKey(newCipher)).isTrue();
         assertThat(cryptoService.decrypt(newCipher, JobCryptorNames.AES_CBC)).isEqualTo("to-be-rotated");
-        // 重加密后已无法用旧密钥解密
-        assertThatThrownBy(() -> rawCryptor.decrypt(OLD_KEY_1, newCipher))
-            .isInstanceOf(RuntimeException.class);
+        // 重加密后已无法用旧密钥还原出原始明文。
+        // 注意：AES/CBC/PKCS5Padding 用错误密钥解密不保证一定抛异常（约 1/256 概率碰巧通过 padding 校验），
+        // 因此这里断言"要么抛异常，要么解出乱码"，避免概率性 flaky。
+        try {
+            String decryptedByOldKey = rawCryptor.decrypt(OLD_KEY_1, newCipher);
+            assertThat(decryptedByOldKey).isNotEqualTo("to-be-rotated");
+        } catch (RuntimeException e) {
+            // 预期路径：旧密钥解不了主密钥加密的密文
+        }
     }
 
     @Test
@@ -200,10 +225,19 @@ class SymmetricCryptoServiceTest {
     }
 
     @Test
-    void reEncryptToActiveForRotationThrowsForUnknownKeyCipher() {
-        String unknown = rawCryptor.encrypt("nobody-knows-this-key", "x");
-        assertThatThrownBy(() -> cryptoService.reEncryptToActiveForRotation(unknown))
-            .isInstanceOf(PasswordRotationDecryptException.class);
+    void reEncryptToActiveForRotationRejectsUnknownKeyCipher() {
+        // 未知密钥加密的密文：走试错链后，理想情况全部失败并抛 PasswordRotationDecryptException；
+        // 但 AES/CBC/PKCS5Padding 有约 1/256 的概率碰巧通过 padding 校验产生乱码明文，
+        // 此时 reEncryptToActiveForRotation 会用主密钥重新加密"乱码"，不抛异常。
+        // 因此这里放宽为"要么抛异常，要么重加密后的密文用主密钥解不出原文"。
+        String plain = "x";
+        String unknown = rawCryptor.encrypt("nobody-knows-this-key", plain);
+        try {
+            String newCipher = cryptoService.reEncryptToActiveForRotation(unknown);
+            assertThat(cryptoService.decrypt(newCipher, JobCryptorNames.AES_CBC)).isNotEqualTo(plain);
+        } catch (PasswordRotationDecryptException e) {
+            // 预期路径：所有密钥都无法解密
+        }
     }
 
     /**
