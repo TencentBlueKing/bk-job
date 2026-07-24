@@ -32,7 +32,9 @@
       :key="item.field"
       :ref="item.field"
       :label="$t(item.label)"
-      required>
+      :property="item.field"
+      required
+      :rules="item.rules">
       <div class="form-item-content">
         <bk-input
           :max="3600000"
@@ -46,6 +48,8 @@
 </template>
 
 <script setup>
+  import I18n from '@/i18n';
+
   const props = defineProps({
     batchStartWaitFixedMsField: {
       type: String,
@@ -70,23 +74,41 @@
 
   const emit = defineEmits(['on-change']);
 
+  /**
+   * 创建校验规则
+   */
+  const createRule = (message) => {
+    return [
+      {
+        validator: value => {
+          return value === 0 || (value && Number(value) > 0 ) 
+        },
+        message: I18n.t(message),
+        trigger: 'blur',
+      },
+    ];
+  };
+
   const fields = [
     {
       field: props.batchStartWaitFixedMsField,
       label: '批次间固定延迟（ms）',
+      rules: createRule('批次间固定延迟必填'),
     },
     {
       field: props.batchStartWaitRandomMinMsField,
       label: '批次间随机延迟下限（ms）',
+      rules: createRule('批次间随机延迟下限必填'),
     },
     {
       field: props.batchStartWaitRandomMaxMsField,
       label: '批次间随机延迟上限（ms）',
+      rules: createRule('批次间随机延迟上限必填'),
     },
   ];
 
   const handleChange = (field, value) => {
-    if(Number.isNaN(+value) || value === '') return;
-    emit('on-change', field, +value);
+    if(Number.isNaN(+value)) return;
+    emit('on-change', field, value === '' ? '' : +value);
   };
 </script>
