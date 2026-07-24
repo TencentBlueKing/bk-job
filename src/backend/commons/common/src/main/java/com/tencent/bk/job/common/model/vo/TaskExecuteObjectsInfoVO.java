@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.model.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.validation.WebContainerConditionFilterValidator;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +52,9 @@ public class TaskExecuteObjectsInfoVO {
 
     @Schema(description = "容器列表")
     private List<ContainerVO> containerList;
+
+    @Schema(description = "动态条件过滤器列表（按容器属性 + 字段条件筛选；多条之间 OR 取并集）")
+    private List<WebContainerConditionFilter> containerFilterList;
 
     public void validate() throws InvalidParamException {
         boolean allEmpty = true;
@@ -77,6 +81,10 @@ public class TaskExecuteObjectsInfoVO {
         }
         if (CollectionUtils.isNotEmpty(containerList)) {
             allEmpty = false;
+        }
+        if (CollectionUtils.isNotEmpty(containerFilterList)) {
+            allEmpty = false;
+            WebContainerConditionFilterValidator.validate(containerFilterList);
         }
         if (allEmpty) {
             log.warn("TaskExecuteObjects is empty!");

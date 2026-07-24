@@ -195,7 +195,7 @@ class OpenApiJobTemplateV4ResourceImplTest {
         host.setIp("127.0.0.1");
         TaskHostNodeDTO hostNode = new TaskHostNodeDTO();
         hostNode.setHostList(Collections.singletonList(host));
-        TaskTargetDTO target = new TaskTargetDTO(null, hostNode, null);
+        TaskTargetDTO target = new TaskTargetDTO(null, hostNode, null, null);
 
         TaskVariableDTO hostVar = new TaskVariableDTO();
         hostVar.setName("HOST_TARGET");

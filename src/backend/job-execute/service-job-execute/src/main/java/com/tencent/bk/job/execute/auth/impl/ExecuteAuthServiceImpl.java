@@ -463,9 +463,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                 hostInstanceList.add(serverGroupInstance);
             });
         }
-        // 静态容器
-        if (!CollectionUtils.isEmpty(executeObjects.getStaticContainerList())) {
-            // 静态容器按照业务鉴权
+        // 容器：静态容器与动态条件过滤器（containerFilters）均按业务鉴权，构造一次业务维度实例即可
+        if (!CollectionUtils.isEmpty(executeObjects.getStaticContainerList())
+            || !CollectionUtils.isEmpty(executeObjects.getContainerFilters())) {
             InstanceDTO hostInstance = new InstanceDTO();
             hostInstance.setType(ResourceTypeEnum.HOST.getId());
             hostInstance.setSystem(SystemId.CMDB);
@@ -635,8 +635,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (!CollectionUtils.isEmpty(executeTarget.getDynamicServerGroups())) {
             hostResources.addAll(convertDynamicGroupsToPermissionResourceList(appResourceScope, executeTarget));
         }
-        // 静态容器
-        if (!CollectionUtils.isEmpty(executeTarget.getStaticContainerList())) {
+        // 容器：静态容器与动态条件过滤器（containerFilters）共用业务级容器鉴权资源，去重后只构造一次
+        if (!CollectionUtils.isEmpty(executeTarget.getStaticContainerList())
+            || !CollectionUtils.isEmpty(executeTarget.getContainerFilters())) {
             hostResources.addAll(convertContainersToPermissionResourceList(appResourceScope));
         }
         return hostResources;

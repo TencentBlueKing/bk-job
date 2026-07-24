@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.cc.constants.KubeTopoNodeTypeEnum;
 import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
@@ -41,19 +40,22 @@ import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.util.KubePropConditionTranslator;
+import com.tencent.bk.job.common.cc.util.KubeTopoUtil;
+import com.tencent.bk.job.common.constant.KubeTopoNodeTypeEnum;
 import com.tencent.bk.job.common.constant.LabelSelectorOperatorEnum;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.KubeClusterFilter;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubeContainerPropFilter;
+import com.tencent.bk.job.common.model.dto.KubeNamespaceFilter;
+import com.tencent.bk.job.common.model.dto.KubePodFilter;
+import com.tencent.bk.job.common.model.dto.KubeWorkloadFilter;
+import com.tencent.bk.job.common.model.dto.LabelSelectExprDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.RandomUtil;
-import com.tencent.bk.job.execute.model.KubeClusterFilter;
-import com.tencent.bk.job.execute.model.KubeContainerFilter;
-import com.tencent.bk.job.execute.model.KubeContainerPropFilter;
-import com.tencent.bk.job.execute.model.KubeNamespaceFilter;
-import com.tencent.bk.job.execute.model.KubePodFilter;
-import com.tencent.bk.job.execute.model.KubeWorkloadFilter;
-import com.tencent.bk.job.execute.model.LabelSelectExprDTO;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
@@ -137,12 +139,13 @@ public class ContainerServiceImpl implements ContainerService {
                 req.setNodeIdList(kubeNodeIDS);
             }
 
+            PropertyFilterDTO podPropFilter = new PropertyFilterDTO();
+            podPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
+            PropertyFilterDTO containerFilter = new PropertyFilterDTO();
+            containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
+
             if (filter.getPodFilter() != null) {
                 KubePodFilter kubePodFilter = filter.getPodFilter();
-
-                PropertyFilterDTO podPropFilter = new PropertyFilterDTO();
-                podPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
-
                 if (CollectionUtils.isNotEmpty(kubePodFilter.getPodNames())) {
                     podPropFilter.addRule(BaseRuleDTO.in(PodDTO.Fields.NAME, kubePodFilter.getPodNames()));
                 }
@@ -153,20 +156,26 @@ public class ContainerServiceImpl implements ContainerService {
 
                     podPropFilter.addRule(BaseRuleDTO.filterObject(PodDTO.Fields.LABELS, labelsComposeRule));
                 }
-
-                req.setPodFilter(podPropFilter);
             }
 
             if (filter.getContainerPropFilter() != null) {
                 KubeContainerPropFilter containerPropFilter = filter.getContainerPropFilter();
-
-                PropertyFilterDTO containerFilter = new PropertyFilterDTO();
-                containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
                 if (CollectionUtils.isNotEmpty(containerPropFilter.getContainerNames())) {
                     containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.NAME,
                         containerPropFilter.getContainerNames()));
                 }
+            }
 
+            // 动态条件 propConditions：与拓扑/podFilter/containerPropFilter 同级 AND 叠加
+            if (filter.hasPropConditions()) {
+                KubePropConditionTranslator.appendRules(
+                    filter.getPropConditions(), containerFilter, podPropFilter);
+            }
+
+            if (podPropFilter.hasRule()) {
+                req.setPodFilter(podPropFilter);
+            }
+            if (containerFilter.hasRule()) {
                 req.setContainerFilter(containerFilter);
             }
         }
@@ -223,6 +232,11 @@ public class ContainerServiceImpl implements ContainerService {
     }
 
     private List<KubeNodeID> computeKubeTopoNode(long bizId, KubeContainerFilter filter) {
+        // Web 入口形态：id 直接是 CMDB 拓扑节点 ID，无需访 CMDB 翻译；逐 topo 取最精细节点作为 nodeIdList
+        if (filter.hasKubeTopoObjects()) {
+            return KubeTopoUtil.toNodeIdList(filter.getKubeTopoList());
+        }
+        // filter / 历史形态：UIDs / 名称 → 查 CMDB 翻译为 ID
         List<KubeNodeID> kubeNodes;
         if (filter.getWorkloadFilter() != null) {
             kubeNodes = computeKubeWorkloadTopoNodes(bizId, filter.getClusterFilter(), filter.getNamespaceFilter(),

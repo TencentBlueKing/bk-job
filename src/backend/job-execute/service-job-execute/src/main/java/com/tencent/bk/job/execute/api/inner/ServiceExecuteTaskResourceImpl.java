@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.dto.Container;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
@@ -53,6 +54,7 @@ import com.tencent.bk.job.execute.model.inner.request.ServiceTaskExecuteRequest;
 import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -179,6 +181,14 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
                 containerList.add(container);
             });
             executeTargetDTO.setStaticContainerList(containerList);
+        }
+        List<KubeContainerFilter> containerFilters = servers.getContainerFilters();
+        if (CollectionUtils.isNotEmpty(containerFilters)) {
+            List<KubeContainerFilter> cloned = new ArrayList<>(containerFilters.size());
+            for (KubeContainerFilter filter : containerFilters) {
+                cloned.add(filter.clone());
+            }
+            executeTargetDTO.setContainerFilters(cloned);
         }
         return executeTargetDTO;
     }

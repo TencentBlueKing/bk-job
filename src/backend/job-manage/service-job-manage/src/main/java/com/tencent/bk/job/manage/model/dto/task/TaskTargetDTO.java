@@ -30,12 +30,15 @@ import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.converter.WebContainerConditionFilterConverter;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
@@ -81,6 +84,13 @@ public class TaskTargetDTO {
     @JsonProperty("containerList")
     private List<TaskTargetContainerDTO> containerList;
 
+    /**
+     * 动态条件过滤器列表（保存模板/方案时按 JSON 格式写入 LONGTEXT 列；
+     * 旧数据无此字段时反序列化为 null，行为与现状一致）
+     */
+    @JsonProperty("containerFilters")
+    private List<KubeContainerFilter> containerFilters;
+
     public static TaskTargetVO toVO(TaskTargetDTO executeTarget) {
         if (executeTarget == null) {
             return null;
@@ -112,6 +122,16 @@ public class TaskTargetDTO {
             }
         }
 
+        // 动态条件过滤器
+        if (CollectionUtils.isNotEmpty(executeTarget.getContainerFilters())) {
+            List<WebContainerConditionFilter> webFilters =
+                WebContainerConditionFilterConverter.fromKubeContainerFilters(executeTarget.getContainerFilters());
+            if (taskTargetVO.getExecuteObjectsInfo() == null) {
+                taskTargetVO.setExecuteObjectsInfo(new TaskExecuteObjectsInfoVO());
+            }
+            taskTargetVO.getExecuteObjectsInfo().setContainerFilterList(webFilters);
+        }
+
         return taskTargetVO;
     }
 
@@ -133,6 +153,14 @@ public class TaskTargetDTO {
                     .stream()
                     .map(TaskTargetContainerDTO::fromContainerVO)
                     .collect(Collectors.toList())
+            );
+        }
+        // 动态条件过滤器：Web 入参经校验后转为内部统一 KubeContainerFilter 落盘
+        if (taskTargetVO.getExecuteObjectsInfo() != null
+            && CollectionUtils.isNotEmpty(taskTargetVO.getExecuteObjectsInfo().getContainerFilterList())) {
+            taskTargetDTO.setContainerFilters(
+                WebContainerConditionFilterConverter.toKubeContainerFilters(
+                    taskTargetVO.getExecuteObjectsInfo().getContainerFilterList())
             );
         }
         fillHostDetail(taskTargetDTO);
@@ -273,6 +301,11 @@ public class TaskTargetDTO {
             targetDTO.setContainerList(containerList.stream().map(TaskTargetContainerDTO::toServiceTargetContainerDTO)
                 .collect(Collectors.toList()));
         }
+        // 动态条件过滤器透传给下游服务（job-execute）
+        if (CollectionUtils.isNotEmpty(containerFilters)) {
+            targetDTO.setContainerFilters(
+                containerFilters.stream().map(KubeContainerFilter::clone).collect(Collectors.toList()));
+        }
         return targetDTO;
     }
 
@@ -281,7 +314,14 @@ public class TaskTargetDTO {
             this.hostNodeList = null;
         } else {
             this.variable = null;
-            if (hostNodeList == null) {
+            // 三类执行目标全空时才视为空 target 兜底返回字面量 "null"，保留与历史一致的语义；
+            // 注意：历史路径下 containerList-only 之所以能正确落盘，是因为 fromVO 构造了一个空的
+            // hostNodeList 对象（虽内部 lists 全空，但 != null），NON_EMPTY 序列化会整体省略该字段；
+            // 直接 new TaskTargetDTO() 后只 set containerList/containerFilters 的场景在历史代码会被
+            // 此分支错误吞为 "null"，本次扩大判定避免数据丢失。
+            if (hostNodeList == null
+                && CollectionUtils.isEmpty(containerList)
+                && CollectionUtils.isEmpty(containerFilters)) {
                 return "null";
             }
         }

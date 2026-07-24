@@ -27,17 +27,24 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNodeDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.constant.KubeContainerOperator;
+import com.tencent.bk.job.common.constant.QueryableContainerField;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
+import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
+import com.tencent.bk.job.common.util.OperatorDispatcher;
+import com.tencent.bk.job.common.util.converter.WebContainerConditionFilterConverter;
 import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
 import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
+import com.tencent.bk.job.common.validation.WebContainerConditionFilterValidator;
 import com.tencent.bk.job.manage.api.web.WebContainerResource;
 import com.tencent.bk.job.manage.model.mapper.ContainerMapper;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
@@ -46,7 +53,14 @@ import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerCh
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerDetailReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.container.QueryKubeNodeNamesReq;
+import com.tencent.bk.job.manage.model.web.request.dynamicfilter.PreviewDynamicContainerReq;
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
+import com.tencent.bk.job.manage.model.web.vo.chooser.container.QueryKubeNodeNamesResp;
+import com.tencent.bk.job.manage.model.web.vo.chooser.container.WebKubeNodeRefVO;
+import com.tencent.bk.job.manage.model.web.vo.chooser.container.WebKubeNodeWithNameVO;
+import com.tencent.bk.job.manage.model.web.vo.dynamicfilter.DynamicContainerFilterFieldVO;
+import com.tencent.bk.job.manage.model.web.vo.dynamicfilter.DynamicContainerFilterMetadataVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ContainerService;
 import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
@@ -58,6 +72,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -65,6 +80,11 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 public class WebContainerResourceImpl implements WebContainerResource {
+
+    /**
+     * 动态条件过滤器可选字段展示名的 i18n key 前缀，完整 key = 前缀 + QueryableContainerField.fieldName。
+     */
+    private static final String DYNAMIC_FILTER_FIELD_I18N_PREFIX = "dynamic.container.filter.field.";
 
     private final ContainerService containerService;
     private final ApplicationService applicationService;
@@ -273,5 +293,124 @@ public class WebContainerResourceImpl implements WebContainerResource {
                 .map(ContainerIdWithMeta::getId).collect(Collectors.toList()));
 
         return Response.buildSuccessResp(toContainerVOS(containers));
+    }
+
+    @Override
+    public Response<DynamicContainerFilterMetadataVO> getDynamicContainerFilterMetadata(
+        String username,
+        AppResourceScope appResourceScope,
+        String scopeType,
+        String scopeId
+    ) {
+        List<DynamicContainerFilterFieldVO> fields = new ArrayList<>();
+        for (QueryableContainerField field : OperatorDispatcher.getExposedFields()) {
+            List<String> allowedOperators = OperatorDispatcher.getAllowedOperators(field).stream()
+                .map(KubeContainerOperator::getValue)
+                .collect(Collectors.toList());
+            String displayName = i18nService.getI18n(DYNAMIC_FILTER_FIELD_I18N_PREFIX + field.getFieldName());
+            fields.add(new DynamicContainerFilterFieldVO(field.getFieldName(), displayName, allowedOperators));
+        }
+        DynamicContainerFilterMetadataVO metadata = new DynamicContainerFilterMetadataVO();
+        metadata.setFields(fields);
+        return Response.buildSuccessResp(metadata);
+    }
+
+    @Override
+    public Response<PageData<ContainerVO>> previewDynamicContainerByCondition(String username,
+                                                                              AppResourceScope appResourceScope,
+                                                                              String scopeType,
+                                                                              String scopeId,
+                                                                              PreviewDynamicContainerReq req) {
+        if (!isContainerExecuteSupport(appResourceScope)) {
+            // 未开启"容器执行"特性的灰度，返回空结果
+            return Response.buildSuccessResp(PageData.emptyPageData(req.getStart(), req.getPageSize()));
+        }
+
+        WebContainerConditionFilter webFilter = req.getFilter();
+        WebContainerConditionFilterValidator.validate(webFilter);
+        KubeContainerFilter filter = WebContainerConditionFilterConverter.toKubeContainerFilter(webFilter);
+
+        PageData<ContainerDetailDTO> pageData = containerService.listKubeContainerByCondition(
+            Long.parseLong(scopeId), filter, req.getStart(), req.getPageSize());
+
+        PageData<ContainerVO> containerVOPageData = PageData.from(pageData, ContainerMapper::toContainerVO);
+        fillNodesHostInfo(containerVOPageData.getData());
+
+        return Response.buildSuccessResp(containerVOPageData);
+    }
+
+    @Override
+    public Response<QueryKubeNodeNamesResp> queryKubeNodeNames(String username,
+                                                               AppResourceScope appResourceScope,
+                                                               String scopeType,
+                                                               String scopeId,
+                                                               QueryKubeNodeNamesReq req) {
+        QueryKubeNodeNamesResp resp = new QueryKubeNodeNamesResp();
+        List<WebKubeNodeRefVO> reqNodes = req.getNodes();
+        if (CollectionUtils.isEmpty(reqNodes)) {
+            resp.setNodes(Collections.emptyList());
+            return Response.buildSuccessResp(resp);
+        }
+
+        // 业务集或未开启容器执行特性，直接标记全部 exist=false
+        if (appResourceScope.isBizSet() || !isContainerExecuteSupport(appResourceScope)) {
+            resp.setNodes(reqNodes.stream()
+                .map(ref -> buildNotExistVO(ref.getType(), ref.getId()))
+                .collect(Collectors.toList()));
+            return Response.buildSuccessResp(resp);
+        }
+
+        KubeTopologyDTO topo = containerService.getBizKubeCacheTopo(Long.parseLong(scopeId));
+        Map<String, KubeNodeDTO> nodeIndex = new HashMap<>();
+        if (topo != null && CollectionUtils.isNotEmpty(topo.getNodes())) {
+            for (KubeNodeDTO cluster : topo.getNodes()) {
+                collectKubeNodes(cluster, nodeIndex);
+            }
+        }
+
+        List<WebKubeNodeWithNameVO> result = new ArrayList<>(reqNodes.size());
+        for (WebKubeNodeRefVO ref : reqNodes) {
+            KubeNodeDTO hit = nodeIndex.get(buildIndexKey(ref.getType(), ref.getId()));
+            if (hit != null) {
+                WebKubeNodeWithNameVO vo = new WebKubeNodeWithNameVO();
+                vo.setType(ref.getType());
+                vo.setId(ref.getId());
+                vo.setName(hit.getName());
+                vo.setExist(true);
+                result.add(vo);
+            } else {
+                result.add(buildNotExistVO(ref.getType(), ref.getId()));
+            }
+        }
+        resp.setNodes(result);
+        return Response.buildSuccessResp(resp);
+    }
+
+    /**
+     * 将 CMDB 拓扑树递归打平为 (type, id) -> KubeNodeDTO 的索引，便于回显时 O(1) 查表。
+     */
+    private void collectKubeNodes(KubeNodeDTO node, Map<String, KubeNodeDTO> index) {
+        if (node == null || node.getKind() == null || node.getId() == null) {
+            return;
+        }
+        index.put(buildIndexKey(node.getKind(), node.getId()), node);
+        if (CollectionUtils.isNotEmpty(node.getNodes())) {
+            for (KubeNodeDTO child : node.getNodes()) {
+                collectKubeNodes(child, index);
+            }
+        }
+    }
+
+    private String buildIndexKey(String type, Long id) {
+        return type + ":" + id;
+    }
+
+    private WebKubeNodeWithNameVO buildNotExistVO(String type, Long id) {
+        WebKubeNodeWithNameVO vo = new WebKubeNodeWithNameVO();
+        vo.setType(type);
+        vo.setId(id);
+        vo.setName(null);
+        vo.setExist(false);
+        return vo;
     }
 }
