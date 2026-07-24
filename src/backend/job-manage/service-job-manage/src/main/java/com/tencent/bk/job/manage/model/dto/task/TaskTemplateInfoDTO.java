@@ -87,7 +87,7 @@ public class TaskTemplateInfoDTO {
     private TaskTemplateStatusEnum status;
 
     /**
-     * 创建时间
+     * 创建时间（Unix 时间戳，单位：秒）
      */
     private Long createTime;
 
@@ -97,7 +97,7 @@ public class TaskTemplateInfoDTO {
     private String lastModifyUser;
 
     /**
-     * 更新时间
+     * 更新时间（Unix 时间戳，单位：秒）
      */
     private Long lastModifyTime;
 

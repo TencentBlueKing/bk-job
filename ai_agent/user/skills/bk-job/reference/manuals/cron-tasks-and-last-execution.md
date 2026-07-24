@@ -8,6 +8,8 @@
 |--------|------|
 | `cron-search` | 仅列出定时任务（`GET /api/v3/get_cron_list`） |
 | `cron-last-run` | 关键词或 `--cron-id` → 最近一次**定时触发**的执行实例 → 状态 + 各步骤执行日志 |
+| `cron-save` | 新建或保存定时任务（`POST /api/v3/save_cron`），详见 [job-plans-create-and-cron.md](job-plans-create-and-cron.md) |
+| `cron-update-status` | 启停定时任务（`POST /api/v3/update_cron_status`），创建后启用须用户确认 |
 
 ## 2. `cron-last-run` 内部流程（脚本已实现）
 
@@ -55,6 +57,8 @@ python scripts/job_apigw_client.py cron-last-run \
 ## 5. 相关接口文档
 
 - [`../apidocs/get_cron_list.md`](../apidocs/get_cron_list.md)  
+- [`../apidocs/save_cron.md`](../apidocs/save_cron.md)  
+- [`../apidocs/update_cron_status.md`](../apidocs/update_cron_status.md)  
 - [`../apidocs/v4_get_job_instance_list.md`](../apidocs/v4_get_job_instance_list.md)  
 - [`../apidocs/v4_get_job_instance_status.md`](../apidocs/v4_get_job_instance_status.md)  
 - [`../apidocs/v4_batch_get_job_instance_execute_object_log.md`](../apidocs/v4_batch_get_job_instance_execute_object_log.md)  

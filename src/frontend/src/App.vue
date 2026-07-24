@@ -134,7 +134,7 @@
         :action-list="actionList"
         :offset="[10, 20]"
         :render-slot="renderLoginUserinfo"
-        style="position: relative; z-index: 99999"
+        style="position: relative; z-index: 2000"
         :userinfo="loginUserinfo" />
     </template>
     <router-view />

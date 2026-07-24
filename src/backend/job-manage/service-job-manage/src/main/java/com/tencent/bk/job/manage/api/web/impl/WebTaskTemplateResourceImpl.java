@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -56,6 +57,8 @@ import com.tencent.bk.job.manage.model.web.request.TemplateBasicInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateTagBatchPatchReq;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
+import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.auth.TaskTemplateAuthService;
@@ -86,6 +89,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     private final TaskTemplateAuthService taskTemplateAuthService;
     private final TagService tagService;
     private final TemplateAuthService templateAuthService;
+    private final AccountService accountService;
 
     @Autowired
     public WebTaskTemplateResourceImpl(
@@ -93,12 +97,14 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         TaskTemplateAuthService taskTemplateAuthService,
         TagService tagService,
-        TemplateAuthService templateAuthService) {
+        TemplateAuthService templateAuthService,
+        AccountService accountService) {
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.templateAuthService = templateAuthService;
         this.taskTemplateAuthService = taskTemplateAuthService;
         this.tagService = tagService;
+        this.accountService = accountService;
     }
 
     @Override
@@ -226,6 +232,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplate(user,
             appResourceScope.getAppId(), templateId);
 
+        // 填充 step.refVariables，供 TaskStepDTO.toVO 输出前端所需的 ref_variables
         StepRefVariableParser.parseStepRefVars(templateInfo.getStepList(), templateInfo.getVariableList());
 
         TaskTemplateVO taskTemplateVO = TaskTemplateInfoDTO.toVO(templateInfo);
@@ -252,6 +259,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                    @AuditRequestBody TaskTemplateCreateUpdateReq request) {
 
         request.validate();
+        validateExecuteAccountVariable(appResourceScope.getAppId(), request.getVariables());
         User user = JobContextUtil.getUser();
         TaskTemplateInfoDTO createdTemplate = templateService.saveTaskTemplate(user,
             TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(), request));
@@ -290,6 +298,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                    @AuditRequestBody TaskTemplateCreateUpdateReq request) {
         request.setId(templateId);
         request.validate();
+        validateExecuteAccountVariable(appResourceScope.getAppId(), request.getVariables());
 
         User user = JobContextUtil.getUser();
         TaskTemplateInfoDTO updatedTemplate = templateService.updateTaskTemplate(
@@ -419,5 +428,37 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         }
 
         return ValidateResult.pass();
+    }
+
+    private void validateExecuteAccountVariable(Long appId, List<TaskVariableVO> variables) {
+        if (CollectionUtils.isEmpty(variables)) {
+            return;
+        }
+        for (TaskVariableVO variable : variables) {
+            if (variable == null || Objects.equals(variable.getDelete(), 1)
+                || !Objects.equals(variable.getType(), TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType())) {
+                continue;
+            }
+            String defaultValue = StringUtils.trim(variable.getDefaultValue());
+            if (StringUtils.isBlank(defaultValue)) {
+                variable.setDefaultValue(defaultValue);
+                continue;
+            }
+            Long accountId;
+            try {
+                accountId = Long.valueOf(defaultValue);
+            } catch (NumberFormatException e) {
+                log.warn("Execute account variable default value is invalid, variableName={}, defaultValue={}",
+                    variable.getName(), defaultValue);
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            }
+            if (accountId <= 0) {
+                log.warn("Execute account variable default value is invalid, variableName={}, accountId={}",
+                    variable.getName(), accountId);
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            }
+            accountService.getAccount(appId, accountId);
+            variable.setDefaultValue(defaultValue);
+        }
     }
 }

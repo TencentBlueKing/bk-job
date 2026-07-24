@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -114,7 +115,14 @@ public class TaskFileStepVO {
             log.warn("fileDestinationPath is illegal! fileDestinationPath: {}", fileDestination.getPath());
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        if (fileDestination.getAccount() == null || fileDestination.getAccount() <= 0) {
+        if (StringUtils.isNotBlank(fileDestination.getAccountVar())) {
+            fileDestination.setAccountVar(fileDestination.getAccountVar().trim());
+        }
+        if (fileDestination.getAccount() != null && fileDestination.getAccount() > 0) {
+            fileDestination.setAccountVar(null);
+        }
+        if ((fileDestination.getAccount() == null || fileDestination.getAccount() <= 0)
+            && StringUtils.isBlank(fileDestination.getAccountVar())) {
             log.warn("Empty account!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }

@@ -99,7 +99,7 @@ sm2_keypair
 
 #### 功能简介
 
-用于生成SM2加解密所需的秘钥对，生成的原始秘钥可以直接用于后端SM2Util工具，生成的PEM秘钥可以直接用于前端vue。
+生成SM2加解密所需的秘钥对，脚本json格式输出。用于作业平台后端values.yaml配置，对应配置项`job.encrypt.sm2PublicKey`、`job.encrypt.sm2PrivateKey`。
 
 > python环境: python3.6
 
@@ -110,6 +110,7 @@ sm2_keypair
 pip install bk-crypto-python-sdk
 # 生成秘钥对
 python generate_sm2_keypair.py
+python generate_sm2_keypair.py --pretty
 ```
 
 ### 6. BK-JOB 3.11.x 迁移至 开启多租户的 3.12.x 环境的迁移工具

@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -64,6 +65,9 @@ public class TaskFileSourceInfoVO {
     @Schema(description = "主机账号")
     private Long account;
 
+    @Schema(description = "执行账号全局变量名")
+    private String accountVar;
+
     @Schema(description = "主机账号名称")
     private String accountName;
 
@@ -88,12 +92,19 @@ public class TaskFileSourceInfoVO {
                     }
                 }
                 host.validate();
-                if (account == null || account <= 0) {
+                if (StringUtils.isNotBlank(accountVar)) {
+                    accountVar = accountVar.trim();
+                }
+                if (account != null && account > 0) {
+                    accountVar = null;
+                }
+                if ((account == null || account <= 0) && StringUtils.isBlank(accountVar)) {
                     log.warn("Invalid host account!");
                     throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
                 break;
             case 2:
+                accountVar = null;
                 try {
                     Long.valueOf(fileSize);
                 } catch (NumberFormatException e) {
@@ -102,6 +113,7 @@ public class TaskFileSourceInfoVO {
                 }
                 break;
             case 3:
+                accountVar = null;
                 if (fileSourceId == null || fileSourceId <= 0) {
                     log.warn("Invalid fileSourceId!");
                     throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);

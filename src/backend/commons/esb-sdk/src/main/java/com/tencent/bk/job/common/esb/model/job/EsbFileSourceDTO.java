@@ -56,6 +56,9 @@ public class EsbFileSourceDTO {
      */
     private String account;
 
+    @JsonProperty("account_var")
+    private String accountVar;
+
     /**
      * ip列表
      */

@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateScriptStepDAO;
 import com.tencent.bk.job.manage.model.dto.TemplateStepScriptStatusInfo;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
@@ -43,12 +44,10 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
-import org.jooq.Record15;
-import org.jooq.Record16;
+import org.jooq.Record17;
 import org.jooq.Record3;
 import org.jooq.Record5;
 import org.jooq.Result;
-import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.conf.ParamType;
 import org.jooq.impl.DSL;
@@ -86,8 +85,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         this.sensitiveParamCryptoService = sensitiveParamCryptoService;
     }
 
-    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record16<ULong, ULong, ULong, UByte,
-        String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte, UByte, String> record) {
+    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record17<ULong, ULong, ULong, UByte, String, ULong,
+        String, UByte, String, ULong, ULong, String, String, UByte, UByte, UByte, String> record) {
         if (record == null) {
             return null;
         }
@@ -103,7 +102,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         taskScriptStep.setContent(record.get(TABLE.CONTENT));
         taskScriptStep.setLanguage(ScriptTypeEnum.valOf((record.get(TABLE.LANGUAGE)).intValue()));
         taskScriptStep.setTimeout((record.get(TABLE.SCRIPT_TIMEOUT)).longValue());
-        taskScriptStep.setAccount((record.get(TABLE.EXECUTE_ACCOUNT)).longValue());
+        taskScriptStep.setAccount(JooqDataTypeUtil.getLongFromULong(record.get(TABLE.EXECUTE_ACCOUNT)));
+        taskScriptStep.setAccountVar(record.get(TABLE.EXECUTE_ACCOUNT_VAR));
         taskScriptStep.setExecuteTarget(TaskTargetDTO.fromJsonString(record.get(TABLE.DESTINATION_HOST_LIST)));
         taskScriptStep.setSecureParam((record.get(TABLE.IS_SECURE_PARAM)).intValue() == 1);
         String encryptedScriptParam = record.get(TABLE.SCRIPT_PARAM);
@@ -124,8 +124,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.TEMPLATE_ID.eq(ULong.valueOf(parentId)));
         Result<
-            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte, String>> result =
+            Record17<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String,
+                String, UByte, UByte, UByte, String>> result =
             context
                 .select(
                     TABLE.ID,
@@ -139,6 +139,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
                     TABLE.SCRIPT_PARAM,
                     TABLE.SCRIPT_TIMEOUT,
                     TABLE.EXECUTE_ACCOUNT,
+                    TABLE.EXECUTE_ACCOUNT_VAR,
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
@@ -161,8 +162,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.in(stepIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         Result<
-            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte, String>> result =
+            Record17<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String,
+                String, UByte, UByte, UByte, String>> result =
             context
                 .select(
                     TABLE.ID,
@@ -176,6 +177,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
                     TABLE.SCRIPT_PARAM,
                     TABLE.SCRIPT_TIMEOUT,
                     TABLE.EXECUTE_ACCOUNT,
+                    TABLE.EXECUTE_ACCOUNT_VAR,
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
@@ -198,8 +200,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
     public TaskScriptStepDTO getScriptStepById(long stepId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
-        Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte,
-                    UByte, String> record = context.select(
+        Record17<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, String,
+            UByte, UByte, UByte, String> record = context.select(
             TABLE.ID,
             TABLE.TEMPLATE_ID,
             TABLE.STEP_ID,
@@ -211,6 +213,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
             TABLE.SCRIPT_PARAM,
             TABLE.SCRIPT_TIMEOUT,
             TABLE.EXECUTE_ACCOUNT,
+            TABLE.EXECUTE_ACCOUNT_VAR,
             TABLE.DESTINATION_HOST_LIST,
             TABLE.IS_SECURE_PARAM,
             TABLE.STATUS,
@@ -246,6 +249,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
                 TABLE.SCRIPT_PARAM,
                 TABLE.SCRIPT_TIMEOUT,
                 TABLE.EXECUTE_ACCOUNT,
+                TABLE.EXECUTE_ACCOUNT_VAR,
                 TABLE.DESTINATION_HOST_LIST,
                 TABLE.IS_SECURE_PARAM,
                 TABLE.STATUS,
@@ -262,7 +266,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
                 sensitiveParamCryptoService.encryptParamIfNeeded(scriptStep.getSecureParam(),
                     scriptStep.getScriptParam()),
                 ULong.valueOf(scriptStep.getTimeout()),
-                ULong.valueOf(scriptStep.getAccount()),
+                DbRecordMapper.getJooqLongValue(scriptStep.getAccount()),
+                scriptStep.getAccountVar(),
                 scriptStep.getExecuteTarget() == null ? null : scriptStep.getExecuteTarget().toJsonString(),
                 isSecureParam,
                 UByte.valueOf(scriptStep.getStatus()),
@@ -295,7 +300,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
             .set(TABLE.SCRIPT_PARAM, sensitiveParamCryptoService.encryptParamIfNeeded(
                 scriptStep.getSecureParam(), scriptStep.getScriptParam()))
             .set(TABLE.SCRIPT_TIMEOUT, ULong.valueOf(scriptStep.getTimeout()))
-            .set(TABLE.EXECUTE_ACCOUNT, ULong.valueOf(scriptStep.getAccount()))
+            .set(TABLE.EXECUTE_ACCOUNT, DbRecordMapper.getJooqLongValue(scriptStep.getAccount()))
+            .set(TABLE.EXECUTE_ACCOUNT_VAR, scriptStep.getAccountVar())
             .set(TABLE.DESTINATION_HOST_LIST,
                 scriptStep.getExecuteTarget() == null ? null : scriptStep.getExecuteTarget().toJsonString())
             .set(TABLE.IS_SECURE_PARAM, isSecureParam)

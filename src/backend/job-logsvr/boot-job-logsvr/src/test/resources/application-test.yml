@@ -16,7 +16,6 @@ de:
     mongodb:
       embedded:
         version: 4.4.29
-
 bk-api-gateway:
   gse:
     url: gse.apigw.com

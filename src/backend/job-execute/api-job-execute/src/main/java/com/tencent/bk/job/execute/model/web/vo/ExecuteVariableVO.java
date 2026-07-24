@@ -38,7 +38,7 @@ public class ExecuteVariableVO {
     @Schema(description = "变量名")
     private String name;
 
-    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组")
+    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组 7-执行账号")
     private Integer type;
 
     @Schema(description = "变量值")
