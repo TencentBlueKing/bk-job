@@ -142,11 +142,11 @@
   ]);
 
   const handleChange = (field, value) => {
-    if(Number.isNaN(+value) || value === '') return;
+    if(Number.isNaN(+value)) return;
     emit(
       'on-change',
       field,
-      +value,
+      value === '' ? '' : +value,
     );
   };
 </script>
