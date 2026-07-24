@@ -39,6 +39,9 @@ public class TaskFileDestinationInfoVO {
     @Schema(description = "执行账号")
     private Long account;
 
+    @Schema(description = "执行账号全局变量名")
+    private String accountVar;
+
     @Schema(description = "执行账号名称")
     private String accountName;
 

@@ -47,7 +47,7 @@ public class V4JobPlanVariableItem {
     private String name;
 
     /**
-     * 变量值。可选，变量类型为字符串/命名空间/密文/关联数组/索引数组时填写。
+     * 变量值。可选，变量类型为字符串/命名空间/密文/关联数组/索引数组/执行账号时填写；执行账号填写账号 ID 字符串。
      */
     @JsonProperty("value")
     private String value;

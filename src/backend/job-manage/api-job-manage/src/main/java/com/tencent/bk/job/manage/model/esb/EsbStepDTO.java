@@ -43,6 +43,9 @@ public class EsbStepDTO {
 
     private String account;
 
+    @JsonProperty("account_var")
+    private String accountVar;
+
     @JsonProperty("account_id")
     private Long accountId;
 

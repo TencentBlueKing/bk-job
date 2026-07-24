@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.esb.impl.v4;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -158,7 +159,7 @@ public final class OpenApiV4JobTemplateConverter {
         scriptInfo.setScriptTimeout(scriptStepInfo.getTimeout());
         scriptInfo.setIsParamSensitive(Boolean.TRUE.equals(scriptStepInfo.getSecureParam()) ? 1 : 0);
         scriptInfo.setIsIgnoreError(Boolean.TRUE.equals(scriptStepInfo.getIgnoreError()) ? 1 : 0);
-        scriptInfo.setAccount(toAccount(scriptStepInfo.getAccount()));
+        scriptInfo.setAccount(toAccount(scriptStepInfo.getAccount(), scriptStepInfo.getAccountVar()));
         scriptInfo.setExecuteTarget(toExecuteTarget(scriptStepInfo.getExecuteTarget()));
         return scriptInfo;
     }
@@ -177,7 +178,7 @@ public final class OpenApiV4JobTemplateConverter {
         }
         V4JobTemplateFileDestinationDTO destination = new V4JobTemplateFileDestinationDTO();
         destination.setPath(fileStepInfo.getDestinationFileLocation());
-        destination.setAccount(toAccount(fileStepInfo.getExecuteAccount()));
+        destination.setAccount(toAccount(fileStepInfo.getExecuteAccount(), fileStepInfo.getExecuteAccountVar()));
         destination.setExecuteTarget(toExecuteTarget(fileStepInfo.getDestinationHostList()));
         fileInfo.setFileDestination(destination);
         fileInfo.setTimeout(fileStepInfo.getTimeout());
@@ -197,8 +198,10 @@ public final class OpenApiV4JobTemplateConverter {
         if (taskFileInfo.getFileType() != null) {
             fileSource.setFileType(taskFileInfo.getFileType().getType());
         }
-        fileSource.setAccount(toAccount(taskFileInfo.getHostAccount()));
-        fileSource.setExecuteTarget(toExecuteTarget(taskFileInfo.getHost()));
+        if (taskFileInfo.getFileType() == TaskFileTypeEnum.SERVER) {
+            fileSource.setAccount(toAccount(taskFileInfo.getHostAccount(), taskFileInfo.getHostAccountVar()));
+            fileSource.setExecuteTarget(toExecuteTarget(taskFileInfo.getHost()));
+        }
         return fileSource;
     }
 
@@ -224,9 +227,13 @@ public final class OpenApiV4JobTemplateConverter {
         return user;
     }
 
-    private static V4JobTemplateAccountDTO toAccount(Long accountId) {
+    private static V4JobTemplateAccountDTO toAccount(Long accountId, String accountVar) {
+        if ((accountId == null || accountId <= 0) && StringUtils.isBlank(accountVar)) {
+            return null;
+        }
         V4JobTemplateAccountDTO account = new V4JobTemplateAccountDTO();
         account.setId(accountId);
+        account.setAccountVar(StringUtils.trimToNull(accountVar));
         return account;
     }
 

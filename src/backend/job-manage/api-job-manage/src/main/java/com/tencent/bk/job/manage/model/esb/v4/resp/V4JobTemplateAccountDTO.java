@@ -50,4 +50,9 @@ public class V4JobTemplateAccountDTO {
     @JsonProperty("alias")
     @JsonPropertyDescription("Account alias")
     private String alias;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("account_var")
+    @JsonPropertyDescription("Account variable name")
+    private String accountVar;
 }

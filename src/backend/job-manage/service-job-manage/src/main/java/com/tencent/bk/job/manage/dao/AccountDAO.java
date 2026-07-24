@@ -165,6 +165,14 @@ public interface AccountDAO {
     boolean isAccountRefByAnySourceFile(Long accountId);
 
     /**
+     * 账号是否被任一执行账号全局变量引用
+     *
+     * @param accountId 账号ID
+     * @return 是否被引用
+     */
+    boolean isAccountRefByAnyExecuteAccountVariable(Long accountId);
+
+    /**
      * 判断系统账号是否被DB账号引用
      *
      * @param accountId 系统账号ID
