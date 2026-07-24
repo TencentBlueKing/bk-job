@@ -118,6 +118,8 @@ public class TaskVariableDTO {
         }
         if (TaskVariableTypeEnum.NAMESPACE == variableInfo.getType()) {
             variableInfo.setChangeable(true);
+        } else if (TaskVariableTypeEnum.EXECUTE_ACCOUNT == variableInfo.getType()) {
+            variableInfo.setChangeable(false);
         } else {
             variableInfo.setChangeable(variableVO.getChangeable() == 1);
         }

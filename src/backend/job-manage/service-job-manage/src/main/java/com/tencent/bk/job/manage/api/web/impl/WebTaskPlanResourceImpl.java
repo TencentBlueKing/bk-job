@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -63,6 +64,7 @@ import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
+import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.CronJobService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
@@ -105,6 +107,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     private final CronJobService cronJobService;
     private final TemplateAuthService templateAuthService;
     private final PlanAuthService planAuthService;
+    private final AccountService accountService;
 
     @Autowired
     public WebTaskPlanResourceImpl(TaskPlanService planService,
@@ -114,7 +117,8 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                                    @Qualifier("TaskPlanFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
                                    CronJobService cronJobService,
                                    TemplateAuthService templateAuthService,
-                                   PlanAuthService planAuthService) {
+                                   PlanAuthService planAuthService,
+                                   AccountService accountService) {
         this.planService = planService;
         this.taskPlanSyncService = taskPlanSyncService;
         this.taskPlanVarUpdateService = taskPlanVarUpdateService;
@@ -123,6 +127,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         this.cronJobService = cronJobService;
         this.templateAuthService = templateAuthService;
         this.planAuthService = planAuthService;
+        this.accountService = accountService;
     }
 
     @Override
@@ -398,6 +403,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
         // 检查执行方案名称
         checkPlanName(taskPlanCreateUpdateReq);
+        validateExecuteAccountVariable(appResourceScope.getAppId(), taskPlanCreateUpdateReq.getVariables());
 
         TaskPlanInfoDTO savedPlan;
         if (planService.isDebugPlan(appResourceScope.getAppId(), templateId, planId)) {
@@ -449,6 +455,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         taskPlanCreateUpdateReq.setTemplateId(templateId);
         // 检查执行方案名称
         checkPlanName(taskPlanCreateUpdateReq);
+        validateExecuteAccountVariable(appResourceScope.getAppId(), taskPlanCreateUpdateReq.getVariables());
 
         User user = JobContextUtil.getUser();
         TaskPlanInfoDTO savedPlan = planService.createTaskPlan(user, TaskPlanInfoDTO.fromReq(username,
@@ -723,6 +730,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             planInfo.setId(planVariableInfo.getPlanId());
             planInfo.setTemplateId(planVariableInfo.getTemplateId());
             if (CollectionUtils.isNotEmpty(planVariableInfo.getVariableInfoList())) {
+                validateExecuteAccountVariable(appResourceScope.getAppId(), planVariableInfo.getVariableInfoList());
                 planInfo.setVariableList(planVariableInfo.getVariableInfoList().stream()
                     .map(variableVO -> {
                         variableVO.setRequired(0);
@@ -790,6 +798,38 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         taskPlanPageData.setTotal(0L);
         taskPlanPageData.setData(Collections.emptyList());
         return taskPlanPageData;
+    }
+
+    private void validateExecuteAccountVariable(Long appId, List<TaskVariableVO> variables) {
+        if (CollectionUtils.isEmpty(variables)) {
+            return;
+        }
+        for (TaskVariableVO variable : variables) {
+            if (variable == null || Objects.equals(variable.getDelete(), 1)
+                || !Objects.equals(variable.getType(), TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType())) {
+                continue;
+            }
+            String defaultValue = StringUtils.trim(variable.getDefaultValue());
+            if (StringUtils.isBlank(defaultValue)) {
+                variable.setDefaultValue(defaultValue);
+                continue;
+            }
+            Long accountId;
+            try {
+                accountId = Long.valueOf(defaultValue);
+            } catch (NumberFormatException e) {
+                log.warn("Execute account variable default value is invalid, variableName={}, defaultValue={}",
+                    variable.getName(), defaultValue);
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            }
+            if (accountId <= 0) {
+                log.warn("Execute account variable default value is invalid, variableName={}, accountId={}",
+                    variable.getName(), accountId);
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            }
+            accountService.getAccount(appId, accountId);
+            variable.setDefaultValue(defaultValue);
+        }
     }
 
 }

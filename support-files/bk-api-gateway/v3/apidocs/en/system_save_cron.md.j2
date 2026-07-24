@@ -22,12 +22,12 @@ interface to turn it on if needed.
 
 #### global_var
 
-| Fields | Type   | Required | Description                                                                                                   |
-|--------|--------|----------|---------------------------------------------------------------------------------------------------------------|
-| id     | long   | no       | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
-| name   | string | no       | Global variable name                                                                                          |
-| value  | string | no       | Character, password, value of global variable of array type                                                   |
-| server | object | no       | The value of the host type global variable                                                                    |
+| Fields | Type   | Required | Description                                                                                                                                   |
+|--------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| id     | long   | no       | Global variable id, unique identification. If the id is empty, then name is used as the unique identification                                 |
+| name   | string | no       | Global variable name                                                                                                                          |
+| value  | string | no       | Values of global variables of String, Ciphertext, Array, Namespace, and Execute Account types; execute account value is the account ID string |
+| server | object | no       | The value of the host type global variable                                                                                                    |
 
 #### server
 
@@ -315,15 +315,15 @@ interface to turn it on if needed.
 
 #### global_var
 
-| Fields      | Type   | Never null | Description                                                                                                   |
-|-------------|--------|------------|---------------------------------------------------------------------------------------------------------------|
-| id          | long   | yes        | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
-| name        | string | yes        | Global variable name                                                                                          |
-| description | string | no         | Global variable description                                                                                   |
-| type        | int    | yes        | Global variable type                                                                                          |
-| required    | int    | yes        | Whether the variable is required in the template/Job Plan                                                     |
-| value       | string | no         | Character, password, value of global variable of array type                                                   |
-| server      | object | no         | Host type global variable value                                                                               |
+| Fields      | Type   | Never null | Description                                                                                                                                   |
+|-------------|--------|------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| id          | long   | yes        | Global variable id, unique identification. If the id is empty, then name is used as the unique identification                                 |
+| name        | string | yes        | Global variable name                                                                                                                          |
+| description | string | no         | Global variable description                                                                                                                   |
+| type        | int    | yes        | Global variable type                                                                                                                          |
+| required    | int    | yes        | Whether the variable is required in the template/Job Plan                                                                                     |
+| value       | string | no         | Values of global variables of String, Ciphertext, Array, Namespace, and Execute Account types; execute account value is the account ID string |
+| server      | object | no         | Host type global variable value                                                                                                               |
 
 #### server
 

@@ -84,6 +84,9 @@ public class TaskScriptStepVO {
     @Schema(description = "执行账户")
     private Long account;
 
+    @Schema(description = "执行账号全局变量名")
+    private String accountVar;
+
     @Schema(description = "执行账户名称")
     private String accountName;
 
@@ -128,7 +131,13 @@ public class TaskScriptStepVO {
                 log.warn("Unknown script type!");
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        if (account == null || account <= 0) {
+        if (StringUtils.isNotBlank(accountVar)) {
+            accountVar = accountVar.trim();
+        }
+        if (account != null && account > 0) {
+            accountVar = null;
+        }
+        if ((account == null || account <= 0) && StringUtils.isBlank(accountVar)) {
             log.warn("Missing execute account!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }

@@ -41,6 +41,9 @@ public class ServiceAccountDTO {
     @Schema(description = "账号ID")
     private Long id;
 
+    @Schema(description = "执行账号全局变量名")
+    private String accountVar;
+
     /**
      * 账号名称
      */

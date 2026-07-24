@@ -1,18 +1,20 @@
 ### Description
 
-Query job template details within the specified resource scope (business or business set) by job template ID, including global variables and all steps (including disabled steps).
+Query job template details within the specified resource scope (business or business set) by job template ID, including
+global variables and all steps (including disabled steps).
 
-Prerequisites: the target job template must exist; the caller must have permission to view the template in the resource scope.
+Prerequisites: the target job template must exist; the caller must have permission to view the template in the resource
+scope.
 
 ### Request Parameters
 
 #### Query Parameters
 
-| Field             | Type   | Required | Description |
-|-------------------|--------|----------|-------------|
-| bk_scope_type     | string | Yes      | Resource scope type. Optional values: `biz` (business), `biz_set` (business set) |
-| bk_scope_id       | string | Yes      | Resource scope ID, must match `bk_scope_type` |
-| id                | long   | Yes      | Job template ID, must be greater than 0 and the template must exist |
+| Field         | Type   | Required | Description                                                                      |
+|---------------|--------|----------|----------------------------------------------------------------------------------|
+| bk_scope_type | string | Yes      | Resource scope type. Optional values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id   | string | Yes      | Resource scope ID, must match `bk_scope_type`                                    |
+| id            | long   | Yes      | Job template ID, must be greater than 0 and the template must exist              |
 
 ### Request Example
 
@@ -141,30 +143,30 @@ Prerequisites: the target job template must exist; the caller must have permissi
 
 #### data
 
-| Field              | Type   | Always Present | Description |
-|--------------------|--------|----------------|-------------|
-| bk_scope_type      | string | Yes            | Resource scope type. Optional values: `biz` (business), `biz_set` (business set) |
-| bk_scope_id        | string | Yes            | Resource scope ID |
-| id                 | long   | Yes            | Job template ID |
-| name               | string | Yes            | Job template name |
-| description        | string | Yes            | Job template description; empty string if none |
-| creator            | string | Yes            | Creator |
-| create_time        | long   | Yes            | Create time, Unix timestamp in milliseconds |
-| last_modify_user   | string | Yes            | Last modifier |
-| last_modify_time   | long   | Yes            | Last modify time, Unix timestamp in milliseconds |
-| global_var_list    | array  | Yes            | Global variable list; empty array if none |
-| step_list          | array  | Yes            | Step list including all template steps (including disabled); empty array if none |
+| Field            | Type   | Always Present | Description                                                                      |
+|------------------|--------|----------------|----------------------------------------------------------------------------------|
+| bk_scope_type    | string | Yes            | Resource scope type. Optional values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id      | string | Yes            | Resource scope ID                                                                |
+| id               | long   | Yes            | Job template ID                                                                  |
+| name             | string | Yes            | Job template name                                                                |
+| description      | string | Yes            | Job template description; empty string if none                                   |
+| creator          | string | Yes            | Creator                                                                          |
+| create_time      | long   | Yes            | Create time, Unix timestamp in milliseconds                                      |
+| last_modify_user | string | Yes            | Last modifier                                                                    |
+| last_modify_time | long   | Yes            | Last modify time, Unix timestamp in milliseconds                                 |
+| global_var_list  | array  | Yes            | Global variable list; empty array if none                                        |
+| step_list        | array  | Yes            | Step list including all template steps (including disabled); empty array if none |
 
 ##### global_var_list[] element
 
-| Field        | Type   | Always Present | Description |
-|--------------|--------|----------------|-------------|
-| name         | string | Yes            | Global variable name |
-| type         | int    | Yes            | Variable type. Optional values: `1` (string), `2` (namespace), `3` (execute target list), `4` (cipher), `5` (associative array), `6` (index array) |
-| description  | string | Yes            | Variable description |
-| required     | int    | Yes            | Required flag. Optional values: `1` (yes), `0` (no) |
-| value        | string | No             | Variable value when `type` is `1`, `2`, `4`, `5`, or `6`; cipher type returns `******` |
-| execute_target | object | No             | Execute target when `type` is `3` |
+| Field          | Type   | Always Present | Description                                                                                                                                                               |
+|----------------|--------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| name           | string | Yes            | Global variable name                                                                                                                                                      |
+| type           | int    | Yes            | Variable type. Optional values: `1` (string), `2` (namespace), `3` (execute target list), `4` (cipher), `5` (associative array), `6` (index array), `7` (execute account) |
+| description    | string | Yes            | Variable description                                                                                                                                                      |
+| required       | int    | Yes            | Required flag. Optional values: `1` (yes), `0` (no)                                                                                                                       |
+| value          | string | No             | Variable value when `type` is `1`, `2`, `4`, `5`, `6`, or `7`; cipher type returns `******`; execute account type returns the account ID string                           |
+| execute_target | object | No             | Execute target when `type` is `3`                                                                                                                                         |
 
 ##### execute_target
 
@@ -172,82 +174,83 @@ Prerequisites: the target job template must exist; the caller must have permissi
 
 ##### step_list[] element
 
-| Field           | Type   | Always Present | Description |
-|-----------------|--------|----------------|-------------|
-| id              | long   | Yes            | Step ID |
-| name            | string | Yes            | Step name |
-| type            | int    | Yes            | Step type. Optional values: `1` (script), `2` (file), `3` (approval) |
-| script_info     | object | No             | Script step info when `type=1` |
-| file_info       | object | No             | File step info when `type=2` |
-| approval_info   | object | No             | Approval step info when `type=3` |
+| Field         | Type   | Always Present | Description                                                          |
+|---------------|--------|----------------|----------------------------------------------------------------------|
+| id            | long   | Yes            | Step ID                                                              |
+| name          | string | Yes            | Step name                                                            |
+| type          | int    | Yes            | Step type. Optional values: `1` (script), `2` (file), `3` (approval) |
+| script_info   | object | No             | Script step info when `type=1`                                       |
+| file_info     | object | No             | File step info when `type=2`                                         |
+| approval_info | object | No             | Approval step info when `type=3`                                     |
 
 ##### script_info
 
-| Field                | Type   | Always Present | Description |
-|----------------------|--------|----------------|-------------|
-| script_type          | int    | Yes            | Script source type. Optional values: `1` (local script), `2` (referenced script), `3` (public script) |
-| script_id            | string | No             | Script ID |
-| script_version_id    | long   | No             | Script version ID |
-| script_content       | string | No             | Script content, Base64 encoded |
-| script_language      | int    | Yes            | Script language. Optional values: `1` (shell), `2` (bat), `3` (perl), `4` (python), `5` (powershell), `6` (SQL) |
-| script_param         | string | No             | Script parameters, Base64 encoded |
-| windows_interpreter  | string | No             | Windows interpreter path |
-| script_timeout       | long   | Yes            | Script timeout in seconds |
-| is_param_sensitive   | int    | Yes            | Whether script params are sensitive. Optional values: `1` (yes), `0` (no) |
-| is_ignore_error      | int    | Yes            | Whether to ignore errors. Optional values: `1` (yes), `0` (no) |
-| account              | object | Yes            | Execute account |
-| execute_target       | object | No             | Execute target |
+| Field               | Type   | Always Present | Description                                                                                                     |
+|---------------------|--------|----------------|-----------------------------------------------------------------------------------------------------------------|
+| script_type         | int    | Yes            | Script source type. Optional values: `1` (local script), `2` (referenced script), `3` (public script)           |
+| script_id           | string | No             | Script ID                                                                                                       |
+| script_version_id   | long   | No             | Script version ID                                                                                               |
+| script_content      | string | No             | Script content, Base64 encoded                                                                                  |
+| script_language     | int    | Yes            | Script language. Optional values: `1` (shell), `2` (bat), `3` (perl), `4` (python), `5` (powershell), `6` (SQL) |
+| script_param        | string | No             | Script parameters, Base64 encoded                                                                               |
+| windows_interpreter | string | No             | Windows interpreter path                                                                                        |
+| script_timeout      | long   | Yes            | Script timeout in seconds                                                                                       |
+| is_param_sensitive  | int    | Yes            | Whether script params are sensitive. Optional values: `1` (yes), `0` (no)                                       |
+| is_ignore_error     | int    | Yes            | Whether to ignore errors. Optional values: `1` (yes), `0` (no)                                                  |
+| account             | object | No             | Execute account                                                                                                 |
+| execute_target      | object | No             | Execute target                                                                                                  |
 
 ##### file_info
 
-| Field                     | Type  | Always Present | Description |
-|---------------------------|-------|----------------|-------------|
-| file_source_list          | array | Yes            | File source list |
-| file_destination          | object | Yes           | File destination |
-| timeout                   | long  | Yes            | File transfer timeout in seconds |
-| transfer_mode             | int   | Yes            | Transfer mode. Optional values: `1` (strict), `2` (force), `3` (safety FILE_SRC_IP), `4` (safety YYYY-MM-DD) |
-| source_speed_limit        | long  | No             | Upload speed limit in MB/s; no value indicates no speed limit |
-| destination_speed_limit   | long  | No             | Download speed limit in MB/s; no value indicates no speed limit |
-| is_ignore_error           | int   | Yes            | Whether to ignore errors. Optional values: `1` (yes), `0` (no) |
+| Field                   | Type   | Always Present | Description                                                                                                  |
+|-------------------------|--------|----------------|--------------------------------------------------------------------------------------------------------------|
+| file_source_list        | array  | Yes            | File source list                                                                                             |
+| file_destination        | object | Yes            | File destination                                                                                             |
+| timeout                 | long   | Yes            | File transfer timeout in seconds                                                                             |
+| transfer_mode           | int    | Yes            | Transfer mode. Optional values: `1` (strict), `2` (force), `3` (safety FILE_SRC_IP), `4` (safety YYYY-MM-DD) |
+| source_speed_limit      | long   | No             | Upload speed limit in MB/s; no value indicates no speed limit                                                |
+| destination_speed_limit | long   | No             | Download speed limit in MB/s; no value indicates no speed limit                                              |
+| is_ignore_error         | int    | Yes            | Whether to ignore errors. Optional values: `1` (yes), `0` (no)                                               |
 
 ##### file_source_list[] element
 
-| Field             | Type   | Always Present | Description |
-|-------------------|--------|----------------|-------------|
-| file_list         | array  | Yes            | File path list |
-| file_type         | int    | Yes            | File source type. Optional values: `1` (server file), `2` (local file), `3` (file source file), `4` (Base64-encoded file) |
-| file_source_code  | string | No             | File source code |
-| account           | object | Yes            | Execute account |
-| execute_target    | object | No             | Source execute target |
+| Field            | Type   | Always Present | Description                                                                                                               |
+|------------------|--------|----------------|---------------------------------------------------------------------------------------------------------------------------|
+| file_list        | array  | Yes            | File path list                                                                                                            |
+| file_type        | int    | Yes            | File source type. Optional values: `1` (server file), `2` (local file), `3` (file source file), `4` (Base64-encoded file) |
+| file_source_code | string | No             | File source code                                                                                                          |
+| account          | object | No             | Execute account; only returned for server file sources                                                                    |
+| execute_target   | object | No             | Source execute target                                                                                                     |
 
 ##### file_destination
 
-| Field    | Type   | Always Present | Description |
-|----------|--------|----------------|-------------|
-| path     | string | Yes            | Destination path |
-| account  | object | Yes            | Execute account |
+| Field          | Type   | Always Present | Description                |
+|----------------|--------|----------------|----------------------------|
+| path           | string | Yes            | Destination path           |
+| account        | object | No             | Execute account            |
 | execute_target | object | No             | Destination execute target |
 
 ##### account
 
-| Field | Type   | Always Present | Description |
-|-------|--------|----------------|-------------|
-| id    | long   | Yes            | Account ID |
-| name  | string | No             | Account name |
-| alias | string | No             | Account alias |
+| Field       | Type   | Always Present | Description                          |
+|-------------|--------|----------------|--------------------------------------|
+| id          | long   | No             | Account ID                           |
+| name        | string | No             | Account name                         |
+| alias       | string | No             | Account alias                        |
+| account_var | string | No             | Execute account global variable name |
 
 ##### approval_info
 
-| Field             | Type   | Always Present | Description |
-|-------------------|--------|----------------|-------------|
-| approval_type     | int    | Yes            | Approval type. Optional values: `1` (anyone), `2` (all) |
-| approval_user     | object | Yes            | Approval user info |
-| approval_message  | string | Yes            | Approval message |
-| notify_channel    | array  | Yes            | Notify channel list; each element is a channel type string. Common values: `mail`, `weixin`, `rtx` |
+| Field            | Type   | Always Present | Description                                                                                        |
+|------------------|--------|----------------|----------------------------------------------------------------------------------------------------|
+| approval_type    | int    | Yes            | Approval type. Optional values: `1` (anyone), `2` (all)                                            |
+| approval_user    | object | Yes            | Approval user info                                                                                 |
+| approval_message | string | Yes            | Approval message                                                                                   |
+| notify_channel   | array  | Yes            | Notify channel list; each element is a channel type string. Common values: `mail`, `weixin`, `rtx` |
 
 ##### approval_user
 
-| Field      | Type  | Always Present | Description |
-|------------|-------|----------------|-------------|
-| user_list  | array | Yes            | User list |
-| role_list  | array | Yes            | Role list |
+| Field     | Type  | Always Present | Description |
+|-----------|-------|----------------|-------------|
+| user_list | array | Yes            | User list   |
+| role_list | array | Yes            | Role list   |

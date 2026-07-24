@@ -59,6 +59,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
+import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
@@ -85,6 +86,7 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
     private final PlanAuthService planAuthService;
     private final AppScopeMappingService appScopeMappingService;
     private final TenantHostService tenantHostService;
+    private final AccountService accountService;
 
     @Autowired
     public OpenApiJobPlanV4ResourceImpl(TaskPlanService planService,
@@ -92,13 +94,15 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
                                         TemplateAuthService templateAuthService,
                                         PlanAuthService planAuthService,
                                         AppScopeMappingService appScopeMappingService,
-                                        TenantHostService tenantHostService) {
+                                        TenantHostService tenantHostService,
+                                        AccountService accountService) {
         this.planService = planService;
         this.templateService = templateService;
         this.templateAuthService = templateAuthService;
         this.planAuthService = planAuthService;
         this.appScopeMappingService = appScopeMappingService;
         this.tenantHostService = tenantHostService;
+        this.accountService = accountService;
     }
 
     @Override
@@ -123,7 +127,7 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         }
 
         List<Long> enableSteps = resolveEnableSteps(request, template);
-        List<TaskVariableDTO> variableList = mapVariables(request.getVariables(), template, user.getTenantId());
+        List<TaskVariableDTO> variableList = mapVariables(request.getVariables(), template, appId, user.getTenantId());
 
         String planName = StringUtils.strip(request.getName());
         if (Boolean.FALSE.equals(
@@ -168,6 +172,7 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
 
     private List<TaskVariableDTO> mapVariables(List<V4JobPlanVariableItem> variables,
                                                TaskTemplateInfoDTO template,
+                                               Long appId,
                                                String tenantId) {
         if (CollectionUtils.isEmpty(variables)) {
             return new ArrayList<>();
@@ -230,11 +235,42 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
                     dto.setDefaultValue(taskTargetDTO.toJsonString());
                 }
             } else if (!item.isFollowTemplate() && item.getValue() != null) {
-                dto.setDefaultValue(item.getValue());
+                String value = item.getValue();
+                if (varType == TaskVariableTypeEnum.EXECUTE_ACCOUNT) {
+                    value = validateExecuteAccountVariableValue(appId, value);
+                }
+                dto.setDefaultValue(value);
             }
             result.add(dto);
         }
         return result;
+    }
+
+    /**
+     * 校验执行账号全局变量值：保存账号 ID 字符串。
+     */
+    private String validateExecuteAccountVariableValue(Long appId, String value) {
+        String accountValue = StringUtils.trim(value);
+        if (StringUtils.isBlank(accountValue)) {
+            return accountValue;
+        }
+        Long accountId;
+        try {
+            accountId = Long.valueOf(accountValue);
+        } catch (NumberFormatException e) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{"variables", "execute account variable value must be account id"}
+            );
+        }
+        if (accountId <= 0) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{"variables", "execute account variable value must be positive account id"}
+            );
+        }
+        accountService.getAccount(appId, accountId);
+        return accountValue;
     }
 
     /** 执行目标变量覆盖：仅主机维度，容器 filter 暂不支持。 */

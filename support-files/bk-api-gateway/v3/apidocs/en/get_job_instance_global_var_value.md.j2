@@ -83,7 +83,7 @@ Gets the value of the job instance global variable
 | Fields           | Type  | Never null | Description                                                   |
 |------------------|-------|------------|---------------------------------------------------------------|
 | step_instance_id | long  | yes        | Step instance ID                                              |
-| global_var_list  | array | no         | For global variable value list, see global_var for definition |
+| global_var_list  | array | no         | String global variable value list. See global_var for definition; execute account variables are not returned by this API |
 
 #### global_var
 
@@ -91,7 +91,7 @@ Gets the value of the job instance global variable
 |--------|--------|------------|---------------------------------------------------------------------------------------------------------------|
 | id     | long   | yes        | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
 | name   | string | yes        | Global variable name                                                                                          |
-| value  | string | no         | Values of global variables of String, Ciphertext, Namespace, and Array types                                  |
+| value  | string | no         | String global variable value; execute account variables are not returned by this API                          |
 | server | object | no         | For the value of the host type global variable, see server definition                                         |
 
 {% include '_generic_server.md.j2' %}
