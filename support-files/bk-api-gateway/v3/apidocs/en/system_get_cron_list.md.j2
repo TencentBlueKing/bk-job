@@ -82,3 +82,24 @@ Query information of cron jobs under business
 | create_time       | long   | yes        | Created time, Unix timestamp                                                                                                                                                                         |
 | last_modify_user  | string | yes        | Job modifier                                                                                                                                                                                         |
 | last_modify_time  | long   | yes        | Last modified time, Unix timestamp                                                                                                                                                                   |
+| global_var_list   | array  | no         | Global variable information. See global_var                                                                                                                                                          |
+
+#### global_var
+
+| Fields | Type   | Never null | Description                                                                                                            |
+|--------|--------|------------|------------------------------------------------------------------------------------------------------------------------|
+| id     | long   | yes        | Global variable id, unique identification. If the id is empty, then name is used as the unique identification           |
+| name   | string | yes        | Global variable name                                                                                                   |
+| type   | int    | yes        | Global variable type                                                                                                   |
+| value  | string | no         | Values of global variables of String, Ciphertext, Array, Namespace, and Execute Account types; execute account value is the account ID string |
+| server | object | no         | Host type global variable value                                                                                        |
+
+#### server
+
+| Fields             | Type   | Never null | Description                               |
+|--------------------|--------|------------|-------------------------------------------|
+| variable           | string | no         | Referenced variable name                  |
+| ip_list            | array  | no         | Static IP list                            |
+| host_id_list       | array  | no         | Static host ID list, each element is Long |
+| dynamic_group_list | array  | no         | Dynamic group ID list                     |
+| topo_node_list     | array  | no         | Dynamic topo node list                    |

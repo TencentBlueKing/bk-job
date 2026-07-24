@@ -7,7 +7,7 @@
 | 终端中文乱码 | 控制台非 UTF-8 或未走脚本包装后的 stdout | 直接运行官方脚本（已强制 UTF-8）；或 `chcp 65001`（Windows）、`python -X utf8` |
 | HTTP 401 | `access_token` 过期或无效 | 重新申请令牌，更新环境变量 |
 | HTTP 403 | 无业务/作业权限 | 权限中心申请；确认 `bk_scope_id` 正确 |
-| 网关 404 / 非 JSON | `BK_JOB_APIGW_BASE_URL` 错误 | 与 API 网关控制台作业平台路径对齐 |
+| 网关 404 / 非 JSON | `config.yaml` 中 `apigw_base_url` 错误 | 与 API 网关控制台作业平台路径对齐 |
 | `cron-last-run` 无执行历史 | 时间窗口内无定时触发、或并非 `launch_mode=3` | 增大 `--lookback-days`；确认任务是否由定时触发 |
 | `plan-execute` 参数错误 | `global_var_list` 与方案变量不一致 | `plan-detail` 核对 `name`/`id`/`server` 结构 |
 | 日志不完整 | 单步超过 50 台主机 | 脚本已截断并 `log_warning`；分批换用 API 或缩小范围 |

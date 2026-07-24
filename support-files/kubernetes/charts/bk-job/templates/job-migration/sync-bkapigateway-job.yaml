@@ -38,6 +38,8 @@ spec:
           value: {{ .Values.appCode }}
         - name: BK_APP_SECRET
           value: {{ .Values.appSecret }}
+        - name: BK_APP_TENANT_ID
+          value: {{ if .Values.tenant.enabled }}"system"{{ else }}"default"{{ end }}
         - name: BK_API_URL_TMPL
           value: {{ .Values.bkApiGatewayConfig.url }}
         - name: BK_JOB_STAGE_NAME

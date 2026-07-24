@@ -209,6 +209,7 @@ public class TaskDiffHelper {
             || valueChanged(currentScriptStep.getWindowsInterpreter(), originScriptStep.getWindowsInterpreter())
             || valueChanged(currentScriptStep.getTimeout(), originScriptStep.getTimeout())
             || valueChanged(currentScriptStep.getAccount(), originScriptStep.getAccount())
+            || valueChanged(currentScriptStep.getAccountVar(), originScriptStep.getAccountVar())
             || valueChanged(currentScriptStep.getSecureParam(), originScriptStep.getSecureParam())
             || valueChanged(currentScriptStep.getIgnoreError(), originScriptStep.getIgnoreError());
     }
@@ -259,6 +260,7 @@ public class TaskDiffHelper {
                                             TaskFileStepDTO originFileStep) {
         return valueChanged(currentFileStep.getDestinationFileLocation(), originFileStep.getDestinationFileLocation())
             || valueChanged(currentFileStep.getExecuteAccount(), originFileStep.getExecuteAccount())
+            || valueChanged(currentFileStep.getExecuteAccountVar(), originFileStep.getExecuteAccountVar())
             || valueChanged(currentFileStep.getTimeout(), originFileStep.getTimeout())
             || valueChanged(currentFileStep.getOriginSpeedLimit(), originFileStep.getOriginSpeedLimit())
             || valueChanged(currentFileStep.getTargetSpeedLimit(), originFileStep.getTargetSpeedLimit())
@@ -356,7 +358,8 @@ public class TaskDiffHelper {
         }
         if (TaskFileTypeEnum.SERVER == currentFileInfo.getFileType()
             && (targetChanged(currentFileInfo.getHost(), originFileInfo.getHost())
-            || valueChanged(currentFileInfo.getHostAccount(), originFileInfo.getHostAccount()))) {
+            || valueChanged(currentFileInfo.getHostAccount(), originFileInfo.getHostAccount())
+            || valueChanged(currentFileInfo.getHostAccountVar(), originFileInfo.getHostAccountVar()))) {
             return true;
         }
         return TaskFileTypeEnum.FILE_SOURCE == currentFileInfo.getFileType()

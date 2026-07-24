@@ -26,6 +26,8 @@ package com.tencent.bk.job.common.rabbitmq.config;
 
 import com.rabbitmq.client.impl.CredentialsProvider;
 import com.rabbitmq.client.impl.CredentialsRefreshService;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulateProperties;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.common.mq.metrics.MqConsumerMetricsCollector;
 import com.tencent.bk.job.common.mq.metrics.MqMetricsConstants;
 import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
@@ -50,8 +52,22 @@ import org.springframework.integration.config.GlobalChannelInterceptor;
 @Slf4j
 @Configuration
 @AutoConfigureBefore(RabbitAutoConfiguration.class)
-@EnableConfigurationProperties({RabbitProperties.class, MqMetricsProperties.class})
+@EnableConfigurationProperties({
+    RabbitProperties.class,
+    MqMetricsProperties.class,
+    MqConsumeDelaySimulateProperties.class
+})
 public class JobRabbitMQAutoConfig {
+
+    /**
+     * 注册MQ消息消费延迟模拟器，用于在测试环境模拟消息延迟
+     */
+    @Bean
+    MqConsumeDelaySimulator mqConsumeDelaySimulator(MqConsumeDelaySimulateProperties properties) {
+        log.info("Init mq consume delay simulator, enabled: {}, delayMs: {}",
+            properties.isEnabled(), properties.getDelayMs());
+        return new MqConsumeDelaySimulator(properties);
+    }
 
     @Bean
     RabbitConnectionFactoryBeanConfigurer rabbitConnectionFactoryBeanConfigurer(

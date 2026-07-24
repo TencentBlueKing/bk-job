@@ -1,6 +1,6 @@
 # 操作确认协议与输出规范
 
-本手册约定：通过 [`scripts/job_apigw_client.py`](../../scripts/job_apigw_client.py) 的 **`plan-execute`** 调用网关 **`POST /api/v3/execute_job_plan`** 时，智能体须遵守的**确认门禁**与**对用户呈现方式**。
+本手册约定：通过 [`scripts/job_apigw_client.py`](../../scripts/job_apigw_client.py) 调用网关**写操作**接口时，智能体须遵守的**确认门禁**与**对用户呈现方式**。涵盖 `plan-execute`、`plan-create`、`cron-save`、`cron-update-status`。
 
 ---
 
@@ -8,18 +8,21 @@
 
 ### 1.1 核心原则
 
-**所有写操作（`plan-execute` / `execute_job_plan`）必须在执行前获得用户的明确确认。读操作（`cron-search`、`plan-search`、`plan-detail`、`cron-last-run`、`instance-status` 等）无需确认，直接执行。**
+**所有写操作（`plan-execute`、`plan-create`、`cron-save`、`cron-update-status`）必须在执行前获得用户的明确确认。读操作（`cron-search`、`plan-search`、`plan-detail`、`cron-last-run`、`instance-status` 等）无需确认，直接执行。**
 
 ### 1.2 操作分级
 
 | 风险等级 | 操作类型 | 确认方式 |
 |---------|---------|---------|
 | 🟢 低风险 | 搜索方案、搜索定时任务、查看详情、查看状态、查看日志 | 无需确认，直接执行 |
+| 🟡 中风险 | **创建执行方案**（`plan-create`） | 展示操作摘要（业务/模板/方案名等）→ 用户确认 → 执行 |
+| 🟡 中风险 | **保存定时任务**（`cron-save`） | 展示操作摘要 → 用户确认 → 执行；**创建成功后必须询问是否启用** |
 | 🟡 中风险 | **启动执行方案**（`plan-execute`） | 展示操作摘要 → 用户确认 → 执行 |
+| 🟡 中风险 | **启用定时任务**（`cron-update-status --status 1`） | 须在 `cron-save` 后用户**明确同意启用**后才可调用 |
 
 ### 1.3 确认门禁（GATE CHECK）
 
-> **🚫 硬性规则：在调用 `plan-execute`（真实执行，非 `--dry-run`）之前，必须通过以下门禁检查，缺一不可。违反任何一条都禁止调用。**
+> **🚫 硬性规则：在调用任何写操作子命令（真实执行，非 `--dry-run`）之前，必须通过以下门禁检查，缺一不可。违反任何一条都禁止调用。**
 
 | # | 检查项 | 说明 |
 |---|--------|------|
@@ -89,14 +92,24 @@ AI 动作：通过 G2 门禁，继续检查 G1/G3/G4，全部通过后调用 pla
 
 | 用户反馈 | 处理方式 |
 |---------|---------|
-| 确认执行（「确认」「好的」「没问题」等，且已在**上一轮或更早的回复中**看到过**当前参数**的确认摘要） | 通过 G2 门禁，执行 `plan-execute`，并反馈执行结果（含 `job_instance_id` 等） |
+| 确认执行（「确认」「好的」「没问题」等，且已在**上一轮或更早的回复中**看到过**当前参数**的确认摘要） | 通过 G2 门禁，执行 `plan-execute`，并反馈执行结果（含 `job_instance_id`、`job_instance_url` 等） |
 | 启动意图——**无论措辞多么明确**（「启动吧」「立即启动」「更正后再启动」等），只要**当前参数**的确认摘要**尚未展示过** | 展示确认摘要，**⛔ STOP 等待用户下一条独立回复确认** |
 | 请求修改 | 按用户要求调整后，重新展示摘要供再次确认 |
 | 取消操作 | 不执行，明确告知用户已取消 |
 
 > **⚠️ 关键区分**：判断用户回复是「确认」还是「启动意图」，唯一标准是**当前参数的确认摘要是否已在之前的回复中展示过**。与用户措辞的强烈程度无关。
 
-**与 `--dry-run` 的关系**：`plan-execute --dry-run` 为只读请求体校验，**不视为写操作完成**；真实启动仍须满足**第 1 节**全部门禁。
+**与 `--dry-run` 的关系**：各写操作子命令的 `--dry-run` 为只读请求体校验，**不视为写操作完成**；真实调用仍须满足**第 1 节**全部门禁。
+
+### 1.6 `cron-save` 创建后启用门禁（硬性）
+
+`save_cron` 新建定时任务后**默认暂停**（`status=2`）。智能体交付创建结果后：
+
+1. **必须**询问用户：「是否立即启用该定时任务？」
+2. 用户**未明确同意启用**前，**禁止**调用 `cron-update-status --status 1`
+3. 用户同意启用后，展示启用摘要（cron ID、资源范围、目标状态），再经 G2 确认后执行
+
+此规则独立于 `plan-execute` 的 G1–G4，但启用步骤仍须遵守 G2（摘要后的独立确认）。
 
 ---
 
@@ -141,11 +154,14 @@ AI 动作：通过 G2 门禁，继续检查 G1/G3/G4，全部通过后调用 pla
 | **方案详情** | 分「步骤列表」与「全局变量」两部分 |
 | **执行状态** | 清晰语义（如「执行成功」「执行中」「执行失败」），附各步骤状态 |
 | **执行日志** | 按步骤与主机（或容器）分组展示 |
+| **启动执行结果** | 须包含 `job_instance_id`；若脚本返回 `job_instance_url`，**必须**以 Markdown 链接形式交付给用户（链接文本可用「查看任务执行详情」或实例 ID），便于跳转 `{job_base_url}/api_execute/{job_instance_id}` |
+| **创建执行方案结果** | 须包含 `job_plan_id`；若脚本返回 `job_plan_url`，**必须**以 Markdown 链接形式交付给用户（链接文本可用「查看执行方案」或方案 ID），便于跳转 `{job_base_url}/api_plan/{job_plan_id}` |
 
 ---
 
 ## 相关手册
 
-- [job-plans-search-and-execute.md](job-plans-search-and-execute.md) — 子命令与示例  
+- [job-plans-search-and-execute.md](job-plans-search-and-execute.md) — 搜索与启动子命令  
+- [job-plans-create-and-cron.md](job-plans-create-and-cron.md) — 创建方案与定时任务编排  
 - [business-memory.md](business-memory.md) — 业务记忆加载与 **[业务记忆预填]** 来源约定  
 - [../../SKILL.md](../../SKILL.md) — 技能入口  

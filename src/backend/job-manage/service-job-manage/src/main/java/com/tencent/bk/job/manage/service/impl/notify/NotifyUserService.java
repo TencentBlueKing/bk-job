@@ -104,9 +104,7 @@ public class NotifyUserService {
         }
         List<SimpleUserInfo> users = Collections.emptyList();
         if (CollectionUtils.isNotEmpty(usernames)) {
-            users = userApiClient.listUsersByUsernames(
-                tenantId,
-                usernames);
+            users = userApiClient.listUsersByUsernamesIncludingVirtual(tenantId, usernames);
         }
         val resultList = new ArrayList<String>();
         notifyBlackUserInfoDAO.deleteAllNotifyBlackUser(tenantId);

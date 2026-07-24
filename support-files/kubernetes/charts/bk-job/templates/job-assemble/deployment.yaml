@@ -121,6 +121,11 @@ spec:
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
+            {{- if .Values.backupConfig.archive.execute.enabled }}
+            - name: archive-mariadb
+              mountPath: /etc/secrets/archive-mariadb
+              readOnly: true
+            {{- end }}
             - name: mongodb
               mountPath: /etc/secrets/mongodb
               readOnly: true
@@ -130,9 +135,6 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
-            - name : mongodb
-              mountPath : /etc/secrets/mongodb
-              readOnly : true
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.backup.archive.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.mongodb.certsVolumeMount" . | nindent 12 }}
@@ -154,6 +156,11 @@ spec:
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}
+        {{- if .Values.backupConfig.archive.execute.enabled }}
+        - name: archive-mariadb
+          secret:
+            secretName: {{ include "job.archiveMariadb.secretName" . }}
+        {{- end }}
         - name: mongodb
           secret:
             secretName: {{ include "job.mongodb.secretName" . }}
@@ -163,9 +170,6 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
-        - name: mongodb
-          secret:
-            secretName: {{ include "job.mongodb.secretName" . }}
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.backup.archive.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.mongodb.certsVolume" . | nindent 8 }}

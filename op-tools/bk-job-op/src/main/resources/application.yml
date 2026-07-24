@@ -80,31 +80,65 @@ bkApiGateway:
     retry-interval: 3
 
 bk:
-  # BK-Log配置（多日志源）
+  # BK-Log配置（多接入点 + 多日志源）
   log:
     defaultSource: prod-service
-    sources:
-      prod-service:
-        label: "生产环境-微服务日志"
-        sortField: "log_time"
-        indices: ""
-        indexSetId: 100
-        expireTime: 7
+
+    # 多个 bklog 接入点（不同环境的 bklog 网关）
+    # 每个 endpoint 对应一份独立的 url + 认证信息；endpoint 内 appCode/appSecret 可省略，
+    # 省略时回退到 bk-api-gateway.bkAppCode/bkAppSecret；username 可省略，缺省为 admin；
+    # tenantId 会以请求头 X-Bk-Tenant-Id 发送，可省略，缺省为 default
+    endpoints: {}
+#      env-a:
+#        url: http://bklog.aaa.com
+#        bkAppCode: ""
+#        bkAppSecret: ""
+#        username: admin
+#        tenantId: default
+#        retryCount: 3
+#        retryInterval: 3
+#      env-b:
+#        url: http://bklog.bbb.com
+#        username: admin
+#        bkAppCode : ""
+#        bkAppSecret: ""
+#        tenantId: tenant-b
+#        retryCount: 3
+#        retryInterval: 3
+
+    # 多个日志源，每个 source 通过 endpoint 字段绑定到一个接入点
+    sources: {}
+#      prod-service:
+#        label: "生产环境-微服务日志"
+#        endpoint: env-a
+#        sortField: "log_time"
+#        indices: ""
+#        indexSetId: 100
+#        expireTime: 7
 #      prod-gateway-access:
 #        label: "生产环境-网关Access日志"
+#        endpoint: env-a
 #        sortField: "time"
 #        indices: ""
 #        indexSetId: 101
 #        expireTime: 7
 #      prod-stdout:
 #        label: "生产环境-标准输出日志"
+#        endpoint: env-a
 #        sortField: "log_time"
 #        indices: ""
 #        indexSetId: 102
 #        expireTime: 7
 #      stag-service:
 #        label: "预发布环境-微服务日志"
+#        endpoint: env-a
 #        sortField: "log_time"
 #        indices: ""
 #        indexSetId: 200
+#        expireTime: 7
+#      other-service:
+#        label: "其他环境-微服务日志"
+#        endpoint: env-b
+#        sortField: "log_time"
+#        indexSetId: 300
 #        expireTime: 7

@@ -26,10 +26,12 @@ package com.tencent.bk.job.manage.config;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Getter
 @Configuration
+@EnableConfigurationProperties(ScopePanelProperties.class)
 public class JobManageConfig {
 
     /**

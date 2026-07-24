@@ -38,8 +38,11 @@
   </bk-form-item>
 </template>
 <script>
+  import dispatch from '@/utils/mixins/dispatch';
+
   export default {
     name: 'JbFormItem',
+    mixins: [dispatch],
     inheritAttrs: false,
     props: {
       label: {
@@ -60,7 +63,18 @@
         return classes;
       },
     },
-
+    mounted() {
+      this.dispatch(
+        'JbForm',
+        'form-item-change'
+      );
+    },
+    beforeDestroy() {
+      this.dispatch(
+        'JbForm',
+        'form-item-change'
+      );
+    },
     methods: {
       clearValidator() {
         this.$refs.bkFormItem.clearValidator();

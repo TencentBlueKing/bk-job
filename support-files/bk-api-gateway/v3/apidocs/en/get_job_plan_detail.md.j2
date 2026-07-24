@@ -225,7 +225,8 @@ Check Job Plan details by Job Plan ID
 | script_param       | string | no         | Script parameter                                                                                         |
 | script_timeout     | int    | yes        | Script timeout in seconds. Default 3600, value range 60-86400                                            |
 | is_param_sensitive | int    | yes        | Sensitive parameter, 0. Not (default), 1. Yes.                                                           |
-| account            | object | yes        | Execution account name/alias                                                                             |
+| account            | object | no         | Execution account name/alias                                                                             |
+| account_var        | string | no         | Execute account global variable name                                                                     |
 
 #### file_info
 
@@ -240,15 +241,15 @@ Check Job Plan details by Job Plan ID
 
 #### global_var
 
-| Fields      | Type   | Never null | Description                                                                            |
-|-------------|--------|------------|----------------------------------------------------------------------------------------|
-| id          | long   | yes        | Global variable id. If the id is empty, then name is used as the unique identification |
-| name        | string | yes        | Global variable name                                                                   |
-| description | string | no         | Global variable description                                                            |
-| type        | int    | yes        | Global variable type                                                                   |
-| required    | int    | yes        | Is this variable required                                                              |
-| value       | string | no         | Values of global variables of String, Ciphertext, Namespace, and Array types           |
-| server      | object | no         | Value of global variable of Host type                                                  |
+| Fields      | Type   | Never null | Description                                                                                                                                   |
+|-------------|--------|------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| id          | long   | yes        | Global variable id. If the id is empty, then name is used as the unique identification                                                        |
+| name        | string | yes        | Global variable name                                                                                                                          |
+| description | string | no         | Global variable description                                                                                                                   |
+| type        | int    | yes        | Global variable type. `7` means execute account                                                                                               |
+| required    | int    | yes        | Is this variable required                                                                                                                     |
+| value       | string | no         | Values of global variables of String, Ciphertext, Namespace, Array, and Execute Account types; execute account value is the account ID string |
+| server      | object | no         | Value of global variable of Host type                                                                                                         |
 
 #### server
 
@@ -291,15 +292,17 @@ Check Job Plan details by Job Plan ID
 | Fields         | Type   | Never null | Description                                                                        |
 |----------------|--------|------------|------------------------------------------------------------------------------------|
 | file_list      | array  | yes        | Absolute path array of source file, supporting multiple files                      |
-| account        | object | yes        | Execution account name/alias                                                       |
+| account        | object | no         | Execution account name/alias; only returned for server file sources                |
+| account_var    | string | no         | Execute account global variable name; only returned for server file sources        |
 | server         | object | no         | Target server                                                                      |
 | file_type      | int    | yes        | File source type, 1: server file, 2: Local files, 3: third-party file source files |
 | file_source_id | int    | no         | Third-party file source Id when file source type is third-party file source file   |
 
 #### file_destination
 
-| Fields  | Type   | Never null | Description                          |
-|---------|--------|------------|--------------------------------------|
-| path    | string | yes        | Path where the target file is stored |
-| account | object | yes        | Execution account name/alias         |
-| server  | object | yes        | Target server                        |
+| Fields      | Type   | Never null | Description                          |
+|-------------|--------|------------|--------------------------------------|
+| path        | string | yes        | Path where the target file is stored |
+| account     | object | no         | Execution account name/alias         |
+| account_var | string | no         | Execute account global variable name |
+| server      | object | yes        | Target server                        |
