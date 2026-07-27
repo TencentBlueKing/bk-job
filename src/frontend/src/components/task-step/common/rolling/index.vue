@@ -87,11 +87,9 @@
       <!-- 源文件时显示源文件滚动配置 -->
       <rolling-file-config
         v-else
-        :enabled-field="enabledField"
         :form-data="formData"
         :max-execute-object-num-field="maxExecuteObjectNumField"
         :max-file-num-field="maxFileNumField"
-        :type-field="typeField"
         @on-change="handleFieldChange" />
       <!-- 滚动机制 - 并行执行时不显示 -->
       <jb-form-item

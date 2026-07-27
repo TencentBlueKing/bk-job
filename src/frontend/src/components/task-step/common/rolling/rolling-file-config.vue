@@ -78,65 +78,39 @@
       type: Object,
       required: true,
     },
-    enabledField: {
-      type: String,
-      default: '',
-    },
-    typeField: {
-      type: String,
-      default: '',
-    },
   });
 
   const emit = defineEmits(['on-change']);
 
   /**
-   * 校验是否开启分批策略
-   */
-  const enableValidate = computed(() => {
-    return (
-      props.formData[props.enabledField]
-      && props.formData[props.typeField] === 2
-    );
-  });
-
-  /**
    * 创建校验规则
    */
   const createRule = (message) => {
-    return computed(() => {
-      if (!enableValidate.value) {
-        return [];
-      }
-
-      return [
-        {
-          validator: value => Number(value) > 0,
-          message: I18n.t(message),
-          trigger: 'blur',
-        },
-      ];
-    });
+    return [
+      {
+        validator: value => Number(value) > 0,
+        message: I18n.t(`${message}必填`),
+        trigger: 'blur',
+      },
+      {
+        validator: value => Number(value) >= 1 && Number.isInteger(Number(value)),
+        message: I18n.t(`${message}是大于等于1的整数`),
+        trigger: 'blur',
+      },
+    ];
   };
-
-  const maxExecuteObjectNumRule = createRule(
-    '单批次最大并发源主机/容器数必填',
-  );
-  const maxFileNumRule = createRule(
-    '源单主机/容器最大并发文件数必填',
-  );
 
   const formItems = computed(() => [
     {
       field: props.maxExecuteObjectNumField,
       label: '单批次最大并发源主机/容器数',
-      rules: maxExecuteObjectNumRule.value,
+      rules: createRule('单批次最大并发源主机/容器数'),
       max: 10000,
     },
     {
       field: props.maxFileNumField,
       label: '源单主机/容器最大并发文件数',
-      rules: maxFileNumRule.value,
+      rules: createRule('源单主机/容器最大并发文件数'),
       max: 2000,
     },
   ]);
