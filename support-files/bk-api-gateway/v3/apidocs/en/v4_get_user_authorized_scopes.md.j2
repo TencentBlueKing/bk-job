@@ -1,0 +1,83 @@
+### Description
+
+Query the list of resource scopes that the current user is authorized to access (business, business set, tenant set, etc.) with pagination.
+
+Results are sorted by a fixed rule: authorized scopes first, then favorited scopes, then favor time descending. By default only the first 10 records are returned to avoid fetching a large dataset at once. This API does not return permission-application related fields.
+
+### Request Parameters
+
+#### Query Parameters
+
+| Field  | Type | Required | Description |
+|--------|------|----------|-------------|
+| offset | int  | No       | Pagination offset starting from 0; defaults to 0 if omitted; must be greater than or equal to 0 |
+| length | int  | No       | Number of records per page; defaults to 10 if omitted; valid range is 1 to 200 |
+
+### Request Example
+
+- GET
+
+```json
+/api/v4/get_user_authorized_scopes?offset=0&length=10
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+  "data": {
+    "total": 35,
+    "offset": 0,
+    "length": 10,
+    "scope_list": [
+      {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "name": "demo-biz",
+        "favor": true,
+        "favor_time": "2024-03-10 00:00:00.000",
+        "time_zone": "Asia/Shanghai"
+      },
+      {
+        "bk_scope_type": "biz_set",
+        "bk_scope_id": "3",
+        "name": "demo-biz-set",
+        "favor": false,
+        "time_zone": "Asia/Shanghai"
+      }
+    ]
+  },
+  "job_request_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field      | Type  | Always Present | Description |
+|------------|-------|----------------|-------------|
+| total      | long  | Yes            | Total number of authorized resource scopes before pagination |
+| offset     | int   | Yes            | Pagination offset used in this query, starting from 0 |
+| length     | int   | Yes            | Page size used in this query |
+| scope_list | array | Yes            | List of authorized resource scopes; empty array when there is no data |
+
+##### scope_list[] item
+
+| Field         | Type    | Always Present | Description |
+|---------------|---------|----------------|-------------|
+| bk_scope_type | string  | Yes            | Resource scope type. Possible values: `biz` (business), `biz_set` (business set), `tenant_set` (tenant set) |
+| bk_scope_id   | string  | Yes            | Resource scope ID corresponding to `bk_scope_type`, representing a business ID, business-set ID, or tenant-set ID |
+| name          | string  | Yes            | Resource scope name |
+| favor         | boolean | Yes            | Whether the scope is favorited. Possible values: `true` (favorited), `false` (not favorited) |
+| favor_time    | string  | No             | Favor time in format `yyyy-MM-dd HH:mm:ss.SSS`, formatted in the current user's time zone (defaults to `Asia/Shanghai` when the header is absent); omitted when not favorited |
+| time_zone     | string  | No             | Time zone of the resource scope (business), for example `Asia/Shanghai`; independent of the user time zone used by `favor_time`, and does not represent the time zone of `favor_time` |

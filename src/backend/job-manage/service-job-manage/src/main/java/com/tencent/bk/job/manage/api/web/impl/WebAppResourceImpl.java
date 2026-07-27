@@ -24,35 +24,25 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
-import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.CompareUtil;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
-import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
+import com.tencent.bk.job.manage.model.dto.UserAppScopeDTO;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import com.tencent.bk.job.manage.model.web.vo.ScopeGroupPanel;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
 import com.tencent.bk.job.manage.service.scope.ScopePanelService;
+import com.tencent.bk.job.manage.service.scope.UserAppScopeQueryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -61,56 +51,18 @@ public class WebAppResourceImpl implements WebAppResource {
 
     private final ApplicationService applicationService;
     private final ApplicationFavorService applicationFavorService;
-    private final AppAuthService appAuthService;
-    private final AppScopeMappingService appScopeMappingService;
     private final ScopePanelService scopePanelService;
+    private final UserAppScopeQueryService userAppScopeQueryService;
 
     @Autowired
     public WebAppResourceImpl(ApplicationService applicationService,
                               ApplicationFavorService applicationFavorService,
-                              AppAuthService appAuthService,
-                              AppScopeMappingService appScopeMappingService,
-                              ScopePanelService scopePanelService) {
+                              ScopePanelService scopePanelService,
+                              UserAppScopeQueryService userAppScopeQueryService) {
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
-        this.appAuthService = appAuthService;
-        this.appScopeMappingService = appScopeMappingService;
         this.scopePanelService = scopePanelService;
-    }
-
-    private List<Long> extractAuthorizedAppIdList(AppResourceScopeResult appResourceScopeResult) {
-        List<AppResourceScope> authorizedAppResourceScopes = appResourceScopeResult.getAppResourceScopeList();
-        return authorizedAppResourceScopes.stream()
-            .map(appResourceScope -> {
-                if (appResourceScope.getAppId() != null) {
-                    return appResourceScope.getAppId();
-                }
-                try {
-                    return appScopeMappingService.getAppIdByScope(
-                        appResourceScope.getType().getValue(), appResourceScope.getId());
-                } catch (NotFoundException e) {
-                    log.warn("Invalid scope", e);
-                    // 如果业务不存在，那么忽略
-                    return null;
-                }
-            }).filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    private void setFavorState(String username, List<AppVO> finalAppList) {
-        List<ApplicationFavorDTO> applicationFavorDTOList = applicationFavorService.getAppFavorListByUsername(username);
-        Map<Long, Long> appIdFavorTimeMap = new HashMap<>();
-        for (ApplicationFavorDTO applicationFavorDTO : applicationFavorDTOList) {
-            appIdFavorTimeMap.put(applicationFavorDTO.getAppId(), applicationFavorDTO.getFavorTime());
-        }
-        for (AppVO appVO : finalAppList) {
-            if (appIdFavorTimeMap.containsKey(appVO.getId())) {
-                appVO.setFavor(true);
-                appVO.setFavorTime(appIdFavorTimeMap.get(appVO.getId()));
-            } else {
-                appVO.setFavor(false);
-                appVO.setFavorTime(null);
-            }
-        }
+        this.userAppScopeQueryService = userAppScopeQueryService;
     }
 
     @Override
@@ -118,7 +70,6 @@ public class WebAppResourceImpl implements WebAppResource {
                                                            Integer start,
                                                            Integer pageSize) {
         List<AppVO> finalAppList = listSortedAppWithFavor(username);
-        // 分页
         PageData<AppVO> pageData = PageUtil.pageInMem(finalAppList, start, pageSize);
         return Response.buildSuccessResp(pageData);
     }
@@ -126,95 +77,29 @@ public class WebAppResourceImpl implements WebAppResource {
     @Override
     public Response<ScopeGroupPanel> getScopeGroupPanel(String username) {
         List<AppVO> finalAppList = listSortedAppWithFavor(username);
-        // 分组
         ScopeGroupPanel scopeGroupPanel = scopePanelService.buildScopeGroupPanel(username, finalAppList);
         return Response.buildSuccessResp(scopeGroupPanel);
     }
 
-    /**
-     * 获取当前用户所见的已排序的带收藏信息的所有Job业务列表数据
-     *
-     * @param username 当前用户名
-     * @return Job业务列表
-     */
     private List<AppVO> listSortedAppWithFavor(String username) {
-        User user = JobContextUtil.getUser();
-        List<ApplicationDTO> appList = applicationService.listAllAppsForTenant(user.getTenantId());
-        List<AppResourceScope> appResourceScopeList =
-            appList.stream()
-                .map(app -> new AppResourceScope(app.getId(), app.getScope()))
-                .collect(Collectors.toList());
-
-        // IAM鉴权
-        AppResourceScopeResult appResourceScopeResult =
-            appAuthService.getAppResourceScopeList(user, appResourceScopeList);
-
-        // 可用的普通业务
-        List<Long> authorizedAppIdList = extractAuthorizedAppIdList(appResourceScopeResult);
-
-        List<AppVO> finalAppList = new ArrayList<>();
-        if (appResourceScopeResult.getAny()) {
-            for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(
-                    app.getId(),
-                    app.getScope().getType().getValue(),
-                    app.getScope().getId(),
-                    app.isBuiltInResource(),
-                    app.isAllBizSet(),
-                    app.getName(),
-                    true,
-                    app.getTimeZone(),
-                    null,
-                    null
-                );
-                finalAppList.add(appVO);
-            }
-        } else {
-            // 根据权限中心结果鉴权
-            for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(
-                    app.getId(),
-                    app.getScope().getType().getValue(),
-                    app.getScope().getId(),
-                    app.isBuiltInResource(),
-                    app.isAllBizSet(),
-                    app.getName(),
-                    true,
-                    app.getTimeZone(),
-                    null,
-                    null
-                );
-                appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
-                finalAppList.add(appVO);
-            }
-        }
-        // 设置收藏状态
-        setFavorState(username, finalAppList);
-        // 排序
-        sortApps(finalAppList);
-        return finalAppList;
+        return userAppScopeQueryService.listSortedAppWithFavor(username).stream()
+            .map(this::toAppVO)
+            .collect(Collectors.toList());
     }
 
-    /**
-     * 对Job业务进行排序
-     *
-     * @param appList Job业务列表
-     */
-    private void sortApps(List<AppVO> appList) {
-        // 排序：有无权限、是否收藏、收藏时间倒序
-        appList.sort((o1, o2) -> {
-            int result = o2.getHasPermission().compareTo(o1.getHasPermission());
-            if (result != 0) {
-                return result;
-            } else {
-                result = CompareUtil.safeCompareNullFront(o2.getFavor(), o1.getFavor());
-            }
-            if (result != 0) {
-                return result;
-            } else {
-                return CompareUtil.safeCompareNullFront(o2.getFavorTime(), o1.getFavorTime());
-            }
-        });
+    private AppVO toAppVO(UserAppScopeDTO scope) {
+        return new AppVO(
+            scope.getAppId(),
+            scope.getScopeType(),
+            scope.getScopeId(),
+            scope.isBuiltIn(),
+            scope.isAllBizSet(),
+            scope.getName(),
+            scope.getHasPermission(),
+            scope.getTimeZone(),
+            scope.getFavor(),
+            scope.getFavorTime()
+        );
     }
 
     @Override
