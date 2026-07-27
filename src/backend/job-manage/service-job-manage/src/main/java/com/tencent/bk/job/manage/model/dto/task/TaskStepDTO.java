@@ -156,6 +156,7 @@ public class TaskStepDTO {
         esbStep.setId(taskStep.getId());
         esbStep.setName(taskStep.getName());
         esbStep.setType(taskStep.getType().getValue());
+        esbStep.setEnabled(taskStep.getEnable());
         switch (taskStep.getType()) {
             case SCRIPT:
                 esbStep.setScriptInfo(TaskScriptStepDTO.toEsbScriptInfoV3(taskStep.getScriptStepInfo()));
