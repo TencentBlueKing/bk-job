@@ -92,6 +92,7 @@ Check Job Plan details by Job Plan ID
                 "id": 1059,
                 "type": 1,
                 "name": "run local script",
+                "enabled": 1,
                 "script_info": {
                     "script_type": 1,
                     "script_timeout": 1000,
@@ -105,6 +106,7 @@ Check Job Plan details by Job Plan ID
                 "id": 1060,
                 "type": 1,
                 "name": "run cite script",
+                "enabled": 1,
                 "script_info": {
                     "script_type": 2,
                     "script_id": "aaaaa-bbb-ccc-ddddd",
@@ -119,6 +121,7 @@ Check Job Plan details by Job Plan ID
                 "id": 1061,
                 "type": 2,
                 "name": "xxx",
+                "enabled": 1,
                 "file_info": {
                     "file_source": [
                         {
@@ -224,6 +227,7 @@ Check Job Plan details by Job Plan ID
 | id                 |  long      | Job step ID|
 | name               |  string    | Job step name|
 | type               |  int       | Step Type: 1. Script step; Manual confirmation step|
+| enabled            |  int       | Whether the step is enabled. Optional values: 0 - disabled, 1 - enabled|
 | script_info        |  object    | Script information. This field is only available when type=1. |
 | file_info          |  object    | File transfer step information. This field is only available when type=2|
 

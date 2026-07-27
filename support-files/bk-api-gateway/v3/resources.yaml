@@ -1525,6 +1525,9 @@ paths:
                               name:
                                 type: string
                                 description: 作业步骤名称
+                              enabled:
+                                type: integer
+                                description: '步骤是否启用。可选值: 0 - 未启用，1 - 启用'
                             description: 单个步骤信息
                         description: 步骤列表
                       bk_scope_id:

@@ -92,6 +92,7 @@
                 "id": 1059,
                 "type": 1,
                 "name": "run local script",
+                "enabled": 1,
                 "script_info": {
                     "script_type": 1,
                     "script_timeout": 1000,
@@ -105,6 +106,7 @@
                 "id": 1060,
                 "type": 1,
                 "name": "run cite script",
+                "enabled": 1,
                 "script_info": {
                     "script_type": 2,
                     "script_id": "aaaaa-bbb-ccc-ddddd",
@@ -119,6 +121,7 @@
                 "id": 1061,
                 "type": 2,
                 "name": "xxx",
+                "enabled": 1,
                 "file_info": {
                     "file_source": [
                         {
@@ -223,6 +226,7 @@
 | id                 | long      | 作业步骤ID |
 | name               | string    | 作业步骤名称 |
 | type               | int       | 步骤类型：1.脚本步骤; 2.文件步骤; 3.人工确认步骤 |
+| enabled            | int       | 步骤是否启用。可选值: 0 - 未启用，1 - 启用 |
 | script_info        | object    | 脚本信息。当 type=1 时才有这个字段。 |
 | file_info          | object    | 文件传输步骤信息。当 type=2 时才有这个字段 |
 
