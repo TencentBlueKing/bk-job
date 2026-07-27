@@ -35,7 +35,11 @@ data:
 
       file-gateway:
         api:
+          {{- if eq .Values.deploy.mode "lite" }}
+          root-url: http://job-assemble
+          {{- else }}
           root-url: http://job-file-gateway
+          {{- end }}
     server:
       port: {{ .Values.fileWorkerConfig.containerPort }}
   {{- end }}

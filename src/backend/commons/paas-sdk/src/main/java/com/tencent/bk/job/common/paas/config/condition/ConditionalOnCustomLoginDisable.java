@@ -34,7 +34,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @see com.tencent.bk.job.common.esb.constants.BkApiTypeEnum
+ * 未开启自定义登录（即使用蓝鲸标准登录，bk_token）时生效，与 {@link ConditionalOnCustomLoginEnable} 互补。
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

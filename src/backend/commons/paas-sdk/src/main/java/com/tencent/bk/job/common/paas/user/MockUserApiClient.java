@@ -60,6 +60,11 @@ public class MockUserApiClient implements IUserApiClient {
 
     @Override
     public List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames) {
+        return listUsersByUsernamesIncludingVirtual(tenantId, usernames);
+    }
+
+    @Override
+    public List<SimpleUserInfo> listUsersByUsernamesIncludingVirtual(String tenantId, Collection<String> usernames) {
         if (CollectionUtils.isEmpty(usernames)) {
             return Collections.emptyList();
         }

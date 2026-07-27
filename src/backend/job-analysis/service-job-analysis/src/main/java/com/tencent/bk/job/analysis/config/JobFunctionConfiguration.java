@@ -47,7 +47,7 @@ public class JobFunctionConfiguration {
         @Autowired AIChatOperationEventListener aiChatOperationEventListener
     ) {
         log.info("Init handleAIChatOperationEvent consumer");
-        return aiChatOperationEventListener::handleEvent;
+        return aiChatOperationEventListener::onEvent;
     }
 
 }

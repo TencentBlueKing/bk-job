@@ -24,12 +24,16 @@
 
 package com.tencent.bk.job.assemble.config;
 
+import com.tencent.bk.job.assemble.metrics.JobAssembleMqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
 import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
 import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.manage.remote.RemoteAppServiceImpl;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -44,5 +48,11 @@ public class JobAssembleConfiguration {
     RemoteAppService remoteAppService(ServiceApplicationResource applicationResource,
                                       ServiceSyncResource syncResource) {
         return new RemoteAppServiceImpl(applicationResource, syncResource);
+    }
+
+    @Bean
+    public MqConsumeDelayRecorder mqConsumeDelayRecorder(MeterRegistry meterRegistry,
+                                                         MqMetricsProperties mqMetricsProperties) {
+        return new JobAssembleMqConsumeDelayRecorder(meterRegistry, mqMetricsProperties);
     }
 }

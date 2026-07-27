@@ -45,6 +45,6 @@ public class BackGroundTaskConfig {
 
     @Bean
     public Consumer<Message<TaskEntity>> handleBackGroundTask(@Autowired BackGroundTaskListener listener) {
-        return listener::handleTask;
+        return listener::onEvent;
     }
 }

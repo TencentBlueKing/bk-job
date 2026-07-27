@@ -74,11 +74,14 @@
     created() {
       this.timer = Date.now();
     },
-    updated() {
-      this.calcLableWidth();
-    },
     mounted() {
       this.resetDefaultFeature();
+      // 监听 form-item 的变化
+      this.$on('form-item-change', () => {
+        this.$nextTick(() => {
+          this.calcLableWidth();
+        });
+      });
       setTimeout(() => {
         const isShowForm = this.$refs.jobForm && this.$refs.jobForm.getBoundingClientRect().width > 0;
         if (isShowForm) {
@@ -86,6 +89,9 @@
           this.autoFocus();
         }
       });
+    },
+    beforeDestroy() {
+      this.$off('form-item-change');
     },
     methods: {
       /**

@@ -71,6 +71,10 @@ public class MqMetricsProperties {
          * analysis消费者指标配置
          */
         private ConsumerMetric jobAnalysis;
+        /**
+         * assemble消费者指标配置（轻量化部署模式下生效）
+         */
+        private ConsumerMetric jobAssemble;
     }
 
     /**

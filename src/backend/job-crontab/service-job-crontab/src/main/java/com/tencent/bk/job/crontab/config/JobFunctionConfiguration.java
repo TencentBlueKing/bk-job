@@ -47,7 +47,7 @@ public class JobFunctionConfiguration {
         @Autowired CrontabEventListener crontabEventListener
     ) {
         log.info("Init handleCrontabFanoutEvent consumer");
-        return crontabEventListener::handleEvent;
+        return crontabEventListener::onEvent;
     }
 
 }

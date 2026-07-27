@@ -200,5 +200,11 @@
   "分批策略：": "Batch strategy：",
   "单批次最大并发源主机/容器数": "Max concurrent source hosts/containers per batch",
   "源单主机/容器最大并发文件数": "Max concurrent files per source host/container",
-  "「不限制」": "「No limit」"
+  "「不限制」": "「No limit」",
+  "串行执行": "Serial Execution",
+  "并行执行": "Parallel Execution",
+  "批次间固定延迟（ms）：": "Fixed Delay Between Batches (ms)：",
+  "批次间随机延迟下限（ms）：": "Min Random Delay Between Batches (ms)：",
+  "批次间随机延迟上限（ms）：": "Max Random Delay Between Batches (ms)：",
+  "滚动批次间执行模式：": "Rolling Batch Execution Mode："
 }

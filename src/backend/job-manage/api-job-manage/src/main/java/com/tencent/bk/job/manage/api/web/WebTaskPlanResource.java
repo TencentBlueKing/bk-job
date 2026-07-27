@@ -36,6 +36,7 @@ import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -205,6 +206,7 @@ public interface WebTaskPlanResource {
             Long planId,
         @Parameter(description = "更新的执行方案对象", name = "planCreateUpdateReq")
         @RequestBody
+        @Validated
             TaskPlanCreateUpdateReq taskPlanCreateUpdateReq
     );
 
@@ -228,6 +230,7 @@ public interface WebTaskPlanResource {
             Long templateId,
         @Parameter(description = "更新的执行方案对象", name = "planCreateUpdateReq")
         @RequestBody
+        @Validated
             TaskPlanCreateUpdateReq taskPlanCreateUpdateReq
     );
 

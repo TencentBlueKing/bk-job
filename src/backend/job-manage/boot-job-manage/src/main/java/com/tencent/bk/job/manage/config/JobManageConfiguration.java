@@ -24,8 +24,12 @@
 
 package com.tencent.bk.job.manage.config;
 
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
 import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
+import com.tencent.bk.job.manage.metrics.JobManageMqConsumeDelayRecorder;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,5 +39,11 @@ public class JobManageConfiguration {
     @Bean
     public BasicAppInterceptor basicAppInterceptor(CommonAppService appService) {
         return new BasicAppInterceptor(appService);
+    }
+
+    @Bean
+    public MqConsumeDelayRecorder mqConsumeDelayRecorder(MeterRegistry meterRegistry,
+                                                         MqMetricsProperties mqMetricsProperties) {
+        return new JobManageMqConsumeDelayRecorder(meterRegistry, mqMetricsProperties);
     }
 }

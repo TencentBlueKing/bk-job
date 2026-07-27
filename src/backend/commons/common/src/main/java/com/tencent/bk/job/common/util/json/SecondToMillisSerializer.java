@@ -40,22 +40,20 @@ import java.util.List;
 @Slf4j
 public class SecondToMillisSerializer extends JsonSerializer<Object> {
 
-    private static final long MAX_SECOND_TIMESTAMP = 9_999_999_999L;
-
     @Override
     public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         if (value == null) {
             return;
         }
         if (value instanceof Long) {
-            gen.writeNumber(convertSecondToMillis((Long) value));
+            gen.writeNumber(SecondToMillisUtil.toMillis((Long) value));
         } else if (value instanceof List) {
             gen.writeStartArray();
             if (CollectionUtils.isNotEmpty((List<?>) value)) {
                 if (((List<?>) value).get(0) instanceof Long) {
                     ((List<Long>) value).forEach(time -> {
                         try {
-                            gen.writeNumber(convertSecondToMillis(time));
+                            gen.writeNumber(SecondToMillisUtil.toMillis(time));
                         } catch (IOException e) {
                             log.error("Fail to serialize timestamp", e);
                         }
@@ -70,24 +68,6 @@ public class SecondToMillisSerializer extends JsonSerializer<Object> {
                     + "ignore to serialize",
                 fieldName, value, value.getClass()
             );
-        }
-    }
-
-    /**
-     * 将时间戳转换为毫秒级时间戳
-     * @param timestamp 时间戳（秒级或毫秒级）
-     * @return 毫秒级时间戳
-     */
-    private Long convertSecondToMillis(Long timestamp) {
-        if (timestamp == null) {
-            return null;
-        }
-        if (timestamp > MAX_SECOND_TIMESTAMP) {
-            // 已经是毫秒级时间戳
-            return timestamp;
-        } else {
-            // 秒级时间戳，转换为毫秒级
-            return timestamp * 1000;
         }
     }
 }

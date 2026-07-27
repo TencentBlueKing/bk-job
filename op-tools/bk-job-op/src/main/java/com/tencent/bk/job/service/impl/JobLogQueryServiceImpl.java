@@ -27,6 +27,7 @@ package com.tencent.bk.job.service.impl;
 import com.tencent.bk.job.config.BkLogProperties;
 import com.tencent.bk.job.service.JobLogQueryService;
 import com.tencent.bk.job.service.api.bklog.BkLogApi;
+import com.tencent.bk.job.service.api.bklog.BkLogApiRouter;
 import com.tencent.bk.job.service.api.bklog.LogQueryReq;
 import com.tencent.bk.job.service.api.bklog.LogQueryResp;
 import com.tencent.bk.job.service.model.PageData;
@@ -45,12 +46,12 @@ import java.util.List;
 @Service
 public class JobLogQueryServiceImpl implements JobLogQueryService {
 
-    private final BkLogApi bkLogApi;
+    private final BkLogApiRouter bkLogApiRouter;
     private final BkLogProperties bkLogProperties;
 
     @Autowired
-    public JobLogQueryServiceImpl(BkLogApi bkLogApi, BkLogProperties bkLogProperties) {
-        this.bkLogApi = bkLogApi;
+    public JobLogQueryServiceImpl(BkLogApiRouter bkLogApiRouter, BkLogProperties bkLogProperties) {
+        this.bkLogApiRouter = bkLogApiRouter;
         this.bkLogProperties = bkLogProperties;
     }
 
@@ -70,6 +71,8 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
 
             fillReqWithSortField(logQueryReq, logSource.getSortField(), asc);
 
+            // 按 source 所属的 endpoint 路由到对应的 bklog 接入点
+            BkLogApi bkLogApi = bkLogApiRouter.get(logSource.getEndpoint());
             LogQueryResp logQueryResp = bkLogApi.logSearch(logQueryReq);
 
             Integer total = 0;

@@ -71,7 +71,7 @@ public interface TenantHostService {
      *
      * @param tenantId 租户ID
      * @param cloudIps 主机云区域+ip列表
-     * @return 主机 Map<hostId, host>
+     * @return 主机 Map<cloudIp, host>
      */
     Map<String, ApplicationHostDTO> listHostsByIps(String tenantId, Collection<String> cloudIps);
 

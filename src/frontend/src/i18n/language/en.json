@@ -591,5 +591,19 @@
   "在脚本开头显式加载所需配置，例如：": "Explicitly load required configs at the beginning of the script, for example:",
   "# 如需特定的 ulimit 设置，也请在脚本中显式声明": "# If specific ulimit settings are needed, please explicitly declare them in the script",
   "# 您的业务脚本内容...": "# Your business script content...",
-  "权限中心": "BK IAM"
+  "权限中心": "BK IAM",
+  "滚动对象": "Rolling Object",
+  "传输目标": "Transfer Target",
+  "串行执行": "Serial Execution",
+  "并行执行": "Parallel Execution",
+  "批次间固定延迟（ms）": "Fixed Delay Between Batches (ms)",
+  "批次间随机延迟下限（ms）": "Min Random Delay Between Batches (ms)",
+  "批次间随机延迟上限（ms）": "Max Random Delay Between Batches (ms)",
+  "滚动批次间执行模式": "Rolling Batch Execution Mode",
+  "分批策略": "Batch Strategy",
+  "单传输目标上的并发任务数 = 单批次最大并发源主机/容器数 * 源单主机/容器最大并发文件数": "Concurrent tasks per target = max concurrent source hosts/containers per batch * max concurrent files per source host/container",
+  "单批次最大并发源主机/容器数": "Max Concurrent Source Hosts/Containers Per Batch",
+  "源单主机/容器最大并发文件数": "Max Concurrent Files Per Source Host/Container",
+  "单批次最大并发源主机/容器数必填": "Max concurrent source host/container count per batch is required",
+  "源单主机/容器最大并发文件数必填": "Max concurrent files per source host/container is required"
 }

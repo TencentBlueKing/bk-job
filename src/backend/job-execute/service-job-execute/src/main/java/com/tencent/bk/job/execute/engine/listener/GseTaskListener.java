@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.exception.MessageHandleException;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
@@ -59,8 +60,9 @@ public class GseTaskListener extends BaseJobMqListener {
                            GseTaskService gseTaskService,
                            GseTasksExceptionCounter gseTasksExceptionCounter,
                            TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                           MqConsumeDelayRecorder mqConsumeDelayRecorder) {
-        super(mqConsumeDelayRecorder);
+                           MqConsumeDelayRecorder mqConsumeDelayRecorder,
+                           MqConsumeDelaySimulator mqConsumeDelaySimulator) {
+        super(mqConsumeDelayRecorder, mqConsumeDelaySimulator);
         this.gseTaskManager = gseTaskManager;
         this.gseTaskService = gseTaskService;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;

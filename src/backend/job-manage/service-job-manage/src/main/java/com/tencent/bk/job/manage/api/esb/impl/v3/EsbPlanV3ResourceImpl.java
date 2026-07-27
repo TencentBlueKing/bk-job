@@ -185,7 +185,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
                 .filter(taskStep -> taskStep.getEnable() != 0)
                 .collect(Collectors.toList());
 
-        // 解析启用的步骤引用全局变量的信息
+        // 填充启用步骤的 refVariables，供 V3 执行方案详情响应中的 ref_variables 使用
         StepRefVariableParser.parseStepRefVars(enabledTaskStepList, taskPlanInfo.getVariableList());
         return EsbResp.buildSuccessResp(TaskPlanInfoDTO.toEsbPlanInfoV3(taskPlanInfo));
     }

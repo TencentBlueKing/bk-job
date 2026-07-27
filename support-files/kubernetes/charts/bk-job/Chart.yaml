@@ -10,24 +10,24 @@ appVersion: "{{APP_VERSION}}"
 dependencies:
 - name: common
   version: 1.16.0
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
 - name: nginx-ingress-controller
   version: 9.2.6
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
   condition: nginx-ingress-controller.enabled
 - name: mariadb
   version: 11.0.10
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
   condition: mariadb.enabled
 - name: redis
   version: 16.11.3
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
   condition: redis.enabled
 - name: mongodb
   version: 12.1.16
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
   condition: mongodb.enabled
 - name: rabbitmq
   version: 10.1.5
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
   condition: rabbitmq.enabled

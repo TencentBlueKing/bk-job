@@ -514,7 +514,7 @@ generate_version_logs() {
 
     local worker_dir=$(pwd)
     cd "$VERSION_LOGS_DIR"
-    if ! python genBundledVersionLog.py; then
+    if ! python3 genBundledVersionLog.py; then
         log "genBundledVersionLog.py failed"
         cd "$worker_dir"
         return 1

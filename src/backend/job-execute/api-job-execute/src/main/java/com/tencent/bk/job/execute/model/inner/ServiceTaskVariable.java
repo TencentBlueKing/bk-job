@@ -33,10 +33,10 @@ public class ServiceTaskVariable {
     @Schema(description = "全局变量ID", required = true)
     private Long id;
 
-    @Schema(description = "变量类型，1-字符 2-命名空间 3-主机变量 4-密码")
+    @Schema(description = "变量类型，1-字符 2-命名空间 3-主机变量 4-密码 5-关联数组 6-索引数组 7-执行账号")
     private Integer type;
 
-    @Schema(description = "字符变量值", required = false)
+    @Schema(description = "字符变量值，执行账号变量使用账号 ID 字符串", required = false)
     private String stringValue;
 
     @Schema(description = "命名空间变量值", required = false)

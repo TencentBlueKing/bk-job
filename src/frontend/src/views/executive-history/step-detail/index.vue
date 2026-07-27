@@ -33,6 +33,7 @@
       <rolling-batch
         v-if="data.isRollingTask"
         :data="data"
+        :is-roll-parallel="isRollParallel"
         :value="params.batch"
         @change="handleBatchChange"
         @on-confirm="operationCode => handleStatusUpdate(operationCode)" />
@@ -250,6 +251,8 @@
         isFile: false,
         // 主机分页加载
         paginationChangeLoading: false,
+        // 滚动机制 - 并行模式
+        isRollParallel: false,
       };
     },
     computed: {
@@ -347,7 +350,7 @@
           //  已选中的分组不存在了——默认选中第一个分组
           const { resultGroups } = data;
           if (!_.find(resultGroups, group => group.resultType === this.currentGroup.resultType
-            && group.tag === this.currentGroup.tag)) {
+            && group.tag === this.currentGroup.tag) && resultGroups.length > 0) {
             /* eslint-disable prefer-destructuring */
             this.currentGroup = resultGroups[0];
           }
@@ -416,6 +419,7 @@
           executeCount: payload.executeCount,
           stepInstanceId: payload.stepInstanceId,
         });
+        this.fetchStepDeatil();
         this.fetchStep();
       },
       /**
@@ -707,6 +711,17 @@
           name: 'historyList',
         });
       },
+      //  步骤详情
+      fetchStepDeatil(){
+        TaskExecuteService.fetchStepInstance({
+          taskInstanceId: this.taskInstanceId,
+          id: this.params.id,
+        }).then((data) => {
+          if(data.type === 2 && data.rollingEnabled && data.rollingConfig.executionMode === 2) { 
+            this.isRollParallel = true;
+          }
+        });
+      }
     },
   };
 </script>

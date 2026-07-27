@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.analysis.listener;
 
+import com.tencent.bk.job.common.mq.consume.AbstractMqConsumeListener;
 import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelaySimulator;
 import com.tencent.bk.job.analysis.consts.AIChatOperationEnum;
 import com.tencent.bk.job.analysis.listener.event.AIChatOperationEvent;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
@@ -39,17 +41,22 @@ import org.springframework.stereotype.Component;
  */
 @Component("aiChatOperationEvent")
 @Slf4j
-public class AIChatOperationEventListener {
+public class AIChatOperationEventListener extends AbstractMqConsumeListener<AIChatOperationEvent> {
 
     private final ChatService chatService;
-    private final MqConsumeDelayRecorder mqConsumeDelayRecorder;
 
     @Autowired
     public AIChatOperationEventListener(ChatService chatService,
-                                        MqConsumeDelayRecorder mqConsumeDelayRecorder
+                                        MqConsumeDelayRecorder mqConsumeDelayRecorder,
+                                        MqConsumeDelaySimulator mqConsumeDelaySimulator
     ) {
+        super(mqConsumeDelaySimulator, mqConsumeDelayRecorder);
         this.chatService = chatService;
-        this.mqConsumeDelayRecorder = mqConsumeDelayRecorder;
+    }
+
+    @Override
+    protected String getBindingName() {
+        return MqBindingNames.HANDLE_AI_CHAT_OPERATION_EVENT;
     }
 
     /**
@@ -57,12 +64,8 @@ public class AIChatOperationEventListener {
      *
      * @param message AI对话操作事件消息
      */
-    public void handleEvent(Message<AIChatOperationEvent> message) {
-        mqConsumeDelayRecorder.recordConsumeDelay(
-            MqBindingNames.HANDLE_AI_CHAT_OPERATION_EVENT,
-            AIChatOperationEvent.class.getSimpleName(),
-            message
-        );
+    @Override
+    protected void handleEvent(Message<? extends AIChatOperationEvent> message) {
         AIChatOperationEvent event = message.getPayload();
         log.info("Handle aiChatOperation event, event: {}, duration: {}ms", event, event.duration());
         String username = event.getUsername();

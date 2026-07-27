@@ -25,6 +25,7 @@
 
 import { ordinalSuffixOf } from '@utils/assist';
 
+const BATCH_STATUS_WAITING = 1;
 const BATCH_STATUS_RUNNING = 2;
 const BATCH_STATUS_SUCCESS = 3;
 const BATCH_STATUS_FAIL = 4;
@@ -37,21 +38,22 @@ export default {
     selectBatch: Number,
     data: Object,
     currentRunningBatch: Number,
+    isRollParallel: Boolean
   },
   render(h, context) {
     const {
       data,
       selectBatch,
       currentRunningBatch,
+      isRollParallel,
     } = context.props;
 
     const active = data.batch === selectBatch;
-    const will = data.batch > currentRunningBatch;
 
     const clasess = {
       'batch-item': true,
       active,
-      will,
+      will: data.status === BATCH_STATUS_WAITING,
       confirm: data.status === BATCH_STATUS_MANUAL_CONFIRM,
       fail: data.status === BATCH_STATUS_FAIL,
     };
@@ -68,7 +70,7 @@ export default {
       ].includes(data.status)) {
         return null;
       }
-      if (data.batch === selectBatch) {
+      if (data.batch === selectBatch || isRollParallel) {
         return (
           <div class="batch-item-status">
             <Icon type="check-line" style="color: #2dc89d" />
@@ -83,7 +85,7 @@ export default {
         return null;
       }
       if (data.batch === selectBatch
-                || data.batch === currentRunningBatch) {
+                || data.batch === currentRunningBatch || isRollParallel) {
         return (
           <div class="batch-item-status">
             <Icon type="stop-2" style="color: #FF9C01" />
@@ -100,7 +102,7 @@ export default {
         return null;
       }
       if (data.batch === selectBatch
-                || data.batch === currentRunningBatch) {
+                || data.batch === currentRunningBatch || isRollParallel) {
         return (
           <div class="batch-item-status">
             <Icon type="wrong" style="color: #FF5656" />
@@ -111,7 +113,7 @@ export default {
     };
 
     const renderExecutingIcon = () => {
-      if (data.batch === currentRunningBatch
+      if ((data.batch === currentRunningBatch || isRollParallel)
                 && data.status === BATCH_STATUS_RUNNING) {
         return (
           <div class="batch-item-status rotate-loading">

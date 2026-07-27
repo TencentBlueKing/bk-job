@@ -98,12 +98,20 @@
               name="targetServerOfExecution"
               @on-change="handleChange" />
             <item-factory
+              batch-start-wait-fixed-ms-field="rollingBatchStartWaitFixedMs"
+              batch-start-wait-random-max-ms-field="rollingBatchStartWaitRandomMaxMs"
+              batch-start-wait-random-min-ms-field="rollingBatchStartWaitRandomMinMs"
               enabled-field="rollingEnabled"
+              execution-mode-field="rollingExecutionMode"
               expr-field="rollingExpr"
               :form-data="formData"
+              max-execute-object-num-field="rollingMaxExecuteObjectNum"
+              max-file-num-field="rollingMaxFileNum"
+              mode="file"
               mode-field="rollingMode"
               name="rolling"
               server-field="server"
+              type-field="rollingType"
               @on-change="handleChange"
               @on-reset="handleReset" />
           </card-layout>
@@ -210,6 +218,13 @@
     // }
     rollingExpr: '',
     rollingMode: 1,
+    rollingType: 1, // 滚动对象类型：1-传输目标，2-源文件
+    rollingExecutionMode: 1, // 执行模式：1-串行，2-并行
+    rollingMaxExecuteObjectNum: null, // 单批次最大源执行对象数
+    rollingMaxFileNum: null, // 单个执行对象的最大并发文件数
+    rollingBatchStartWaitFixedMs: null, // 批次间固定延迟（毫秒）
+    rollingBatchStartWaitRandomMinMs: null, // 批次间随机延迟下限（毫秒）
+    rollingBatchStartWaitRandomMaxMs: null, // 批次间随机延迟上限（毫秒）
   });
 
   export default {
@@ -263,8 +278,14 @@
             name,
             rollingEnabled,
             rollingConfig: {
+              type: rollingType,
               expr: rollingExpr,
               mode: rollingMode,
+              executionMode: rollingExecutionMode,
+              fileSource,
+              batchStartWaitFixedMs: rollingBatchStartWaitFixedMs,
+              batchStartWaitRandomMinMs: rollingBatchStartWaitRandomMinMs,
+              batchStartWaitRandomMaxMs: rollingBatchStartWaitRandomMaxMs,
             },
           } = data.stepInfo;
           const {
@@ -292,8 +313,15 @@
             fileSourceList,
             transferMode,
             rollingEnabled,
+            rollingType,
             rollingExpr,
             rollingMode,
+            rollingExecutionMode,
+            rollingMaxExecuteObjectNum: fileSource?.maxExecuteObjectNumInBatch,
+            rollingMaxFileNum: fileSource?.maxFileNumOfSingleExecuteObject,
+            rollingBatchStartWaitFixedMs,
+            rollingBatchStartWaitRandomMinMs,
+            rollingBatchStartWaitRandomMaxMs,
           };
         })
           .finally(() => {
@@ -500,9 +528,45 @@
               path,
               server,
               rollingEnabled,
+              rollingType,
               rollingExpr,
               rollingMode,
+              rollingExecutionMode,
+              rollingMaxExecuteObjectNum,
+              rollingMaxFileNum,
+              rollingBatchStartWaitFixedMs,
+              rollingBatchStartWaitRandomMinMs,
+              rollingBatchStartWaitRandomMaxMs,
             } = this.formData;
+
+            // 构建滚动配置
+            const rollingConfig = {
+              type: rollingType,
+              executionMode: rollingExecutionMode
+            };
+
+            // 根据滚动对象类型设置不同的配置
+            if (rollingType === 1) {
+              rollingConfig.expr = rollingExpr;
+            } else {
+              const fileSource = {};
+              if (rollingMaxExecuteObjectNum !== null && rollingMaxExecuteObjectNum !== undefined) {
+                fileSource.maxExecuteObjectNumInBatch = rollingMaxExecuteObjectNum;
+              }
+              if (rollingMaxFileNum !== null && rollingMaxFileNum !== undefined) {
+                fileSource.maxFileNumOfSingleExecuteObject = rollingMaxFileNum;
+              }
+              rollingConfig.fileSource = fileSource;
+            }
+
+            if(rollingExecutionMode === 1) {
+              rollingConfig.mode = rollingMode
+            } else {
+              // 并行模式时添加延迟配置
+              rollingConfig.batchStartWaitFixedMs = rollingBatchStartWaitFixedMs;
+              rollingConfig.batchStartWaitRandomMinMs = rollingBatchStartWaitRandomMinMs;
+              rollingConfig.batchStartWaitRandomMaxMs = rollingBatchStartWaitRandomMaxMs;
+            }
 
             return TaskExecuteService.pushFile({
               name,
@@ -517,10 +581,7 @@
                 server,
               },
               rollingEnabled,
-              rollingConfig: {
-                expr: rollingExpr,
-                mode: rollingMode,
-              },
+              rollingConfig,
             }).then((data) => {
               window.changeFlag = false;
               this.$router.push({

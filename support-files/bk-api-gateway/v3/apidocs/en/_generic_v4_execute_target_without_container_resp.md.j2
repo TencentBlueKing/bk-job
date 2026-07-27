@@ -1,0 +1,27 @@
+| Field                | Type   | Always Present | Description |
+|----------------------|--------|----------------|-------------|
+| variable             | string | No             | Name of another global variable referenced in the template |
+| host_list            | array  | No             | Static host list |
+| dynamic_group_list   | array  | No             | Dynamic group list |
+| topo_node_list       | array  | No             | CMDB topology node list |
+
+##### host_list[] element
+
+| Field       | Type   | Always Present | Description |
+|-------------|--------|----------------|-------------|
+| bk_host_id  | long   | No             | Host ID in CMDB |
+| bk_cloud_id | long   | No             | Cloud area ID |
+| ip          | string | No             | Host IP address |
+
+##### dynamic_group_list[] element
+
+| Field | Type   | Always Present | Description |
+|-------|--------|----------------|-------------|
+| id    | string | Yes            | Dynamic group ID |
+
+##### topo_node_list[] element
+
+| Field      | Type   | Always Present | Description |
+|------------|--------|----------------|-------------|
+| id         | long   | Yes            | Topology node ID |
+| node_type  | string | Yes            | Topology node type. Allowed values: `module`, `set` |

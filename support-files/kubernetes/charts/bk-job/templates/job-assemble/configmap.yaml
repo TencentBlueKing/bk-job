@@ -34,13 +34,14 @@ data:
                     host: {{ include "job.rabbitmq.host" . }}
                     port: {{ include "job.rabbitmq.port" . }}
                     username: {{ include "job.rabbitmq.username" . }}
-                    {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+                    {{- if .Values.externalRabbitMQ.existingPasswordSecret }}
                     password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
-                    {{- else -}}
+                    {{- else }}
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
-          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback;crontabFanout
+          outputBindings: sendBackGroundTask
+          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback;crontabFanout;sendBackGroundTask;aiChatOperationFanout
           bindings:
             handleJobEvent-in-0:
               destination: task
@@ -124,6 +125,26 @@ data:
               binder: jobCommon
               consumer:
                 concurrency: 5
+            handleBackGroundTask-in-0:
+              destination: backGroundTask
+              group: service.job.manage
+              binder: jobCommon
+              consumer:
+                concurrency: 1
+            sendBackGroundTask-out-0:
+              destination: backGroundTask
+              group: service.job.manage
+              binder: jobCommon
+              consumer:
+                concurrency: 1
+            handleAIChatOperationEvent-in-0:
+              destination: analysis.aiChatOperation.fanout
+              binder: jobCommon
+              consumer:
+                concurrency: 3
+            aiChatOperationFanout-out-0:
+              destination: analysis.aiChatOperation.fanout
+              binder: jobCommon
           rabbit:
             bindings:
               handleJobEvent-in-0:
@@ -172,17 +193,27 @@ data:
                 consumer:
                   maxConcurrency: 5
                   exchangeType: fanout
+              handleBackGroundTask-in-0:
+                consumer:
+                  maxConcurrency: 1
+              handleAIChatOperationEvent-in-0:
+                consumer:
+                  maxConcurrency: 3
+                  exchangeType: fanout
+              aiChatOperationFanout-out-0:
+                producer:
+                  exchangeType: fanout
         function:
-          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer;handleCrontabFanoutEvent
+          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer;handleCrontabFanoutEvent;handleBackGroundTask;handleAIChatOperationEvent
       datasource:
         job-manage:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
           jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_manage{{ include "job.mariadb.connection.properties" . }}
           username: {{ include "job.mariadb.username" . }}
-          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          {{- if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-          {{- else -}}
+          {{- else }}
           password: ${mariadb-password}
           {{- end }}
           maximum-pool-size: 100
@@ -190,21 +221,39 @@ data:
           idle-timeout: 600000
           poolName: "job-manage"
           validationTimeout: 5000
+        {{- if .Values.executeConfig.mysql.standalone.enabled }}
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
           jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ include "job.mariadb.connection.properties" . }}
           username: {{ include "job.mariadb.username" . }}
-          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          {{- if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-          {{- else -}}
+          {{- else }}
           password: ${mariadb-password}
           {{- end }}
           maximum-pool-size: 100
           minimum-idle: 20
           idle-timeout: 600000
-          poolName: "job-execute"
+          poolName: "job-execute-standalone"
           validationTimeout: 5000
+        {{- end }}
+        {{- if .Values.executeConfig.mysql.verticalSharding.enabled }}
+        {{- if .Values.executeConfig.mysql.verticalSharding.datasource }}
+        {{- range $dsName, $ds := .Values.executeConfig.mysql.verticalSharding.datasource }}
+        {{ $dsName }}:
+            driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
+            jdbcUrl: {{ $ds.jdbcUrl | quote }}
+            username: {{ $ds.username | quote }}
+            password: {{ $ds.password | quote }}
+            maximumPoolSize: {{ $ds.maximumPoolSize | default 100 }}
+            minimumIdle: {{ $ds.minimumIdle | default 20 }}
+            idleTimeout: {{ $ds.idleTimeout | default 600000 }}
+            poolName: {{ $ds.poolName | default "job-execute" }}
+            validationTimeout: {{ $ds.validationTimeout | default 5000 }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
         job-crontab:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
@@ -219,9 +268,9 @@ data:
           type: com.zaxxer.hikari.HikariDataSource
           jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_file_gateway{{ include "job.mariadb.connection.properties" . }}
           username: {{ include "job.mariadb.username" . }}
-          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          {{- if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-          {{- else -}}
+          {{- else }}
           password: ${mariadb-password}
           {{- end }}
           maximum-pool-size: 100
@@ -234,9 +283,9 @@ data:
           type: com.zaxxer.hikari.HikariDataSource
           jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_analysis{{ include "job.mariadb.connection.properties" . }}
           username: {{ include "job.mariadb.username" . }}
-          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          {{- if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-          {{- else -}}
+          {{- else }}
           password: ${mariadb-password}
           {{- end }}
           maximum-pool-size: 100
@@ -249,9 +298,9 @@ data:
           type: com.zaxxer.hikari.HikariDataSource
           jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_backup{{ include "job.mariadb.connection.properties" . }}
           username: {{ include "job.mariadb.username" . }}
-          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          {{- if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-          {{- else -}}
+          {{- else }}
           password: ${mariadb-password}
           {{- end }}
           maximum-pool-size: 100
@@ -259,6 +308,27 @@ data:
           idle-timeout: 600000
           poolName: "job-backup"
           validationTimeout: 5000
+        {{- /*
+          backup archive execute 数据源说明（轻量化模式）：
+          - standalone 模式：backup archive 使用的 job-execute 数据源与 execute 服务自身的同名，
+            在轻量化模式下 execute 服务已渲染该数据源，backup 直接复用，无需重复渲染。
+          - vertical_sharding 模式：backup archive 使用独立的数据源名称（如 job-execute-archive-hot-vertical-a/b/c），
+            与 execute 服务自身的数据源名称不同，需要单独渲染。
+        */ -}}
+        {{- if and .Values.backupConfig.archive.execute.enabled (eq .Values.backupConfig.archive.execute.mariadb.dataSourceMode "vertical_sharding") }}
+        {{- range $dsName, $ds := .Values.backupConfig.archive.execute.mariadb.verticalSharding.datasource }}
+        {{ $dsName }}:
+            driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
+            jdbcUrl: {{ $ds.jdbcUrl | quote }}
+            username: {{ $ds.username | quote }}
+            password: {{ $ds.password | quote }}
+            maximumPoolSize: {{ $ds.maximumPoolSize | default 100 }}
+            minimumIdle: {{ $ds.minimumIdle | default 20 }}
+            idleTimeout: {{ $ds.idleTimeout | default 600000 }}
+            poolName: {{ $ds.poolName | default "job-execute" }}
+            validationTimeout: {{ $ds.validationTimeout | default 5000 }}
+        {{- end }}
+        {{- end }}
         {{- if and .Values.backupConfig.archive.execute.enabled (or (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") (eq .Values.backupConfig.archive.execute.mode "backupOnly")) }}
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -276,6 +346,23 @@ data:
         job-execute-mongodb:
           uri: {{ include "job.mongodb.connect.uri" . | quote }}
           database: "joblog"
+        {{- end }}
+        {{- if .Values.executeConfig.leaf.enabled }}
+        leaf:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
+          username: {{ include "job.mariadb.username" . }}
+          {{- if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else }}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 50
+          minimum-idle: 10
+          idle-timeout: 600000
+          poolName: "job-leaf"
+          validationTimeout: 5000
         {{- end }}
       data:
         redis:
@@ -359,6 +446,8 @@ data:
               enabled: {{ .Values.manageConfig.sync.resource.watch.enabled }}
           hostEvent:
             handlerNum: {{ .Values.manageConfig.sync.hostEvent.handlerNum }}
+        background-task:
+          {{- toYaml .Values.manageConfig.backGroundTask | nindent 10 }}
         notify:
           default:
             channels:
@@ -379,11 +468,19 @@ data:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
         check-callback-url:
           {{- toYaml .Values.executeConfig.checkCallbackUrl | nindent 10 }}
-        {{- if .Values.executeConfig.result.pollingStrategy }}
         result:
+          handle:
+            {{- toYaml .Values.executeConfig.result.handle | nindent 12 }}
+          {{- if .Values.executeConfig.result.pollingStrategy }}
           polling-strategy:
             {{- toYaml .Values.executeConfig.result.pollingStrategy | nindent 12 }}
-        {{- end }}
+          {{- end }}
+        openapi:
+          {{- toYaml .Values.executeConfig.openapi | nindent 10 }}
+        taskTimeout:
+          {{- toYaml .Values.executeConfig.taskTimeout | nindent 10}}
+        taskHistoryQuery:
+          {{- toYaml .Values.executeConfig.taskHistoryQuery | nindent 10}}
       crontab:
         notification-policy:
           failed:
@@ -413,11 +510,11 @@ data:
         enable: true
         url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
         username: {{ include "job.mariadb.username" . }}
-    {{ if .Values.externalMariaDB.existingPasswordSecret }}
+        {{- if .Values.externalMariaDB.existingPasswordSecret }}
         password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-    {{- else -}}
+        {{- else }}
         password: ${mariadb-password}
-    {{- end }}
+        {{- end }}
       snowflake:
         enable: false
       name: job-leaf
@@ -429,8 +526,14 @@ data:
         root: {{ .Values.bkFeedBackUrl }}
       sharedResUrl: {{ .Values.bkSharedResUrl }}
       sharedBaseJsPath: {{ .Values.bkSharedBaseJsPath }}
+    ai:
+      {{- toYaml .Values.analysisConfig.ai | nindent 6 }}
     deploy:
       mode: lite
+    externalGseAgent:
+      enabled: {{ .Values.externalGseAgent.enabled | default false }}
+      hosts:
+        {{ toYaml .Values.externalGseAgent.hosts | nindent 8 }}
     tls:
       # 连接Redis使用的TLS配置
       redis:

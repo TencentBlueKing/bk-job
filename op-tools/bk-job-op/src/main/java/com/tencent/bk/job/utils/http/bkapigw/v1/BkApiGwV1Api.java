@@ -40,12 +40,25 @@ public class BkApiGwV1Api extends BaseApi {
 
     private final Authorization authorization;
     private final String baseUrl;
+    /**
+     * 租户 ID，可空；非空时会作为请求头 {@link BkApiHeaders#TENANT_ID} 携带
+     */
+    private final String tenantId;
 
     public BkApiGwV1Api(RestTemplate restTemplate,
                         String bkAppCode,
                         String bkAppSecret,
                         String username,
                         String baseUrl) {
+        this(restTemplate, bkAppCode, bkAppSecret, username, baseUrl, null);
+    }
+
+    public BkApiGwV1Api(RestTemplate restTemplate,
+                        String bkAppCode,
+                        String bkAppSecret,
+                        String username,
+                        String baseUrl,
+                        String tenantId) {
         super(restTemplate);
         authorization = Authorization.build(
             bkAppCode,
@@ -53,6 +66,7 @@ public class BkApiGwV1Api extends BaseApi {
             username
         );
         this.baseUrl = baseUrl;
+        this.tenantId = tenantId;
     }
 
     /**
@@ -114,10 +128,10 @@ public class BkApiGwV1Api extends BaseApi {
         String url = buildUrl(uri);
         switch (method) {
             case GET:
-                respStr = doGetAndGetResponseStr(url, params, buildBkAuthHeader());
+                respStr = doGetAndGetResponseStr(url, params, buildBkHeader());
                 break;
             case POST:
-                respStr = doPostAndGetResponseStr(url, params, body, buildBkAuthHeader());
+                respStr = doPostAndGetResponseStr(url, params, body, buildBkHeader());
                 break;
             default:
                 // TODO: 更多HTTP方法
@@ -128,10 +142,27 @@ public class BkApiGwV1Api extends BaseApi {
         return respStr;
     }
 
-    protected HttpHeaders buildBkAuthHeader() {
+    protected HttpHeaders buildBkHeader() {
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set(Authorization.HEADER_KEY_AUTHORIZATION, JsonUtils.toJson(authorization));
+        buildAuthHeader(httpHeaders);
+        buildTenantHeader(httpHeaders);
         return httpHeaders;
+    }
+
+    /**
+     * 填充蓝鲸网关认证请求头 {@link BkApiHeaders#AUTHORIZATION}
+     */
+    protected void buildAuthHeader(HttpHeaders httpHeaders) {
+        httpHeaders.set(BkApiHeaders.AUTHORIZATION, JsonUtils.toJson(authorization));
+    }
+
+    /**
+     * 填充多租户请求头 {@link BkApiHeaders#TENANT_ID}；tenantId 为空时不设置
+     */
+    protected void buildTenantHeader(HttpHeaders httpHeaders) {
+        if (tenantId != null && !tenantId.isEmpty()) {
+            httpHeaders.set(BkApiHeaders.TENANT_ID, tenantId);
+        }
     }
 
     protected String buildUrl(String uri) {

@@ -83,10 +83,15 @@ public class TaskStepDTO {
     private Integer enable;
 
     /**
-     * 步骤引用的变量
+     * 本步骤引用的全局变量（运行时推导字段，非库表持久化列）。
+     * 须先调用 {@link com.tencent.bk.job.manage.manager.variable.StepRefVariableParser#parseStepRefVars}
+     * 填充；{@link #toVO} 会将其转为 {@code ref_variables} 变量名列表。OpenAPI V4 模板详情等不消费此字段。
      */
     private List<TaskVariableDTO> refVariables;
 
+    /**
+     * 转 Web VO；若需 {@code ref_variables}，须先经 {@link com.tencent.bk.job.manage.manager.variable.StepRefVariableParser} 填充 {@link #refVariables}。
+     */
     public static TaskStepVO toVO(TaskStepDTO taskStep) {
         if (taskStep == null) {
             return null;

@@ -11,6 +11,7 @@
 | `plan-search` | `GET /api/v3/get_job_plan_list` | `name` 模糊匹配 |
 | `plan-detail` | `GET /api/v3/get_job_plan_detail` | 步骤列表、`global_var_list` |
 | `plan-execute` | `POST /api/v3/execute_job_plan` | 启动执行，可选 `global_var_list` |
+| `plan-create` | `POST /api/v4/create_job_plan` | 基于模板创建方案，须配合 `template-search` / `template-detail`，见 [job-plans-create-and-cron.md](job-plans-create-and-cron.md) |
 
 ## 2. 推荐顺序
 
@@ -18,6 +19,7 @@
 2. 启动前用 `plan-detail` 核对必填变量、主机变量、密文变量等。  
 3. 组装 `global_var_list`（字段定义见 [`../apidocs/execute_job_plan.md`](../apidocs/execute_job_plan.md) 与 [`../apidocs/get_job_plan_detail.md`](../apidocs/get_job_plan_detail.md)）。  
 4. 使用 **`plan-execute --dry-run`** 打印将提交的 JSON；**真实启动**须严格遵守 [confirmation-and-output-protocol.md](confirmation-and-output-protocol.md) **第 1 节**（含 G1–G4 门禁与 G2 两轮确认）。
+5. 启动成功后，脚本 JSON 会补充 **`job_instance_url`**（来自 `config.yaml` 的 `job_base_url`），格式为 `{job_base_url}/api_execute/{job_instance_id}`；智能体须将该链接交付给用户以便跳转查看任务。
 
 ## 3. 写操作确认协议（必须）
 
@@ -26,7 +28,13 @@
 ## 4. 关键词与歧义
 
 - 仅传 `--keyword` 时：唯一匹配则使用该方案；**多条匹配**时脚本只输出列表并退出，需 `--job-plan-id` 或 `--pick-first`（后者需用户知情）。  
-- `--global-vars` 为 **JSON 数组**字符串，例如：`'[{"name":"x","value":"y"}]'`。主机类变量需 `server` 结构，与 OpenAPI 一致。
+- `--global-vars` 为 **JSON 数组**字符串，例如：`'[{"name":"x","value":"y"}]'`。主机类变量（type=3）需 `server.ip_list` 结构（**非** `execute_target.host_list`），与 OpenAPI 一致。
+- **推荐**：使用 `--global-vars-file <文件路径>` 从文件读取 JSON（避免命令行转义问题，PowerShell 尤其需要）。
+
+> **⚠️ 主机参数注意**：
+> - 修改主机时，必须同时提供 `bk_cloud_id`（云区域ID）和 `ip`
+> - 例如：`{"name":"host_var","server":{"ip_list":[{"bk_cloud_id":0,"ip":"127.0.0.1"}]}}`
+> - 只提供 `ip` 会导致"目标执行对象为空"错误
 
 ## 5. 详细说明与注意事项
 
@@ -42,10 +50,36 @@ python scripts/job_apigw_client.py plan-search \
 python scripts/job_apigw_client.py plan-detail \
   --bk-scope-id <业务ID> --job-plan-id 1000193
 
+# 启动：dry-run 校验请求体（inline JSON 适合简单变量）
 python scripts/job_apigw_client.py plan-execute \
   --bk-scope-id <业务ID> --job-plan-id 1000193 \
   --global-vars '[{"name":"param_name","value":"param_value"}]' \
   --dry-run
+```
+
+### 6.1 完整示例：带主机变量启动（推荐用 `--global-vars-file`）
+
+PowerShell 等环境传含主机的 JSON 易转义失败，统一走文件：
+
+```bash
+# A. 写入全局变量文件（type=3 主机变量用 server.ip_list，须 bk_cloud_id + ip）
+cat > /tmp/exec_vars.json << 'EOF'
+[
+  {"name":"hosts","server":{"ip_list":[{"bk_cloud_id":0,"ip":"127.0.0.1"}]}},
+  {"name":"TARGET_DIR","value":"/data/release"}
+]
+EOF
+
+# B. dry-run 校验请求体
+python scripts/job_apigw_client.py plan-execute \
+  --bk-scope-id <业务ID> --job-plan-id 1000193 \
+  --global-vars-file /tmp/exec_vars.json --dry-run
+
+# C. 展示确认摘要 → 用户下一条独立确认（G2）后再真实启动
+python scripts/job_apigw_client.py plan-execute \
+  --bk-scope-id <业务ID> --job-plan-id 1000193 \
+  --global-vars-file /tmp/exec_vars.json
+# 成功返回含 job_instance_id 与 job_instance_url，须以可点击链接交付用户
 ```
 
 ## 7. 相关接口文档
@@ -53,3 +87,6 @@ python scripts/job_apigw_client.py plan-execute \
 - [`../apidocs/get_job_plan_list.md`](../apidocs/get_job_plan_list.md)  
 - [`../apidocs/get_job_plan_detail.md`](../apidocs/get_job_plan_detail.md)  
 - [`../apidocs/execute_job_plan.md`](../apidocs/execute_job_plan.md)  
+- [`../apidocs/v4_create_job_plan.md`](../apidocs/v4_create_job_plan.md)  
+- [`../apidocs/get_job_template_list.md`](../apidocs/get_job_template_list.md)  
+- [`../apidocs/v4_get_job_template_detail.md`](../apidocs/v4_get_job_template_detail.md)  

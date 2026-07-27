@@ -25,13 +25,11 @@
 package com.tencent.bk.job.service.api.bklog;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.config.BkApiGwProperties;
 import com.tencent.bk.job.utils.http.HttpMethodEnum;
 import com.tencent.bk.job.utils.http.bkapigw.v1.ApiGwResp;
 import com.tencent.bk.job.utils.http.bkapigw.v1.BkApiGwV1Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestTemplate;
-
 
 @Slf4j
 public class BkLogApi extends BkApiGwV1Api {
@@ -39,13 +37,18 @@ public class BkLogApi extends BkApiGwV1Api {
     private static final String API_LOG_SEARCH = "/esquery_search/";
 
     public BkLogApi(RestTemplate restTemplate,
-                    BkApiGwProperties bkApiGwProperties) {
+                    String url,
+                    String bkAppCode,
+                    String bkAppSecret,
+                    String username,
+                    String tenantId) {
         super(
             restTemplate,
-            bkApiGwProperties.getBkLog().getBkAppCode(),
-            bkApiGwProperties.getBkLog().getBkAppSecret(),
-            bkApiGwProperties.getBkLog().getUsername(),
-            bkApiGwProperties.getBkLog().getUrl()
+            bkAppCode,
+            bkAppSecret,
+            username,
+            url,
+            tenantId
         );
     }
 

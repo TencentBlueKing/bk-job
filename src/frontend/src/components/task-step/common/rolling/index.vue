@@ -36,7 +36,23 @@
       </span>
     </jb-form-item>
     <div v-if="formData[enabledField]">
+      <template v-if="isFileMode">
+        <!-- 滚动对象类型选择 -->
+        <rolling-type
+          ref="rollingType"
+          :form-data="formData"
+          :type-field="typeField"
+          @on-change="handleFieldChange" />
+        <!-- 执行模式 -->
+        <rolling-execution-mode
+          ref="executionMode"
+          :execution-mode-field="executionModeField"
+          :form-data="formData"
+          :type-field="typeField"
+          @on-change="handleExecutionModeChange" />
+      </template>
       <jb-form-item
+        v-if="!isFileMode || formData[typeField] === 1"
         ref="expr"
         :label="$t('滚动策略')"
         :property="exprField"
@@ -68,7 +84,18 @@
           </div>
         </div>
       </jb-form-item>
+      <!-- 源文件时显示源文件滚动配置 -->
+      <rolling-file-config
+        v-else
+        :enabled-field="enabledField"
+        :form-data="formData"
+        :max-execute-object-num-field="maxExecuteObjectNumField"
+        :max-file-num-field="maxFileNumField"
+        :type-field="typeField"
+        @on-change="handleFieldChange" />
+      <!-- 滚动机制 - 并行执行时不显示 -->
       <jb-form-item
+        v-if="!isFileMode|| formData[executionModeField] === 1"
         ref="rollingMode"
         :label="$t('滚动机制')"
         required>
@@ -88,6 +115,15 @@
             :name="$t('不自动，每批次都人工确认')" />
         </bk-select>
       </jb-form-item>
+      <!-- 并行模式时显示延迟配置 -->
+      <rolling-batch-delay
+        v-else
+        ref="batchStartWait"
+        :batch-start-wait-fixed-ms-field="batchStartWaitFixedMsField"
+        :batch-start-wait-random-max-ms-field="batchStartWaitRandomMaxMsField"
+        :batch-start-wait-random-min-ms-field="batchStartWaitRandomMinMsField"
+        :form-data="formData"
+        @on-change="handleFieldChange" />
     </div>
     <div style="display: none">
       <div ref="tips">
@@ -124,16 +160,37 @@
   import I18n from '@/i18n';
 
   import Guide from './guide';
+  import RollingBatchDelay from './rolling-batch-delay';
+  import RollingExecutionMode from './rolling-execution-mode';
+  import RollingFileConfig from './rolling-file-config';
+  import RollingType from './rolling-type';
 
   export default {
     name: '',
     components: {
       Guide,
+      RollingType,
+      RollingExecutionMode,
+      RollingFileConfig,
+      RollingBatchDelay,
     },
     props: {
+      /**
+       * @desc 模式类型，script-脚本执行，file-文件分发
+       * @values 'script' | 'file'
+       */
+      mode: {
+        type: String,
+        default: 'script',
+        validator: (value) => ['script', 'file'].includes(value),
+      },
       enabledField: {
         type: String,
         required: true,
+      },
+      typeField: {
+        type: String,
+        required: false,
       },
       exprField: {
         type: String,
@@ -142,6 +199,30 @@
       modeField: {
         type: String,
         required: true,
+      },
+      executionModeField: {
+        type: String,
+        required: false,
+      },
+      maxExecuteObjectNumField: {
+        type: String,
+        required: false,
+      },
+      maxFileNumField: {
+        type: String,
+        required: false,
+      },
+      batchStartWaitFixedMsField: {
+        type: String,
+        required: false,
+      },
+      batchStartWaitRandomMinMsField: {
+        type: String,
+        required: false,
+      },
+      batchStartWaitRandomMaxMsField: {
+        type: String,
+        required: false,
       },
       serverField: {
         type: String,
@@ -165,7 +246,8 @@
        * @returns { Array }
        */
       rollingExprRule() {
-        if (!this.formData[this.enabledField]) {
+        // 只有当滚动对象类型为传输目标时才验证
+        if (!this.formData[this.enabledField] || (this.isFileMode && this.formData[this.typeField] === 2)) {
           return [];
         }
         return [
@@ -192,11 +274,16 @@
           },
         ];
       },
+      isFileMode() {
+        return this.mode === 'file';
+      },
     },
     watch: {
       formData: {
         handler(formData) {
-          this.validatorExpr(formData[this.exprField]);
+          if (!this.isFileMode || formData[this.typeField] === 1) {
+            this.validatorExpr(formData[this.exprField]);
+          }
           setTimeout(() => {
             this.showTips();
           });
@@ -316,16 +403,34 @@
           this.$emit('on-reset', {
             [this.exprField]: '',
             [this.modeField]: 1,
+            ...(this.isFileMode ? {
+              [this.typeField]: 1,
+              [this.executionModeField]: 1,
+              [this.maxExecuteObjectNumField]: null,
+              [this.maxFileNumField]: null,
+              [this.batchStartWaitFixedMsField]: null,
+              [this.batchStartWaitRandomMinMsField]: null,
+              [this.batchStartWaitRandomMaxMsField]: null,
+            } : {}),
           });
         }
-        // 滚动策略默认 10%
+        // 默认配置
         this.$emit('on-reset', {
           [this.exprField]: '10%',
           [this.modeField]: 1,
+          ...(this.isFileMode ? {
+            [this.typeField]: 1,
+            [this.executionModeField]: 1,
+          } : {}),
         });
         this.$nextTick(() => {
           if (this.formData[this.enabledField]) {
-            this.$refs.rollingMode.$el.scrollIntoView();
+            const rollingTypeEl = this.$refs.rollingType?.$el
+            if(rollingTypeEl) {
+              rollingTypeEl.scrollIntoView();
+            } else {
+              this.$refs.rollingMode.$el.scrollIntoView()
+            }
           }
         });
       },
@@ -344,6 +449,42 @@
        */
       handleRollingModeChange(rollingMode) {
         this.$emit('on-change', this.modeField, rollingMode);
+      },
+      /**
+       * @desc 字段值变更处理
+       * @param { String } field
+       * @param { Number } value
+       */
+      handleFieldChange(field, value) {
+        if (field === this.typeField) {
+          value === 1 && this.$emit('on-reset', {
+            [this.exprField]: '10%',
+          });
+          // 源文件不支持并行执行，自动重置为串行执行
+          value === 2 && this.formData[this.executionModeField] === 2 && this.$emit('on-change', this.executionModeField, 1);
+        }
+        this.$emit('on-change', field, value);
+      },
+      /**
+       * @desc 执行模式变更处理
+       * @param { String } field
+       * @param { Number } executionMode
+       */
+      handleExecutionModeChange(field, executionMode) {
+        this.handleFieldChange(field, executionMode)
+        if (executionMode === 2) {
+          // 切换到并行模式时，默认设置延迟值
+          this.$emit('on-reset', {
+            [this.batchStartWaitFixedMsField]: 5000,
+            [this.batchStartWaitRandomMinMsField]: 0,
+            [this.batchStartWaitRandomMaxMsField]: 0,
+          });
+          this.$nextTick(() => {
+            if (this.isFileMode) {
+              this.$refs.batchStartWait?.$el?.scrollIntoView();
+            }
+          });
+        }
       },
       handleShowGuide() {
         this.isShowGuide = !this.isShowGuide;
@@ -392,6 +533,43 @@
       font-size: 12px;
       line-height: 18px;
       color: #ea3636;
+    }
+
+    .radio-check {
+      display: flex;
+      align-items: center;
+      height: 32px;
+      gap: 32px;
+    }
+  }
+
+  .file-source-section {
+    width: 100%;
+    .batch-form-item.bk-form-item {
+      margin-bottom: 12px;
+      .formula-tip {
+        font-size: 12px;
+        color: #979ba5;
+      }
+    }
+
+    .file-source-form {
+      background-color: #fafafa;
+      padding: 16px 12px 16px 0;
+      border-radius: 2px;
+      margin-bottom: 12px;
+
+      .jb-form-item {
+        margin-bottom: 16px;
+
+        .bk-label .bk-label-text {
+          padding-left: 12px;
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
     }
   }
 

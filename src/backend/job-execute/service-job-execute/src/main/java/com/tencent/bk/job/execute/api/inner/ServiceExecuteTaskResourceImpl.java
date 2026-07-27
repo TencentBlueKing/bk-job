@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.CIPHER;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.EXECUTE_ACCOUNT;
 
 @RestController
 @Slf4j
@@ -130,7 +131,8 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             taskVariableDTO.setId(serviceTaskVariable.getId());
             if (serviceTaskVariable.getType() == TaskVariableTypeEnum.STRING.getType()
                 || serviceTaskVariable.getType() == TaskVariableTypeEnum.INDEX_ARRAY.getType()
-                || serviceTaskVariable.getType() == TaskVariableTypeEnum.ASSOCIATIVE_ARRAY.getType()) {
+                || serviceTaskVariable.getType() == TaskVariableTypeEnum.ASSOCIATIVE_ARRAY.getType()
+                || serviceTaskVariable.getType() == EXECUTE_ACCOUNT.getType()) {
                 taskVariableDTO.setValue(serviceTaskVariable.getStringValue());
             } else if (serviceTaskVariable.getType() == CIPHER.getType()) {
                 // 如果密码类型的变量传入为空或者“******”，那么密码使用系统中保存的

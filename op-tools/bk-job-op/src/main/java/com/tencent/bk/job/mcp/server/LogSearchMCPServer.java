@@ -58,10 +58,10 @@ public class LogSearchMCPServer {
      * 根据优先级查找，为防止丢失日志，根据多个模版反复确认
      */
     // 最开始出现的，带有stepInstance的日志
-    private static final String MAIN_PROCESS_QUERY_TEMPLATE_0 = "log:%s AND log: \"Begin to dispatch step event\"";
+    private static final String MAIN_PROCESS_QUERY_TEMPLATE_0 = "log:\"stepInstanceId=%s\" AND log: \"Begin to dispatch step event\"";
     // 与上面一个模版不一定在一个实例，防止一起丢失
-    private static final String MAIN_PROCESS_QUERY_TEMPLATE_1 = "log:%s AND log: \"Handle step event\"";
-    private static final String MAIN_PROCESS_QUERY_TEMPLATE_2 = "log:%s AND log: \"Handle gse task event\"";
+    private static final String MAIN_PROCESS_QUERY_TEMPLATE_1 = "log:\"stepInstanceId=%s\" AND log: \"Handle step event\"";
+    private static final String MAIN_PROCESS_QUERY_TEMPLATE_2 = "log:\"stepInstanceId=%s\" AND log: \"Handle gse task event\"";
 
     private static final List<String> MAIN_PROCESS_QUERY_TEMPLATE_LIST = Arrays.asList(
         MAIN_PROCESS_QUERY_TEMPLATE_0,

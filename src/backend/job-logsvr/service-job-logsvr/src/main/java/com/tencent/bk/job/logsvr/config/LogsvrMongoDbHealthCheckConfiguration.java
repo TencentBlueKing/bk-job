@@ -40,7 +40,7 @@ public class LogsvrMongoDbHealthCheckConfiguration {
      */
     @ConditionalOnMongoDBHealthCheckEnabled
     @Bean
-    public CheckMongoOnStartupListener jobMongoStartupIndicator(MongoTemplate mongoTemplate) {
+    public CheckMongoOnStartupListener jobLogsvrMongoStartupIndicator(MongoTemplate mongoTemplate) {
         log.info("enable mongodb health check");
         return new CheckMongoOnStartupListener(mongoTemplate);
     }

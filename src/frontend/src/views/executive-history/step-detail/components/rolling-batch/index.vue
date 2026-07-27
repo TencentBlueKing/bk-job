@@ -57,6 +57,7 @@
             :key="batchItem.batch"
             :current-running-batch="currentRunningBatch"
             :data="batchItem"
+            :is-roll-parallel="isRollParallel"
             :select-batch="selectBatch"
             @on-change="handleSelectBatch" />
         </div>
@@ -107,6 +108,7 @@
     props: {
       data: Object,
       value: [Number, String],
+      isRollParallel: Boolean,
     },
     data() {
       return {

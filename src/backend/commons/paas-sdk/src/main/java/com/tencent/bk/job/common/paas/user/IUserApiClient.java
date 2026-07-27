@@ -40,4 +40,10 @@ public interface IUserApiClient {
 
     List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
 
+    /**
+     * 批量查询用户信息，自然人查不到时补充查询虚拟用户。
+     * 仅用于需要识别虚拟用户的场景（如通知黑名单），通知发送链路应使用 {@link #listUsersByUsernames}。
+     */
+    List<SimpleUserInfo> listUsersByUsernamesIncludingVirtual(String tenantId, Collection<String> usernames);
+
 }

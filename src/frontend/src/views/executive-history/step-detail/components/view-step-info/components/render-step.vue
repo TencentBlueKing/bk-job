@@ -36,6 +36,11 @@
         <detail-item :label="$t('history.滚动对象：')">
           {{ stepInfo.rollingConfig.fileSource ? $t('history.源文件') : $t('history.传输目标') }}
         </detail-item>
+        <detail-item
+          v-if="stepInfo.rollingConfig.executionMode"
+          :label="$t('history.滚动批次间执行模式：')">
+          {{ stepInfo.rollingConfig.executionMode === 1 ? $t('history.串行执行') : $t('history.并行执行') }}
+        </detail-item>
         <detail-item :label="$t('history.分批策略：')">
           <span
             v-if="rollingConfigExpr"
@@ -60,8 +65,19 @@
             </div>
           </template>
         </detail-item>
+        <template v-if="stepInfo.rollingConfig.executionMode === 2">
+          <detail-item :label="$t('history.批次间固定延迟（ms）：')">
+            {{ stepInfo.rollingConfig.batchStartWaitFixedMs }}
+          </detail-item>
+          <detail-item :label="$t('history.批次间随机延迟下限（ms）：')">
+            {{ stepInfo.rollingConfig.batchStartWaitRandomMinMs }}
+          </detail-item>
+          <detail-item :label="$t('history.批次间随机延迟上限（ms）：')">
+            {{ stepInfo.rollingConfig.batchStartWaitRandomMaxMs }}
+          </detail-item>
+        </template>
         <detail-item
-          v-if="rollingModeText"
+          v-if="rollingModeText && stepInfo.rollingConfig.executionMode !== 2"
           :label="$t('history.滚动机制：')">
           {{ rollingModeText }}
         </detail-item>

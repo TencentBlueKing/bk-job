@@ -24,20 +24,17 @@
 
 package com.tencent.bk.job.config;
 
-import com.tencent.bk.job.service.api.bklog.BkLogApi;
-import com.tencent.bk.job.service.api.bklog.RetryableBklogApi;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
+/**
+ * BK API 网关相关配置载入。
+ * <p>
+ * 注：BkLogApi 已不再作为独立 Bean，由
+ * {@link com.tencent.bk.job.service.api.bklog.BkLogApiRouter} 内部按 endpoint 维度
+ * 分别构造，并通过 {@code @Component} 自动注册。
+ */
 @Configuration
 @EnableConfigurationProperties({BkApiGwProperties.class})
 public class BkApiConfig {
-
-    @Bean
-    public BkLogApi bkLogApi(RestTemplate restTemplate,
-                             BkApiGwProperties bkApiGwProperties) {
-        return new RetryableBklogApi(restTemplate, bkApiGwProperties);
-    }
 }

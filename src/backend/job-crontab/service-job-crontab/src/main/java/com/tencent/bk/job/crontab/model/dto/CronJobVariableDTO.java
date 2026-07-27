@@ -36,6 +36,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 3/10/2019 17:14
@@ -100,10 +101,28 @@ public class CronJobVariableDTO implements Cloneable {
         }
         if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == variableInfo.getType()) {
             variableInfo.setServer(ServerDTO.fromTargetVO(variableVO.getTargetValue()));
+        } else if (TaskVariableTypeEnum.EXECUTE_ACCOUNT == variableInfo.getType()) {
+            variableInfo.setValue(validateExecuteAccountValue(variableVO.getValue()));
         } else {
             variableInfo.setValue(variableVO.getValue());
         }
         return variableInfo;
+    }
+
+    public static String validateExecuteAccountValue(String value) {
+        String accountValue = StringUtils.trim(value);
+        if (StringUtils.isBlank(accountValue)) {
+            return accountValue;
+        }
+        try {
+            Long accountId = Long.valueOf(accountValue);
+            if (accountId <= 0) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            }
+        } catch (NumberFormatException e) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
+        return accountValue;
     }
 
     public static ServiceTaskVariable toServiceTaskVariable(CronJobVariableDTO variableInfo) {
@@ -118,6 +137,7 @@ public class CronJobVariableDTO implements Cloneable {
             case CIPHER:
             case INDEX_ARRAY:
             case ASSOCIATIVE_ARRAY:
+            case EXECUTE_ACCOUNT:
                 taskVariable.setStringValue(variableInfo.getValue());
                 break;
             case NAMESPACE:
