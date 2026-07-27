@@ -90,7 +90,7 @@ public class OpenApiUserScopeV4ResourceImpl implements OpenApiUserScopeV4Resourc
             // 收藏是用户行为，按当前用户时区（由网关注入、拦截器写入上下文，缺失时兜底东八区）格式化收藏时间
             ZoneId userZone = JobContextUtil.getTimeZone();
             dto.setFavorTime(DateUtils.formatUnixTimestamp(
-                scope.getFavorTime(), ChronoUnit.MILLIS, DateUtils.DATETIME_PATTERN_WITH_MILLIS, userZone));
+                scope.getFavorTime(), ChronoUnit.MILLIS, "yyyy-MM-dd HH:mm:ss.SSS", userZone));
         }
         dto.setTimeZone(scope.getTimeZone());
         return dto;
