@@ -277,6 +277,7 @@ python scripts/job_apigw_client.py cron-save \
 
 ## 6. 相关接口文档
 
+- [host-query-and-selection.md](host-query-and-selection.md) — 执行目标变量（type=3）填主机时，先查/搜业务下主机
 - [`../apidocs/get_job_template_list.md`](../apidocs/get_job_template_list.md)
 - [`../apidocs/v4_get_job_template_detail.md`](../apidocs/v4_get_job_template_detail.md)
 - [`../apidocs/v4_create_job_plan.md`](../apidocs/v4_create_job_plan.md)

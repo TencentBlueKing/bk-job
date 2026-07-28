@@ -1,6 +1,6 @@
 # 操作确认协议与输出规范
 
-本手册约定：通过 [`scripts/job_apigw_client.py`](../../scripts/job_apigw_client.py) 调用网关**写操作**接口时，智能体须遵守的**确认门禁**与**对用户呈现方式**。涵盖 `plan-execute`、`plan-create`、`cron-save`、`cron-update-status`。
+本手册约定：通过 [`scripts/job_apigw_client.py`](../../scripts/job_apigw_client.py) 调用网关**写操作**接口时，智能体须遵守的**确认门禁**与**对用户呈现方式**。涵盖 `plan-execute`、`fast-execute-script`、`plan-create`、`cron-save`、`cron-update-status`。
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### 1.1 核心原则
 
-**所有写操作（`plan-execute`、`plan-create`、`cron-save`、`cron-update-status`）必须在执行前获得用户的明确确认。读操作（`cron-search`、`plan-search`、`plan-detail`、`cron-last-run`、`instance-status` 等）无需确认，直接执行。**
+**所有写操作（`plan-execute`、`fast-execute-script`、`plan-create`、`cron-save`、`cron-update-status`）必须在执行前获得用户的明确确认。读操作（`cron-search`、`plan-search`、`plan-detail`、`cron-last-run`、`instance-status`、`list-authorized-scopes` 等）无需确认，直接执行。**
 
 ### 1.2 操作分级
 
@@ -18,6 +18,7 @@
 | 🟡 中风险 | **创建执行方案**（`plan-create`） | 展示操作摘要（业务/模板/方案名等）→ 用户确认 → 执行 |
 | 🟡 中风险 | **保存定时任务**（`cron-save`） | 展示操作摘要 → 用户确认 → 执行；**创建成功后必须询问是否启用** |
 | 🟡 中风险 | **启动执行方案**（`plan-execute`） | 展示操作摘要 → 用户确认 → 执行 |
+| 🔴 高风险 | **快速执行脚本**（`fast-execute-script`） | 到目标机器真实执行脚本；展示操作摘要（资源范围/目标机器/账号/脚本预览/超时）→ 用户确认 → 执行 |
 | 🟡 中风险 | **启用定时任务**（`cron-update-status --status 1`） | 须在 `cron-save` 后用户**明确同意启用**后才可调用 |
 
 ### 1.3 确认门禁（GATE CHECK）
@@ -30,6 +31,8 @@
 | G2 | 用户在**看到确认摘要之后**明确回复了确认意图 | 确认必须发生在摘要展示之后，不能是之前的回复 |
 | G3 | 确认摘要与即将调用的参数一致 | 方案 ID、资源范围（`bk_scope_type` / `bk_scope_id`）、变量值必须与摘要中展示的一致 |
 | G4 | 全局变量使用 `name` 标识且来源正确 | 变量须用 `name`（非仅 `id`）传递，且取自**当前方案**最新一次 `plan-detail`（`get_job_plan_detail`）的返回结果 |
+
+> **门禁适用范围**：G1–G3 适用于所有写操作（含 `plan-execute`、`fast-execute-script`）。G4 仅针对 `plan-execute` 的全局变量；`fast-execute-script` 无全局变量，改为在 G3 中核对**执行目标（目标机器）、执行账号、脚本来源/内容、超时**等与确认摘要一致。`fast-execute-script` 的确认摘要格式见 [fast-execute-script.md](fast-execute-script.md) 第 6 节。
 
 **关于 G2 的特别说明（硬性规则）**：
 

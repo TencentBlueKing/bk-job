@@ -35,6 +35,7 @@
 > - 修改主机时，必须同时提供 `bk_cloud_id`（云区域ID）和 `ip`
 > - 例如：`{"name":"host_var","server":{"ip_list":[{"bk_cloud_id":0,"ip":"127.0.0.1"}]}}`
 > - 只提供 `ip` 会导致"目标执行对象为空"错误
+> - 不确定主机时，先用只读的 `host-search` / `host-topo-tree` 定位（取 `bk_host_id` 优先），见 [host-query-and-selection.md](host-query-and-selection.md)
 
 ## 5. 详细说明与注意事项
 
