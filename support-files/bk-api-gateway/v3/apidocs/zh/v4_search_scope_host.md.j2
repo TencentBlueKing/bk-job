@@ -1,0 +1,113 @@
+### 功能描述
+
+在指定资源范围下按条件分页搜索主机，支持按拓扑节点、IPv4、IPv6、主机名称、操作系统名称、Agent 状态等条件筛选。
+
+资源范围支持业务（`biz`）、业务集（`biz_set`）、租户集（`tenant_set`）：业务下可按拓扑节点圈定范围；业务集按其下所有子业务搜索；租户集在全租户主机范围内搜索（拓扑节点在业务集/租户集下不生效）。IPv4、IPv6、主机名称、操作系统名称均为模糊匹配（与关键字列表中任意一个相似即命中）；IPv6 支持压缩写法，内部会补全为全写后匹配。调用方须对目标资源范围具备访问权限。
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集）、`tenant_set`（租户集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID、业务集 ID 或租户集 ID |
+| topo_node_list | array | 否 | 拓扑节点列表，用于圈定搜索范围；仅在 `bk_scope_type` 为 `biz`（业务）时生效，业务集/租户集下将被忽略 |
+| ipv4_key_list | array | 否 | IPv4 关键字列表，模糊匹配；主机 IPv4 与列表中任意一个关键字相似即命中 |
+| ipv6_key_list | array | 否 | IPv6 关键字列表，模糊匹配；支持压缩写法；主机 IPv6 与列表中任意一个关键字相似即命中 |
+| host_name_key_list | array | 否 | 主机名称关键字列表，模糊匹配；主机名称与列表中任意一个关键字相似即命中 |
+| os_name_key_list | array | 否 | 操作系统名称关键字列表，模糊匹配；操作系统名称与列表中任意一个关键字相似即命中 |
+| alive | int | 否 | Agent 状态过滤。可选值：`0`（异常）、`1`（正常）；不传则不按 Agent 状态过滤。该状态为作业平台持久化的 Agent 状态，可能非实时 |
+| offset | int | 否 | 分页起始偏移，从 0 开始；不传默认为 0；须大于等于 0 |
+| length | int | 否 | 单页返回条数；不传默认为 10；取值范围为 1 到 200 |
+
+##### topo_node_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| object_id | string | 是 | 节点类型 ID。可选值：`biz`（业务）、`set`（集群）、`module`（模块） |
+| instance_id | long | 是 | 节点实例 ID |
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "2",
+  "topo_node_list": [
+    {
+      "object_id": "module",
+      "instance_id": 100
+    }
+  ],
+  "ipv4_key_list": ["127.0.0.1"],
+  "ipv6_key_list": ["::1"],
+  "host_name_key_list": ["host"],
+  "os_name_key_list": ["linux"],
+  "alive": 1,
+  "offset": 0,
+  "length": 10
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+  "data": {
+    "total": 1,
+    "offset": 0,
+    "length": 10,
+    "data": [
+      {
+        "bk_host_id": 1000,
+        "ip": "127.0.0.1",
+        "ipv6": "0000:0000:0000:0000:0000:0000:0000:0001",
+        "bk_cloud_id": 0,
+        "bk_cloud_name": "默认管控区域",
+        "host_name": "host-a",
+        "os_name": "linux centos",
+        "os_type": "1",
+        "alive": 1
+      }
+    ]
+  },
+  "job_request_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段 | 类型 | 是否一定存在 | 描述 |
+|------|------|--------------|------|
+| total | long | 是 | 命中的主机总数（分页前） |
+| offset | int | 是 | 本次查询的分页起始偏移，从 0 开始 |
+| length | int | 是 | 本次查询的单页条数 |
+| data | array | 是 | 主机列表；无数据时为空数组 |
+
+##### data[] 元素
+
+| 字段 | 类型 | 是否一定存在 | 描述 |
+|------|------|--------------|------|
+| bk_host_id | long | 是 | 主机 ID |
+| ip | string | 否 | 主机 IPv4 地址 |
+| ipv6 | string | 否 | 主机 IPv6 地址 |
+| bk_cloud_id | long | 否 | 管控区域 ID |
+| bk_cloud_name | string | 否 | 管控区域名称 |
+| host_name | string | 否 | 主机名称 |
+| os_name | string | 否 | 操作系统名称 |
+| os_type | string | 否 | 操作系统类型标识（由 CMDB 同步） |
+| alive | int | 是 | Agent 状态。可选值：`0`（异常）、`1`（正常）；为作业平台持久化的 Agent 状态，可能非实时 |
