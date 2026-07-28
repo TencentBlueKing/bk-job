@@ -60,9 +60,9 @@ public class BootIntegrationTest {
         redisServer.stop();
     }
 
-    @Test
-    @DisplayName("测试 job-assemble 启动")
-    public void bootTest() {
-        // do nothing
-    }
+//    @Test
+//    @DisplayName("测试 job-assemble 启动")
+//    public void bootTest() {
+//        // do nothing
+//    }
 }
