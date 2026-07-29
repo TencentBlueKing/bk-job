@@ -11,11 +11,6 @@ spring:
     kubernetes:
       discovery:
         enabled: false
-de:
-  flapdoodle:
-    mongodb:
-      embedded:
-        version: 4.0.28
 bk-api-gateway:
   gse:
     url: gse.apigw.com

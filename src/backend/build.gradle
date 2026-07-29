@@ -133,7 +133,6 @@ ext {
     set('caffeineVersion', "3.1.8")
     set('jjwtVersion', "0.13.0")
     set('hibernateValidatorVersion', "8.0.2.Final")
-    set('flapdoodleEmbeddedMongdbDBVersion', "4.20.0")
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.84")
     set('reflectionsVersion', "0.10.2")
@@ -334,8 +333,6 @@ subprojects {
                 entry "jjwt-jackson"
             }
             dependency "net.sourceforge.jchardet:jchardet:1.0"
-            dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring3x:$flapdoodleEmbeddedMongdbDBVersion"
-            dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "joda-time:joda-time:$jodaTimeVersion"
             dependency "org.bouncycastle:bcprov-jdk18on:$bcprovVersion"
             // https://github.com/ronmamo/reflections
