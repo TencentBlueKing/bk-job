@@ -22,33 +22,76 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":job-logsvr:service-job-logsvr")
-    api project(":commons:common-i18n")
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-springBoot {
-    getMainClass().set("com.tencent.bk.job.logsvr.JobLogBootApplication")
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr-${version}.jar"
-}
-renameArtifacts.dependsOn assemble
+package com.tencent.bk.job.manage.model.esb.v4.resp;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr.jar"
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+/**
+ * OpenAPI V4 资源范围主机信息。
+ * <p>
+ * 出于安全考虑不对外暴露 agentId。
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class V4ScopeHostDTO {
+
+    /**
+     * 主机 ID。
+     */
+    @JsonProperty("bk_host_id")
+    private Long hostId;
+
+    /**
+     * 主机 IPv4。
+     */
+    @JsonProperty("ip")
+    private String ip;
+
+    /**
+     * 主机 IPv6。
+     */
+    @JsonProperty("ipv6")
+    private String ipv6;
+
+    /**
+     * 管控区域 ID。
+     */
+    @JsonProperty("bk_cloud_id")
+    private Long cloudAreaId;
+
+    /**
+     * 管控区域名称。
+     */
+    @JsonProperty("bk_cloud_name")
+    private String cloudAreaName;
+
+    /**
+     * 主机名称。
+     */
+    @JsonProperty("host_name")
+    private String hostName;
+
+    /**
+     * 操作系统名称。
+     */
+    @JsonProperty("os_name")
+    private String osName;
+
+    /**
+     * 操作系统类型。
+     */
+    @JsonProperty("os_type")
+    private String osType;
+
+    /**
+     * Agent 状态：0-异常，1-正常。
+     */
+    @JsonProperty("alive")
+    private Integer alive;
 }
-copyToLatestJar.dependsOn assemble
-apply from: "$rootDir/task_job_package.gradle"
-copyToRelease.dependsOn renameArtifacts

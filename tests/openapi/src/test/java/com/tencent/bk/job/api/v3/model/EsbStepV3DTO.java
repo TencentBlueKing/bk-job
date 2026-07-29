@@ -37,6 +37,8 @@ public class EsbStepV3DTO {
 
     private Integer type;
 
+    private Integer enabled;
+
     @JsonProperty("script_info")
     private EsbScriptStepV3DTO scriptInfo;
 
