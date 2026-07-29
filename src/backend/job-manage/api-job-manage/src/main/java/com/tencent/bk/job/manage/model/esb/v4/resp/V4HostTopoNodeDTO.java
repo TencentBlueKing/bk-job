@@ -22,33 +22,60 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":job-logsvr:service-job-logsvr")
-    api project(":commons:common-i18n")
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-springBoot {
-    getMainClass().set("com.tencent.bk.job.logsvr.JobLogBootApplication")
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr-${version}.jar"
-}
-renameArtifacts.dependsOn assemble
+package com.tencent.bk.job.manage.model.esb.v4.resp;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr.jar"
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
+
+/**
+ * OpenAPI V4 业务主机拓扑树节点。
+ * <p>
+ * 树形结构，默认全部展开（通过 child 递归返回完整层级），不包含懒加载(lazy)相关字段。
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class V4HostTopoNodeDTO {
+
+    /**
+     * 节点类型 ID，如 biz/set/module。
+     */
+    @JsonProperty("object_id")
+    private String objectId;
+
+    /**
+     * 节点类型名称。
+     */
+    @JsonProperty("object_name")
+    private String objectName;
+
+    /**
+     * 节点实例 ID。
+     */
+    @JsonProperty("instance_id")
+    private Long instanceId;
+
+    /**
+     * 节点实例名称。
+     */
+    @JsonProperty("instance_name")
+    private String instanceName;
+
+    /**
+     * 该节点（含子节点去重）下的主机数量。
+     */
+    @JsonProperty("host_count")
+    private Integer hostCount;
+
+    /**
+     * 子节点列表；叶子节点不返回该字段。
+     */
+    @JsonProperty("child")
+    private List<V4HostTopoNodeDTO> child;
 }
-copyToLatestJar.dependsOn assemble
-apply from: "$rootDir/task_job_package.gradle"
-copyToRelease.dependsOn renameArtifacts

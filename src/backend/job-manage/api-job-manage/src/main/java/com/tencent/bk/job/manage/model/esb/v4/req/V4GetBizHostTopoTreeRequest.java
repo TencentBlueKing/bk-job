@@ -22,33 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":job-logsvr:service-job-logsvr")
-    api project(":commons:common-i18n")
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-springBoot {
-    getMainClass().set("com.tencent.bk.job.logsvr.JobLogBootApplication")
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr-${version}.jar"
-}
-renameArtifacts.dependsOn assemble
+package com.tencent.bk.job.manage.model.esb.v4.req;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr.jar"
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * OpenAPI V4 查询业务主机拓扑树请求体。
+ * <p>
+ * 仅需资源范围参数（bk_scope_type/bk_scope_id），且本接口仅支持业务(biz)，
+ * 业务集(biz_set)/租户集(tenant_set) 将被拒绝。
+ */
+@Getter
+@Setter
+public class V4GetBizHostTopoTreeRequest extends EsbAppScopeReq {
 }
-copyToLatestJar.dependsOn assemble
-apply from: "$rootDir/task_job_package.gradle"
-copyToRelease.dependsOn renameArtifacts

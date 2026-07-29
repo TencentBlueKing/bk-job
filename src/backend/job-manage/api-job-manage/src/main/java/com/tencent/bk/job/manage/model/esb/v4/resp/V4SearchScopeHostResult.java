@@ -22,33 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":job-logsvr:service-job-logsvr")
-    api project(":commons:common-i18n")
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-springBoot {
-    getMainClass().set("com.tencent.bk.job.logsvr.JobLogBootApplication")
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr-${version}.jar"
-}
-renameArtifacts.dependsOn assemble
+package com.tencent.bk.job.manage.model.esb.v4.resp;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr.jar"
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
+
+/**
+ * OpenAPI V4 资源范围下搜索主机的响应。
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class V4SearchScopeHostResult {
+
+    /**
+     * 命中的主机总数（分页前）。
+     */
+    @JsonProperty("total")
+    private Long total;
+
+    /**
+     * 本次查询的分页起始偏移，从 0 开始。
+     */
+    @JsonProperty("offset")
+    private Integer offset;
+
+    /**
+     * 本次查询的单页条数。
+     */
+    @JsonProperty("length")
+    private Integer length;
+
+    /**
+     * 主机列表；无数据时为空数组。
+     */
+    @JsonProperty("data")
+    private List<V4ScopeHostDTO> data;
 }
-copyToLatestJar.dependsOn assemble
-apply from: "$rootDir/task_job_package.gradle"
-copyToRelease.dependsOn renameArtifacts

@@ -1,0 +1,91 @@
+### 功能描述
+
+查询指定业务下的主机拓扑树，树中每个节点返回该节点（含子节点去重后）的主机数量。
+
+本接口仅支持业务（`biz`）；若资源范围类型传业务集（`biz_set`）或租户集（`tenant_set`），将返回参数错误。返回的拓扑树默认全部展开，通过 `child` 字段逐层返回完整层级，无需分页或懒加载。调用方须对目标业务具备访问权限。
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。本接口仅支持 `biz`（业务）；传 `biz_set`（业务集）、`tenant_set`（租户集）将返回参数错误 |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID |
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "2"
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+  "data": {
+    "object_id": "biz",
+    "object_name": "业务",
+    "instance_id": 2,
+    "instance_name": "示例业务",
+    "host_count": 3,
+    "child": [
+      {
+        "object_id": "set",
+        "object_name": "集群",
+        "instance_id": 10,
+        "instance_name": "示例集群",
+        "host_count": 3,
+        "child": [
+          {
+            "object_id": "module",
+            "object_name": "模块",
+            "instance_id": 100,
+            "instance_name": "示例模块",
+            "host_count": 3
+          }
+        ]
+      }
+    ]
+  },
+  "job_request_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段 | 类型 | 是否一定存在 | 描述 |
+|------|------|--------------|------|
+| object_id | string | 是 | 节点类型 ID。可选值：`biz`（业务）、`set`（集群）、`module`（模块） |
+| object_name | string | 是 | 节点类型名称 |
+| instance_id | long | 是 | 节点实例 ID |
+| instance_name | string | 是 | 节点实例名称 |
+| host_count | int | 是 | 该节点（含所有子节点去重后）的主机数量 |
+| child | array | 否 | 子节点列表，元素结构与本节点相同；叶子节点不返回该字段 |
+
+##### child[] 元素
+
+| 字段 | 类型 | 是否一定存在 | 描述 |
+|------|------|--------------|------|
+| object_id | string | 是 | 节点类型 ID。可选值：`biz`（业务）、`set`（集群）、`module`（模块） |
+| object_name | string | 是 | 节点类型名称 |
+| instance_id | long | 是 | 节点实例 ID |
+| instance_name | string | 是 | 节点实例名称 |
+| host_count | int | 是 | 该节点（含所有子节点去重后）的主机数量 |
+| child | array | 否 | 子节点列表，结构与父节点一致，逐层递归直至叶子节点；叶子节点不返回该字段 |

@@ -22,33 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":job-logsvr:service-job-logsvr")
-    api project(":commons:common-i18n")
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-springBoot {
-    getMainClass().set("com.tencent.bk.job.logsvr.JobLogBootApplication")
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr-${version}.jar"
-}
-renameArtifacts.dependsOn assemble
+package com.tencent.bk.job.manage.model.esb.v4.req;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-logsvr-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-logsvr-${version}.jar", "job-logsvr.jar"
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+/**
+ * OpenAPI V4 拓扑节点请求参数。
+ */
+@Getter
+@Setter
+public class V4TopoNodeDTO {
+
+    /**
+     * 节点类型 ID，如 biz/set/module。
+     */
+    @JsonProperty("object_id")
+    @NotBlank(message = "{validation.constraints.InvalidTopoNodeObjectId.message}")
+    private String objectId;
+
+    /**
+     * 节点实例 ID。
+     */
+    @JsonProperty("instance_id")
+    @NotNull(message = "{validation.constraints.InvalidTopoNodeInstanceId.message}")
+    @Min(value = 1L, message = "{validation.constraints.InvalidTopoNodeInstanceId.message}")
+    private Long instanceId;
 }
-copyToLatestJar.dependsOn assemble
-apply from: "$rootDir/task_job_package.gradle"
-copyToRelease.dependsOn renameArtifacts
