@@ -60,7 +60,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -316,6 +318,69 @@ class OpenApiScopeHostV4ResourceImplTest {
             resource.searchScopeHost(USERNAME, APP_CODE, request);
 
         assertThat(response.getData().getData()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("搜索：biz 传空数组 topo_node_list=[] 直接返回空(total=0)，不查询底层主机")
+    void searchScopeHost_bizEmptyTopoNodeListReturnsEmpty() {
+        V4SearchScopeHostRequest request = new V4SearchScopeHostRequest();
+        request.setScopeType("biz");
+        request.setScopeId("2");
+        request.setOffset(3);
+        request.setLength(15);
+        request.setTopoNodeList(Collections.emptyList());
+        when(appScopeMappingService.getAppIdByScope("biz", "2")).thenReturn(1L);
+
+        EsbV4Response<V4SearchScopeHostResult> response =
+            resource.searchScopeHost(USERNAME, APP_CODE, request);
+
+        // 空数组视为"无满足条件的节点"，短路返回空结果
+        assertThat(response.getData().getTotal()).isEqualTo(0L);
+        assertThat(response.getData().getData()).isEmpty();
+        assertThat(response.getData().getOffset()).isEqualTo(3);
+        assertThat(response.getData().getLength()).isEqualTo(15);
+        // 未触发底层主机查询与详情填充
+        verify(scopeHostService, never()).searchHost(
+            any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+        verifyNoInteractions(hostDetailService);
+    }
+
+    @Test
+    @DisplayName("搜索：biz_set 传空数组 topo_node_list=[] 同样短路返回空(total=0)，不查询底层")
+    void searchScopeHost_bizSetEmptyTopoNodeListReturnsEmpty() {
+        V4SearchScopeHostRequest request = new V4SearchScopeHostRequest();
+        request.setScopeType("biz_set");
+        request.setScopeId("9991001");
+        request.setTopoNodeList(Collections.emptyList());
+        when(appScopeMappingService.getAppIdByScope("biz_set", "9991001")).thenReturn(100L);
+
+        EsbV4Response<V4SearchScopeHostResult> response =
+            resource.searchScopeHost(USERNAME, APP_CODE, request);
+
+        assertThat(response.getData().getTotal()).isEqualTo(0L);
+        assertThat(response.getData().getData()).isEmpty();
+        verify(scopeHostService, never()).searchHost(
+            any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+        verifyNoInteractions(hostDetailService);
+    }
+
+    @Test
+    @DisplayName("搜索：tenant_set 传空数组 topo_node_list=[] 同样短路返回空(total=0)，不查询底层")
+    void searchScopeHost_tenantSetEmptyTopoNodeListReturnsEmpty() {
+        V4SearchScopeHostRequest request = new V4SearchScopeHostRequest();
+        request.setScopeType("tenant_set");
+        request.setScopeId("9990001");
+        request.setTopoNodeList(Collections.emptyList());
+        when(appScopeMappingService.getAppIdByScope("tenant_set", "9990001")).thenReturn(200L);
+
+        EsbV4Response<V4SearchScopeHostResult> response =
+            resource.searchScopeHost(USERNAME, APP_CODE, request);
+
+        assertThat(response.getData().getTotal()).isEqualTo(0L);
+        assertThat(response.getData().getData()).isEmpty();
+        verify(scopeHostService, never()).searchHost(
+            any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+        verifyNoInteractions(hostDetailService);
     }
 
     @Test

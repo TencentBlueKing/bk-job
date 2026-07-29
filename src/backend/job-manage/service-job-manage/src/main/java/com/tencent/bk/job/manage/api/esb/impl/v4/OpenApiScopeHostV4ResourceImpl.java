@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.esb.v4.OpenApiScopeHostV4Resource;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4GetBizHostTopoTreeRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4SearchScopeHostRequest;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4TopoNodeDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4HostTopoNodeDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4ScopeHostDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4SearchScopeHostResult;
@@ -107,8 +108,17 @@ public class OpenApiScopeHostV4ResourceImpl implements OpenApiScopeHostV4Resourc
         int offset = request.getOffset() == null ? 0 : request.getOffset();
         int length = request.getLength() == null ? 10 : request.getLength();
 
-        List<BizTopoNode> nodeList = OpenApiV4ScopeHostConverter.toBizTopoNodeList(request.getTopoNodeList());
-        // 业务(biz)作用域下未指定拓扑节点时，语义等价于查询整个业务，默认以业务根节点检索，
+        List<V4TopoNodeDTO> topoNodeList = request.getTopoNodeList();
+        // 区分「不传/null」与「传空数组[]」两种拓扑节点语义（对所有作用域一致）：
+        // - 空数组[]（非 null 但 size==0）：上层通常经交集计算后为空，即"无满足条件的节点"，
+        //   直接返回空列表(total=0、data=[])且不查询底层，避免误返回全部主机。
+        // - null/缺省：拓扑节点不作为过滤条件，返回该资源范围下全部主机（见下方兜底逻辑）。
+        if (topoNodeList != null && topoNodeList.isEmpty()) {
+            return EsbV4Response.success(buildEmptyResult(offset, length));
+        }
+
+        List<BizTopoNode> nodeList = OpenApiV4ScopeHostConverter.toBizTopoNodeList(topoNodeList);
+        // 业务(biz)作用域下未指定拓扑节点(null)时，语义等价于查询整个业务，默认以业务根节点检索，
         // 避免底层按空模块集合过滤命中 0 台主机（业务集/租户集不按拓扑节点过滤，无需兜底）。
         if (CollectionUtils.isEmpty(nodeList) && appResourceScope.isBiz()) {
             nodeList = Collections.singletonList(buildBizRootNode(appResourceScope));
@@ -164,6 +174,22 @@ public class OpenApiScopeHostV4ResourceImpl implements OpenApiScopeHostV4Resourc
                 }
             );
         }
+    }
+
+    /**
+     * 构造空的搜索结果（total=0、data 为空列表），用于拓扑节点为空数组时的短路返回。
+     *
+     * @param offset 分页起始偏移
+     * @param length 单页条数
+     * @return 空的搜索结果
+     */
+    private V4SearchScopeHostResult buildEmptyResult(int offset, int length) {
+        V4SearchScopeHostResult result = new V4SearchScopeHostResult();
+        result.setTotal(0L);
+        result.setOffset(offset);
+        result.setLength(length);
+        result.setData(Collections.emptyList());
+        return result;
     }
 
     /**
