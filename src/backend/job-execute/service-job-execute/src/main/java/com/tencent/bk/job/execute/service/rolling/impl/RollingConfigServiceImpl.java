@@ -209,13 +209,13 @@ public class RollingConfigServiceImpl implements RollingConfigService {
                     I18nUtil.getI18nMessage("validation.constraints.RollingFileSourceParallelNotSupported.message")
                 });
         }
-        Long min = rollingConfig.getBatchStartWaitRandomMinMs();
-        Long max = rollingConfig.getBatchStartWaitRandomMaxMs();
+        Long min = rollingConfig.getBatchStartWaitMinMs();
+        Long max = rollingConfig.getBatchStartWaitMaxMs();
         if (min != null && max != null && max < min) {
             throw new InvalidParamException(
                 ErrorCode.ILLEGAL_PARAM_WITH_REASON,
                 new Object[]{
-                    I18nUtil.getI18nMessage("validation.constraints.RollingBatchStartWaitRandomMaxLessThanMin.message")
+                    I18nUtil.getI18nMessage("validation.constraints.RollingBatchStartWaitMaxLessThanMin.message")
                 });
         }
     }
@@ -261,9 +261,8 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         executeObjectRollingConfig.setExpr(rollingConfig.getExpr());
         // 透传执行模式与错峰参数
         executeObjectRollingConfig.setExecutionMode(rollingConfig.getExecutionMode());
-        executeObjectRollingConfig.setBatchStartWaitFixedMs(rollingConfig.getBatchStartWaitFixedMs());
-        executeObjectRollingConfig.setBatchStartWaitRandomMinMs(rollingConfig.getBatchStartWaitRandomMinMs());
-        executeObjectRollingConfig.setBatchStartWaitRandomMaxMs(rollingConfig.getBatchStartWaitRandomMaxMs());
+        executeObjectRollingConfig.setBatchStartWaitMinMs(rollingConfig.getBatchStartWaitMinMs());
+        executeObjectRollingConfig.setBatchStartWaitMaxMs(rollingConfig.getBatchStartWaitMaxMs());
 
         RollingBatchExecuteObjectsResolver resolver =
             new RollingBatchExecuteObjectsResolver(

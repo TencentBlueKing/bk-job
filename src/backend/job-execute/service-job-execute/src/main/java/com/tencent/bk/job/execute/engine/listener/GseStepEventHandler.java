@@ -247,14 +247,13 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         int executeCount = stepInstance.getExecuteCount();
         ExecuteObjectRollingConfigDetailDO detail = rollingConfig.getExecuteObjectRollingConfig();
         int totalBatch = detail.getTotalBatch();
-        long fixedMs = detail.getBatchStartWaitFixedMs() == null ? 0L : detail.getBatchStartWaitFixedMs();
-        long randomMinMs = detail.getBatchStartWaitRandomMinMs() == null ? 0L : detail.getBatchStartWaitRandomMinMs();
-        long randomMaxMs = detail.getBatchStartWaitRandomMaxMs() == null ? 0L : detail.getBatchStartWaitRandomMaxMs();
+        long minMs = detail.getBatchStartWaitMinMs() == null ? 0L : detail.getBatchStartWaitMinMs();
+        long maxMs = detail.getBatchStartWaitMaxMs() == null ? 0L : detail.getBatchStartWaitMaxMs();
         long baseTime = stepInstance.getStartTime() != null ? stepInstance.getStartTime() : System.currentTimeMillis();
 
-        // 累积式错峰：批1下发时刻=baseTime；批k=批(k-1)下发时刻+fixed+random(min,max)，随机每批独立采样
+        // 累积式错峰：批1下发时刻=baseTime；批k=批(k-1)下发时刻+random(min,max)，随机每批独立采样
         long[] dispatchTimes = ScatterBatchTimeCalculator.computeDispatchTimes(
-            baseTime, totalBatch, fixedMs, randomMinMs, randomMaxMs);
+            baseTime, totalBatch, minMs, maxMs);
 
         // 第一批次已即时下发，补登记下发信息（批1下发时刻=baseTime，偏移0）
         stepInstanceRollingTaskService.updateDispatchInfo(taskInstanceId, stepInstanceId, executeCount, 1,
@@ -743,9 +742,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         int executeCount = stepInstance.getExecuteCount();
         ExecuteObjectRollingConfigDetailDO detail = rollingConfig.getExecuteObjectRollingConfig();
         int totalBatch = detail.getTotalBatch();
-        long fixedMs = detail.getBatchStartWaitFixedMs() == null ? 0L : detail.getBatchStartWaitFixedMs();
-        long randomMinMs = detail.getBatchStartWaitRandomMinMs() == null ? 0L : detail.getBatchStartWaitRandomMinMs();
-        long randomMaxMs = detail.getBatchStartWaitRandomMaxMs() == null ? 0L : detail.getBatchStartWaitRandomMaxMs();
+        long minMs = detail.getBatchStartWaitMinMs() == null ? 0L : detail.getBatchStartWaitMinMs();
+        long maxMs = detail.getBatchStartWaitMaxMs() == null ? 0L : detail.getBatchStartWaitMaxMs();
         long baseTime = System.currentTimeMillis();
 
         if (stepInstance.getStartTime() == null) {
@@ -754,9 +752,9 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.RUNNING,
             stepInstance.getStartTime(), null, null);
 
-        // 累积式错峰：批1下发时刻=baseTime，批k = 批(k-1)下发时刻 + fixed + random(min,max)，随机每批独立采样
+        // 累积式错峰：批1下发时刻=baseTime，批k = 批(k-1)下发时刻 + random(min,max)，随机每批独立采样
         long[] dispatchTimes = ScatterBatchTimeCalculator.computeDispatchTimes(
-            baseTime, totalBatch, fixedMs, randomMinMs, randomMaxMs);
+            baseTime, totalBatch, minMs, maxMs);
         for (int batch = 1; batch <= totalBatch; batch++) {
             stepInstance.setBatch(batch);
             // 登记批次滚动任务

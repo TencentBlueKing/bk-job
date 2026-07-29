@@ -74,11 +74,11 @@ public class EsbRollingConfigDTO {
     private Integer executionMode = RollingExecutionModeEnum.SERIAL.getValue();
 
     /**
-     * 批次间固定间隔（累积式相邻批），单位毫秒，仅并行模式使用且必填
+     * 批次间最小延迟，单位毫秒，仅并行模式使用且必填
      */
     @NotNull(
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitFixedMs_NotNull.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMinMs_NotNull.message}"
     )
     @Min(
         value = 0,
@@ -90,15 +90,15 @@ public class EsbRollingConfigDTO {
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
         message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
-    @JsonProperty("batch_start_wait_fixed_ms")
-    private Long batchStartWaitFixedMs;
+    @JsonProperty("batch_start_wait_min_ms")
+    private Long batchStartWaitMinMs;
 
     /**
-     * 批次间随机延迟下限，单位毫秒，仅并行模式使用且必填
+     * 批次间最大延迟，单位毫秒，仅并行模式使用且必填，需 ≥ batch_start_wait_min_ms
      */
     @NotNull(
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitRandomMinMs_NotNull.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMaxMs_NotNull.message}"
     )
     @Min(
         value = 0,
@@ -110,28 +110,8 @@ public class EsbRollingConfigDTO {
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
         message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
-    @JsonProperty("batch_start_wait_random_min_ms")
-    private Long batchStartWaitRandomMinMs;
-
-    /**
-     * 批次间随机延迟上限，单位毫秒，仅并行模式使用且必填，需 ≥ batch_start_wait_random_min_ms
-     */
-    @NotNull(
-        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitRandomMaxMs_NotNull.message}"
-    )
-    @Min(
-        value = 0,
-        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
-    )
-    @Max(
-        value = 3600000,
-        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
-    )
-    @JsonProperty("batch_start_wait_random_max_ms")
-    private Long batchStartWaitRandomMaxMs;
+    @JsonProperty("batch_start_wait_max_ms")
+    private Long batchStartWaitMaxMs;
 
     /**
      * 滚动对象为【传输目标】的配置项

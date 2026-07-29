@@ -55,17 +55,13 @@ public class StepRollingConfigDTO {
      */
     private Integer executionMode;
     /**
-     * 批次间固定延迟（线性步长），单位毫秒，仅并行模式使用
+     * 批次间最小延迟，单位毫秒，仅并行模式使用
      */
-    private Long batchStartWaitFixedMs;
+    private Long batchStartWaitMinMs;
     /**
-     * 批次间随机延迟下限，单位毫秒，仅并行模式使用
+     * 批次间最大延迟，单位毫秒，仅并行模式使用
      */
-    private Long batchStartWaitRandomMinMs;
-    /**
-     * 批次间随机延迟上限，单位毫秒，仅并行模式使用
-     */
-    private Long batchStartWaitRandomMaxMs;
+    private Long batchStartWaitMaxMs;
     /**
      * 目标执行对象滚动表达式，当前不支持与源文件滚动同时配置，同时配置时，以目标执行对象滚动为准
      */
@@ -82,9 +78,8 @@ public class StepRollingConfigDTO {
         stepRollingConfigDTO.setType(rollingConfigVO.getType());
         stepRollingConfigDTO.setMode(rollingConfigVO.getMode());
         stepRollingConfigDTO.setExecutionMode(rollingConfigVO.getExecutionMode());
-        stepRollingConfigDTO.setBatchStartWaitFixedMs(rollingConfigVO.getBatchStartWaitFixedMs());
-        stepRollingConfigDTO.setBatchStartWaitRandomMinMs(rollingConfigVO.getBatchStartWaitRandomMinMs());
-        stepRollingConfigDTO.setBatchStartWaitRandomMaxMs(rollingConfigVO.getBatchStartWaitRandomMaxMs());
+        stepRollingConfigDTO.setBatchStartWaitMinMs(rollingConfigVO.getBatchStartWaitMinMs());
+        stepRollingConfigDTO.setBatchStartWaitMaxMs(rollingConfigVO.getBatchStartWaitMaxMs());
         stepRollingConfigDTO.setExpr(rollingConfigVO.getExpr());
         stepRollingConfigDTO.setFileSource(
             FileSourceRollingConfigDTO.fromVO(rollingConfigVO.getFileSource())
@@ -98,9 +93,8 @@ public class StepRollingConfigDTO {
         stepRollingConfigDTO.setType(rollingConfig.getType());
         stepRollingConfigDTO.setMode(rollingConfig.getMode());
         stepRollingConfigDTO.setExecutionMode(rollingConfig.getExecutionMode());
-        stepRollingConfigDTO.setBatchStartWaitFixedMs(rollingConfig.getBatchStartWaitFixedMs());
-        stepRollingConfigDTO.setBatchStartWaitRandomMinMs(rollingConfig.getBatchStartWaitRandomMinMs());
-        stepRollingConfigDTO.setBatchStartWaitRandomMaxMs(rollingConfig.getBatchStartWaitRandomMaxMs());
+        stepRollingConfigDTO.setBatchStartWaitMinMs(rollingConfig.getBatchStartWaitMinMs());
+        stepRollingConfigDTO.setBatchStartWaitMaxMs(rollingConfig.getBatchStartWaitMaxMs());
         stepRollingConfigDTO.setExpr(rollingConfig.getExpression());
         stepRollingConfigDTO.setFileSource(
             FileSourceRollingConfigDTO.fromEsbFileSourceRollingConfig(rollingConfig.getFileSource())
