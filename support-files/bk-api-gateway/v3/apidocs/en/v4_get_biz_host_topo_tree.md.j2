@@ -1,0 +1,91 @@
+### Description
+
+Query the host topology tree of a specified business. Each node in the tree returns the number of hosts under that node (deduplicated across its child nodes).
+
+This API only supports business (`biz`). If the resource scope type is business set (`biz_set`) or tenant set (`tenant_set`), a parameter error is returned. The returned topology tree is fully expanded by default and returns the complete hierarchy level by level through the `child` field, without pagination or lazy loading. The caller must have access permission on the target business.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bk_scope_type | string | Yes | Resource scope type. This API only supports `biz` (business); passing `biz_set` (business set) or `tenant_set` (tenant set) returns a parameter error |
+| bk_scope_id | string | Yes | Resource scope ID corresponding to `bk_scope_type`, representing a business ID |
+
+### Request Example
+
+- POST
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "2"
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+  "data": {
+    "object_id": "biz",
+    "object_name": "business",
+    "instance_id": 2,
+    "instance_name": "demo-biz",
+    "host_count": 3,
+    "child": [
+      {
+        "object_id": "set",
+        "object_name": "set",
+        "instance_id": 10,
+        "instance_name": "demo-set",
+        "host_count": 3,
+        "child": [
+          {
+            "object_id": "module",
+            "object_name": "module",
+            "instance_id": 100,
+            "instance_name": "demo-module",
+            "host_count": 3
+          }
+        ]
+      }
+    ]
+  },
+  "job_request_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Always Present | Description |
+|-------|------|----------------|-------------|
+| object_id | string | Yes | Node type ID. Possible values: `biz` (business), `set` (set), `module` (module) |
+| object_name | string | Yes | Node type name |
+| instance_id | long | Yes | Node instance ID |
+| instance_name | string | Yes | Node instance name |
+| host_count | int | Yes | Number of hosts under this node (deduplicated across all child nodes) |
+| child | array | No | Child node list with the same structure as this node; not returned for leaf nodes |
+
+##### child[] item
+
+| Field | Type | Always Present | Description |
+|-------|------|----------------|-------------|
+| object_id | string | Yes | Node type ID. Possible values: `biz` (business), `set` (set), `module` (module) |
+| object_name | string | Yes | Node type name |
+| instance_id | long | Yes | Node instance ID |
+| instance_name | string | Yes | Node instance name |
+| host_count | int | Yes | Number of hosts under this node (deduplicated across all child nodes) |
+| child | array | No | Child node list with the same structure as the parent, recursing level by level down to leaf nodes; not returned for leaf nodes |

@@ -1,0 +1,113 @@
+### Description
+
+Search hosts under a specified resource scope with pagination, supporting filters by topology node, IPv4, IPv6, host name, OS name, and Agent status.
+
+Resource scope supports business (`biz`), business set (`biz_set`), and tenant set (`tenant_set`): under a business, topology nodes can be used to narrow the range; a business set searches across all its sub-businesses; a tenant set searches across all hosts of the tenant (topology nodes do not take effect under business set / tenant set). IPv4, IPv6, host name, and OS name are all fuzzy matched (a match occurs when the value is similar to any keyword in the list); IPv6 supports compressed notation and is internally expanded to full form before matching. The caller must have access permission on the target resource scope.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bk_scope_type | string | Yes | Resource scope type. Possible values: `biz` (business), `biz_set` (business set), `tenant_set` (tenant set) |
+| bk_scope_id | string | Yes | Resource scope ID corresponding to `bk_scope_type`, representing a business ID, business-set ID, or tenant-set ID |
+| topo_node_list | array | No | Topology node list used to narrow the search range. Three semantics (consistent across all resource scopes): (1) when omitted or `null`, topology nodes are not used as a filter and all hosts under the resource scope are returned; (2) when an empty array `[]` is passed, it is treated as "no matching node" (usually the empty result of an upstream intersection) and an empty list is returned directly (`total=0`, `data=[]`) without querying; (3) when a non-empty node list is passed, hosts are filtered by nodes. Node filtering only takes effect when `bk_scope_type` is `biz` (business); under business set / tenant set a non-empty node list is ignored (i.e. the whole resource scope is searched) |
+| ipv4_key_list | array | No | IPv4 keyword list, fuzzy match; a host IPv4 matches when it is similar to any keyword in the list |
+| ipv6_key_list | array | No | IPv6 keyword list, fuzzy match; compressed notation is supported; a host IPv6 matches when it is similar to any keyword in the list |
+| host_name_key_list | array | No | Host name keyword list, fuzzy match; a host name matches when it is similar to any keyword in the list |
+| os_name_key_list | array | No | OS name keyword list, fuzzy match; an OS name matches when it is similar to any keyword in the list |
+| alive | int | No | Agent status filter. Possible values: `0` (abnormal), `1` (normal); not filtered by Agent status when omitted. This status is the Agent status persisted by the Job platform and may not be real-time |
+| offset | int | No | Pagination offset starting from 0; defaults to 0 if omitted; must be greater than or equal to 0 |
+| length | int | No | Number of records per page; defaults to 10 if omitted; valid range is 1 to 200 |
+
+##### topo_node_list[] item
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| object_id | string | Yes | Node type ID. Possible values: `biz` (business), `set` (set), `module` (module) |
+| instance_id | long | Yes | Node instance ID |
+
+### Request Example
+
+- POST
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "2",
+  "topo_node_list": [
+    {
+      "object_id": "module",
+      "instance_id": 100
+    }
+  ],
+  "ipv4_key_list": ["127.0.0.1"],
+  "ipv6_key_list": ["::1"],
+  "host_name_key_list": ["host"],
+  "os_name_key_list": ["linux"],
+  "alive": 1,
+  "offset": 0,
+  "length": 10
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+  "data": {
+    "total": 1,
+    "offset": 0,
+    "length": 10,
+    "data": [
+      {
+        "bk_host_id": 1000,
+        "ip": "127.0.0.1",
+        "ipv6": "0000:0000:0000:0000:0000:0000:0000:0001",
+        "bk_cloud_id": 0,
+        "bk_cloud_name": "Default Cloud Area",
+        "host_name": "host-a",
+        "os_name": "linux centos",
+        "os_type": "1",
+        "alive": 1
+      }
+    ]
+  },
+  "job_request_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Always Present | Description |
+|-------|------|----------------|-------------|
+| total | long | Yes | Total number of matched hosts before pagination |
+| offset | int | Yes | Pagination offset used in this query, starting from 0 |
+| length | int | Yes | Page size used in this query |
+| data | array | Yes | Host list; empty array when there is no data |
+
+##### data[] item
+
+| Field | Type | Always Present | Description |
+|-------|------|----------------|-------------|
+| bk_host_id | long | Yes | Host ID |
+| ip | string | No | Host IPv4 address |
+| ipv6 | string | No | Host IPv6 address |
+| bk_cloud_id | long | No | BK-Network area (cloud area) ID |
+| bk_cloud_name | string | No | BK-Network area (cloud area) name |
+| host_name | string | No | Host name |
+| os_name | string | No | OS name |
+| os_type | string | No | OS type identifier (synced from CMDB) |
+| alive | int | Yes | Agent status. Possible values: `0` (abnormal), `1` (normal); this is the Agent status persisted by the Job platform and may not be real-time |
