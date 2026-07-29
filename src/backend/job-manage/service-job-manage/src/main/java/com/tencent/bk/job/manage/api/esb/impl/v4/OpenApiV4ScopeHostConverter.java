@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.esb.impl.v4;
 
+import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4TopoNodeDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4HostTopoNodeDTO;
@@ -31,6 +32,7 @@ import com.tencent.bk.job.manage.model.esb.v4.resp.V4ScopeHostDTO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,7 +57,7 @@ public class OpenApiV4ScopeHostConverter {
         }
         V4HostTopoNodeDTO dto = new V4HostTopoNodeDTO();
         dto.setObjectId(node.getObjectId());
-        dto.setObjectName(node.getObjectName());
+        dto.setObjectName(resolveObjectName(node.getObjectId(), node.getObjectName()));
         dto.setInstanceId(node.getInstanceId());
         dto.setInstanceName(node.getInstanceName());
         dto.setHostCount(node.getCount());
@@ -67,6 +69,37 @@ public class OpenApiV4ScopeHostConverter {
             );
         }
         return dto;
+    }
+
+    /**
+     * 解析拓扑节点类型名称，保证对外 object_name 一定存在。
+     *
+     * <p>底层拓扑树（如 CMDB brief cache）的 set/module 节点 objectName 可能为空，
+     * 此处按通用节点类型 ID 补齐类型名称（biz-业务、set-集群、module-模块）；
+     * 用户自定义层级等未知类型则回退为 objectId，避免对外字段缺失。</p>
+     *
+     * @param objectId   节点类型 ID
+     * @param objectName 原始节点类型名称，可能为空
+     * @return 非空的节点类型名称
+     */
+    private static String resolveObjectName(String objectId, String objectName) {
+        if (StringUtils.isNotBlank(objectName)) {
+            return objectName;
+        }
+        CcNodeTypeEnum nodeType = CcNodeTypeEnum.parseString(objectId);
+        if (nodeType != null) {
+            switch (nodeType) {
+                case BIZ:
+                    return "业务";
+                case SET:
+                    return "集群";
+                case MODULE:
+                    return "模块";
+                default:
+                    break;
+            }
+        }
+        return objectId;
     }
 
     /**

@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.esb.v4.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
-import com.tencent.bk.job.common.exception.NotImplementedException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -144,7 +144,7 @@ class OpenApiScopeHostV4ResourceImplTest {
     }
 
     @Test
-    @DisplayName("拓扑树：biz_set 抛参数错误（仅业务支持）")
+    @DisplayName("拓扑树：biz_set 抛参数类错误(InvalidParamException, 映射为 4xx)，非服务端内部错误")
     void getBizHostTopoTree_bizSetRejected() {
         V4GetBizHostTopoTreeRequest request = new V4GetBizHostTopoTreeRequest();
         request.setScopeType("biz_set");
@@ -152,7 +152,31 @@ class OpenApiScopeHostV4ResourceImplTest {
         when(appScopeMappingService.getAppIdByScope("biz_set", "9991001")).thenReturn(100L);
 
         assertThatThrownBy(() -> resource.getBizHostTopoTree(USERNAME, APP_CODE, request))
-            .isInstanceOf(NotImplementedException.class);
+            .isInstanceOf(InvalidParamException.class);
+    }
+
+    @Test
+    @DisplayName("拓扑树：set/module 节点 object_name 缺失时按类型补齐（业务/集群/模块）")
+    void getBizHostTopoTree_fillMissingObjectName() {
+        V4GetBizHostTopoTreeRequest request = new V4GetBizHostTopoTreeRequest();
+        request.setScopeType("biz");
+        request.setScopeId("2");
+        when(appScopeMappingService.getAppIdByScope("biz", "2")).thenReturn(1L);
+
+        // 模拟底层拓扑树 set/module 节点 objectName 为空的场景
+        CcTopologyNodeVO module = buildNode("module", null, 100L, "db", 3, null);
+        CcTopologyNodeVO set = buildNode("set", null, 10L, "set-a", 3,
+            Collections.singletonList(module));
+        CcTopologyNodeVO biz = buildNode("biz", null, 2L, "biz-a", 3,
+            Collections.singletonList(set));
+        when(scopeTopoHostService.listAppTopologyHostCountTree(eq(USERNAME), any(AppResourceScope.class)))
+            .thenReturn(biz);
+
+        V4HostTopoNodeDTO root = resource.getBizHostTopoTree(USERNAME, APP_CODE, request).getData();
+        assertThat(root.getObjectName()).isEqualTo("业务");
+        V4HostTopoNodeDTO setNode = root.getChild().get(0);
+        assertThat(setNode.getObjectName()).isEqualTo("集群");
+        assertThat(setNode.getChild().get(0).getObjectName()).isEqualTo("模块");
     }
 
     // ---------------------- searchScopeHost ----------------------
@@ -249,6 +273,33 @@ class OpenApiScopeHostV4ResourceImplTest {
         assertThat(response.getData().getData()).isEmpty();
         assertThat(response.getData().getOffset()).isEqualTo(0);
         assertThat(response.getData().getLength()).isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("搜索：biz 不传拓扑节点时默认以业务根节点检索（返回全量而非 0 台）")
+    void searchScopeHost_bizWithoutTopoNodeDefaultsToBizRoot() {
+        V4SearchScopeHostRequest request = new V4SearchScopeHostRequest();
+        request.setScopeType("biz");
+        request.setScopeId("2");
+        when(appScopeMappingService.getAppIdByScope("biz", "2")).thenReturn(1L);
+        when(scopeHostService.searchHost(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+            .thenReturn(buildHostPageData(52L, Collections.singletonList(buildHost())));
+
+        EsbV4Response<V4SearchScopeHostResult> response =
+            resource.searchScopeHost(USERNAME, APP_CODE, request);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<BizTopoNode>> nodeCaptor = ArgumentCaptor.forClass(List.class);
+        verify(scopeHostService).searchHost(
+            any(AppResourceScope.class),
+            nodeCaptor.capture(),
+            any(), any(), any(), any(), any(), any(), anyLong(), anyLong());
+
+        // biz 作用域未传拓扑节点时，默认补入业务根节点(object_id=biz, instance_id=业务ID)
+        assertThat(nodeCaptor.getValue()).hasSize(1);
+        assertThat(nodeCaptor.getValue().get(0).getObjectId()).isEqualTo("biz");
+        assertThat(nodeCaptor.getValue().get(0).getInstanceId()).isEqualTo(2L);
+        assertThat(response.getData().getTotal()).isEqualTo(52L);
     }
 
     @Test

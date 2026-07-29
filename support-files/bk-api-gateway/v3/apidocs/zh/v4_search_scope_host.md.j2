@@ -12,7 +12,7 @@
 |------|------|------|------|
 | bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集）、`tenant_set`（租户集） |
 | bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID、业务集 ID 或租户集 ID |
-| topo_node_list | array | 否 | 拓扑节点列表，用于圈定搜索范围；仅在 `bk_scope_type` 为 `biz`（业务）时生效，业务集/租户集下将被忽略 |
+| topo_node_list | array | 否 | 拓扑节点列表，用于圈定搜索范围；仅在 `bk_scope_type` 为 `biz`（业务）时生效，业务集/租户集下将被忽略。业务下不传或传空时，默认搜索该业务下的全部主机 |
 | ipv4_key_list | array | 否 | IPv4 关键字列表，模糊匹配；主机 IPv4 与列表中任意一个关键字相似即命中 |
 | ipv6_key_list | array | 否 | IPv6 关键字列表，模糊匹配；支持压缩写法；主机 IPv6 与列表中任意一个关键字相似即命中 |
 | host_name_key_list | array | 否 | 主机名称关键字列表，模糊匹配；主机名称与列表中任意一个关键字相似即命中 |

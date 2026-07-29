@@ -12,7 +12,7 @@ Resource scope supports business (`biz`), business set (`biz_set`), and tenant s
 |-------|------|----------|-------------|
 | bk_scope_type | string | Yes | Resource scope type. Possible values: `biz` (business), `biz_set` (business set), `tenant_set` (tenant set) |
 | bk_scope_id | string | Yes | Resource scope ID corresponding to `bk_scope_type`, representing a business ID, business-set ID, or tenant-set ID |
-| topo_node_list | array | No | Topology node list used to narrow the search range; only takes effect when `bk_scope_type` is `biz` (business), and is ignored under business set / tenant set |
+| topo_node_list | array | No | Topology node list used to narrow the search range; only takes effect when `bk_scope_type` is `biz` (business), and is ignored under business set / tenant set. Under a business, when omitted or empty, all hosts of the business are searched by default |
 | ipv4_key_list | array | No | IPv4 keyword list, fuzzy match; a host IPv4 matches when it is similar to any keyword in the list |
 | ipv6_key_list | array | No | IPv6 keyword list, fuzzy match; compressed notation is supported; a host IPv6 matches when it is similar to any keyword in the list |
 | host_name_key_list | array | No | Host name keyword list, fuzzy match; a host name matches when it is similar to any keyword in the list |

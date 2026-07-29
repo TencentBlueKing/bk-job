@@ -25,8 +25,12 @@
 package com.tencent.bk.job.manage.api.esb.impl.v4;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.PageData;
@@ -45,8 +49,8 @@ import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.host.ScopeTopoHostService;
-import com.tencent.bk.job.manage.util.ScopeFeatureUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -82,8 +86,9 @@ public class OpenApiScopeHostV4ResourceImpl implements OpenApiScopeHostV4Resourc
                                                                V4GetBizHostTopoTreeRequest request) {
         request.fillAppResourceScope(appScopeMappingService);
         AppResourceScope appResourceScope = request.getAppResourceScope();
-        // 该接口仅支持业务(biz)，业务集/租户集直接拒绝
-        ScopeFeatureUtil.assertOnlyBizSupported(appResourceScope);
+        // 该接口仅支持业务(biz)，业务集/租户集属于客户端传入不受支持的资源范围类型，
+        // 按参数类错误(4xx)拒绝，而非服务端内部错误(500)。
+        assertOnlyBizSupported(appResourceScope);
 
         CcTopologyNodeVO topologyTree =
             scopeTopoHostService.listAppTopologyHostCountTree(username, appResourceScope);
@@ -103,6 +108,11 @@ public class OpenApiScopeHostV4ResourceImpl implements OpenApiScopeHostV4Resourc
         int length = request.getLength() == null ? 10 : request.getLength();
 
         List<BizTopoNode> nodeList = OpenApiV4ScopeHostConverter.toBizTopoNodeList(request.getTopoNodeList());
+        // 业务(biz)作用域下未指定拓扑节点时，语义等价于查询整个业务，默认以业务根节点检索，
+        // 避免底层按空模块集合过滤命中 0 台主机（业务集/租户集不按拓扑节点过滤，无需兜底）。
+        if (CollectionUtils.isEmpty(nodeList) && appResourceScope.isBiz()) {
+            nodeList = Collections.singletonList(buildBizRootNode(appResourceScope));
+        }
         PageData<ApplicationHostDTO> pageData = scopeHostService.searchHost(
             appResourceScope,
             nodeList,
@@ -133,5 +143,39 @@ public class OpenApiScopeHostV4ResourceImpl implements OpenApiScopeHostV4Resourc
                 .collect(Collectors.toList())
         );
         return EsbV4Response.success(result);
+    }
+
+    /**
+     * 断言资源范围为业务(biz)，否则按参数类错误(4xx)拒绝。
+     *
+     * <p>与 {@code ScopeFeatureUtil.assertOnlyBizSupported} 复用同一错误码
+     * {@link ErrorCode#NOT_SUPPORT_FEATURE_FOR_RESOURCE_SCOPE}，但抛出
+     * {@link InvalidParamException}，使 OpenAPI V4 返回 400 INVALID_ARGUMENT 而非 500 INTERNAL。</p>
+     *
+     * @param appResourceScope 资源范围
+     */
+    private void assertOnlyBizSupported(AppResourceScope appResourceScope) {
+        if (!appResourceScope.isBiz()) {
+            throw new InvalidParamException(
+                ErrorCode.NOT_SUPPORT_FEATURE_FOR_RESOURCE_SCOPE,
+                new Object[]{
+                    ResourceScopeTypeEnum.BIZ.name(),
+                    appResourceScope.getType().name()
+                }
+            );
+        }
+    }
+
+    /**
+     * 构造业务根节点（object_id=biz, instance_id=业务ID），用于业务作用域未指定拓扑节点时的默认全量检索。
+     *
+     * @param appResourceScope 业务资源范围
+     * @return 业务根拓扑节点
+     */
+    private BizTopoNode buildBizRootNode(AppResourceScope appResourceScope) {
+        BizTopoNode bizRootNode = new BizTopoNode();
+        bizRootNode.setObjectId(CcNodeTypeEnum.BIZ.getType());
+        bizRootNode.setInstanceId(Long.parseLong(appResourceScope.getId()));
+        return bizRootNode;
     }
 }

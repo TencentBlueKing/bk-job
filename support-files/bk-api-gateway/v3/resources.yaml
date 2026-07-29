@@ -6343,7 +6343,7 @@ paths:
                         type: number
                         description: 节点实例ID
                     description: 拓扑节点
-                  description: 拓扑节点列表，用于圈定搜索范围；仅在bk_scope_type为biz - 业务时生效，业务集/租户集下将被忽略
+                  description: 拓扑节点列表，用于圈定搜索范围；仅在bk_scope_type为biz - 业务时生效，业务集/租户集下将被忽略。业务下不传或传空时，默认搜索该业务下的全部主机
                 ipv4_key_list:
                   type: array
                   items:
