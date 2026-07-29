@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.esb.v4.req;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import lombok.Getter;
@@ -101,7 +102,7 @@ public class V4SearchScopeHostRequest extends EsbAppScopeReq {
     /**
      * 获取清洗后的 IPv4 关键字列表（去除 null 值与空字符串）。
      */
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     public List<String> getCleanIpv4KeyList() {
         return getCleanStringList(ipv4KeyList);
     }
@@ -109,7 +110,7 @@ public class V4SearchScopeHostRequest extends EsbAppScopeReq {
     /**
      * 获取清洗后的 IPv6 关键字列表（去除 null 值与空字符串）。
      */
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     public List<String> getCleanIpv6KeyList() {
         return getCleanStringList(ipv6KeyList);
     }
@@ -117,7 +118,7 @@ public class V4SearchScopeHostRequest extends EsbAppScopeReq {
     /**
      * 获取清洗后的主机名称关键字列表（去除 null 值与空字符串）。
      */
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     public List<String> getCleanHostNameKeyList() {
         return getCleanStringList(hostNameKeyList);
     }
@@ -125,7 +126,7 @@ public class V4SearchScopeHostRequest extends EsbAppScopeReq {
     /**
      * 获取清洗后的操作系统名称关键字列表（去除 null 值与空字符串）。
      */
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonIgnore
     public List<String> getCleanOsNameKeyList() {
         return getCleanStringList(osNameKeyList);
     }
