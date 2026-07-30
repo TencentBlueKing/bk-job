@@ -117,9 +117,8 @@
       <rolling-batch-delay
         v-else
         ref="batchStartWait"
-        :batch-start-wait-fixed-ms-field="batchStartWaitFixedMsField"
-        :batch-start-wait-random-max-ms-field="batchStartWaitRandomMaxMsField"
-        :batch-start-wait-random-min-ms-field="batchStartWaitRandomMinMsField"
+        :batch-start-wait-max-ms-field="batchStartWaitMaxMsField"
+        :batch-start-wait-min-ms-field="batchStartWaitMinMsField"
         :form-data="formData"
         @on-change="handleFieldChange" />
     </div>
@@ -210,15 +209,11 @@
         type: String,
         required: false,
       },
-      batchStartWaitFixedMsField: {
+      batchStartWaitMinMsField: {
         type: String,
         required: false,
       },
-      batchStartWaitRandomMinMsField: {
-        type: String,
-        required: false,
-      },
-      batchStartWaitRandomMaxMsField: {
+      batchStartWaitMaxMsField: {
         type: String,
         required: false,
       },
@@ -406,9 +401,8 @@
               [this.executionModeField]: 1,
               [this.maxExecuteObjectNumField]: null,
               [this.maxFileNumField]: null,
-              [this.batchStartWaitFixedMsField]: null,
-              [this.batchStartWaitRandomMinMsField]: null,
-              [this.batchStartWaitRandomMaxMsField]: null,
+              [this.batchStartWaitMinMsField]: null,
+              [this.batchStartWaitMaxMsField]: null,
             } : {}),
           });
         }
@@ -473,9 +467,8 @@
         if (executionMode === 2) {
           // 切换到并行模式时，默认设置延迟值
           this.$emit('on-reset', {
-            [this.batchStartWaitFixedMsField]: 5000,
-            [this.batchStartWaitRandomMinMsField]: 0,
-            [this.batchStartWaitRandomMaxMsField]: 0,
+            [this.batchStartWaitMinMsField]: 0,
+            [this.batchStartWaitMaxMsField]: 0,
           });
           this.$nextTick(() => {
             if (this.isFileMode) {

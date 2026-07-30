@@ -98,9 +98,8 @@
               name="targetServerOfExecution"
               @on-change="handleChange" />
             <item-factory
-              batch-start-wait-fixed-ms-field="rollingBatchStartWaitFixedMs"
-              batch-start-wait-random-max-ms-field="rollingBatchStartWaitRandomMaxMs"
-              batch-start-wait-random-min-ms-field="rollingBatchStartWaitRandomMinMs"
+              batch-start-wait-max-ms-field="rollingBatchStartWaitMaxMs"
+              batch-start-wait-min-ms-field="rollingBatchStartWaitMinMs"
               enabled-field="rollingEnabled"
               execution-mode-field="rollingExecutionMode"
               expr-field="rollingExpr"
@@ -222,9 +221,8 @@
     rollingExecutionMode: 1, // 执行模式：1-串行，2-并行
     rollingMaxExecuteObjectNum: null, // 单批次最大源执行对象数
     rollingMaxFileNum: null, // 单个执行对象的最大并发文件数
-    rollingBatchStartWaitFixedMs: null, // 批次间固定延迟（毫秒）
-    rollingBatchStartWaitRandomMinMs: null, // 批次间随机延迟下限（毫秒）
-    rollingBatchStartWaitRandomMaxMs: null, // 批次间随机延迟上限（毫秒）
+    rollingBatchStartWaitMinMs: null, // 批次间最小延迟（毫秒）
+    rollingBatchStartWaitMaxMs: null, // 批次间最大延迟（毫秒）
   });
 
   export default {
@@ -283,9 +281,8 @@
               mode: rollingMode,
               executionMode: rollingExecutionMode,
               fileSource,
-              batchStartWaitFixedMs: rollingBatchStartWaitFixedMs,
-              batchStartWaitRandomMinMs: rollingBatchStartWaitRandomMinMs,
-              batchStartWaitRandomMaxMs: rollingBatchStartWaitRandomMaxMs,
+              batchStartWaitMinMs: rollingBatchStartWaitMinMs,
+              batchStartWaitMaxMs: rollingBatchStartWaitMaxMs,
             },
           } = data.stepInfo;
           const {
@@ -319,9 +316,8 @@
             rollingExecutionMode,
             rollingMaxExecuteObjectNum: fileSource?.maxExecuteObjectNumInBatch,
             rollingMaxFileNum: fileSource?.maxFileNumOfSingleExecuteObject,
-            rollingBatchStartWaitFixedMs,
-            rollingBatchStartWaitRandomMinMs,
-            rollingBatchStartWaitRandomMaxMs,
+            rollingBatchStartWaitMinMs,
+            rollingBatchStartWaitMaxMs,
           };
         })
           .finally(() => {
@@ -534,9 +530,8 @@
               rollingExecutionMode,
               rollingMaxExecuteObjectNum,
               rollingMaxFileNum,
-              rollingBatchStartWaitFixedMs,
-              rollingBatchStartWaitRandomMinMs,
-              rollingBatchStartWaitRandomMaxMs,
+              rollingBatchStartWaitMinMs,
+              rollingBatchStartWaitMaxMs,
             } = this.formData;
 
             // 构建滚动配置
@@ -563,9 +558,8 @@
               rollingConfig.mode = rollingMode
             } else {
               // 并行模式时添加延迟配置
-              rollingConfig.batchStartWaitFixedMs = rollingBatchStartWaitFixedMs;
-              rollingConfig.batchStartWaitRandomMinMs = rollingBatchStartWaitRandomMinMs;
-              rollingConfig.batchStartWaitRandomMaxMs = rollingBatchStartWaitRandomMaxMs;
+              rollingConfig.batchStartWaitMinMs = rollingBatchStartWaitMinMs;
+              rollingConfig.batchStartWaitMaxMs = rollingBatchStartWaitMaxMs;
             }
 
             return TaskExecuteService.pushFile({
