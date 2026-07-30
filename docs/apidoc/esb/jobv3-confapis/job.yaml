@@ -322,7 +322,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/generate_local_file_upload_url/
   dest_http_method: POST
-  is_hidden: True
 
 - path: /v2/jobv3/create_public_script/
   name: create_public_script

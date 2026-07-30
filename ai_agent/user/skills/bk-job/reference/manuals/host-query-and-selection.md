@@ -79,6 +79,7 @@
 | 目标命令 | 主机参数 | 结构（优先用 bk_host_id） |
 |----------|----------|---------------------------|
 | `fast-execute-script` | `--host-id-list` / `--ip-list` / `--execute-target-file` | `--host-id-list 10001,10002`，或 `--ip-list 0:127.0.0.1`（`bk_cloud_id:ip`） |
+| `fast-transfer-file` | `--target-host-id-list` / `--target-ip-list`（目标）、`--source-host-id-list` / `--source-ip-list`（服务器文件源） | 见 [file-transfer.md](file-transfer.md) |
 | `plan-execute`（主机变量 type=3） | `--global-vars-file` | `server.ip_list` 或 `server.host_id_list`，见 [job-plans-search-and-execute.md](job-plans-search-and-execute.md) |
 | `plan-create`（执行目标变量 type=3） | `--variables-file` | `execute_target.host_list`，见 [job-plans-create-and-cron.md](job-plans-create-and-cron.md) |
 | `cron-save`（主机变量 type=3） | `--global-vars-file` | `server.ip_list` 或 `server.host_id_list` |

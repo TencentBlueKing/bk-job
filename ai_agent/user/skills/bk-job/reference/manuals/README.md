@@ -15,6 +15,7 @@
 | [job-plans-create-and-cron.md](job-plans-create-and-cron.md) | **`template-search`** / **`template-detail`** / **`plan-create`** / **`cron-save`** / **`cron-update-status`** 及创建后启用询问 |
 | [job-plans-search-and-execute.md](job-plans-search-and-execute.md) | 执行方案搜索、详情、`plan-execute` 与确认协议 |
 | [fast-execute-script.md](fast-execute-script.md) | **`fast-execute-script`** 到指定机器快速执行脚本（写操作，须过确认门禁） |
+| [file-transfer.md](file-transfer.md) | **`fast-transfer-file`** / `gen-local-upload-url` / `upload-local-file` 分发文件（服务器/本地/第三方文件源，写操作，须过确认门禁） |
 | [job-instance-status.md](job-instance-status.md) | 已知 `job_instance_id` 时查状态 |
 | [troubleshooting-and-status-codes.md](troubleshooting-and-status-codes.md) | 鉴权失败、无历史、状态码对照 |
 

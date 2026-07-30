@@ -12,7 +12,7 @@
 
 ## 2. 何时使用
 
-用户请求执行类操作、需要执行账号，但**未指定 `account_alias` / `account_id`** 时：
+用户请求执行类操作（如 `fast-execute-script` 快速执行脚本、`fast-transfer-file` 文件分发的目标账号与服务器文件源账号）、需要执行账号，但**未指定 `account_alias` / `account_id`** 时：
 
 - 用户说「用 root 跑这个脚本」但不确定账号是否存在 → 用 `account-list --account root` 或 `--alias root` 确认。
 - 用户完全没提账号 → 先 `account-list` 列出可用账号（默认系统账号 `--category system`），以表格引导选择。
@@ -70,6 +70,7 @@ python scripts/job_apigw_client.py account-list \
 ## 7. 相关手册与接口文档
 
 - [fast-execute-script.md](fast-execute-script.md) — 快速执行脚本的执行账号参数（`--account-alias` / `--account-id`）
+- [file-transfer.md](file-transfer.md) — 文件分发的目标账号与服务器文件源账号
 - [host-query-and-selection.md](host-query-and-selection.md) — 查/搜业务下主机，填写执行目标
 - [scope-selection-and-onboarding.md](scope-selection-and-onboarding.md) — 首次引导选择业务/业务集
 - [confirmation-and-output-protocol.md](confirmation-and-output-protocol.md) — 执行类写操作确认门禁

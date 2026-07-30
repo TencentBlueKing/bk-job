@@ -10,6 +10,7 @@
 - 作业实例状态查询与步骤执行日志获取
 - 业务主机拓扑树查询与资源范围下主机搜索（执行类操作填写主机时定位目标主机）
 - 业务下执行账号列表查询（执行类操作填写账号时引导选择可用账号）
+- 快速分发文件到目标机器（服务器文件/本地文件；本地文件先生成上传URL并上传）
 
 PowerShell 用户注意：传递 JSON 参数时，推荐用文件方式避免转义问题：
   --variables-file <文件路径>  代替  --variables <JSON>
@@ -467,6 +468,35 @@ def http_request(
         sys.exit(1)
 
 
+def http_upload_file(url: str, filepath: str, timeout: int = 600) -> Tuple[int, str]:
+    """将本地文件以 HTTP PUT 上传到指定 URL（用于本地文件分发时上传到制品库临时地址）。
+
+    等价于：curl -X PUT -H "Content-Type: application/octet-stream"
+             --data-binary @<file> "<upload_url>"
+    即以 PUT 方法将文件原始字节作为请求体上传；URL 自带鉴权 token
+    （来自 generate_local_file_upload_url 的 upload_url），不再附加 APIGW 鉴权头。
+    返回 (HTTP 状态码, 响应文本)。
+    """
+    path_obj = Path(filepath)
+    if not path_obj.is_file():
+        print(f"错误：待上传文件不存在: {filepath}", file=sys.stderr)
+        sys.exit(1)
+    data_bytes = path_obj.read_bytes()
+    req = urllib.request.Request(url, data=data_bytes, method="PUT")
+    req.add_header("Content-Type", "application/octet-stream")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            raw = resp.read().decode("utf-8", errors="replace")
+            return resp.getcode(), raw
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode("utf-8", errors="replace")
+        print(f"上传失败 HTTP {e.code}: {err_body}", file=sys.stderr)
+        sys.exit(1)
+    except urllib.error.URLError as e:
+        print(f"上传请求失败: {e.reason}", file=sys.stderr)
+        sys.exit(1)
+
+
 def v3_get(
     base_url: str,
     path: str,
@@ -839,9 +869,12 @@ def _parse_json_arg(raw: Optional[str], label: str) -> Any:
 
 
 def _read_json_file(filepath: str, label: str) -> Any:
-    """从文件读取 JSON（避免命令行转义问题）。"""
+    """从文件读取 JSON（避免命令行转义问题）。
+
+    使用 utf-8-sig 解码以兼容 Windows/PowerShell 常见的 UTF-8 BOM。
+    """
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, "r", encoding="utf-8-sig") as f:
             return json.load(f)
     except FileNotFoundError:
         print(f"{label}: 文件不存在: {filepath}", file=sys.stderr)
@@ -1349,6 +1382,274 @@ def cmd_account_list(args: argparse.Namespace) -> None:
     _scope_print(args, data)
 
 
+# 文件分发传输模式：与后端一致（1 严谨模式、2 强制模式）
+TRANSFER_MODE_TEXT = {1: "严谨模式", 2: "强制模式"}
+
+
+def _parse_host_id_list(raw: Optional[str], label: str) -> List[int]:
+    """将逗号分隔的主机 ID 字符串解析为整数列表。"""
+    if not raw:
+        return []
+    try:
+        return [int(h.strip()) for h in raw.split(",") if h.strip()]
+    except ValueError:
+        print(f"错误：{label} 须为逗号分隔的整数列表", file=sys.stderr)
+        sys.exit(1)
+
+
+def _parse_ip_list(raw: Optional[str], label: str) -> List[Dict[str, Any]]:
+    """将逗号分隔的 bk_cloud_id:ip 字符串解析为 [{bk_cloud_id, ip}] 列表。"""
+    if not raw:
+        return []
+    result: List[Dict[str, Any]] = []
+    for item in raw.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        parts = item.split(":")
+        if len(parts) != 2:
+            print(f"错误：{label} 格式无效: {item}，须为 bk_cloud_id:ip", file=sys.stderr)
+            sys.exit(1)
+        try:
+            result.append({"bk_cloud_id": int(parts[0]), "ip": parts[1]})
+        except ValueError:
+            print(f"错误：{label} 中 bk_cloud_id 须为整数: {item}", file=sys.stderr)
+            sys.exit(1)
+    return result
+
+
+def _build_transfer_server(
+    host_id_list: Optional[str],
+    ip_list: Optional[str],
+    server_file: Optional[str],
+    label: str,
+) -> Optional[Dict[str, Any]]:
+    """组装文件分发的 server 结构（目标服务器或服务器文件源的源服务器）。
+
+    优先使用 server_file（完整 JSON，支持动态分组/拓扑节点等复杂结构）；
+    否则用 host_id_list / ip_list 组装 host_id_list / ip_list[{bk_cloud_id, ip}]。
+    无任何目标时返回 None。
+    """
+    if server_file:
+        srv = _read_json_file(server_file, label)
+        if not isinstance(srv, dict):
+            print(f"{label} 内容须为 JSON 对象（server 结构）", file=sys.stderr)
+            sys.exit(1)
+        return srv
+    srv: Dict[str, Any] = {}
+    hosts = _parse_host_id_list(host_id_list, label + " 的 host-id-list")
+    if hosts:
+        srv["host_id_list"] = hosts
+    ips = _parse_ip_list(ip_list, label + " 的 ip-list")
+    if ips:
+        srv["ip_list"] = ips
+    return srv or None
+
+
+def cmd_gen_local_upload_url(args: argparse.Namespace) -> None:
+    """生成本地文件上传 URL（POST /api/v3/generate_local_file_upload_url）。
+
+    本地文件分发第一步：传入文件名列表，返回 url_map[文件名]={upload_url, path}。
+    upload_url 用于 upload-local-file 上传文件字节；path 用于 fast-transfer-file 的本地文件源(file_type=2)。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+    file_names = _split_comma_keywords(args.file_names)
+    if not file_names:
+        print("错误：请用 --file-names 指定要上传的文件名（逗号分隔）。", file=sys.stderr)
+        sys.exit(1)
+    body = {
+        **scope_params(args.bk_scope_type, args.bk_scope_id),
+        "file_name_list": file_names,
+    }
+    data = v3_post_json(base, "/api/v3/generate_local_file_upload_url", body, token)
+    _scope_print(args, data)
+
+
+def cmd_upload_local_file(args: argparse.Namespace) -> None:
+    """上传本地文件到制品库临时地址（HTTP PUT，非 APIGW）。
+
+    本地文件分发第二步：将 --file-path 指向的本地文件 PUT 到 gen-local-upload-url 返回的 upload_url。
+    """
+    status, resp_text = http_upload_file(args.upload_url, args.file_path)
+    result: Dict[str, Any] = {
+        "uploaded": True,
+        "http_status": status,
+        "file_path": args.file_path,
+    }
+    try:
+        result["response"] = json.loads(resp_text) if resp_text else None
+    except json.JSONDecodeError:
+        result["response_raw"] = resp_text
+    result["_note"] = (
+        "上传成功后，用 gen-local-upload-url 返回的对应 path 作为 fast-transfer-file 本地文件源"
+        "（file_type=2）的 file_list 传入。"
+    )
+    print_json(result)
+
+
+def _reject_unsupported_file_sources(sources: List[Any]) -> None:
+    """校验文件源仅为服务器文件(file_type=1)或本地文件(file_type=2)。
+
+    第三方文件源(file_type=3)相关接口暂未提供，技能暂不支持；检测到即报错退出。
+    """
+    for fs in sources:
+        if not isinstance(fs, dict):
+            continue
+        file_type = fs.get("file_type")
+        if file_type is not None and int(file_type) not in (1, 2):
+            print(
+                "错误：当前技能仅支持服务器文件(file_type=1)与本地文件(file_type=2)分发；"
+                "第三方文件源(file_type=3)相关接口暂未提供，暂不支持。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        if fs.get("file_source_id") is not None or fs.get("file_source_code"):
+            print(
+                "错误：检测到第三方文件源字段(file_source_id/file_source_code)，"
+                "当前技能暂不支持第三方文件源分发，请改用服务器文件或本地文件。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+
+def _build_transfer_file_sources(args: argparse.Namespace) -> List[Dict[str, Any]]:
+    """组装文件分发的 file_source_list。
+
+    仅支持服务器文件源(file_type=1)与本地文件源(file_type=2)。
+    优先使用 --file-source-file（完整 JSON 数组，用于服务器/本地文件的滚动等复杂结构）；
+    否则用便捷参数组装本地文件源与服务器文件源。第三方文件源(file_type=3)暂不支持。
+    """
+    if args.file_source_file:
+        sources = _read_json_file(args.file_source_file, "--file-source-file")
+        if not isinstance(sources, list):
+            print("--file-source-file 内容须为 JSON 数组（file_source 列表）", file=sys.stderr)
+            sys.exit(1)
+        _reject_unsupported_file_sources(sources)
+        return sources
+
+    sources: List[Dict[str, Any]] = []
+
+    local_files = _split_comma_keywords(args.local_file_list)
+    if local_files:
+        sources.append({"file_type": 2, "file_list": local_files})
+
+    server_files = _split_comma_keywords(args.server_file_list)
+    if server_files:
+        source_server = _build_transfer_server(
+            args.source_host_id_list, args.source_ip_list, None, "--source 服务器"
+        )
+        if not source_server:
+            print(
+                "错误：使用 --server-file-list 时须指定源服务器 --source-host-id-list 或 --source-ip-list。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        account: Dict[str, Any] = {}
+        if args.source_account_id is not None:
+            account["id"] = int(args.source_account_id)
+        if args.source_account_alias:
+            account["alias"] = args.source_account_alias
+        if not account:
+            print(
+                "错误：使用 --server-file-list 时须指定源账号 --source-account-alias 或 --source-account-id。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        sources.append(
+            {
+                "file_type": 1,
+                "file_list": server_files,
+                "account": account,
+                "server": source_server,
+            }
+        )
+
+    if not sources:
+        print(
+            "错误：未指定任何源文件。请提供 --local-file-list（本地文件，路径取自 gen-local-upload-url）、"
+            "--server-file-list（服务器文件）或 --file-source-file（完整 JSON，用于服务器/本地文件的滚动等复杂结构）。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return sources
+
+
+def cmd_fast_transfer_file(args: argparse.Namespace) -> None:
+    """快速分发文件（POST /api/v3/fast_transfer_file）。
+
+    变更类/生产执行操作：真实调用前须遵守确认门禁（G1–G4），支持 --dry-run 预览请求体。
+    源文件仅支持：服务器文件(file_type=1)、本地文件(file_type=2，需先 gen-local-upload-url + upload-local-file)。
+    第三方文件源(file_type=3)相关接口暂未提供，暂不支持。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+
+    if not args.file_target_path:
+        print("错误：请用 --file-target-path 指定目标路径。", file=sys.stderr)
+        sys.exit(1)
+    if args.account_id is None and not args.account_alias:
+        print("错误：请提供目标执行账号 --account-alias 或 --account-id。", file=sys.stderr)
+        sys.exit(1)
+
+    body: Dict[str, Any] = {
+        **scope_params(args.bk_scope_type, args.bk_scope_id),
+        "file_target_path": args.file_target_path,
+    }
+    if args.name:
+        body["task_name"] = args.name
+    if args.file_target_name:
+        body["file_target_name"] = args.file_target_name
+    if args.account_id is not None:
+        body["account_id"] = int(args.account_id)
+    if args.account_alias:
+        body["account_alias"] = args.account_alias
+
+    target_server = _build_transfer_server(
+        args.target_host_id_list, args.target_ip_list, args.target_server_file, "--target 服务器"
+    )
+    if not target_server:
+        print(
+            "错误：未指定目标服务器。请提供 --target-host-id-list、--target-ip-list 或 --target-server-file 之一。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    body["target_server"] = target_server
+
+    body["file_source_list"] = _build_transfer_file_sources(args)
+
+    if args.transfer_mode is not None:
+        mode = int(args.transfer_mode)
+        if mode not in TRANSFER_MODE_TEXT:
+            print("错误：--transfer-mode 仅支持 1（严谨模式）或 2（强制模式）。", file=sys.stderr)
+            sys.exit(1)
+        body["transfer_mode"] = mode
+    if args.timeout is not None:
+        timeout = int(args.timeout)
+        if timeout < FAST_EXEC_TIMEOUT_MIN or timeout > FAST_EXEC_TIMEOUT_MAX:
+            print(
+                f"错误：--timeout 取值须在 {FAST_EXEC_TIMEOUT_MIN}-{FAST_EXEC_TIMEOUT_MAX} 秒之间。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        body["timeout"] = timeout
+    if args.download_speed_limit is not None:
+        body["download_speed_limit"] = int(args.download_speed_limit)
+    if args.upload_speed_limit is not None:
+        body["upload_speed_limit"] = int(args.upload_speed_limit)
+    if args.callback_url:
+        body["callback_url"] = args.callback_url
+    if args.no_start_task:
+        body["start_task"] = False
+
+    if args.dry_run:
+        _scope_print(args, {"dry_run": True, "request_body": body})
+        return
+
+    data = v3_post_json(base, "/api/v3/fast_transfer_file", body, token)
+    _scope_print(args, enrich_plan_execute_result(data, get_job_base_url()))
+
+
 def main() -> None:
     configure_stdio_utf8()
 
@@ -1712,6 +2013,89 @@ def main() -> None:
         help=f"单页返回条数，默认 {LIST_PAGE_DEFAULT}（接口最大 1000）",
     )
     p_al.set_defaults(func=cmd_account_list)
+
+    p_gu = sub.add_parser(
+        "gen-local-upload-url",
+        help="生成本地文件上传 URL（POST /api/v3/generate_local_file_upload_url），本地文件分发第一步",
+    )
+    p_gu.add_argument("--bk-scope-type", default="biz", help="biz 业务 / biz_set 业务集，默认 biz")
+    p_gu.add_argument("--bk-scope-id", required=True, help="资源范围 ID，如业务 ID")
+    p_gu.add_argument(
+        "--file-names",
+        required=True,
+        help="要上传的文件名列表，逗号分隔，如 a.sh,b.tar.gz（仅文件名，用于生成上传地址与分发路径）",
+    )
+    p_gu.set_defaults(func=cmd_gen_local_upload_url)
+
+    p_ulf = sub.add_parser(
+        "upload-local-file",
+        help="上传本地文件到制品库临时地址（HTTP PUT，非 APIGW），本地文件分发第二步",
+    )
+    p_ulf.add_argument(
+        "--upload-url",
+        required=True,
+        help="gen-local-upload-url 返回的 upload_url（自带鉴权 token）",
+    )
+    p_ulf.add_argument("--file-path", required=True, help="待上传的本地文件绝对/相对路径")
+    p_ulf.set_defaults(func=cmd_upload_local_file)
+
+    p_ft = sub.add_parser(
+        "fast-transfer-file",
+        help="快速分发文件：分发文件到目标机器（POST /api/v3/fast_transfer_file，写操作，须过确认门禁）",
+    )
+    p_ft.add_argument("--bk-scope-type", default="biz", help="biz 业务 / biz_set 业务集，默认 biz")
+    p_ft.add_argument("--bk-scope-id", required=True, help="资源范围 ID，如业务 ID")
+    p_ft.add_argument("--name", help="自定义作业名称，长度不超过 512 字符")
+    p_ft.add_argument("--file-target-path", help="文件分发目标路径（必填），如 /tmp/")
+    p_ft.add_argument("--file-target-name", help="目标文件名（可选），不传保持源文件名")
+    p_ft.add_argument("--account-alias", help="目标机器执行账号别名；与 --account-id 至少提供一个")
+    p_ft.add_argument("--account-id", type=int, help="目标机器执行账号 ID；与 --account-alias 同时存在时优先")
+    p_ft.add_argument("--target-host-id-list", help="目标主机 bk_host_id 列表，逗号分隔")
+    p_ft.add_argument("--target-ip-list", help="目标主机 IP 列表，逗号分隔，格式为 bk_cloud_id:ip")
+    p_ft.add_argument(
+        "--target-server-file",
+        help="从文件读取完整 target_server JSON（支持动态分组/拓扑节点等复杂目标）",
+    )
+    p_ft.add_argument(
+        "--local-file-list",
+        help="本地文件源路径列表（file_type=2），逗号分隔；路径取自 gen-local-upload-url 返回的 path，须先 upload-local-file 上传",
+    )
+    p_ft.add_argument(
+        "--server-file-list",
+        help="服务器文件源路径列表（file_type=1），逗号分隔，源文件绝对路径；须配合 --source-account-* 与 --source-host-id-list/--source-ip-list",
+    )
+    p_ft.add_argument("--source-account-alias", help="服务器文件源账号别名（--server-file-list 时用）")
+    p_ft.add_argument("--source-account-id", type=int, help="服务器文件源账号 ID（--server-file-list 时用）")
+    p_ft.add_argument("--source-host-id-list", help="服务器文件源主机 bk_host_id 列表，逗号分隔")
+    p_ft.add_argument("--source-ip-list", help="服务器文件源主机 IP 列表，逗号分隔，格式为 bk_cloud_id:ip")
+    p_ft.add_argument(
+        "--file-source-file",
+        help="从文件读取完整 file_source_list JSON 数组（仅服务器文件 file_type=1 / 本地文件 file_type=2，用于滚动等复杂结构；第三方文件源暂不支持）",
+    )
+    p_ft.add_argument(
+        "--transfer-mode",
+        type=int,
+        help="传输模式：1 严谨模式、2 强制模式；不传用接口默认（强制模式）",
+    )
+    p_ft.add_argument(
+        "--timeout",
+        type=int,
+        help=f"任务超时时间（秒），取值 {FAST_EXEC_TIMEOUT_MIN}-{FAST_EXEC_TIMEOUT_MAX}，不传用接口默认 7200",
+    )
+    p_ft.add_argument("--download-speed-limit", type=int, help="下载限速，单位 MB；不传不限速")
+    p_ft.add_argument("--upload-speed-limit", type=int, help="上传限速，单位 MB；不传不限速")
+    p_ft.add_argument("--callback-url", help="任务执行完成后的回调 URL")
+    p_ft.add_argument(
+        "--no-start-task",
+        action="store_true",
+        help="仅创建任务不自动启动（start_task=false），默认自动启动",
+    )
+    p_ft.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="只打印将提交的请求体，不调用分发接口",
+    )
+    p_ft.set_defaults(func=cmd_fast_transfer_file)
 
     p_ml = sub.add_parser(
         "memory-load",
