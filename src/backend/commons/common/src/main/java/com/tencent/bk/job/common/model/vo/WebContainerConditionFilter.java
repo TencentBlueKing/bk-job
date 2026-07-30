@@ -54,6 +54,9 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WebContainerConditionFilter {
 
+    @Schema(description = "用户为该条过滤条件自定义的名称，最长60个字符")
+    private String name;
+
     @Schema(description = "拓扑路径列表，至少一项；多条路径共用同一组 propConditions")
     @NotEmpty(message = "{validation.constraints.WebContainerConditionFilter_kubeTopoListEmpty.message}")
     private List<WebKubeTopo> kubeTopoList;

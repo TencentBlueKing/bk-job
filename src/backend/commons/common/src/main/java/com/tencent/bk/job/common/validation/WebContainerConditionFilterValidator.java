@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
 import com.tencent.bk.job.common.model.vo.WebKubeNamespaceObject;
 import com.tencent.bk.job.common.model.vo.WebKubeTopo;
 import com.tencent.bk.job.common.model.vo.WebKubeWorkloadObject;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.XssChecker;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,6 +44,7 @@ import java.util.List;
  * 统一在此处完成 kubeTopoList 与 propConditions 的全部校验（不再依赖字段级 Bean Validation 注解，列表非空
  * 由 DTO 上的 {@code @NotEmpty} 额外兜底）：
  * <ul>
+ *   <li>name（用户自定义过滤条件名）：可不传；传了才校验长度 &le; 60、不含 XSS 字符（{@code < > " '}）</li>
  *   <li>kubeTopoList 必填非空</li>
  *   <li>每条 topo：cluster 必填且 id 非空；namespace 若填则 id 非空；workloads 若非空则必须先选 namespace，
  *       且每个 workload 的 kind 非空且为合法 workload 类型（见 {@link KubeTopoNodeTypeEnum}）、id 非空</li>
@@ -50,6 +53,11 @@ import java.util.List;
  * 校验失败抛 {@link InvalidParamException}，由全局异常处理转为标准错误响应。
  */
 public final class WebContainerConditionFilterValidator {
+
+    /**
+     * 自定义过滤条件名的最大长度，与脚本名/执行方案名等资源名保持一致
+     */
+    private static final int NAME_MAX_LENGTH = 60;
 
     private WebContainerConditionFilterValidator() {
     }
@@ -67,6 +75,7 @@ public final class WebContainerConditionFilterValidator {
         if (filter == null) {
             throwInvalid("container condition filter can not be null");
         }
+        validateName(filter.getName());
         if (CollectionUtils.isEmpty(filter.getKubeTopoList())) {
             throwInvalid("kubeTopoList is required");
         }
@@ -74,6 +83,23 @@ public final class WebContainerConditionFilterValidator {
             validateKubeTopo(topo);
         }
         KubePropConditionValidator.validate(filter.getPropConditions());
+    }
+
+    /**
+     * 校验用户自定义过滤条件名：name 可不传，传了才校验长度不超限、不含 XSS 字符（{@code < > " '}）。
+     */
+    private static void validateName(String name) {
+        if (StringUtils.isBlank(name)) {
+            return;
+        }
+        if (name.length() > NAME_MAX_LENGTH) {
+            throwInvalid("container condition filter name length can not exceed " + NAME_MAX_LENGTH);
+        }
+        try {
+            new StringCheckHelper(new XssChecker()).checkAndGetResult(name);
+        } catch (Exception e) {
+            throwInvalid("container condition filter name contains illegal char");
+        }
     }
 
     private static void validateKubeTopo(WebKubeTopo topo) {

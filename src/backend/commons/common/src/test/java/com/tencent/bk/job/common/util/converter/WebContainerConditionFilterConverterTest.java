@@ -45,7 +45,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * 校验 Web ↔ 内部 双向转换：Web 每条拓扑路径只把 ID 逐条映射到内部 KubeContainerFilter 的
- * kubeTopoList；name 不落库、不回显；不污染 v4 sub-filter；Web 不暴露 emptyFilter/fetchAnyOneContainer 两个内部开关。
+ * kubeTopoList，拓扑节点展示名不落库、不回显；用户自定义过滤条件名 name 则双向透传；
+ * 不污染 v4 sub-filter；Web 不暴露 emptyFilter/fetchAnyOneContainer 两个内部开关。
  */
 @DisplayName("WebContainerConditionFilterConverter: Web 入参 ↔ 内部 DTO")
 class WebContainerConditionFilterConverterTest {
@@ -64,6 +65,7 @@ class WebContainerConditionFilterConverterTest {
         KubeContainerFilter kube = WebContainerConditionFilterConverter.toKubeContainerFilter(web);
 
         assertThat(kube).isNotNull();
+        assertThat(kube.getName()).isEqualTo("我的容器过滤条件");
         assertThat(kube.getKubeTopoList()).hasSize(2);
         KubeTopoDTO topo0 = kube.getKubeTopoList().get(0);
         assertThat(topo0.getCluster().getId()).isEqualTo(1000L);
@@ -118,7 +120,7 @@ class WebContainerConditionFilterConverterTest {
     }
 
     @Test
-    @DisplayName("fromKubeContainerFilter: 反向回显 kubeTopoList；只带 id 不带 name；不外露 v4 字段；不外露内部开关")
+    @DisplayName("fromKubeContainerFilter: 反向回显 kubeTopoList 与自定义名 name；拓扑节点只带 id；不外露 v4 字段；不外露内部开关")
     void fromKubeFilterReverse() {
         KubeContainerFilter kube = WebContainerConditionFilterConverter.toKubeContainerFilter(buildFullWebFilter());
         // 模拟运行时把这两个开关置 true（v4 路径可能写过），反向回显不应回到 Web
@@ -128,6 +130,7 @@ class WebContainerConditionFilterConverterTest {
         WebContainerConditionFilter back = WebContainerConditionFilterConverter.fromKubeContainerFilter(kube);
 
         assertThat(back).isNotNull();
+        assertThat(back.getName()).isEqualTo("我的容器过滤条件");
         assertThat(back.getKubeTopoList()).hasSize(2);
         WebKubeTopo topo0 = back.getKubeTopoList().get(0);
         assertThat(topo0.getCluster().getId()).isEqualTo(1000L);
@@ -160,6 +163,7 @@ class WebContainerConditionFilterConverterTest {
 
     private static WebContainerConditionFilter buildFullWebFilter() {
         WebContainerConditionFilter web = new WebContainerConditionFilter();
+        web.setName("我的容器过滤条件");
         web.setKubeTopoList(Arrays.asList(
             topo(cluster(1000L), namespace(10000L),
                 workload("deployment", 20000L), workload("statefulSet", 20002L)),

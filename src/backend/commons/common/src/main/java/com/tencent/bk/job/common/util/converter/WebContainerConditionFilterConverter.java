@@ -57,6 +57,7 @@ public final class WebContainerConditionFilterConverter {
             return null;
         }
         KubeContainerFilter kube = new KubeContainerFilter();
+        kube.setName(web.getName());
         kube.setKubeTopoList(toKubeTopoList(web.getKubeTopoList()));
         kube.setPropConditions(clonePropConditions(web.getPropConditions()));
         kube.setEmptyFilter(false);
@@ -129,6 +130,7 @@ public final class WebContainerConditionFilterConverter {
             return null;
         }
         WebContainerConditionFilter web = new WebContainerConditionFilter();
+        web.setName(kube.getName());
         web.setKubeTopoList(fromKubeTopoList(kube.getKubeTopoList()));
         web.setPropConditions(clonePropConditions(kube.getPropConditions()));
         return web;

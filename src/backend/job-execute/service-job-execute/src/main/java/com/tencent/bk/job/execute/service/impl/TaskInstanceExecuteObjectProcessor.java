@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.tenant.TenantService;
@@ -93,6 +94,11 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 @Slf4j
 @Service
 public class TaskInstanceExecuteObjectProcessor {
+
+    /**
+     * 单个容器过滤条件渲染出的容器数量告警阈值：超过则打 WARN 日志提示潜在内存/GC 风险
+     */
+    private static final int CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD = 2000;
 
     private final TenantService tenantService;
     private final HostService hostService;
@@ -718,6 +724,8 @@ public class TaskInstanceExecuteObjectProcessor {
                     executeObjects.getContainerFilters().forEach(containerFilter -> {
                         List<Container> filteredContainers =
                             containerService.listContainerByContainerFilter(taskInstance.getAppId(), containerFilter);
+                        recordContainerFilterResolvedNum(
+                            taskInstance, stepInstance, containerFilter, CollectionUtils.size(filteredContainers));
                         if (CollectionUtils.isNotEmpty(filteredContainers)) {
                             taskInstanceExecuteObjects.addContainers(filteredContainers);
                             containerFilter.setContainers(filteredContainers);
@@ -725,6 +733,27 @@ public class TaskInstanceExecuteObjectProcessor {
                     });
                 }
             });
+        }
+    }
+
+    /**
+     * 记录单个容器过滤条件最终渲染出的容器数量：上报指标 + 打日志。
+     * 数量超过 {@link #CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD} 时打 WARN，提示可能的内存/GC 风险。
+     */
+    private void recordContainerFilterResolvedNum(TaskInstanceDTO taskInstance,
+                                                  StepInstanceDTO stepInstance,
+                                                  KubeContainerFilter containerFilter,
+                                                  int containerNum) {
+        executeObjectSampler.tryToRecordContainerFilterResolvedNum(taskInstance, containerFilter, containerNum);
+        if (containerNum > CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD) {
+            log.warn("Container filter resolved too many containers, taskInstanceId={}, stepInstanceId={}, "
+                    + "filterName={}, containerNum={}, threshold={}",
+                taskInstance.getId(), stepInstance.getId(), containerFilter.getName(), containerNum,
+                CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD);
+        } else {
+            log.info("Container filter resolved containers, taskInstanceId={}, stepInstanceId={}, "
+                    + "filterName={}, containerNum={}",
+                taskInstance.getId(), stepInstance.getId(), containerFilter.getName(), containerNum);
         }
     }
 

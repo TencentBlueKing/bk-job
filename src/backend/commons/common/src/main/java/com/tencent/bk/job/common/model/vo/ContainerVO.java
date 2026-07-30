@@ -81,6 +81,9 @@ public class ContainerVO {
     @Schema(description = "命名空间名称")
     private String namespace;
 
+    @Schema(description = "workload 在 cmdb 中的唯一 ID")
+    private Long workloadId;
+
     @Schema(description = "workload 类型")
     private String workloadType;
 }

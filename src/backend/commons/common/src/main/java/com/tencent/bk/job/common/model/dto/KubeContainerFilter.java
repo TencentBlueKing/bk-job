@@ -54,6 +54,8 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class KubeContainerFilter implements Cloneable {
 
+    // ======================== OpenAPI 入口字段（字符串 UID/名称形态，不含 CMDB 内部 ID） ========================
+
     /**
      * 集群过滤器（openapi 入口，字符串 UID）
      */
@@ -89,6 +91,13 @@ public class KubeContainerFilter implements Cloneable {
      */
     private boolean fetchAnyOneContainer;
 
+    // ======================== Web 动态条件入口字段（拓扑只含 CMDB 内部 id） ========================
+
+    /**
+     * 用户为该条过滤条件自定义的名称（Web 入口），随过滤器一起落库/流转，仅用于展示
+     */
+    private String name;
+
     /**
      * 拓扑路径列表（Web 入口；每条是一个 cluster→namespace→workload 路径，共用 propConditions）
      */
@@ -100,6 +109,8 @@ public class KubeContainerFilter implements Cloneable {
      */
     private List<KubePropCondition> propConditions;
 
+    // ======================== 运行时解析结果 ========================
+
     /**
      * 过滤之后的容器列表（运行时已解析结果；保存模板/方案/定时时为 null，由 NON_EMPTY 序列化跳过）
      */
@@ -108,6 +119,7 @@ public class KubeContainerFilter implements Cloneable {
     @Override
     public KubeContainerFilter clone() {
         KubeContainerFilter clone = new KubeContainerFilter();
+        clone.setName(name);
         if (clusterFilter != null) {
             clone.setClusterFilter(clusterFilter.clone());
         }

@@ -71,13 +71,6 @@ class OperatorDispatcherTest {
         void shouldReturnTrueForExposedField() {
             assertThat(OperatorDispatcher.isFieldExposed(QueryableContainerField.CONTAINER_NAME)).isTrue();
         }
-
-        @Test
-        @DisplayName("isFieldExposed: 未暴露字段（CONTAINER_ID/POD_ID）返回 false")
-        void shouldReturnFalseForUnexposedField() {
-            assertThat(OperatorDispatcher.isFieldExposed(QueryableContainerField.CONTAINER_ID)).isFalse();
-            assertThat(OperatorDispatcher.isFieldExposed(QueryableContainerField.POD_ID)).isFalse();
-        }
     }
 
     @Nested
@@ -110,13 +103,6 @@ class OperatorDispatcherTest {
         void podLabels() {
             assertThat(OperatorDispatcher.getAllowedOperators(QueryableContainerField.POD_LABELS))
                 .containsExactlyInAnyOrder(KubeContainerOperator.EQUAL);
-        }
-
-        @Test
-        @DisplayName("未暴露字段（CONTAINER_ID）：返回空集")
-        void unexposedFieldReturnsEmpty() {
-            assertThat(OperatorDispatcher.getAllowedOperators(QueryableContainerField.CONTAINER_ID)).isEmpty();
-            assertThat(OperatorDispatcher.getAllowedOperators(QueryableContainerField.POD_ID)).isEmpty();
         }
 
         @Test
@@ -180,13 +166,6 @@ class OperatorDispatcherTest {
                 QueryableContainerField.CONTAINER_NAME, KubeContainerOperator.NOT_EQUAL)).isFalse();
             assertThat(OperatorDispatcher.isOperatorAllowed(
                 QueryableContainerField.CONTAINER_NAME, KubeContainerOperator.IN)).isFalse();
-        }
-
-        @Test
-        @DisplayName("未暴露字段（CONTAINER_ID）一律拒绝")
-        void unexposedFieldRejected() {
-            assertThat(OperatorDispatcher.isOperatorAllowed(
-                QueryableContainerField.CONTAINER_ID, KubeContainerOperator.EQUAL)).isFalse();
         }
 
         @Test

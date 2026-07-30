@@ -83,16 +83,16 @@ class KubePropConditionValidatorTest {
         }
 
         @Test
-        @DisplayName("未暴露字段（CONTAINER_ID）→ InvalidParamException")
-        void unexposedFieldRejected() {
+        @DisplayName("不支持的字段（container_id 已下线）→ InvalidParamException")
+        void unsupportedContainerIdRejected() {
             KubePropCondition cond = new KubePropCondition("container_id", "equal", 1L);
             assertThatThrownBy(() -> KubePropConditionValidator.validate(cond))
                 .isInstanceOf(InvalidParamException.class);
         }
 
         @Test
-        @DisplayName("未暴露字段（POD_ID）→ InvalidParamException")
-        void podIdRejected() {
+        @DisplayName("不支持的字段（pod_id 已下线）→ InvalidParamException")
+        void unsupportedPodIdRejected() {
             KubePropCondition cond = new KubePropCondition("pod_id", "equal", 1L);
             assertThatThrownBy(() -> KubePropConditionValidator.validate(cond))
                 .isInstanceOf(InvalidParamException.class);

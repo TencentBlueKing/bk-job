@@ -30,16 +30,13 @@ package com.tencent.bk.job.common.constant;
  * 字段名遵循 bk-cmdb filter 命名约定：全小写 snake_case，
  * 容器自身字段以 {@code container_} 前缀，所属 Pod 字段以 {@code pod_} 前缀。
  * <p>
- * 当前字段全集仅保留对动态容器条件过滤有产品化需求的字段：容器 ID、容器名称、容器 UID、
- * Pod ID、Pod 名称、Pod 标签。
+ * 当前字段全集仅保留对动态容器条件过滤有产品化需求的字段：容器名称、容器 UID、Pod 名称、Pod 标签。
  * <p>
  * 对外暴露的字段子集由后端 EXPOSED_FIELDS 配置点控制。
  */
 public enum QueryableContainerField {
-    CONTAINER_ID("container_id", CMDBContainerFieldType.NUMERIC),
     CONTAINER_NAME("container_name", CMDBContainerFieldType.STRING),
     CONTAINER_CONTAINER_UID("container_container_uid", CMDBContainerFieldType.STRING),
-    POD_ID("pod_id", CMDBContainerFieldType.NUMERIC),
     POD_NAME("pod_name", CMDBContainerFieldType.STRING),
     POD_LABELS("pod_labels", CMDBContainerFieldType.OBJECT);
 

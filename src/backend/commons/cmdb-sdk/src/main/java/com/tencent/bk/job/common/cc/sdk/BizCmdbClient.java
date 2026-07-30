@@ -2028,7 +2028,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     /**
-     * v4 / 历史形态：cluster UIDs / namespace 名称 / workload kind+名称，需要先访 CMDB 翻译为 ID。
+     * v4 / 历史形态：cluster UIDs / namespace 名称 / workload kind+名称，需要先查询 CMDB 翻译为 ID。
      */
     private List<KubeNodeID> computeKubeTopoNodeFromFilters(long bizId, KubeContainerFilter filter) {
         KubeClusterFilter clusterFilter = filter.getClusterFilter();

@@ -149,6 +149,21 @@ class KubeContainerFilterJsonCompatibilityTest {
         }
 
         @Test
+        @DisplayName("用户自定义过滤条件名 name 参与序列化并可 round-trip 保真")
+        void customNamePersistsThroughJson() {
+            KubeContainerFilter filter = new KubeContainerFilter();
+            filter.setName("我的容器过滤条件");
+            filter.setKubeTopoList(Collections.singletonList(
+                new KubeTopoDTO(new KubeClusterObjectDTO(1000L), null, null)));
+
+            String json = JsonUtils.toJson(filter);
+            assertThat(json).contains("\"name\":\"我的容器过滤条件\"");
+
+            KubeContainerFilter back = JsonUtils.fromJson(json, KubeContainerFilter.class);
+            assertThat(back.getName()).isEqualTo("我的容器过滤条件");
+        }
+
+        @Test
         @DisplayName("Round-trip：序列化 → 反序列化 → 字段全保真")
         void roundTripPreservesFields() {
             KubeContainerFilter original = new KubeContainerFilter();
