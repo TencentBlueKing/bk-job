@@ -28,8 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -39,18 +38,18 @@ import lombok.ToString;
 @Setter
 @ToString
 @NoArgsConstructor
-@ApiModel("BasicVO")
+@Schema(description = "BasicVO")
 public class BasicVO {
     /**
      * 创建者
      */
-    @ApiModelProperty(value = "创建者")
+    @Schema(description = "创建者")
     private String creator;
 
     /**
      * 创建时间
      */
-    @ApiModelProperty(value = "创建时间")
+    @Schema(description = "创建时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     @JsonDeserialize(using = LongTimestampDeserializer.class)
     private Long createTime;
@@ -58,13 +57,13 @@ public class BasicVO {
     /**
      * 最后修改人
      */
-    @ApiModelProperty(value = "最后更新者")
+    @Schema(description = "最后更新者")
     private String lastModifyUser;
 
     /**
      * 最后修改时间
      */
-    @ApiModelProperty(value = "最后更新时间")
+    @Schema(description = "最后更新时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     @JsonDeserialize(using = LongTimestampDeserializer.class)
     private Long lastModifyTime;

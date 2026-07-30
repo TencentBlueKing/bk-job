@@ -491,7 +491,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             .orderBy(T_STEP_INSTANCE.ID.asc())
             .fetch();
         List<StepInstanceBaseDTO> stepInstanceList = new ArrayList<>();
-        result.into(record -> stepInstanceList.add(extractBaseInfo(record)));
+        result.forEach(record -> stepInstanceList.add(extractBaseInfo(record)));
         return stepInstanceList;
     }
 
@@ -954,12 +954,12 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
 
     @Override
     public List<Long> getTaskStepInstanceIdList(long taskInstanceId) {
-        Result result = CTX.select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
+        Result<? extends Record> result = CTX.select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
             .where(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .orderBy(StepInstance.STEP_INSTANCE.ID.asc())
             .fetch();
         List<Long> stepInstanceIdList = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             Long stepInstanceId = record.getValue(StepInstance.STEP_INSTANCE.ID);
             if (stepInstanceId != null) {
                 stepInstanceIdList.add(stepInstanceId);

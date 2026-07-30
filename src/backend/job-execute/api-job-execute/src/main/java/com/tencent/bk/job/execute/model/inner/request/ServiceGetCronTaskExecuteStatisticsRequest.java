@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.execute.model.inner.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -34,11 +33,11 @@ import java.util.List;
  * 获取定时作业执行统计信息-请求
  */
 @Data
-@ApiModel("获取定时作业执行统计信息")
+@Schema(description = "获取定时作业执行统计信息")
 public class ServiceGetCronTaskExecuteStatisticsRequest {
-    @ApiModelProperty(value = "业务ID", required = true)
+    @Schema(description = "业务ID", required = true)
     private Long appId;
 
-    @ApiModelProperty(value = "定时任务ID", required = true)
+    @Schema(description = "定时任务ID", required = true)
     private List<Long> cronTaskIdList;
 }

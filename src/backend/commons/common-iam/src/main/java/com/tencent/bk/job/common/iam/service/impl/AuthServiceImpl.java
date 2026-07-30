@@ -67,6 +67,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_TENANT_ID;
+
 @Slf4j
 public class AuthServiceImpl extends BasicAuthService implements AuthService {
     private final AuthHelper authHelper;
@@ -95,7 +97,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
 
     @Override
     public AuthResult auth(String username, String actionId) {
-        boolean isAllowed = authHelper.isAllowed(username, actionId);
+        boolean isAllowed = authHelper.isAllowed(DEFAULT_TENANT_ID, username, actionId);
         if (isAllowed) {
             return AuthResult.pass();
         } else {
@@ -109,7 +111,12 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                            ResourceTypeEnum resourceType,
                            String resourceId,
                            PathInfoDTO pathInfo) {
-        boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstance(resourceType, resourceId, pathInfo));
+        boolean isAllowed = authHelper.isAllowed(
+            DEFAULT_TENANT_ID,
+            username,
+            actionId,
+            buildInstance(resourceType, resourceId, pathInfo)
+        );
         if (isAllowed) {
             return AuthResult.pass();
         } else {
@@ -140,7 +147,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
             String actionId = actionResource.getActionId();
             List<PermissionResourceGroup> relatedResourceGroups = actionResource.getResourceGroups();
             if (relatedResourceGroups == null || relatedResourceGroups.isEmpty()) {
-                if (!authHelper.isAllowed(username, actionId)) {
+                if (!authHelper.isAllowed(DEFAULT_TENANT_ID, username, actionId)) {
                     authResult.setPass(false);
                     PermissionActionResource requiredActionResource = new PermissionActionResource();
                     requiredActionResource.setActionId(actionId);
@@ -153,7 +160,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                 List<PermissionResource> resources = relatedResourceGroups.get(0).getPermissionResources();
                 // All resources are under one application, so choose any one for authentication
                 List<String> allowedResourceIds =
-                    authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+                    authHelper.isAllowed(DEFAULT_TENANT_ID, username, actionId, buildInstanceList(resources));
                 List<String> notAllowResourceIds =
                     resources.stream().filter(resource -> !allowedResourceIds.contains(resource.getResourceId()))
                         .map(PermissionResource::getResourceId).collect(Collectors.toList());
@@ -185,7 +192,8 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     @Override
     public List<String> batchAuth(String username, String actionId, ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
-        return authHelper.isAllowed(username, actionId, buildInstanceList(resourceType, resourceIdList));
+        return authHelper.isAllowed(
+            DEFAULT_TENANT_ID, username, actionId, buildInstanceList(resourceType, resourceIdList));
     }
 
     @Override
@@ -193,7 +201,8 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                                          String actionId,
                                          List<PermissionResource> resources) {
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
-        List<String> allowResourceIds = authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+        List<String> allowResourceIds = authHelper.isAllowed(
+            DEFAULT_TENANT_ID, username, actionId, buildInstanceList(resources));
         List<String> notAllowResourceIds =
             resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
                 .map(PermissionResource::getResourceId).collect(Collectors.toList());

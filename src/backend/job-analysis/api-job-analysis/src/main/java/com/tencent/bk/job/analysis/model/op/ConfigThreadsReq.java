@@ -24,19 +24,18 @@
 
 package com.tencent.bk.job.analysis.model.op;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@ApiModel
+@Schema
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class ConfigThreadsReq {
-    @ApiModelProperty("每日统计线程数量")
+    @Schema(description = "每日统计线程数量")
     Integer currentStatisticThreadsNum;
-    @ApiModelProperty("历史数据补全统计线程数量")
+    @Schema(description = "历史数据补全统计线程数量")
     Integer pastStatisticThreadsNum;
 }

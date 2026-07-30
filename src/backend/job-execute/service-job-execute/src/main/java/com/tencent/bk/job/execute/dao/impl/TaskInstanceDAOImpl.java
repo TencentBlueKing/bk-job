@@ -83,7 +83,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME, TASK_INSTANCE.CALLBACK_URL,
             TASK_INSTANCE.TYPE, TASK_INSTANCE.APP_CODE)
             .values(taskInstance.getPlanId(),
-                taskInstance.getCronTaskId(),
+                taskInstance.getCronTaskId() != null ? taskInstance.getCronTaskId() : 0L,
                 taskInstance.getTaskTemplateId(),
                 taskInstance.isDebugTask() ? (byte) 1 : (byte) 0,
                 taskInstance.getAppId(),
@@ -145,7 +145,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
     @Override
     public List<TaskInstanceDTO> getTaskInstanceByTaskId(long taskId) {
-        Result result = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
+        Result<? extends Record> result = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
             TASK_INSTANCE.TASK_TEMPLATE_ID,
             TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
             TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
@@ -155,7 +155,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             TASK_INSTANCE.APP_CODE).from(TASK_INSTANCE)
             .where(TASK_INSTANCE.TASK_ID.eq(taskId)).fetch();
         List<TaskInstanceDTO> taskInstances = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             TaskInstanceDTO taskInstance = extractInfo(record);
             if (taskInstance != null) {
                 taskInstances.add(taskInstance);
@@ -197,7 +197,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     @Override
     public void resetTaskStatus(Long taskInstanceId) {
         ctx.update(TASK_INSTANCE).setNull(TASK_INSTANCE.START_TIME).setNull(TASK_INSTANCE.END_TIME).setNull(TASK_INSTANCE.TOTAL_TIME)
-            .setNull(TASK_INSTANCE.CURRENT_STEP_ID)
+            .set(TASK_INSTANCE.CURRENT_STEP_ID, 0L)
             .set(TASK_INSTANCE.STATUS, JooqDataTypeUtil.toByte(RunStatusEnum.BLANK.getValue()))
             .where(TASK_INSTANCE.ID.eq(taskInstanceId))
             .execute();
@@ -269,7 +269,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.ID.desc());
-        Result result = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
+        Result<? extends Record> result = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
             TASK_INSTANCE.TASK_TEMPLATE_ID,
             TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
             TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
@@ -298,10 +298,11 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         return buildTaskInstancePageData(start, length, count, result);
     }
 
-    private PageData<TaskInstanceDTO> buildTaskInstancePageData(int start, int length, int count, Result result) {
+    private PageData<TaskInstanceDTO> buildTaskInstancePageData(int start, int length, int count,
+                                                               Result<? extends Record> result) {
         List<TaskInstanceDTO> taskInstances = new ArrayList<>();
         if (result != null && result.size() > 0) {
-            result.into(record -> taskInstances.add(extractInfo(record)));
+            result.forEach(record -> taskInstances.add(extractInfo(record)));
         }
         PageData<TaskInstanceDTO> pageData = new PageData<>();
         pageData.setData(taskInstances);
@@ -393,14 +394,14 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         if (log.isDebugEnabled()) {
             log.debug("SQL=", select.getSQL(ParamType.INLINED));
         }
-        Result result;
+        Result<? extends Record> result;
         if (limit != null && limit > 0) {
             result = select.limit(0, limit.intValue()).fetch();
         } else {
             result = select.fetch();
         }
         List<TaskInstanceDTO> taskInstances = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             TaskInstanceDTO taskInstance = extractInfo(record);
             if (taskInstance != null) {
                 taskInstances.add(taskInstance);
@@ -473,11 +474,11 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         if (minCreateTime != null) {
             conditions.add(TASK_INSTANCE.CREATE_TIME.greaterOrEqual(minCreateTime));
         }
-        Result result = ctx.selectDistinct(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
+        Result<? extends Record> result = ctx.selectDistinct(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
             .where(conditions)
             .fetch();
         List<Long> appIdList = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             Long appId = record.getValue(TASK_INSTANCE.APP_ID);
             if (appId != null) {
                 appIdList.add(appId);
@@ -525,7 +526,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             .limit(offset, limit)
             .fetch();
         List<Long> taskInstanceIdList = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             taskInstanceIdList.add(record.get(TASK_INSTANCE.ID));
         });
         return taskInstanceIdList;

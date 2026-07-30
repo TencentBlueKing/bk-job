@@ -30,7 +30,6 @@ import com.tencent.bk.job.analysis.model.tables.AnalysisTaskStaticInstance;
 import com.tencent.bk.job.analysis.model.tables.records.AnalysisTaskStaticInstanceRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;

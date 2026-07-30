@@ -24,20 +24,19 @@
 
 package com.tencent.bk.job.manage.model.web.request.chooser;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("获取拓扑树请求")
+@Schema(description = "获取拓扑树请求")
 public class ListTopologyTreesReq {
 
-    @ApiModelProperty(value = "是否获取所有资源范围的拓扑结构，默认为false", required = true)
+    @Schema(description = "是否获取所有资源范围的拓扑结构，默认为false", required = true)
     Boolean allScope = false;
 
-    @ApiModelProperty(value = "要获取拓扑树的资源范围列表")
+    @Schema(description = "要获取拓扑树的资源范围列表")
     List<Scope> scopeList;
 
 }

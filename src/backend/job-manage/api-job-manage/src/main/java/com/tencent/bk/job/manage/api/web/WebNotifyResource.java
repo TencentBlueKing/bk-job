@@ -33,9 +33,9 @@ import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,92 +45,91 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:web:Notify"})
+@Tag(name = "job-manage:web:Notify")
 @RequestMapping("/web/notify")
 @RestController
 @WebAPI
 public interface WebNotifyResource {
 
-    @ApiOperation(value = "获取业务通知策略列表", produces = "application/json")
+    @Operation(summary = "获取业务通知策略列表")
     @GetMapping("/scope/{scopeType}/{scopeId}/policies/listDefault")
     Response<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId
     );
 
 
-    @ApiOperation(value = "保存业务下默认通知策略", produces = "application/json")
+    @Operation(summary = "保存业务下默认通知策略")
     @PostMapping("/scope/{scopeType}/{scopeId}/saveAppDefaultPolicies")
     Response<Long> saveAppDefaultNotifyPolicies(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @Parameter(description = "创建或更新请求体", required = true)
         @RequestBody
             NotifyPoliciesCreateUpdateReq createUpdateReq
     );
 
 
-    @ApiOperation(value = "页面模板", produces = "application/json")
+    @Operation(summary = "页面模板")
     @GetMapping("/pageTemplate")
     Response<PageTemplateVO> getPageTemplate(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
-    @ApiOperation(value = "角色列表", produces = "application/json")
+    @Operation(summary = "角色列表")
     @GetMapping("/roles/list")
     Response<List<RoleVO>> listRoles(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
-    @ApiOperation(value = "根据用户英文名前缀拉取用户列表（不包括黑名单内用户）", produces = "application/json")
+    @Operation(summary = "根据用户英文名前缀拉取用户列表（不包括黑名单内用户）")
     @GetMapping("/users/list")
     Response<List<UserVO>> listUsers(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("英文名前缀（逗号分隔）")
+        @Parameter(description = "英文名前缀（逗号分隔）")
         @RequestParam(value = "prefixStr", required = false)
             String prefixStr,
-        @ApiParam("起始位置")
+        @Parameter(description = "起始位置")
         @RequestParam(value = "offset", required = false)
             Long offset,
-        @ApiParam("拉取数量")
+        @Parameter(description = "拉取数量")
         @RequestParam(value = "limit", required = false)
             Long limit
     );
 
-    @ApiOperation(value = "后台自测调试用接口：发送消息通知", produces = "application/json")
+    @Operation(summary = "后台自测调试用接口：发送消息通知")
     @PostMapping("/notifications/send")
     Response<?> sendNotification(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
         @RequestBody

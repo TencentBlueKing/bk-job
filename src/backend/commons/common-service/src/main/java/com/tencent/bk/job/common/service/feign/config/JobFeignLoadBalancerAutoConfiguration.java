@@ -38,8 +38,11 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.config.BlockingLoadBalancerClientAutoConfiguration;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.cloud.openfeign.loadbalancer.FeignLoadBalancerAutoConfiguration;
+import org.springframework.cloud.openfeign.loadbalancer.LoadBalancerFeignRequestTransformer;
 import org.springframework.cloud.openfeign.loadbalancer.RetryableFeignBlockingLoadBalancerClient;
 import org.springframework.context.annotation.Bean;
+
+import java.util.List;
 
 /**
  * FeignBlockingLoadBalancerClient相关的自定义Bean配置
@@ -57,13 +60,15 @@ public class JobFeignLoadBalancerAutoConfiguration {
         matchIfMissing = true)
     public Client feignRetryClient(LoadBalancerClient loadBalancerClient,
                                    LoadBalancedRetryFactory loadBalancedRetryFactory,
-                                   LoadBalancerClientFactory loadBalancerClientFactory) {
+                                   LoadBalancerClientFactory loadBalancerClientFactory,
+                                   List<LoadBalancerFeignRequestTransformer> transformers) {
         log.info("feignRetryClient init");
         return new RetryableFeignBlockingLoadBalancerClient(
             new WatchableFeignClient(null, null),
             loadBalancerClient,
             loadBalancedRetryFactory,
-            loadBalancerClientFactory
+            loadBalancerClientFactory,
+            transformers
         );
     }
 }

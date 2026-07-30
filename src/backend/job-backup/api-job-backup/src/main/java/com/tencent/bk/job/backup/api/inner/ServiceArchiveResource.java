@@ -27,13 +27,13 @@ package com.tencent.bk.job.backup.api.inner;
 import com.tencent.bk.job.backup.model.inner.ServiceArchiveDBRequest;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api(tags = {"DB_Archive"})
+@Tag(name = "DB_Archive")
 @RequestMapping("/service/archiveDB")
 @RestController
 @InternalAPI

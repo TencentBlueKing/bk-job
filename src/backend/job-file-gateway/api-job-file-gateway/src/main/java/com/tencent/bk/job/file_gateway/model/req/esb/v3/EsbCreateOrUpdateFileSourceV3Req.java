@@ -8,7 +8,7 @@ import com.tencent.bk.job.common.validation.NotContainSpecialChar;
 import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
 import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.file_gateway.validate.ValidFileSourceInfo;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -22,21 +22,21 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
     /**
      * 文件源Code
      */
-    @ApiModelProperty(value = "文件源Code")
+    @Schema(description = "文件源Code")
     @NotBlankField(fieldName = "code")
     @NotContainSpecialChar(fieldName = "code")
     private String code;
     /**
      * 文件源别名
      */
-    @ApiModelProperty(value = "文件源名称")
+    @Schema(description = "文件源名称")
     @NotBlankField(fieldName = "alias")
     @NotContainSpecialChar(fieldName = "alias")
     private String alias;
     /**
      * 文件源类型
      */
-    @ApiModelProperty(value = "文件源类型")
+    @Schema(description = "文件源类型")
     @NotBlankField(fieldName = "type")
     @NotContainSpecialChar(fieldName = "type")
     private String type;
@@ -44,14 +44,14 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
     /**
      * 文件源信息Map
      */
-    @ApiModelProperty(value = "文件源信息Map")
+    @Schema(description = "文件源信息Map")
     @JsonProperty(value = "access_params")
     @ValidFileSourceInfo
     private Map<String, Object> accessParams = new HashMap<>();
     /**
      * 文件源凭证Id
      */
-    @ApiModelProperty(value = "文件源凭证Id")
+    @Schema(description = "文件源凭证Id")
     @JsonProperty(value = "credential_id")
     @NotBlankField(fieldName = "credential_id")
     @NotContainSpecialChar(fieldName = "credential_id")
@@ -59,7 +59,7 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
     /**
      * 文件前缀
      */
-    @ApiModelProperty(value = "文件前缀：后台自动生成UUID传${UUID}，自定义字符串直接传")
+    @Schema(description = "文件前缀：后台自动生成UUID传${UUID}，自定义字符串直接传")
     @JsonProperty(value = "file_prefix")
     private String filePrefix = "";
 

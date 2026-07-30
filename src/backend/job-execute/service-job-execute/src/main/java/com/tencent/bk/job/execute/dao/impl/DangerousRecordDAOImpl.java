@@ -63,8 +63,8 @@ public class DangerousRecordDAOImpl implements DangerousRecordDAO {
         int count = getPageDangerousRecordCount(query, baseSearchCondition);
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-        Result result = ctx.select(T.ID, T.RULE_ID, T.RULE_EXPRESSION, T.APP_ID, T.APP_NAME, T.OPERATOR,
-            T.SCRIPT_LANGUAGE,
+        Result<? extends Record> result = ctx.select(T.ID, T.RULE_ID, T.RULE_EXPRESSION, T.APP_ID, T.APP_NAME,
+            T.OPERATOR,T.SCRIPT_LANGUAGE,
             T.SCRIPT_CONTENT, T.CREATE_TIME, T.STARTUP_MODE, T.CLIENT, T.ACTION, T.CHECK_RESULT, T.EXT_DATA)
             .from(T)
             .where(buildSearchCondition(query, baseSearchCondition))
@@ -113,10 +113,14 @@ public class DangerousRecordDAOImpl implements DangerousRecordDAO {
         return conditions;
     }
 
-    private PageData<DangerousRecordDTO> buildDangerousRecordPageData(int start, int length, int count, Result result) {
+    private PageData<DangerousRecordDTO> buildDangerousRecordPageData(int start,
+                                                                      int length,
+                                                                      int count,
+                                                                      Result<? extends Record> result
+    ) {
         List<DangerousRecordDTO> records = new ArrayList<>();
         if (result != null && result.size() > 0) {
-            result.into(record -> records.add(extractInfo(record)));
+            result.forEach(record -> records.add(extractInfo(record)));
         }
         PageData<DangerousRecordDTO> pageData = new PageData<>();
         pageData.setData(records);

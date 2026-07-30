@@ -27,27 +27,27 @@ package com.tencent.bk.job.crontab.api.inner;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@Api(tags = {"job-crontab:Service:Metrics"})
+@Tag(name = "job-crontab:Service:Metrics")
 @SmartFeignClient(value = "job-crontab", contextId = "cronMetricResource")
 @EsbAPI
 public interface ServiceCronMetricsResource {
 
-    @ApiOperation(value = "定时任务总量", produces = "application/json")
+    @Operation(summary = "定时任务总量")
     @GetMapping("/service/metrics/count")
     InternalResponse<Integer> countCronJob(
-        @ApiParam(value = "业务Id")
+        @Parameter(description = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId,
-        @ApiParam(value = "定时任务状态")
+        @Parameter(description = "定时任务状态")
         @RequestParam(value = "active", required = false)
             Boolean active,
-        @ApiParam(value = "是否为周期任务")
+        @Parameter(description = "是否为周期任务")
         @RequestParam(value = "cron", required = false)
             Boolean cron
     );

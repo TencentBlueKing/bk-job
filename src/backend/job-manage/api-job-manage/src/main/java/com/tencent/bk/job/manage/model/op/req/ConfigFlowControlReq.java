@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.op.req;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Map;
@@ -32,7 +32,7 @@ import java.util.Map;
 @Data
 public class ConfigFlowControlReq {
 
-    @ApiModelProperty(value = "资源访问速率限制Map，key:资源Id，value:每秒最大速率", required = true)
+    @Schema(description = "资源访问速率限制Map，key:资源Id，value:每秒最大速率", required = true)
     private Map<String, Long> configMap;
 
 }

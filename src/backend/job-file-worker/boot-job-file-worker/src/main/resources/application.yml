@@ -15,30 +15,31 @@ management:
       exposure:
         include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
       base-path: /actuator
-    enabled-by-default: false
+    access:
+      default: none
   endpoint:
     health:
-      enabled: true
+      access: unrestricted
     configprops:
-      enabled: true
+      access: unrestricted
     env:
-      enabled: true
+      access: unrestricted
     beans:
-      enabled: true
+      access: unrestricted
     conditions:
-      enabled: true
+      access: unrestricted
     loggers:
-      enabled: true
+      access: unrestricted
     metrics:
-      enabled: true
+      access: unrestricted
     mappings:
-      enabled: true
+      access: unrestricted
     prometheus:
-      enabled: true
+      access: unrestricted
     scheduledtasks:
-      enabled: true
+      access: unrestricted
     info:
-      enabled: true
+      access: unrestricted
   metrics:
     tags:
       application: ${spring.application.name}

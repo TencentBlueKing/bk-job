@@ -63,6 +63,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_TENANT_ID;
+
 @Slf4j
 @Service
 public class ExecuteAuthServiceImpl implements ExecuteAuthService {
@@ -98,7 +100,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                 appResourceScope, hostInstanceList);
         }
         boolean isAllowed = authHelper.isAllowed(
-            username, ActionId.QUICK_EXECUTE_SCRIPT, null, hostInstanceList);
+            DEFAULT_TENANT_ID, username, ActionId.QUICK_EXECUTE_SCRIPT, null, hostInstanceList);
 
         if (isAllowed) {
             return AuthResult.pass();
@@ -124,7 +126,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                 appResourceScope, hostInstanceList);
         }
         boolean isAllowed = authHelper.isAllowed(
-            username, ActionId.QUICK_TRANSFER_FILE, null, hostInstanceList);
+            DEFAULT_TENANT_ID, username, ActionId.QUICK_TRANSFER_FILE, null, hostInstanceList);
 
         if (isAllowed) {
             return AuthResult.pass();
@@ -151,7 +153,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                     "hostInstances:{}",
                 username, appResourceScope, scriptId, scriptInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(username, ActionId.EXECUTE_SCRIPT, scriptInstance, hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(
+            DEFAULT_TENANT_ID, username, ActionId.EXECUTE_SCRIPT, scriptInstance, hostInstanceList);
 
         if (isAllowed) {
             return AuthResult.pass();
@@ -209,8 +212,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             log.debug("Auth execute public script, username:{}, appResourceScope:{}, scriptId:{}, scriptInstance:{}, " +
                 "hostInstances:{}", username, appResourceScope, scriptId, scriptInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(username, ActionId.EXECUTE_PUBLIC_SCRIPT, scriptInstance,
-            hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(
+            DEFAULT_TENANT_ID, username, ActionId.EXECUTE_PUBLIC_SCRIPT, scriptInstance, hostInstanceList);
 
         if (isAllowed) {
             return AuthResult.pass();
@@ -258,7 +261,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                     " hostInstances:{}",
                 username, appResourceScope, planId, planInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(username, ActionId.LAUNCH_JOB_PLAN, planInstance, hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(
+            DEFAULT_TENANT_ID, username, ActionId.LAUNCH_JOB_PLAN, planInstance, hostInstanceList);
 
         if (isAllowed) {
             return AuthResult.pass();
@@ -299,8 +303,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             log.debug("Auth execute job template, username:{}, appResourceScope:{}, planId:{}, templateInstance:{}, " +
                 "hostInstances:{}", username, appResourceScope, templateId, jobTemplateInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(username, ActionId.DEBUG_JOB_TEMPLATE, jobTemplateInstance,
-            hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(
+            DEFAULT_TENANT_ID, username, ActionId.DEBUG_JOB_TEMPLATE, jobTemplateInstance, hostInstanceList);
 
         if (isAllowed) {
             return AuthResult.pass();

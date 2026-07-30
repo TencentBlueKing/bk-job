@@ -25,25 +25,24 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("资源标签批量更新请求")
+@Schema(description = "资源标签批量更新请求")
 public class BatchPatchResourceTagReq {
 
-    @ApiModelProperty(value = "资源类型, 可选值: 1-业务脚本,5-作业模板", required = true)
+    @Schema(description = "资源类型, 可选值: 1-业务脚本,5-作业模板", required = true)
     @JsonProperty("resourceTypeList")
     private List<Integer> resourceTypeList;
 
-    @ApiModelProperty(value = "新增的标签ID列表")
+    @Schema(description = "新增的标签ID列表")
     @JsonProperty("addTagIdList")
     private List<Long> addTagIdList;
 
-    @ApiModelProperty(value = "删除的标签ID列表")
+    @Schema(description = "删除的标签ID列表")
     @JsonProperty("deleteTagIdList")
     private List<Long> deleteTagIdList;
 }

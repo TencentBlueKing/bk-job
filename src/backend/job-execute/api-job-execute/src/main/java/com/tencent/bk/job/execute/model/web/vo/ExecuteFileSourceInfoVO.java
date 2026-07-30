@@ -26,38 +26,37 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("步骤源文件信息")
+@Schema(description = "步骤源文件信息")
 public class ExecuteFileSourceInfoVO {
 
-    @ApiModelProperty(value = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
+    @Schema(description = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
     private Integer fileType;
 
-    @ApiModelProperty("文件路径")
+    @Schema(description = "文件路径")
     private List<String> fileLocation;
 
-    @ApiModelProperty(value = "文件 Hash 值 仅本地文件有")
+    @Schema(description = "文件 Hash 值 仅本地文件有")
     private String fileHash;
 
-    @ApiModelProperty(value = "文件大小 仅本地文件有")
+    @Schema(description = "文件大小 仅本地文件有")
     private String fileSize;
 
-    @ApiModelProperty(value = "主机列表")
+    @Schema(description = "主机列表")
     private TaskTargetVO host;
 
-    @ApiModelProperty(value = "主机账号")
+    @Schema(description = "主机账号")
     @JsonProperty("account")
     private Long accountId;
 
-    @ApiModelProperty(value = "主机账号名称")
+    @Schema(description = "主机账号名称")
     private String accountName;
 
-    @ApiModelProperty(value = "文件源ID")
+    @Schema(description = "文件源ID")
     private Integer fileSourceId;
 }

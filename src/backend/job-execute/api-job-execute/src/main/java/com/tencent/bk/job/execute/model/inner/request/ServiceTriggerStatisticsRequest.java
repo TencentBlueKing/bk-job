@@ -24,19 +24,18 @@
 
 package com.tencent.bk.job.execute.model.inner.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("触发数据统计请求")
+@Schema(description = "触发数据统计请求")
 public class ServiceTriggerStatisticsRequest {
 
     /**
      * 需要重新统计数据的日期列表
      */
-    @ApiModelProperty(value = "日期列表(yyyy-MM-dd)", required = true)
+    @Schema(description = "日期列表(yyyy-MM-dd)", required = true)
     private List<String> dateList;
 }

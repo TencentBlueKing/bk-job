@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.gateway.model.response;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,13 +36,13 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("业务")
+@Schema(description = "业务")
 @Data
 public class VersionLogVO {
-    @ApiModelProperty("版本号")
+    @Schema(description = "版本号")
     String version;
-    @ApiModelProperty("发布时间")
+    @Schema(description = "发布时间")
     String time;
-    @ApiModelProperty("版本信息内容")
+    @Schema(description = "版本信息内容")
     String content;
 }

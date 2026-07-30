@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbJobReq;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -36,7 +36,7 @@ import java.util.List;
  * 查询高危语句规则请求
  */
 @Data
-@ApiModel("查询高危语句规则请求")
+@Schema(description = "查询高危语句规则请求")
 @EqualsAndHashCode(callSuper = true)
 public class EsbGetDangerousRuleV3Req extends EsbJobReq {
     /**

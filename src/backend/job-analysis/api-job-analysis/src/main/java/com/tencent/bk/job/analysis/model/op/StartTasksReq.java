@@ -24,23 +24,22 @@
 
 package com.tencent.bk.job.analysis.model.op;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@ApiModel
+@Schema
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class StartTasksReq {
-    @ApiModelProperty("开始日期，yyyy-MM-dd格式的日期字符串")
+    @Schema(description = "开始日期，yyyy-MM-dd格式的日期字符串")
     String startDateStr;
-    @ApiModelProperty("结束日期，yyyy-MM-dd格式的日期字符串")
+    @Schema(description = "结束日期，yyyy-MM-dd格式的日期字符串")
     String endDateStr;
-    @ApiModelProperty("任务类名称，可从taskList接口获取")
+    @Schema(description = "任务类名称，可从taskList接口获取")
     List<String> taskNameList;
 }

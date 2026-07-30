@@ -35,5 +35,5 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
     implementation "org.apache.commons:commons-collections4"
     implementation("org.springframework:spring-web")
-    implementation("javax.ws.rs:javax.ws.rs-api")
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api")
 }

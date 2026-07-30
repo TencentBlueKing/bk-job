@@ -25,5 +25,7 @@
 dependencies {
     api project(':commons:common-crypto')
     api 'com.google.guava:guava'
-    api 'io.jsonwebtoken:jjwt'
+    api 'io.jsonwebtoken:jjwt-api'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson'
 }

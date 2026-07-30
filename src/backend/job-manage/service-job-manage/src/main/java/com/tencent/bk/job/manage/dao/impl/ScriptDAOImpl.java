@@ -660,14 +660,14 @@ public class ScriptDAOImpl implements ScriptDAO {
     @Override
     public List<String> listScriptNames(Long appId, String keyword) {
         String likePattern = "%" + keyword + "%";
-        Result result =
+        Result<? extends Record> result =
             dslContext.select(TB_SCRIPT.NAME).from(TB_SCRIPT).where(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId)))
                 .and(TB_SCRIPT.IS_DELETED.eq(UByte.valueOf(0)))
                 .and(TB_SCRIPT.NAME.like(likePattern))
                 .orderBy(TB_SCRIPT.NAME.asc())
                 .fetch();
         List<String> scriptNames = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             String scriptName = record.get(TB_SCRIPT.NAME);
             scriptNames.add(scriptName);
         });
@@ -678,7 +678,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         Script tbScript = Script.SCRIPT.as("t1");
         ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
 
-        Result result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
+        Result<? extends Record> result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
                 tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
                 tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.VERSION_DESC, tbScriptVersion.STATUS,
                 tbScriptVersion.CREATE_TIME,
@@ -690,7 +690,7 @@ public class ScriptDAOImpl implements ScriptDAO {
             .orderBy(tbScriptVersion.LAST_MODIFY_TIME.desc())
             .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             ScriptDTO scriptVersion = extractScriptVersionData(record);
             if (scriptVersion != null) {
                 scriptVersions.add(scriptVersion);
@@ -714,7 +714,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        Result result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
+        Result<? extends Record> result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
                 tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
                 tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.VERSION_DESC, tbScriptVersion.STATUS,
                 tbScriptVersion.CREATE_TIME,
@@ -724,7 +724,7 @@ public class ScriptDAOImpl implements ScriptDAO {
             .orderBy(tbScriptVersion.LAST_MODIFY_TIME.desc())
             .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             ScriptDTO scriptVersion = extractScriptVersionData(record);
             if (scriptVersion != null) {
                 scriptVersions.add(scriptVersion);
@@ -749,7 +749,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        Result result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
+        Result<? extends Record> result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
                 tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
                 tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.VERSION_DESC, tbScriptVersion.STATUS,
                 tbScriptVersion.CREATE_TIME,
@@ -760,7 +760,7 @@ public class ScriptDAOImpl implements ScriptDAO {
             .limit(start, length)
             .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             ScriptDTO scriptVersion = extractScriptVersionData(record);
             if (scriptVersion != null) {
                 scriptVersions.add(scriptVersion);
@@ -921,11 +921,11 @@ public class ScriptDAOImpl implements ScriptDAO {
         if (appId != null) {
             conditions.add(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId)));
         }
-        Result result = dslContext.select(TB_SCRIPT.ID).from(TB_SCRIPT)
+        Result<? extends Record> result = dslContext.select(TB_SCRIPT.ID).from(TB_SCRIPT)
             .where(conditions)
             .fetch();
         List<String> scriptIdList = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             String scriptId = record.get(TB_SCRIPT.ID);
             scriptIdList.add(scriptId);
         });
@@ -938,11 +938,10 @@ public class ScriptDAOImpl implements ScriptDAO {
             dslContext.select(TB_SCRIPT.ID, TB_SCRIPT.TAGS).from(TB_SCRIPT)
                 .where(TB_SCRIPT.IS_DELETED.eq(UByte.valueOf(0))).fetch();
         Map<String, List<Long>> scriptTagsMap = new HashMap<>();
-        result.map(record -> {
+        result.forEach(record -> {
             String scriptId = record.get(TB_SCRIPT.ID);
             List<Long> tagIds = TagUtils.decodeDbTag(record.get(TB_SCRIPT.TAGS));
             scriptTagsMap.put(scriptId, tagIds);
-            return null;
         });
         return scriptTagsMap;
     }

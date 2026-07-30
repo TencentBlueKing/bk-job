@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -33,15 +33,15 @@ import lombok.Data;
  */
 @Data
 public class TaskFileDestinationInfoVO {
-    @ApiModelProperty("目标路径")
+    @Schema(description = "目标路径")
     private String path;
 
-    @ApiModelProperty("执行账号")
+    @Schema(description = "执行账号")
     private Long account;
 
-    @ApiModelProperty("执行账号名称")
+    @Schema(description = "执行账号名称")
     private String accountName;
 
-    @ApiModelProperty("目标机器列表")
+    @Schema(description = "目标机器列表")
     private TaskTargetVO server;
 }

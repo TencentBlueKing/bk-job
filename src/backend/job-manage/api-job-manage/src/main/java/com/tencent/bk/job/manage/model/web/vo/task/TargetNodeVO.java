@@ -27,8 +27,7 @@ package com.tencent.bk.job.manage.model.web.vo.task;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -37,14 +36,14 @@ import org.apache.commons.lang3.StringUtils;
  * @since 12/12/2019 15:07
  */
 @Data
-@ApiModel("目标节点信息")
+@Schema(description = "目标节点信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
 public class TargetNodeVO {
-    @ApiModelProperty(value = "节点 ID，对应拓扑树节点中的instanceId", required = true)
+    @Schema(description = "节点 ID，对应拓扑树节点中的instanceId", required = true)
     private Long id;
 
-    @ApiModelProperty(value = "节点类型 biz-业务 set-集群 module-模块 xxx-用户自定义节点类型，对应拓扑树节点中的objectId", required = true)
+    @Schema(description = "节点类型 biz-业务 set-集群 module-模块 xxx-用户自定义节点类型，对应拓扑树节点中的objectId", required = true)
     private String type;
 
     public void validate() throws InvalidParamException {

@@ -101,9 +101,10 @@ public class BasicJwtManager implements JwtManager {
 
         try {
             Claims claims = Jwts.parser()
-                .setSigningKey(publicKey)
-                .parseClaimsJws(token)
-                .getBody();
+                .verifyWith(publicKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
             Date expireAt = claims.get("exp", Date.class);
             if (expireAt != null) {

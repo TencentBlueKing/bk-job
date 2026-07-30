@@ -25,35 +25,34 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("文件分发执行详情")
+@Schema(description = "文件分发执行详情")
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FileDistributionDetailV2VO implements Comparable<FileDistributionDetailV2VO> {
-    @ApiModelProperty(name = "taskId", value = "文件任务ID,用于检索单个文件分发的结果")
+    @Schema(name = "taskId", description = "文件任务ID,用于检索单个文件分发的结果")
     private String taskId;
-    @ApiModelProperty(name = "srcExecuteObject", value = "文件源执行对象")
+    @Schema(name = "srcExecuteObject", description = "文件源执行对象")
     private ExecuteObjectVO srcExecuteObject;
-    @ApiModelProperty(name = "destExecuteObject", value = "目标执行对象")
+    @Schema(name = "destExecuteObject", description = "目标执行对象")
     private ExecuteObjectVO destExecuteObject;
-    @ApiModelProperty("文件名称")
+    @Schema(description = "文件名称")
     private String fileName;
-    @ApiModelProperty("文件大小")
+    @Schema(description = "文件大小")
     private String fileSize;
-    @ApiModelProperty("状态,0-Pulling,1-Waiting,2-Uploading,3-Downloading,4-Finished,5-Failed")
+    @Schema(description = "状态,0-Pulling,1-Waiting,2-Uploading,3-Downloading,4-Finished,5-Failed")
     private Integer status;
-    @ApiModelProperty("状态描述")
+    @Schema(description = "状态描述")
     private String statusDesc;
-    @ApiModelProperty("速率")
+    @Schema(description = "速率")
     private String speed;
-    @ApiModelProperty("进度")
+    @Schema(description = "进度")
     private String progress;
-    @ApiModelProperty("文件任务上传下载标识,0-上传,1-下载")
+    @Schema(description = "文件任务上传下载标识,0-上传,1-下载")
     private Integer mode;
-    @ApiModelProperty("日志内容")
+    @Schema(description = "日志内容")
     private String logContent;
 
     @Override

@@ -25,8 +25,7 @@
 package com.tencent.bk.job.backup.model.web;
 
 import com.tencent.bk.job.common.util.JobContextUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -35,19 +34,19 @@ import java.util.List;
  * @since 22/7/2020 14:42
  */
 @Data
-@ApiModel("待导入、导出模版信息")
+@Schema(description = "待导入、导出模版信息")
 public class BackupTemplateInfoVO {
 
     /**
      * 模版 ID
      */
-    @ApiModelProperty(value = "模版 ID", required = true)
+    @Schema(description = "模版 ID", required = true)
     private Long id;
 
     /**
      * 执行方案 ID 列表
      */
-    @ApiModelProperty(value = "执行方案 ID 列表")
+    @Schema(description = "执行方案 ID 列表")
     private List<Long> planId;
 
     /**
@@ -55,7 +54,7 @@ public class BackupTemplateInfoVO {
      * <p>
      * 0-按 ID 列表导出 1-忽略 ID 列表导出全部
      */
-    @ApiModelProperty(value = "导出全部执行方案 0-按 ID 列表导出 1-忽略 ID 列表导出全部")
+    @Schema(description = "导出全部执行方案 0-按 ID 列表导出 1-忽略 ID 列表导出全部")
     private Integer exportAll;
 
     public boolean validate() {

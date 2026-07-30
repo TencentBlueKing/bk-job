@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -35,30 +34,30 @@ import java.util.List;
  * @since 25/12/2019 10:47
  */
 @Data
-@ApiModel("模版更新基础信息报文")
+@Schema(description = "模版更新基础信息报文")
 public class TemplateBasicInfoUpdateReq {
     /**
      * 模版 ID
      */
     @Deprecated
-    @ApiModelProperty(value = "作业模板 ID", hidden = true)
+    @Schema(description = "作业模板 ID", hidden = true)
     private Long id;
 
     /**
      * 模版名称
      */
-    @ApiModelProperty(value = "模版名称", required = true)
+    @Schema(description = "模版名称", required = true)
     private String name;
 
     /**
      * 模版描述
      */
-    @ApiModelProperty(value = "模版描述", required = true)
+    @Schema(description = "模版描述", required = true)
     private String description;
 
     /**
      * 模版标签
      */
-    @ApiModelProperty(value = "模版标签, 新增、修改、删除需要传入", required = true)
+    @Schema(description = "模版标签, 新增、修改、删除需要传入", required = true)
     private List<TagVO> tags;
 }

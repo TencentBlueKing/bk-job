@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@ApiModel("账号")
+@Schema(description = "账号")
 @Getter
 @Setter
 @ToString(exclude = {"password", "dbPassword"})
@@ -39,76 +38,76 @@ public class ServiceAccountDTO {
     /**
      * 账号 ID
      */
-    @ApiModelProperty("账号ID")
+    @Schema(description = "账号ID")
     private Long id;
 
     /**
      * 账号名称
      */
-    @ApiModelProperty("账号名称")
+    @Schema(description = "账号名称")
     private String account;
 
     /**
      * 账号别名
      */
-    @ApiModelProperty("账号别名")
+    @Schema(description = "账号别名")
     private String alias;
 
     /**
      * 业务 ID
      */
-    @ApiModelProperty("业务ID")
+    @Schema(description = "业务ID")
     private Long appId;
 
     /**
      * 系统账号密码
      */
-    @ApiModelProperty("系统账号密码")
+    @Schema(description = "系统账号密码")
     private String password;
 
     /**
      * 账号类型
      */
-    @ApiModelProperty("账号类型")
+    @Schema(description = "账号类型")
     private Integer type;
 
     /**
      * 账号用途
      */
-    @ApiModelProperty("账号用途")
+    @Schema(description = "账号用途")
     private Integer category;
 
     /**
      * 授权用户
      */
-    @ApiModelProperty("授权给")
+    @Schema(description = "授权给")
     private String grantees;
 
     /**
      * 账号描述
      */
-    @ApiModelProperty("账号描述")
+    @Schema(description = "账号描述")
     private String remark;
 
     /**
      * 操作系统
      */
-    @ApiModelProperty("操作系统")
+    @Schema(description = "操作系统")
     private String os;
 
     /**
      * DB账号对应的端口号
      */
-    @ApiModelProperty("DB账号对应的端口号")
+    @Schema(description = "DB账号对应的端口号")
     private Integer dbPort;
     /**
      * DB账号对应的密码
      */
-    @ApiModelProperty("DB账号对应的密码")
+    @Schema(description = "DB账号对应的密码")
     private String dbPassword;
     /**
      * DB账号依赖的系统账号
      */
-    @ApiModelProperty("DB账号依赖的系统账号")
+    @Schema(description = "DB账号依赖的系统账号")
     private ServiceAccountDTO dbSystemAccount;
 }

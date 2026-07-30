@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.common.model.permission;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
 
@@ -34,17 +33,17 @@ import java.util.List;
 
 @Data
 @ToString
-@ApiModel("需要的权限-前端")
+@Schema(description = "需要的权限-前端")
 public class RequiredPermissionVO {
     /**
      * 操作名称
      */
-    @ApiModelProperty("操作名称")
+    @Schema(description = "操作名称")
     private String actionName;
     /**
      * 关联的资源实例
      */
-    @ApiModelProperty("关联的资源实例")
+    @Schema(description = "关联的资源实例")
     private List<PermissionResourceVO> relatedResources;
 
     public void addResource(String resourceTypeName, String resourceName) {

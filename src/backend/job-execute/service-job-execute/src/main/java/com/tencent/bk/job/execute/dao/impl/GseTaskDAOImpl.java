@@ -180,7 +180,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
             .fetch();
         List<GseTaskSimpleDTO> results = new ArrayList<>();
         if (records.isNotEmpty()) {
-            records.into(record -> {
+            records.forEach(record -> {
                 results.add(extractSimpleInfo(record));
             });
         }

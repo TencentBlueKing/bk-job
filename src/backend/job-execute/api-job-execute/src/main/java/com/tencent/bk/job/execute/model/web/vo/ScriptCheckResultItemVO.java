@@ -24,20 +24,19 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * 脚本内容检查结果
  */
-@ApiModel("脚本内容检查结果")
+@Schema(description = "脚本内容检查结果")
 @Data
 public class ScriptCheckResultItemVO {
-    @ApiModelProperty("行数")
+    @Schema(description = "行数")
     private int line; //所在行数
-    @ApiModelProperty("级别")
+    @Schema(description = "级别")
     private Integer level;
-    @ApiModelProperty("错误描述")
+    @Schema(description = "错误描述")
     private String description; //错误描述
 }

@@ -62,9 +62,6 @@ public @interface SmartFeignClient {
     String[] qualifiers() default {};
 
     @AliasFor(annotation = FeignClient.class)
-    boolean decode404() default false;
-
-    @AliasFor(annotation = FeignClient.class)
     Class<?>[] configuration() default {};
 
     @AliasFor(annotation = FeignClient.class)

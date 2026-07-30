@@ -24,16 +24,15 @@
 
 package com.tencent.bk.job.manage.model.web.request.chooser;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("资源范围")
+@Schema(description = "资源范围")
 public class Scope {
-    @ApiModelProperty(value = "资源范围类型", required = true)
+    @Schema(description = "资源范围类型", required = true)
     String scopeType;
 
-    @ApiModelProperty(value = "资源范围Id", required = true)
+    @Schema(description = "资源范围Id", required = true)
     String scopeId;
 }

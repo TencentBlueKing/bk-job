@@ -293,7 +293,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
         }
 
         if (result.size() > 0) {
-            result.into(record -> executeObjectTasks.add(extract(record)));
+            result.forEach(record -> executeObjectTasks.add(extract(record)));
         }
         return executeObjectTasks;
     }

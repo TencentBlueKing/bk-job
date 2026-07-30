@@ -74,7 +74,7 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
             .fetch();
         List<TaskVariableDTO> taskVariables = new ArrayList<>();
         if (result.size() > 0) {
-            result.into(record -> taskVariables.add(extract((record))));
+            result.forEach(record -> taskVariables.add(extract((record))));
         }
         return taskVariables;
     }

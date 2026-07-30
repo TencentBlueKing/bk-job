@@ -27,15 +27,14 @@ package com.tencent.bk.job.manage.model.web.request.whiteip;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.HostIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.whiteip.validation.CheckWhiteIpScope;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@ApiModel("IP白名单记录创建请求")
+@Schema(description = "IP白名单记录创建请求")
 @CheckWhiteIpScope
 public class WhiteIPRecordCreateUpdateReq {
 
@@ -43,21 +42,21 @@ public class WhiteIPRecordCreateUpdateReq {
      * 内部字段
      */
     @Deprecated
-    @ApiModelProperty(value = "白名单记录 ID", hidden = true)
+    @Schema(description = "白名单记录 ID", hidden = true)
     private Long id;
 
-    @ApiModelProperty(value = "是否对所有资源范围生效，默认为false")
+    @Schema(description = "是否对所有资源范围生效，默认为false")
     private boolean allScope = false;
 
-    @ApiModelProperty(value = "多个资源范围列表")
+    @Schema(description = "多个资源范围列表")
     private List<ResourceScope> scopeList;
 
-    @ApiModelProperty(value = "主机列表", required = true)
+    @Schema(description = "主机列表", required = true)
     private List<HostIdWithMeta> hostList = new ArrayList<>();
 
-    @ApiModelProperty(value = "备注", required = true)
+    @Schema(description = "备注", required = true)
     private String remark;
 
-    @ApiModelProperty(value = "生效范围（id列表）", required = true)
+    @Schema(description = "生效范围（id列表）", required = true)
     private List<Long> actionScopeIdList;
 }

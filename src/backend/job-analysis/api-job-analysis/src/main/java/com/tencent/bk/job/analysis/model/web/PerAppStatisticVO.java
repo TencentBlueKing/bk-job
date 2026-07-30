@@ -26,39 +26,38 @@ package com.tencent.bk.job.analysis.model.web;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.PercentageFormatJsonSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("单个业务的统计信息")
+@Schema(description = "单个业务的统计信息")
 @Data
 public class PerAppStatisticVO {
 
     @Deprecated
-    @ApiModelProperty("业务ID(勿用，仅做发布期间兼容)")
+    @Schema(description = "业务ID(勿用，仅做发布期间兼容)")
     private Long appId;
 
     @Deprecated
-    @ApiModelProperty("业务名称(勿用，仅做发布期间兼容)")
+    @Schema(description = "业务名称(勿用，仅做发布期间兼容)")
     private String appName;
 
-    @ApiModelProperty("资源范围类型(biz:业务，biz_set:业务集)")
+    @Schema(description = "资源范围类型(biz:业务，biz_set:业务集)")
     private String scopeType;
 
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
 
-    @ApiModelProperty("资源范围名称")
+    @Schema(description = "资源范围名称")
     private String scopeName;
 
-    @ApiModelProperty("统计量数值")
+    @Schema(description = "统计量数值")
     private Long value;
 
-    @ApiModelProperty("占比")
+    @Schema(description = "占比")
     @JsonSerialize(using = PercentageFormatJsonSerializer.class)
     private Float ratio;
 

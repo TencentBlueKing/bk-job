@@ -24,25 +24,24 @@
 
 package com.tencent.bk.job.execute.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("全局变量")
+@Schema(description = "全局变量")
 @Data
 public class ServiceTaskVariable {
-    @ApiModelProperty(value = "全局变量ID", required = true)
+    @Schema(description = "全局变量ID", required = true)
     private Long id;
 
-    @ApiModelProperty(value = "变量类型，1-字符 2-命名空间 3-主机变量 4-密码")
+    @Schema(description = "变量类型，1-字符 2-命名空间 3-主机变量 4-密码")
     private Integer type;
 
-    @ApiModelProperty(value = "字符变量值", required = false)
+    @Schema(description = "字符变量值", required = false)
     private String stringValue;
 
-    @ApiModelProperty(value = "命名空间变量值", required = false)
+    @Schema(description = "命名空间变量值", required = false)
     private String namespaceValue;
 
-    @ApiModelProperty(value = "主机变量值", required = false)
+    @Schema(description = "主机变量值", required = false)
     private ServiceTargetServers serverValue;
 }

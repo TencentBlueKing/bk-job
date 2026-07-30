@@ -25,8 +25,7 @@
 package com.tencent.bk.job.crontab.model;
 
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Collections;
@@ -38,19 +37,19 @@ import java.util.List;
  * @since 31/12/2019 16:33
  */
 @Data
-@ApiModel("定时任务创建、更新请求")
+@Schema(description = "定时任务创建、更新请求")
 public class CronJobCreateUpdateReq {
 
     /**
      * 定时任务 ID
      */
-    @ApiModelProperty(value = "定时任务 ID", hidden = true)
+    @Schema(description = "定时任务 ID", hidden = true)
     private Long id;
 
     /**
      * 定时任务名称
      */
-    @ApiModelProperty(value = "任务名称", required = true)
+    @Schema(description = "任务名称", required = true)
     private String name;
 
     /**
@@ -58,7 +57,7 @@ public class CronJobCreateUpdateReq {
      * <p>
      * 更新时传空 或 0 表示不更新
      */
-    @ApiModelProperty(value = "关联的作业模版 ID，更新时传空 或 0 表示不更新", required = true)
+    @Schema(description = "关联的作业模版 ID，更新时传空 或 0 表示不更新", required = true)
     private Long taskTemplateId;
 
     /**
@@ -66,7 +65,7 @@ public class CronJobCreateUpdateReq {
      * <p>
      * 更新时传空 或 0 表示不更新
      */
-    @ApiModelProperty(value = "关联的执行方案 ID，更新时传空 或 0 表示不更新", required = true)
+    @Schema(description = "关联的执行方案 ID，更新时传空 或 0 表示不更新", required = true)
     private Long taskPlanId;
 
     /**
@@ -74,7 +73,7 @@ public class CronJobCreateUpdateReq {
      * <p>
      * 保留字段，暂未使用
      */
-    @ApiModelProperty(value = "关联的脚本 ID, 保留字段，暂未使用")
+    @Schema(description = "关联的脚本 ID, 保留字段，暂未使用")
     private String scriptId;
 
     /**
@@ -82,14 +81,14 @@ public class CronJobCreateUpdateReq {
      * <p>
      * 保留字段，暂未使用
      */
-    @ApiModelProperty(value = "关联的脚本版本, 保留字段，暂未使用")
+    @Schema(description = "关联的脚本版本, 保留字段，暂未使用")
     private Long scriptVersionId;
     /**
      * 循环执行的定时表达式
      * <p>
      * 不可与 executeTime 同时为空
      */
-    @ApiModelProperty(value = "循环执行的定时表达式, 不可与 executeTime 同时为空")
+    @Schema(description = "循环执行的定时表达式, 不可与 executeTime 同时为空")
     private String cronExpression;
 
     /**
@@ -97,19 +96,19 @@ public class CronJobCreateUpdateReq {
      * <p>
      * 不可与 cronExpression 同时为空
      */
-    @ApiModelProperty("单次执行的指定执行时间, 不可与 cronExpression 同时为空")
+    @Schema(description = "单次执行的指定执行时间, 不可与 cronExpression 同时为空")
     private Long executeTime;
 
     /**
      * 变量信息
      */
-    @ApiModelProperty("变量信息")
+    @Schema(description = "变量信息")
     private List<CronJobVariableVO> variableValue;
 
     /**
      * 定时任务启用状态
      */
-    @ApiModelProperty(value = "是否启用", required = true)
+    @Schema(description = "是否启用", required = true)
     private Boolean enable = false;
 
     /**
@@ -117,7 +116,7 @@ public class CronJobCreateUpdateReq {
      * <p>
      * 单位分钟
      */
-    @ApiModelProperty("通知提前时间，单位分钟")
+    @Schema(description = "通知提前时间，单位分钟")
     private Long notifyOffset = 0L;
 
     /**
@@ -125,7 +124,7 @@ public class CronJobCreateUpdateReq {
      * <p>
      * 若 notifyOffset > 0，不可为空
      */
-    @ApiModelProperty("通知接收人，若 notifyOffset > 0，不可为空")
+    @Schema(description = "通知接收人，若 notifyOffset > 0，不可为空")
     private UserRoleInfoVO notifyUser;
 
     /**
@@ -133,13 +132,13 @@ public class CronJobCreateUpdateReq {
      * <p>
      * 若 notifyOffset > 0，不可为空
      */
-    @ApiModelProperty("通知渠道，若 notifyOffset > 0，不可为空")
+    @Schema(description = "通知渠道，若 notifyOffset > 0，不可为空")
     private List<String> notifyChannel = Collections.emptyList();
 
     /**
      * 周期执行的结束时间
      */
-    @ApiModelProperty("周期执行的结束时间")
+    @Schema(description = "周期执行的结束时间")
     private Long endTime = 0L;
 
 }

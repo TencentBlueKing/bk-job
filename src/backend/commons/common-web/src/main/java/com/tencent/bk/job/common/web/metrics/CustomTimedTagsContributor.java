@@ -27,8 +27,8 @@ package com.tencent.bk.job.common.web.metrics;
 import io.micrometer.core.instrument.Tag;
 import org.springframework.web.method.HandlerMethod;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 为Job自定义timer类指标提供标签

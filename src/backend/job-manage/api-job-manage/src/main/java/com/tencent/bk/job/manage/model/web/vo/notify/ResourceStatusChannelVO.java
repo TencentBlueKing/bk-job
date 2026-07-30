@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,14 +32,14 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@ApiModel("执行状态通知渠道")
+@Schema(description = "执行状态通知渠道")
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResourceStatusChannelVO {
 
-    @ApiModelProperty(value = "任务状态", required = true)
+    @Schema(description = "任务状态", required = true)
     private String executeStatus;
 
-    @ApiModelProperty(value = "通知渠道列表", required = true)
+    @Schema(description = "通知渠道列表", required = true)
     private List<String> channelList;
 }

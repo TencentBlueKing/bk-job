@@ -26,20 +26,20 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api(tags = {"job-manage:service:CrontabCallback"})
+@Tag(name = "job-manage:service:CrontabCallback")
 @RestController
 @InternalAPI
 public interface ServiceCrontabCallbackResource {
-    @ApiOperation(value = "同步业务", produces = "application/json")
+    @Operation(summary = "同步业务")
     @GetMapping("/service/callback/crontab/syncApp")
     InternalResponse syncApp();
 
-    @ApiOperation(value = "同步主机", produces = "application/json")
+    @Operation(summary = "同步主机")
     @GetMapping("/service/callback/crontab/syncHost")
     InternalResponse syncHost();
 }

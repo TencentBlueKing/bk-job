@@ -27,19 +27,19 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbJobReq;
 import com.tencent.bk.job.common.validation.Update;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * 更新公共脚本版本请求
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel("更新公共脚本版本请求报文")
+@Schema(description = "更新公共脚本版本请求报文")
 public class EsbUpdatePublicScriptVersionV3Req extends EsbJobReq {
 
     /**

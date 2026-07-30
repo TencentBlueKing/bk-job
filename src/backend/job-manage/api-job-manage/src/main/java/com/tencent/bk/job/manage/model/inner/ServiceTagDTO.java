@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,13 +37,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("标签信息")
+@Schema(description = "标签信息")
 public class ServiceTagDTO {
 
-    @ApiModelProperty("标签 ID")
+    @Schema(description = "标签 ID")
     private Long id;
 
-    @ApiModelProperty("标签名")
+    @Schema(description = "标签名")
     private String name;
 
 }

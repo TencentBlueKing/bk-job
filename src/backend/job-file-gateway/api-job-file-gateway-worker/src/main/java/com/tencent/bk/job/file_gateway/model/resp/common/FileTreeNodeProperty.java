@@ -26,8 +26,7 @@ package com.tencent.bk.job.file_gateway.model.resp.common;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -36,12 +35,12 @@ import lombok.EqualsAndHashCode;
     @JsonSubTypes.Type(value = FileTreeNodeTextProperty.class, name = FileTreeNodeTextProperty.classType),
     @JsonSubTypes.Type(value = FileTreeNodeButtonGroupProperty.class, name = FileTreeNodeButtonGroupProperty.classType),
     @JsonSubTypes.Type(value = FileTreeNodeCheckBoxProperty.class, name = FileTreeNodeCheckBoxProperty.classType)})
-@ApiModel("FileTreeNode属性")
+@Schema(description = "FileTreeNode属性")
 @Data
 @EqualsAndHashCode
 public class FileTreeNodeProperty {
 
-    @ApiModelProperty("属性类型")
+    @Schema(description = "属性类型")
     private String type;
 
 }

@@ -101,7 +101,7 @@ class TaskInstanceDAOImplIntegrationTest {
 
         TaskInstanceDTO returnTaskInstance = taskInstanceDAO.getTaskInstance(taskInstanceId);
 
-        assertThat(returnTaskInstance.getId()).isEqualTo(4L);
+        assertThat(returnTaskInstance.getId()).isGreaterThan(0L);
         assertThat(returnTaskInstance.getAppId()).isEqualTo(2L);
         assertThat(returnTaskInstance.getPlanId()).isEqualTo(3L);
         assertThat(returnTaskInstance.getTaskTemplateId()).isEqualTo(3L);

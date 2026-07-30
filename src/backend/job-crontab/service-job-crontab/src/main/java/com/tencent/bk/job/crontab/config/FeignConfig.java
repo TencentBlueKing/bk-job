@@ -40,6 +40,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.springframework.cloud.client.loadbalancer.LoadBalancedRetryFactory;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
+import org.springframework.cloud.openfeign.loadbalancer.LoadBalancerFeignRequestTransformer;
 import org.springframework.cloud.openfeign.loadbalancer.RetryableFeignBlockingLoadBalancerClient;
 import org.springframework.cloud.openfeign.support.FeignHttpClientProperties;
 import org.springframework.context.annotation.Bean;
@@ -48,6 +49,7 @@ import org.springframework.context.annotation.Configuration;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -100,13 +102,15 @@ public class FeignConfig {
                               HttpClientConnectionManager feignClientConnectionManager,
                               LoadBalancerClient loadBalancerClient,
                               LoadBalancedRetryFactory loadBalancedRetryFactory,
-                              LoadBalancerClientFactory loadBalancerClientFactory) {
+                              LoadBalancerClientFactory loadBalancerClientFactory,
+                              List<LoadBalancerFeignRequestTransformer> transformers) {
         ApacheHttpClient delegate = getApacheHttpClient(httpClientProperties, feignClientConnectionManager);
         return new RetryableFeignBlockingLoadBalancerClient(
             delegate,
             loadBalancerClient,
             loadBalancedRetryFactory,
-            loadBalancerClientFactory
+            loadBalancerClientFactory,
+            transformers
         );
     }
 }

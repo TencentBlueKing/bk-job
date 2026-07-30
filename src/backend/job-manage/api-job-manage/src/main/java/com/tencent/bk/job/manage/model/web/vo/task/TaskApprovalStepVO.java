@@ -27,8 +27,7 @@ package com.tencent.bk.job.manage.model.web.vo.task;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,20 +38,20 @@ import java.util.List;
  * @since 16/10/2019 14:47
  */
 @Data
-@ApiModel("任务审批步骤信息")
+@Schema(description = "任务审批步骤信息")
 @Slf4j
 public class TaskApprovalStepVO {
 
-    @ApiModelProperty(value = "审批类型 暂未启用 1-任意人审批 2-所有人审批")
+    @Schema(description = "审批类型 暂未启用 1-任意人审批 2-所有人审批")
     private Integer approvalType;
 
-    @ApiModelProperty("审批人")
+    @Schema(description = "审批人")
     private UserRoleInfoVO approvalUser;
 
-    @ApiModelProperty("审批消息")
+    @Schema(description = "审批消息")
     private String approvalMessage;
 
-    @ApiModelProperty("通知渠道")
+    @Schema(description = "通知渠道")
     private List<String> notifyChannel;
 
     public void validate(boolean isCreate) throws InvalidParamException {

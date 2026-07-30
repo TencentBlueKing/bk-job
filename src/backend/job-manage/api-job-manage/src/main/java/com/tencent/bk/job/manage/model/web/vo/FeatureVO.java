@@ -24,21 +24,20 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("功能特性开关")
+@Schema(description = "功能特性开关")
 @Data
 public class FeatureVO {
     /**
      * 特性ID
      */
-    @ApiModelProperty("特性ID")
+    @Schema(description = "特性ID")
     private String id;
     /**
      * 是否启用特性
      */
-    @ApiModelProperty("是否启用特性")
+    @Schema(description = "是否启用特性")
     private boolean enabled;
 }

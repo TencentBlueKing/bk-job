@@ -119,7 +119,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
 
     @Override
     public List<ScriptRelatedTaskPlanDTO> listScriptRelatedTaskPlan(String scriptId) {
-        Result result = ctx.select(
+        Result<? extends Record> result = ctx.select(
             T_TASK_PLAN_STEP_SCRIPT.SCRIPT_ID,
             T_TASK_PLAN_STEP_SCRIPT.SCRIPT_VERSION_ID,
             T_TASK_PLAN_STEP_SCRIPT.PLAN_ID,
@@ -138,7 +138,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .fetch();
         List<ScriptRelatedTaskPlanDTO> relatedPlans = new ArrayList<>();
         if (result.size() > 0) {
-            result.into(record -> relatedPlans.add(extract(record)));
+            result.forEach(record -> relatedPlans.add(extract(record)));
         }
         return getDistinctRelatedPlans(relatedPlans);
     }
@@ -158,7 +158,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
 
     @Override
     public List<ScriptRelatedTaskPlanDTO> listScriptVersionRelatedTaskPlan(String scriptId, long scriptVersionId) {
-        Result result = ctx.select(
+        Result<? extends Record> result = ctx.select(
             T_TASK_PLAN_STEP_SCRIPT.SCRIPT_ID,
             T_TASK_PLAN_STEP_SCRIPT.SCRIPT_VERSION_ID,
             T_TASK_PLAN_STEP_SCRIPT.PLAN_ID,
@@ -178,7 +178,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .fetch();
         List<ScriptRelatedTaskPlanDTO> relatedPlans = new ArrayList<>();
         if (result.size() > 0) {
-            result.into(record -> relatedPlans.add(extract(record)));
+            result.forEach(record -> relatedPlans.add(extract(record)));
         }
         return getDistinctRelatedPlans(relatedPlans);
     }

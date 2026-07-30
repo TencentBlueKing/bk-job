@@ -121,7 +121,7 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
             podList = api.listNamespacedPod(
                 namespace, null, null, null,
                 null, null, null, null,
-                null, null, null);
+                null, null, null, null);
         } catch (ApiException | IOException e) {
             log.error("Fail to get pod info from k8s API", e);
             serviceInstanceInfoDTO.setName(serviceInstance.getInstanceId());

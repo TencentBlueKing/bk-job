@@ -24,23 +24,22 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("滚动执行配置")
+@Schema(description = "滚动执行配置")
 @Data
 public class RollingConfigVO {
     /**
      * 滚动配置名称
      */
-    @ApiModelProperty(value = "滚动配置名称")
+    @Schema(description = "滚动配置名称")
     private String name;
 
-    @ApiModelProperty(value = "滚动分批策略表达式")
+    @Schema(description = "滚动分批策略表达式")
     private String expr;
 
-    @ApiModelProperty(value = "滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认")
+    @Schema(description = "滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认")
     private Integer mode;
 
 }

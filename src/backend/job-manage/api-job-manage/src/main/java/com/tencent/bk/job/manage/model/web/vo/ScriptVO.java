@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -38,29 +37,29 @@ import java.util.StringJoiner;
  */
 @Getter
 @Setter
-@ApiModel("脚本信息")
+@Schema(description = "脚本信息")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ScriptVO extends BasicScriptVO {
 
     /**
      * 脚本内容
      */
-    @ApiModelProperty(value = "脚本内容")
+    @Schema(description = "脚本内容")
     private String content;
 
-    @ApiModelProperty(value = "脚本版本列表")
+    @Schema(description = "脚本版本列表")
     private List<ScriptVO> scriptVersions;
 
-    @ApiModelProperty(value = "关联的作业模板数量")
+    @Schema(description = "关联的作业模板数量")
     private Integer relatedTaskTemplateNum;
 
-    @ApiModelProperty(value = "关联的执行方案数量")
+    @Schema(description = "关联的执行方案数量")
     private Integer relatedTaskPlanNum;
 
     /**
      * 是否支持同步
      */
-    @ApiModelProperty(value = "是否支持同步")
+    @Schema(description = "是否支持同步")
     private Boolean syncEnabled = false;
 
     @Override

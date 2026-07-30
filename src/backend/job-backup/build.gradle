@@ -46,7 +46,7 @@ subprojects {
 group 'com.tencent.bk.job'
 version '2.0.0'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 17
 
 repositories {
     mavenCentral()

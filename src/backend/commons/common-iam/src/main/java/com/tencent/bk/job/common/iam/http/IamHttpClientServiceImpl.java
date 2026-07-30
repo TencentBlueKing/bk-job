@@ -38,8 +38,14 @@ import com.tencent.bk.sdk.iam.constants.HttpHeader;
 import com.tencent.bk.sdk.iam.service.HttpClientService;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_TENANT_ID;
 
 @Slf4j
 public class IamHttpClientServiceImpl implements HttpClientService {
@@ -54,13 +60,13 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     }
 
     @Override
-    public String doHttpGet(String uri) {
+    public String doHttpGet(String tenantId, String uri, List<Pair<String, String>> headers) {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.GET, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
+                    .setHeaders(buildHeaders(headers))
                     .build())
                 .getEntity();
         } catch (Exception e) {
@@ -71,13 +77,13 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     }
 
     @Override
-    public String doHttpPost(String uri, Object body) {
+    public String doHttpPost(String tenantId, String uri, List<Pair<String, String>> headers, Object body) {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.POST, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
+                    .setHeaders(buildHeaders(headers))
                     .setStringEntity(JsonUtils.toJson(body))
                     .build())
                 .getEntity();
@@ -90,13 +96,13 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     }
 
     @Override
-    public String doHttpPut(String uri, Object body) {
+    public String doHttpPut(String tenantId, String uri, List<Pair<String, String>> headers, Object body) {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.PUT, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
+                    .setHeaders(buildHeaders(headers))
                     .setStringEntity(JsonUtils.toJson(body))
                     .build())
                 .getEntity();
@@ -109,13 +115,13 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     }
 
     @Override
-    public String doHttpDelete(String uri) {
+    public String doHttpDelete(String tenantId, String uri, List<Pair<String, String>> headers) {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.DELETE, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
+                    .setHeaders(buildHeaders(headers))
                     .build())
                 .getEntity();
         } catch (Exception e) {
@@ -129,11 +135,15 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         return iamConfiguration.getIamBaseUrl() + uri;
     }
 
-    private Header[] buildAuthHeader() {
-        Header[] headers = new Header[2];
-        headers[0] = new BasicHeader(HttpHeader.BK_APP_CODE, iamConfiguration.getAppCode());
-        headers[1] = new BasicHeader(HttpHeader.BK_APP_SECRET, iamConfiguration.getAppSecret());
-        return headers;
+    private Header[] buildHeaders(List<Pair<String, String>> extraHeaders) {
+        List<Header> headers = new ArrayList<>();
+        headers.add(new BasicHeader(HttpHeader.BK_APP_CODE, iamConfiguration.getAppCode()));
+        headers.add(new BasicHeader(HttpHeader.BK_APP_SECRET, iamConfiguration.getAppSecret()));
+        headers.add(new BasicHeader(HttpHeader.KEY_BK_TENANT_ID, DEFAULT_TENANT_ID));
+        if (extraHeaders != null) {
+            extraHeaders.forEach(header -> headers.add(new BasicHeader(header.getLeft(), header.getRight())));
+        }
+        return headers.toArray(new Header[0]);
     }
 
 }

@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.execute.config.CheckCallbackUrlConfig;
 import com.tencent.bk.job.execute.dao.CallbackUrlWhiteInfoDAO;
 import com.tencent.bk.job.execute.service.validation.CallbackUrlValidateService;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

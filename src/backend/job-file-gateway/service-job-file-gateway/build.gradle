@@ -32,7 +32,6 @@ dependencies {
     api project(":job-file-gateway:model-job-file-gateway")
     implementation 'org.apache.httpcomponents:httpclient'
     implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
     implementation('org.springframework.cloud:spring-cloud-starter-openfeign')
     implementation 'org.apache.httpcomponents:httpclient'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'

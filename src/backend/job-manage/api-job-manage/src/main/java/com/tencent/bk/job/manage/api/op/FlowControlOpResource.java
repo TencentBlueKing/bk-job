@@ -26,9 +26,9 @@ package com.tencent.bk.job.manage.api.op;
 
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.op.req.ConfigFlowControlReq;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,39 +39,39 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-@Api(tags = {"job-manage:api:FlowControl-OP"})
+@Tag(name = "job-manage:api:FlowControl-OP")
 @RequestMapping("/op/flowControl")
 @RestController
 public interface FlowControlOpResource {
 
-    @ApiOperation(value = "查询当前流控配置", produces = "application/json")
+    @Operation(summary = "查询当前流控配置")
     @GetMapping("/config")
     Response<Map<String, Long>> getCurrentFlowControlConfig(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
-    @ApiOperation(value = "更新流控配置", produces = "application/json")
+    @Operation(summary = "更新流控配置")
     @PostMapping("/config")
     Response<Integer> configFlowControl(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @ApiParam(value = "流控配置参数", required = true) @RequestBody ConfigFlowControlReq req
+        @Parameter(description = "流控配置参数", required = true) @RequestBody ConfigFlowControlReq req
     );
 
-    @ApiOperation(value = "查询当前所有资源使用速率", produces = "application/json")
+    @Operation(summary = "查询当前所有资源使用速率")
     @GetMapping("/currentRateMap")
     Response<Map<String, Long>> getCurrentRateMap(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
-    @ApiOperation(value = "查询当前某资源使用速率", produces = "application/json")
+    @Operation(summary = "查询当前某资源使用速率")
     @GetMapping("/currentRate")
     Response<Long> getCurrentRate(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @ApiParam(value = "资源Id") @RequestParam(value = "resourceId", required = true) String resourceId
+        @Parameter(description = "资源Id") @RequestParam(value = "resourceId", required = true) String resourceId
     );
 
 }

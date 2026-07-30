@@ -24,22 +24,21 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("FileTreeNode元数据")
+@Schema(description = "FileTreeNode元数据")
 @Data
 public class FileTreeNodeDef {
-    @ApiModelProperty("节点类型")
+    @Schema(description = "节点类型")
     private String nodeType;
-    @ApiModelProperty("子节点类型")
+    @Schema(description = "子节点类型")
     private String childNodeType;
-    @ApiModelProperty("节点描述")
+    @Schema(description = "节点描述")
     private String description;
-    @ApiModelProperty("节点元素属性列表")
+    @Schema(description = "节点元素属性列表")
     private List<FileTreeNodeProperty> properties;
 }
 

@@ -41,15 +41,13 @@ import java.util.List;
  */
 @Slf4j
 public class JobKubernetesInformerDiscoveryClient extends KubernetesInformerDiscoveryClient {
-    public JobKubernetesInformerDiscoveryClient(String namespace,
-                                                SharedInformerFactory sharedInformerFactory,
+    public JobKubernetesInformerDiscoveryClient(SharedInformerFactory sharedInformerFactory,
                                                 Lister<V1Service> serviceLister,
                                                 Lister<V1Endpoints> endpointsLister,
                                                 SharedInformer<V1Service> serviceInformer,
                                                 SharedInformer<V1Endpoints> endpointsInformer,
                                                 KubernetesDiscoveryProperties properties) {
-        super(namespace, sharedInformerFactory, serviceLister,
-            endpointsLister, serviceInformer, endpointsInformer, properties);
+        super(sharedInformerFactory, serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
     }
 
     @Override

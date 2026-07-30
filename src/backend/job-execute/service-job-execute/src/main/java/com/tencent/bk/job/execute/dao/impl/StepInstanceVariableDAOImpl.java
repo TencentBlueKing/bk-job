@@ -99,7 +99,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
 
     @Override
     public List<StepInstanceVariableValuesDTO> listStepOutputVariableValuesByTaskInstanceId(long taskInstanceId) {
-        Result result = ctx.select(FIELDS)
+        Result<? extends Record> result = ctx.select(FIELDS)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(VariableValueTypeEnum.OUTPUT.getValue())))
@@ -108,7 +108,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
 
         List<StepInstanceVariableValuesDTO> varList = new ArrayList<>();
         if (!result.isEmpty()) {
-            result.into(record -> varList.add(extract(record)));
+            result.forEach(record -> varList.add(extract(record)));
         }
         return varList;
     }
@@ -116,7 +116,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     @Override
     public List<StepInstanceVariableValuesDTO> listSortedPreStepOutputVariableValues(long taskInstanceId,
                                                                                      long stepInstanceId) {
-        Result result = ctx.select(FIELDS)
+        Result<? extends Record> result = ctx.select(FIELDS)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(TABLE.STEP_INSTANCE_ID.lt(stepInstanceId))
@@ -126,7 +126,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
 
         List<StepInstanceVariableValuesDTO> varList = new ArrayList<>();
         if (!result.isEmpty()) {
-            result.into(record -> varList.add(extract(record)));
+            result.forEach(record -> varList.add(extract(record)));
         }
         return varList;
     }

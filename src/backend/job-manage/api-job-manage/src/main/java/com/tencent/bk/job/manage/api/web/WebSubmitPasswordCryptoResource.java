@@ -27,9 +27,9 @@ package com.tencent.bk.job.manage.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.EncryptionInfoVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,17 +37,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * 前端提交账号密码的加密Web API
  */
-@Api(tags = {"job-manage:web:crypto"})
+@Tag(name = "job-manage:web:crypto")
 @RequestMapping("/web/crypto/submit/account/")
 @WebAPI
 public interface WebSubmitPasswordCryptoResource {
     /**
      * 获取账号密码的加密信息
      */
-    @ApiOperation(value = "获取账号密码的加密信息", produces = "application/json")
+    @Operation(summary = "获取账号密码的加密信息")
     @GetMapping("/encryption")
     Response<EncryptionInfoVO> getEncryptionInfo(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username
     );

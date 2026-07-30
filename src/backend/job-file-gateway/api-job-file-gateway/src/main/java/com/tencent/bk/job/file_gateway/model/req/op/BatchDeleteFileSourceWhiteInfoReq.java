@@ -25,20 +25,19 @@
 package com.tencent.bk.job.file_gateway.model.req.op;
 
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("删除文件源蓝鲸制品库地址白名单请求内容")
+@Schema(description = "删除文件源蓝鲸制品库地址白名单请求内容")
 public class BatchDeleteFileSourceWhiteInfoReq {
 
     /**
      * 需要删除的id列表
      */
-    @ApiModelProperty(value = "需要删除的id列表")
+    @Schema(description = "需要删除的id列表")
     private List<Integer> idList;
 
 }

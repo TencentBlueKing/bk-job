@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.manage.model.inner.resp;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@ApiModel("凭证基本信息")
+@Schema(description = "凭证基本信息")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -38,6 +37,6 @@ public class ServiceBasicCredentialDTO {
     /**
      * 主键Id
      */
-    @ApiModelProperty("主键Id")
+    @Schema(description = "主键Id")
     private String id;
 }

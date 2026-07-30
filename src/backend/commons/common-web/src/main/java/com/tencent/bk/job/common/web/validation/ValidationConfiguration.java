@@ -36,7 +36,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.PrioritizedParameterNameDiscoverer;
 import org.springframework.core.StandardReflectionParameterNameDiscoverer;
@@ -45,7 +44,7 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.validation.beanvalidation.MessageSourceResourceBundleLocator;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
@@ -80,7 +79,7 @@ public class ValidationConfiguration {
         }
 
         @Override
-        protected void postProcessConfiguration(javax.validation.Configuration<?> configuration) {
+        protected void postProcessConfiguration(jakarta.validation.Configuration<?> configuration) {
             if (configuration instanceof HibernateValidatorConfiguration) {
                 HibernateValidatorConfiguration hibernateValidatorConfiguration =
                     (HibernateValidatorConfiguration) configuration;
@@ -107,7 +106,6 @@ public class ValidationConfiguration {
         public CustomParameterNameDiscoverer() {
             this.addDiscoverer(new ReqParamNamesDiscoverer());
             this.addDiscoverer(new StandardReflectionParameterNameDiscoverer());
-            this.addDiscoverer(new LocalVariableTableParameterNameDiscoverer());
         }
     }
 

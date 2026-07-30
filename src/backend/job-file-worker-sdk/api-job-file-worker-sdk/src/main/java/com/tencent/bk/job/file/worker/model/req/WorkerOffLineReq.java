@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file.worker.model.req;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,8 +33,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class WorkerOffLineReq {
-    @ApiModelProperty(value = "重调度初始延迟时间/ms，默认为0")
+    @Schema(description = "重调度初始延迟时间/ms，默认为0")
     Long initDelayMills = 0L;
-    @ApiModelProperty(value = "重调度间隔时间/ms，默认3000ms")
+    @Schema(description = "重调度间隔时间/ms，默认3000ms")
     Long intervalMills = 3000L;
 }
