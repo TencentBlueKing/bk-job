@@ -1,7 +1,7 @@
-FROM bkjob/jdk17:3.10.0
+FROM bkjob/jdk17:3.10.5
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="0.0.1"
+LABEL dockerfile.version="3.10.5"
 
 ARG VERSION=3.0.0
 RUN curl -L -o /app.jar \
