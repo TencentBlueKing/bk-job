@@ -65,7 +65,8 @@
             :key="action"
             :confirm-handler="operationCode => handleStatusUpdate(operationCode)"
             display-style="step-detail"
-            :name="action" />
+            :name="action"
+            :rolling-file-parallel="isRollParallel" />
         </div>
         <search-log
           :data="data"
@@ -717,9 +718,7 @@
           taskInstanceId: this.taskInstanceId,
           id: this.params.id,
         }).then((data) => {
-          if(data.type === 2 && data.rollingEnabled && data.rollingConfig.executionMode === 2) { 
-            this.isRollParallel = true;
-          }
+          this.isRollParallel = data.type === 2 && data.rollingEnabled && data.rollingConfig.executionMode === 2;
         });
       }
     },
