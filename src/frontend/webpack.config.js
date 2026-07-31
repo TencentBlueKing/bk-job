@@ -279,6 +279,8 @@ module.exports = function (env) {
         '@utils': resolve('src/utils'),
         '@views': resolve('src/views'),
         '@static': resolve('static'),
+        // monaco-editor 使用 ESM 版本，避免 vs/nls.messages-loader 找不到的问题
+        'monaco-editor': resolve('node_modules/monaco-editor/esm/vs/editor/editor.main.js'),
       },
     },
     plugins: [
