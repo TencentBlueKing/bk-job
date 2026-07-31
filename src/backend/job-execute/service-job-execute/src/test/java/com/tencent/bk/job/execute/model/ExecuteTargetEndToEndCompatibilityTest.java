@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
 import com.tencent.bk.job.common.model.vo.WebKubeClusterObject;
@@ -243,14 +245,9 @@ class ExecuteTargetEndToEndCompatibilityTest {
             assertThat(cf.getPropConditions().get(0).getValue()).isEqualTo("docker://nginx");
             assertThat(cf.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
 
-            // 5. 反向回显：前端详情页（name 不再由后台回显，由前端携带或运行时查询）
+            // 5. 反向回显：与 topoNodes 一样，不把原始动态条件写入 executeObjectsInfo
             TaskTargetVO echoed = reloaded.convertToTaskTargetVO();
-            List<WebContainerConditionFilter> echoedFilters =
-                echoed.getExecuteObjectsInfo().getContainerFilterList();
-            assertThat(echoedFilters).hasSize(1);
-            assertThat(echoedFilters.get(0).getKubeTopoList()).hasSize(1);
-            assertThat(echoedFilters.get(0).getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
-            assertThat(echoedFilters.get(0).getPropConditions()).hasSize(2);
+            assertThat(echoed.getExecuteObjectsInfo().getContainerFilterList()).isNull();
         }
 
         @Test
@@ -291,42 +288,54 @@ class ExecuteTargetEndToEndCompatibilityTest {
             // 注意：本测试只断言被识别出违反，不断言生产路径会自动拒绝：
             //   实际拒绝点在 @Valid 修饰的 controller 入参上，那由 Spring MVC 框架兜底，不在本类目标内。
         }
+
+        @Test
+        @DisplayName("F4 — 回显只返回最终静态容器，不返回原始动态条件")
+        void convertToTaskTargetVODoesNotEchoContainerFilters() {
+            ExecuteTargetDTO target = new ExecuteTargetDTO();
+            target.setContainerFilters(Collections.singletonList(buildFilter()));
+
+            Container container = new Container();
+            container.setId(100L);
+            container.setContainerId("docker://nginx");
+            container.setName("nginx");
+            container.setPodName("pod-a");
+            target.setExecuteObjects(Collections.singletonList(new ExecuteObject(container)));
+
+            TaskTargetVO echoed = target.convertToTaskTargetVO();
+
+            assertThat(echoed.getExecuteObjectsInfo().getContainerList()).hasSize(1);
+            assertThat(echoed.getExecuteObjectsInfo().getContainerList().get(0).getId()).isEqualTo(100L);
+            assertThat(echoed.getExecuteObjectsInfo().getContainerFilterList()).isNull();
+        }
     }
 
     @Nested
-    @DisplayName("Round-trip 与 Web 多次回显")
+    @DisplayName("Round-trip 与执行详情回显")
     class RoundTrip {
 
         @Test
-        @DisplayName("R1 — Web → DTO → JSON → DTO → Web 多次回显字段保真，集合数 / 关键字段不退化")
-        void multiHopRoundTrip() {
+        @DisplayName("R1 — 动态容器条件入库后，回显不再反写原始条件")
+        void convertToTaskTargetVODoesNotWriteBackContainerFilters() {
             // 前端首次提交
             TaskTargetVO web1 = new TaskTargetVO();
             TaskExecuteObjectsInfoVO info = new TaskExecuteObjectsInfoVO();
             info.setContainerFilterList(Collections.singletonList(buildWebFilter()));
             web1.setExecuteObjectsInfo(info);
 
-            // 第一次入库出库
+            // 第一次入库出库：原始动态条件仍保存在执行态 DTO 中
             ExecuteTargetDTO dto1 = ExecuteTargetDTO.fromTaskTargetVO(web1);
             ExecuteTargetDTO dto2 = JsonUtils.fromJson(JsonUtils.toJson(dto1), ExecuteTargetDTO.class);
+            assertThat(dto2.getContainerFilters()).hasSize(1);
 
-            // 用户重新打开作业 → 前端拉详情 → 再次提交
-            TaskTargetVO web2 = dto2.convertToTaskTargetVO();
-            ExecuteTargetDTO dto3 = ExecuteTargetDTO.fromTaskTargetVO(web2);
+            // 回显：与 topoNodes 一样，不把原始动态条件写入 executeObjectsInfo
+            TaskTargetVO echoed = dto2.convertToTaskTargetVO();
+            assertThat(echoed.getExecuteObjectsInfo().getContainerFilterList()).isNull();
+
+            // 再从回显 VO 转回 DTO 时，也不会把 containerFilters 反写回去
+            ExecuteTargetDTO dto3 = ExecuteTargetDTO.fromTaskTargetVO(echoed);
             ExecuteTargetDTO dto4 = JsonUtils.fromJson(JsonUtils.toJson(dto3), ExecuteTargetDTO.class);
-
-            // 经过 4 跳后：id / propConditions 保真（name 已从 DTO 移除）
-            assertThat(dto4.getContainerFilters()).hasSize(1);
-            KubeContainerFilter cf = dto4.getContainerFilters().get(0);
-            assertThat(cf.getKubeTopoList()).hasSize(1);
-            assertThat(cf.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(1000L);
-            assertThat(cf.getKubeTopoList().get(0).getNamespace().getId()).isEqualTo(10000L);
-            assertThat(cf.getPropConditions()).hasSize(2);
-            assertThat(cf.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
-            assertThat(cf.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
-            // emptyFilter / fetchAnyOneContainer 这两个内部开关在 Web 链路上始终为 false
-            assertThat(cf.isEmptyFilter()).isFalse();
-            assertThat(cf.isFetchAnyOneContainer()).isFalse();
+            assertThat(dto4.getContainerFilters()).isNull();
         }
 
         @Test

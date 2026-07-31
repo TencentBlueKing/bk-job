@@ -278,11 +278,6 @@ public class ExecuteTargetDTO implements Cloneable {
                 .collect(Collectors.toList());
             taskExecuteObjectsInfoVO.setContainerList(containerVOs);
         }
-        // 动态条件过滤器回显：只透出过滤条件（cluster/namespace/workload/propConditions），已解析的 containers 不外露
-        if (CollectionUtils.isNotEmpty(containerFilters)) {
-            taskExecuteObjectsInfoVO.setContainerFilterList(
-                WebContainerConditionFilterConverter.fromKubeContainerFilters(containerFilters));
-        }
         target.setExecuteObjectsInfo(taskExecuteObjectsInfoVO);
 
         return target;

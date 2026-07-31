@@ -595,7 +595,7 @@ public class TaskInstanceExecuteObjectProcessor {
 
         // 根据 ContainerFilter 方式获取并设置容器执行对象
         acquireAndSetContainersByContainerFilters(taskInstanceExecuteObjects,
-            taskInstance, stepInstances);
+            taskInstance, stepInstances, variables);
 
         taskInstanceExecuteObjects.setContainsAnyContainer(
             CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
@@ -717,23 +717,40 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private void acquireAndSetContainersByContainerFilters(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
                                                            TaskInstanceDTO taskInstance,
-                                                           List<StepInstanceDTO> stepInstances) {
+                                                           List<StepInstanceDTO> stepInstances,
+                                                           Collection<TaskVariableDTO> variables) {
         for (StepInstanceDTO stepInstance : stepInstances) {
-            stepInstance.forEachExecuteObjects(executeObjects -> {
-                if (CollectionUtils.isNotEmpty(executeObjects.getContainerFilters())) {
-                    executeObjects.getContainerFilters().forEach(containerFilter -> {
-                        List<Container> filteredContainers =
-                            containerService.listContainerByContainerFilter(taskInstance.getAppId(), containerFilter);
-                        recordContainerFilterResolvedNum(
-                            taskInstance, stepInstance, containerFilter, CollectionUtils.size(filteredContainers));
-                        if (CollectionUtils.isNotEmpty(filteredContainers)) {
-                            taskInstanceExecuteObjects.addContainers(filteredContainers);
-                            containerFilter.setContainers(filteredContainers);
-                        }
-                    });
-                }
-            });
+            stepInstance.forEachExecuteObjects(executeObjects ->
+                resolveContainerFilters(taskInstanceExecuteObjects, taskInstance, stepInstance, executeObjects));
         }
+
+        if (CollectionUtils.isNotEmpty(variables)) {
+            for (TaskVariableDTO variable : variables) {
+                if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
+                    && variable.getExecuteTarget() != null) {
+                    resolveContainerFilters(taskInstanceExecuteObjects, taskInstance, null, variable.getExecuteTarget());
+                }
+            }
+        }
+    }
+
+    private void resolveContainerFilters(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
+                                         TaskInstanceDTO taskInstance,
+                                         StepInstanceDTO stepInstance,
+                                         ExecuteTargetDTO executeTarget) {
+        if (CollectionUtils.isEmpty(executeTarget.getContainerFilters())) {
+            return;
+        }
+        executeTarget.getContainerFilters().forEach(containerFilter -> {
+            List<Container> filteredContainers =
+                containerService.listContainerByContainerFilter(taskInstance.getAppId(), containerFilter);
+            recordContainerFilterResolvedNum(
+                taskInstance, stepInstance, containerFilter, CollectionUtils.size(filteredContainers));
+            if (CollectionUtils.isNotEmpty(filteredContainers)) {
+                taskInstanceExecuteObjects.addContainers(filteredContainers);
+                containerFilter.setContainers(filteredContainers);
+            }
+        });
     }
 
     /**
@@ -745,15 +762,16 @@ public class TaskInstanceExecuteObjectProcessor {
                                                   KubeContainerFilter containerFilter,
                                                   int containerNum) {
         executeObjectSampler.tryToRecordContainerFilterResolvedNum(taskInstance, containerFilter, containerNum);
+        Long stepInstanceId = stepInstance == null ? null : stepInstance.getId();
         if (containerNum > CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD) {
             log.warn("Container filter resolved too many containers, taskInstanceId={}, stepInstanceId={}, "
                     + "filterName={}, containerNum={}, threshold={}",
-                taskInstance.getId(), stepInstance.getId(), containerFilter.getName(), containerNum,
+                taskInstance.getId(), stepInstanceId, containerFilter.getName(), containerNum,
                 CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD);
         } else {
             log.info("Container filter resolved containers, taskInstanceId={}, stepInstanceId={}, "
                     + "filterName={}, containerNum={}",
-                taskInstance.getId(), stepInstance.getId(), containerFilter.getName(), containerNum);
+                taskInstance.getId(), stepInstanceId, containerFilter.getName(), containerNum);
         }
     }
 
