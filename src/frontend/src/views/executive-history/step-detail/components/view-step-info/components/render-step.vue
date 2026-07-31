@@ -66,14 +66,11 @@
           </template>
         </detail-item>
         <template v-if="stepInfo.rollingConfig.executionMode === 2">
-          <detail-item :label="$t('history.批次间固定延迟（ms）：')">
-            {{ stepInfo.rollingConfig.batchStartWaitFixedMs }}
+          <detail-item :label="$t('history.批次间最小延时（ms）：')">
+            {{ stepInfo.rollingConfig.batchStartWaitMinMs }}
           </detail-item>
-          <detail-item :label="$t('history.批次间随机延迟下限（ms）：')">
-            {{ stepInfo.rollingConfig.batchStartWaitRandomMinMs }}
-          </detail-item>
-          <detail-item :label="$t('history.批次间随机延迟上限（ms）：')">
-            {{ stepInfo.rollingConfig.batchStartWaitRandomMaxMs }}
+          <detail-item :label="$t('history.批次间最大延时（ms）：')">
+            {{ stepInfo.rollingConfig.batchStartWaitMaxMs }}
           </detail-item>
         </template>
         <detail-item

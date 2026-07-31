@@ -203,8 +203,7 @@
   "「不限制」": "「No limit」",
   "串行执行": "Serial Execution",
   "并行执行": "Parallel Execution",
-  "批次间固定延迟（ms）：": "Fixed Delay Between Batches (ms)：",
-  "批次间随机延迟下限（ms）：": "Min Random Delay Between Batches (ms)：",
-  "批次间随机延迟上限（ms）：": "Max Random Delay Between Batches (ms)：",
+  "批次间最小延时（ms）：": "Min Delay Between Batches (ms)：",
+  "批次间最大延时（ms）：": "Max Delay Between Batches (ms)：",
   "滚动批次间执行模式：": "Rolling Batch Execution Mode："
 }

@@ -76,9 +76,8 @@ export default class TaskInstanceDetailStep {
         fileSource: undefined,
         type: '',
         executionMode: '',
-        batchStartWaitFixedMs: null,
-        batchStartWaitRandomMaxMs: null,
-        batchStartWaitRandomMinMs: null,
+        batchStartWaitMaxMs: null,
+        batchStartWaitMinMs: null,
       };
     }
     const {
@@ -88,9 +87,8 @@ export default class TaskInstanceDetailStep {
       fileSource,
       type = '',
       executionMode = '',
-      batchStartWaitFixedMs = null,
-      batchStartWaitRandomMaxMs = null,
-      batchStartWaitRandomMinMs = null,
+      batchStartWaitMaxMs = null,
+      batchStartWaitMinMs = null,
     } = rollingConfig;
     return {
       expr,
@@ -99,9 +97,8 @@ export default class TaskInstanceDetailStep {
       fileSource,
       type,
       executionMode,
-      batchStartWaitFixedMs,
-      batchStartWaitRandomMaxMs,
-      batchStartWaitRandomMinMs
+      batchStartWaitMaxMs,
+      batchStartWaitMinMs
     };
   }
 }

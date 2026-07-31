@@ -51,17 +51,12 @@
   import I18n from '@/i18n';
 
   const props = defineProps({
-    batchStartWaitFixedMsField: {
+    batchStartWaitMinMsField: {
       type: String,
       required: true,
     },
 
-    batchStartWaitRandomMinMsField: {
-      type: String,
-      required: true,
-    },
-
-    batchStartWaitRandomMaxMsField: {
+    batchStartWaitMaxMsField: {
       type: String,
       required: true,
     },
@@ -91,19 +86,21 @@
 
   const fields = [
     {
-      field: props.batchStartWaitFixedMsField,
-      label: '批次间固定延迟（ms）',
-      rules: createRule('批次间固定延迟必填'),
+      field: props.batchStartWaitMinMsField,
+      label: '批次间最小延时（ms）',
+      rules: createRule('批次间最小延时必填'),
     },
     {
-      field: props.batchStartWaitRandomMinMsField,
-      label: '批次间随机延迟下限（ms）',
-      rules: createRule('批次间随机延迟下限必填'),
-    },
-    {
-      field: props.batchStartWaitRandomMaxMsField,
-      label: '批次间随机延迟上限（ms）',
-      rules: createRule('批次间随机延迟上限必填'),
+      field: props.batchStartWaitMaxMsField,
+      label: '批次间最大延时（ms）',
+      rules: [
+        ...createRule('批次间最大延时必填'),
+        {
+          validator: value => Number(value) >= Number(props.formData[props.batchStartWaitMinMsField]),
+          message: I18n.t('批次间最大延时不能小于最小延时'),
+          trigger: 'blur',
+        },
+      ],
     },
   ];
 
