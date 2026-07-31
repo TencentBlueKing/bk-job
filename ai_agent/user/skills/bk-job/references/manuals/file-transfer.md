@@ -42,15 +42,24 @@
 
 ## 4. 推荐流程
 
-### 4.1 分发服务器文件（最简单）
+### 4.1 分发服务器文件（一步）
 
 ```
-[A] 确认资源范围、目标主机（host-search）、账号（account-list）
-        ↓
-[B] fast-transfer-file --server-file-list ... --dry-run 预览请求体
-        ↓
-[C] 展示确认摘要 → 用户下一条独立确认（G2）→ 真实分发
+[A] 确认源机器与源账号（host-search / account-list）
+        └─ --source-host-id-list（或 --source-ip-list）+ --source-account-alias/id
+             ↓
+[B] 确认目标机器、目标账号与目标目录
+        └─ --target-host-id-list（或 --target-ip-list）+ --account-alias/id + --file-target-path
+             ↓
+[C] fast-transfer-file --server-file-list <源文件绝对路径,...> --dry-run 预览请求体
+             ↓
+[D] 展示确认摘要 → 用户下一条独立确认（G2）→ 真实分发
 ```
+
+- 与本地文件的关键差异：服务器文件源（file_type=1）**必须**给源机器与源账号，`--server-file-list` 填**源机器上的绝对路径**（不是上传返回的 path）。
+- 源机器与目标机器的账号是两套参数：源用 `--source-account-alias`/`--source-account-id`，目标用 `--account-alias`/`--account-id`，别混用。
+- 源文件路径不存在或源账号无读取权限时，分发会在执行阶段失败而非提交阶段报错，必要时先确认路径。
+- 多个源机器上分发同名文件时，目标机会按来源分目录存放，避免覆盖。
 
 ### 4.2 分发本地文件（三步）
 

@@ -132,6 +132,19 @@ TASK_STATUS_LABEL = {
 }
 
 
+LAUNCH_MODE_LABEL = {
+    1: "页面执行",
+    2: "API调用",
+    3: "定时执行",
+}
+
+TASK_TYPE_LABEL = {
+    0: "作业执行",
+    1: "脚本执行",
+    2: "文件分发",
+}
+
+
 def _task_status_label(code: Any) -> str:
     if code is None:
         return "未知"
@@ -139,6 +152,44 @@ def _task_status_label(code: Any) -> str:
         return TASK_STATUS_LABEL.get(int(code), str(code))
     except (TypeError, ValueError):
         return str(code)
+
+
+def _enum_label(code: Any, mapping: Dict[int, str]) -> str:
+    if code is None:
+        return "未知"
+    try:
+        return mapping.get(int(code), str(code))
+    except (TypeError, ValueError):
+        return str(code)
+
+
+def _ms_to_text(ms: Any) -> Optional[str]:
+    """毫秒时间戳转本地可读时间；非法值原样返回。"""
+    if ms in (None, 0, ""):
+        return None
+    try:
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(ms) / 1000))
+    except (TypeError, ValueError, OSError):
+        return str(ms)
+
+
+def enrich_job_instance_for_display(row: Dict[str, Any]) -> Dict[str, Any]:
+    """为执行历史记录补充可读的状态、类型、执行方式与时间，不修改原始数值字段。
+
+    接口对状态/类型字段存在 task_status/status、task_type/type 两种命名，均做兼容。
+    """
+    out = dict(row)
+    out["任务状态"] = _task_status_label(row.get("task_status", row.get("status")))
+    out["任务类型"] = _enum_label(row.get("task_type", row.get("type")), TASK_TYPE_LABEL)
+    out["执行方式"] = _enum_label(row.get("launch_mode"), LAUNCH_MODE_LABEL)
+    for src, label in (("create_time", "创建时间"), ("start_time", "启动时间"), ("end_time", "结束时间")):
+        text = _ms_to_text(row.get(src))
+        if text:
+            out[label] = text
+    total = row.get("total_time")
+    if isinstance(total, (int, float)) and total > 0:
+        out["耗时秒"] = round(total / 1000, 1)
+    return out
 
 
 def _cron_run_status_text(status: Any) -> str:
@@ -1047,6 +1098,72 @@ def cmd_plan_execute(args: argparse.Namespace) -> None:
     _scope_print(args, enrich_plan_execute_result(data, get_job_base_url()))
 
 
+def cmd_instance_list(args: argparse.Namespace) -> None:
+    """查询任务执行历史（GET /api/v4/get_job_instance_list）。
+
+    按时间窗口列出资源范围下的作业实例，可按任务名、执行人、执行方式、任务类型、状态、
+    目标 IP、定时任务 ID 过滤。时间窗口必填，脚本按 --lookback-days 自动换算为毫秒时间戳，
+    回溯天数硬上限 31 天，与 cron-last-run 一致。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+
+    lookback_days, lookback_capped = effective_lookback_days(args.lookback_days)
+    if lookback_capped:
+        print(
+            f"提示：执行历史查询回溯已限制为最多 {MAX_JOB_HISTORY_LOOKBACK_DAYS} 天"
+            f"（请求 {args.lookback_days} 天已截断）。",
+            file=sys.stderr,
+        )
+
+    now_ms = int(time.time() * 1000)
+    start_ms = now_ms - int(lookback_days * 24 * 3600 * 1000)
+
+    p: Dict[str, Any] = {
+        **scope_params(args.bk_scope_type, args.bk_scope_id),
+        "create_time_start": start_ms,
+        "create_time_end": now_ms,
+        "offset": args.offset,
+        "length": args.length,
+    }
+    # 传入 job_instance_id 时接口会忽略其余过滤条件
+    for key, value in (
+        ("job_instance_id", args.job_instance_id),
+        ("job_cron_id", args.cron_id),
+        ("operator", args.operator),
+        ("name", args.keyword),
+        ("launch_mode", args.launch_mode),
+        ("type", args.type),
+        ("status", args.status),
+        ("ip", args.ip),
+    ):
+        if value is not None:
+            p[key] = value
+
+    data = v4_get(base, "/api/v4/get_job_instance_list", p, token)
+    rows = data.get("job_instance_list") or []
+    _scope_print(
+        args,
+        {
+            "query": {
+                "lookback_days_requested": args.lookback_days,
+                "lookback_days_effective": lookback_days,
+                "lookback_days_max": MAX_JOB_HISTORY_LOOKBACK_DAYS,
+                "create_time_start": start_ms,
+                "create_time_end": now_ms,
+                "offset": args.offset,
+                "length": args.length,
+            },
+            "returned": len(rows),
+            "job_instance_list": [enrich_job_instance_for_display(r) for r in rows],
+            "_note": (
+                "本页按创建时间从新到老返回；接口不返回总数，若本页条数等于 length，"
+                "可能还有更早记录，可增大 --offset 继续翻页或缩小时间窗口。"
+            ),
+        },
+    )
+
+
 def cmd_instance_status(args: argparse.Namespace) -> None:
     token = get_access_token(args.access_token)
     base = get_base_url()
@@ -1849,6 +1966,53 @@ def main() -> None:
         help="只打印将提交的请求体，不调用更新接口",
     )
     p_cus.set_defaults(func=cmd_cron_update_status)
+
+    p_il = sub.add_parser(
+        "instance-list",
+        help="查询任务执行历史（GET /api/v4/get_job_instance_list），按时间窗口列出作业实例，可多条件过滤",
+    )
+    p_il.add_argument("--bk-scope-type", default="biz", help="biz 或 biz_set，默认 biz")
+    p_il.add_argument("--bk-scope-id", required=True, help="资源范围 ID，如业务 ID")
+    p_il.add_argument(
+        "--lookback-days",
+        type=int,
+        default=7,
+        help=f"回溯天数，默认 7；硬上限 {MAX_JOB_HISTORY_LOOKBACK_DAYS} 天（超出自动截断）",
+    )
+    p_il.add_argument("--keyword", help="任务名称模糊匹配")
+    p_il.add_argument("--operator", help="执行人，精准匹配")
+    p_il.add_argument(
+        "--launch-mode",
+        type=int,
+        choices=[1, 2, 3],
+        help="执行方式：1 页面执行、2 API调用、3 定时执行",
+    )
+    p_il.add_argument(
+        "--type",
+        type=int,
+        choices=[0, 1, 2],
+        help="任务类型：0 作业执行、1 脚本执行、2 文件分发",
+    )
+    p_il.add_argument(
+        "--status",
+        type=int,
+        help="任务状态，如 3 执行成功、4 执行失败（取值见 troubleshooting 手册状态码表）",
+    )
+    p_il.add_argument("--ip", help="执行目标服务器 IP，精准匹配")
+    p_il.add_argument("--cron-id", type=int, help="按定时任务 ID 过滤")
+    p_il.add_argument(
+        "--job-instance-id",
+        type=int,
+        help="按实例 ID 精确查询；传入后接口将忽略其余过滤条件",
+    )
+    p_il.add_argument("--offset", type=int, default=0, help="从第几条开始，最大 10000，默认 0")
+    p_il.add_argument(
+        "--length",
+        type=int,
+        default=LIST_PAGE_DEFAULT,
+        help=f"本页返回条数，默认 {LIST_PAGE_DEFAULT}，接口最大 200",
+    )
+    p_il.set_defaults(func=cmd_instance_list)
 
     p_st = sub.add_parser("instance-status", help="查询作业实例状态（GET /api/v4/get_job_instance_status）")
     p_st.add_argument("--bk-scope-type", default="biz")
