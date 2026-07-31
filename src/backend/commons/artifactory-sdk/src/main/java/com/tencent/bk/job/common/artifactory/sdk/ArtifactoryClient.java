@@ -357,16 +357,23 @@ public class ArtifactoryClient {
             statusRef.set(MetricsConstants.TAG_VALUE_OK);
             return result;
         } catch (Exception e) {
-            String msg = MessageFormatter.arrayFormat(
-                "Fail to request ARTIFACTORY data|method={}|url={}|reqStr={}",
-                new String[]{
-                    method,
-                    url,
-                    reqStr
-                }
-            ).getMessage();
-            log.log(errorLogLevel, msg, e);
-            statusRef.set(MetricsConstants.TAG_VALUE_ERROR);
+            // 命中「可容忍」的业务错误(如节点不存在)时走旁路：按 INFO 记录、不打印堆栈，避免告警误告；
+            // 其它异常按原有级别 + 堆栈打印
+            TolerableArtifactoryError tolerableError = resolveTolerableError(e);
+            if (tolerableError != null) {
+                handleTolerableError(tolerableError, method, url, reqStr, statusRef);
+            } else {
+                String msg = MessageFormatter.arrayFormat(
+                    "Fail to request ARTIFACTORY data|method={}|url={}|reqStr={}",
+                    new String[]{
+                        method,
+                        url,
+                        reqStr
+                    }
+                ).getMessage();
+                log.log(errorLogLevel, msg, e);
+                statusRef.set(MetricsConstants.TAG_VALUE_ERROR);
+            }
             return ArtifactoryExceptionConverter.convertException(e);
         } finally {
             HttpMetricUtil.clearHttpMetric();
@@ -388,6 +395,87 @@ public class ArtifactoryClient {
             headerList.add(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantId));
         }
         return headerList;
+    }
+
+    /**
+     * 从异常中解析出命中的「可容忍」制品库业务错误；未命中(需按正常错误处理)时返回 null。
+     * bkrepo 会以 HTTP 4xx + 响应体业务码的形式返回错误，需解析响应体才能识别。
+     */
+    private TolerableArtifactoryError resolveTolerableError(Exception e) {
+        if (!(e instanceof HttpStatusException)) {
+            return null;
+        }
+        String respBodyStr = ((HttpStatusException) e).getRespBodyStr();
+        if (StringUtils.isBlank(respBodyStr)) {
+            return null;
+        }
+        try {
+            ArtifactoryResp<Object> resp = JsonUtils.fromJson(
+                respBodyStr,
+                new TypeReference<ArtifactoryResp<Object>>() {
+                }
+            );
+            return resp == null ? null : TolerableArtifactoryError.valueOfCode(resp.getCode());
+        } catch (Exception parseException) {
+            return null;
+        }
+    }
+
+    /**
+     * 可容忍错误的旁路处理：按 INFO 记录且不打印堆栈，避免可预期的正常场景造成告警误告。
+     */
+    private void handleTolerableError(TolerableArtifactoryError tolerableError,
+                                      String method,
+                                      String url,
+                                      String reqStr,
+                                      AtomicReference<String> statusRef) {
+        log.info(
+            "{}|method={}|url={}|reqStr={}",
+            tolerableError.getLogMessage(),
+            method,
+            url,
+            getSimplifiedStrForLog(reqStr)
+        );
+        statusRef.set(tolerableError.getMetricTagValue());
+    }
+
+    /**
+     * 制品库「可容忍」的业务错误码登记表：这些错误属于可预期的正常场景(如节点不存在)，
+     * 命中后按 INFO 记录而非 ERROR。后续若有其它可容忍错误码，只需在此新增一项，无需改动主流程。
+     */
+    private enum TolerableArtifactoryError {
+        NODE_NOT_FOUND(
+            ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND,
+            MetricsConstants.TAG_VALUE_CLIENT_ERROR_NODE_NOT_FOUND,
+            "Node not found in artifactory"
+        );
+
+        private final int code;
+        private final String metricTagValue;
+        private final String logMessage;
+
+        TolerableArtifactoryError(int code, String metricTagValue, String logMessage) {
+            this.code = code;
+            this.metricTagValue = metricTagValue;
+            this.logMessage = logMessage;
+        }
+
+        String getMetricTagValue() {
+            return metricTagValue;
+        }
+
+        String getLogMessage() {
+            return logMessage;
+        }
+
+        static TolerableArtifactoryError valueOfCode(int code) {
+            for (TolerableArtifactoryError error : values()) {
+                if (error.code == code) {
+                    return error;
+                }
+            }
+            return null;
+        }
     }
 
     public boolean isAvailable() {
