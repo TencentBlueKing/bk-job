@@ -129,6 +129,10 @@
         type: Function,
         default: () => {},
       },
+      rollingFileParallel: {
+        type: Boolean,
+        default: false,
+      },
     },
     computed: {
       actionCom() {
@@ -147,7 +151,18 @@
         return comMap[this.name];
       },
       confirmInfo() {
-        return actionMap[this.name];
+        const base = actionMap[this.name];
+        if (!this.rollingFileParallel) {
+          return base;
+        }
+        const rollingDescMap = {
+          allRetry: I18n.t('history.并发滚动场景，将作用于所有批次所有IP'),
+          failIpRetry: I18n.t('history.并发滚动场景，将作用于所有批次执行失败的IP'),
+        };
+        const rollingDesc = rollingDescMap[this.name];
+        return rollingDesc
+          ? Object.assign({}, base, { desc: rollingDesc })
+          : base;
       },
     },
     methods: {
