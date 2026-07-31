@@ -71,6 +71,7 @@
           field="fileSourceList"
           :form-data="formData"
           name="sourceFileOfTemplate"
+          :script-variables="scriptVariables"
           :variable="variable"
           @on-change="handleChange" />
       </card-layout>
@@ -94,11 +95,14 @@
           field="account"
           :form-data="formData"
           name="executeAccount"
+          :variable="scriptVariables"
+          support-account-variable
           @on-change="handleChange" />
         <item-factory
           field="server"
           :form-data="formData"
           name="targetServerOfTemplate"
+          :script-variables="scriptVariables"
           :variable="variable"
           @on-change="handleChange" />
       </card-layout>
@@ -146,6 +150,8 @@
     //     server: {} // 执行目标
     // }
     account: '',
+    // 执行账号变量
+    accountVar: '',
     path: '',
     server: new ExecuteTargetModel({}),
   });
@@ -159,6 +165,10 @@
     inheritAttrs: false,
     props: {
       variable: {
+        type: Array,
+        default: () => [],
+      },
+      scriptVariables: {
         type: Array,
         default: () => [],
       },
@@ -194,6 +204,7 @@
             account,
             path,
             server,
+            accountVar,
           } = newData.fileDestination;
 
           const originData = { ...newData };
@@ -203,6 +214,7 @@
             ...this.formData,
             ...originData,
             account,
+            accountVar,
             path,
             server,
           };
@@ -227,6 +239,12 @@
        * @param {Any} value 字段值
        */
       handleChange(field, value) {
+        // 执行账号回写 account / accountVar：生效字段赋值，失效字段置空
+        if (value && typeof value === 'object' && 'activeField' in value) {
+          this.formData[value.activeField] = value.activeValue;
+          this.formData[value.inactiveField] = '';
+          return;
+        }
         this.formData[field] = value;
       },
       /**
@@ -333,6 +351,7 @@
               ignoreError,
               fileSourceList,
               account,
+              accountVar,
               path,
               server,
             } = this.formData;
@@ -351,6 +370,7 @@
                 fileSourceList,
                 fileDestination: {
                   account,
+                  accountVar,
                   path,
                   server,
                 },

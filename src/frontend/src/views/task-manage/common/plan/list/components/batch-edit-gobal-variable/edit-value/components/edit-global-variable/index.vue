@@ -36,6 +36,7 @@
 <script>
   import GlobalVariableModel from '@model/task/global-variable';
 
+  import AccountType from './account';
   import HostType from './host';
   import PasswordType from './password';
   import TextType from './text';
@@ -60,6 +61,7 @@
           [GlobalVariableModel.TYPE_RELATE_ARRAY]: TextType,
           [GlobalVariableModel.TYPE_INDEX_ARRAY]: TextType,
           [GlobalVariableModel.TYPE_HOST]: HostType,
+          [GlobalVariableModel.TYPE_ACCOUNT]: AccountType,
         };
         return comMap[this.data.type];
       },

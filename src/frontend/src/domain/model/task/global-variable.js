@@ -33,6 +33,7 @@ const TYPE_HOST = 3;
 const TYPE_PASSWORD = 4;
 const TYPE_RELATE_ARRAY = 5;
 const TYPE_INDEX_ARRAY = 6;
+const TYPE_ACCOUNT = 7;
 
 export default class GlobalVariable {
   static TYPE_STRING = TYPE_STRING;
@@ -41,6 +42,7 @@ export default class GlobalVariable {
   static TYPE_PASSWORD = TYPE_PASSWORD;
   static TYPE_RELATE_ARRAY = TYPE_RELATE_ARRAY;
   static TYPE_INDEX_ARRAY = TYPE_INDEX_ARRAY;
+  static TYPE_ACCOUNT = TYPE_ACCOUNT;
   static iconMap = {
     [TYPE_STRING]: 'string',
     [TYPE_NAMESPACE]: 'namespace',
@@ -48,6 +50,7 @@ export default class GlobalVariable {
     [TYPE_PASSWORD]: 'password',
     [TYPE_RELATE_ARRAY]: 'array',
     [TYPE_INDEX_ARRAY]: 'array',
+    [TYPE_ACCOUNT]: 'string',
   };
 
   static typeTextMap = {
@@ -57,6 +60,7 @@ export default class GlobalVariable {
     [TYPE_PASSWORD]: I18n.t('密文'),
     [TYPE_RELATE_ARRAY]: I18n.t('数组'),
     [TYPE_INDEX_ARRAY]: I18n.t('数组'),
+    [TYPE_ACCOUNT]: I18n.t('执行账号'),
   };
 
   constructor(payload, isClone = false) {
@@ -89,6 +93,14 @@ export default class GlobalVariable {
      */
   get isPassword() {
     return this.type === TYPE_PASSWORD;
+  }
+
+  /**
+   * @desc 执行账号变量
+   * @returns { Boolean }
+   */
+  get isAccount() {
+    return this.type === TYPE_ACCOUNT;
   }
 
   /**
@@ -138,6 +150,7 @@ export default class GlobalVariable {
       [TYPE_PASSWORD]: 'password',
       [TYPE_RELATE_ARRAY]: 'array',
       [TYPE_INDEX_ARRAY]: 'array',
+      [TYPE_ACCOUNT]: 'account',
     };
     return descriptionMap[this.type];
   }

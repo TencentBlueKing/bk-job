@@ -76,7 +76,18 @@
       class="row"
       :class="diff.executeAccount">
       <span class="label">{{ $t('template.执行账号：') }}</span>
-      <span class="value">{{ findName(data.executeAccount) }}</span>
+      <template v-if="data.fileDestination && data.fileDestination.accountVar">
+        <span
+          class="sync-plan-step-variable value-inline-block">
+          <span class="variable-flag">
+            <icon type="string" />
+          </span>
+          <span class="variable-name">{{ data.fileDestination.accountVar }}</span>
+        </span>
+      </template>
+      <span
+        v-else
+        class="value">{{ findName(data.executeAccount) }}</span>
     </div>
     <div
       class="row"

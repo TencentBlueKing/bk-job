@@ -83,6 +83,8 @@
       :form-data="formData"
       name="scriptAccount"
       script-language-field="scriptLanguage"
+      support-account-variable
+      :variable="scriptVariables"
       @on-change="handleChange" />
     <item-factory
       field="executeTarget"
@@ -135,6 +137,8 @@
     secureParam: 0,
     // 执行账号
     account: '',
+    // 执行账号变量
+    accountVar: '',
     // 执行目标信息 （主机和全局变量二选一）
     executeTarget: new ExecuteTargetModel({}),
 
@@ -192,6 +196,12 @@
     },
     methods: {
       handleChange(field, value) {
+        // 执行账号回写 account / accountVar：生效字段赋值，失效字段置空
+        if (value && typeof value === 'object' && 'activeField' in value) {
+          this.formData[value.activeField] = value.activeValue;
+          this.formData[value.inactiveField] = '';
+          return;
+        }
         this.formData[field] = value;
       },
       handleScriptContentReset(payload) {
@@ -213,6 +223,7 @@
           scriptId,
           content,
           account,
+          accountVar,
           status,
           scriptVersionId,
           scriptLanguage,
@@ -232,6 +243,7 @@
             scriptSource,
             scriptId,
             account,
+            accountVar,
             content,
             scriptLanguage,
             status,

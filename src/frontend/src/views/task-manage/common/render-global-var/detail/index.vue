@@ -72,6 +72,7 @@
     [GlobalVariableModel.TYPE_PASSWORD]: [type(), name(), defaultValue(defaultField), description(), required()],
     [GlobalVariableModel.TYPE_RELATE_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
     [GlobalVariableModel.TYPE_INDEX_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
+    [GlobalVariableModel.TYPE_ACCOUNT]: [type(), name(), defaultValue(defaultField), description(), required()],
   });
 
   export default {

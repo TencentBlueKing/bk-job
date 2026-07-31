@@ -139,6 +139,7 @@
   "全局变量": "Global variable",
   "手动添加": "Custom",
   "请选择执行目标变量": "Choose <execution target> variables",
+  "请选择账号变量": "Choose account variables",
   "复制IP": "Copy IP",
   "全部IP": "All IP",
   "异常IP": "Abnormal IP",

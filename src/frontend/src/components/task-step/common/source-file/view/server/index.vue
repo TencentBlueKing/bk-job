@@ -95,7 +95,33 @@
               :title="`${$t('全局变量')} - ${row.host.variable}`" />
           </td>
           <td>
+            <!-- 编辑账号变量 -->
+            <div
+              v-if="row.accountVar"
+              class="global-variable-render-box"
+              :class="{ 'value-error': !row.accountVar }"
+              style="margin-left: -10px;">
+              <bk-select
+                class="variable-edit-select"
+                :clearable="false"
+                searchable
+                :value="row.accountVar"
+                @change="value => handleAccountVariableChange(value, index)">
+                <bk-option
+                  v-for="(option, variableIndex) in accountVariable"
+                  :id="option.name"
+                  :key="variableIndex"
+                  :name="option.name" />
+              </bk-select>
+              <icon
+                v-if="!row.accountVar"
+                v-bk-tooltips="$t('全局变量被删除，重新设置')"
+                class="error-tips"
+                type="info" />
+            </div>
+            <!-- 手动添加账号 -->
             <account-select
+              v-else
               class="account-add-btn"
               type="system"
               :value="row.account"
@@ -117,6 +143,7 @@
         :account="accountList"
         :data="serverFileList"
         :from="from"
+        :script-variables="scriptVariables"
         :variable="variable"
         @on-cancel="handleAddCancel"
         @on-change="handleAddSave" />
@@ -172,6 +199,10 @@
         type: String,
         required: true,
       },
+      scriptVariables: {
+        type: Array,
+        default: () => [],
+      },
     },
     data() {
       return {
@@ -198,6 +229,9 @@
           return '、';
         }
         return '\n';
+      },
+      accountVariable() {
+        return this.scriptVariables.filter(item => !item.delete && item.isAccount);
       },
     },
     watch: {
@@ -324,6 +358,18 @@
       handleAccountChange(account, index) {
         const serverFile = this.serverFileList[index];
         serverFile.account = account;
+        serverFile.accountVar = '';
+        this.triggerChange();
+      },
+      /**
+       * @desc 更新编辑服务器文件的账号全局变量
+       * @param {String} variable 账号全局变量名
+       * @param {Number} index 编辑中的服务器文件的索引
+       */
+      handleAccountVariableChange(variable, index) {
+        const serverFile = this.serverFileList[index];
+        serverFile.accountVar = variable;
+        serverFile.account = '';
         this.triggerChange();
       },
       /**
