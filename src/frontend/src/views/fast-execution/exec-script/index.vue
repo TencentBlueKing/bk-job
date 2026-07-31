@@ -397,6 +397,14 @@
        * @param {Any} value 字段值
        */
       handleChange(field, value) {
+        // 执行账号互斥回写 account / accountVar：只保留生效字段，删除失效字段
+        if (value && typeof value === 'object' && 'activeField' in value) {
+          this.formData[value.activeField] = value.activeValue;
+          if (value.inactiveField in this.formData) {
+            this.$delete(this.formData, value.inactiveField);
+          }
+          return;
+        }
         this.formData[field] = value;
       },
       /**
