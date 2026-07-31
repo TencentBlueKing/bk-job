@@ -1,4 +1,4 @@
-FROM bkjob/jdk:3.10.5
+FROM bkjob/jdk17:3.10.5
 
 ARG MYSQL_SHA256=1e9f341e36d4fcdbb3e4d7d3dae6d6b2a42ebe8333e8f276c25e25564ce565c1
 
