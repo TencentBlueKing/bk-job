@@ -322,7 +322,7 @@
       height: inherit;
       max-width: inherit;
       max-height: inherit;
-      overflow: scroll scroll;
+      overflow: scroll;
 
       &::-webkit-scrollbar {
         width: 0;

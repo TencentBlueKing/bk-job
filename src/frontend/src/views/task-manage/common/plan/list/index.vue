@@ -377,12 +377,12 @@
   </div>
 </template>
 <script>
-    /**
-     * @desc 执行方案列表展示公用组件
-     *
-     * 用于作业模板详情展示指定作业模板的执行方案（固定搜索项作业模板名称）
-     * 用执行方案列表展示所有执行方案列表
-    */
+  /**
+   * @desc 执行方案列表展示公用组件
+   *
+   * 用于作业模板详情展示指定作业模板的执行方案（固定搜索项作业模板名称）
+   * 用执行方案列表展示所有执行方案列表
+   */
   import NotifyService from '@service/notify';
   import TaskExecuteService from '@service/task-execute';
   import TaskPlanService from '@service/task-plan';

@@ -1,8 +1,10 @@
 @mixin scroller ($backgroundColor: #c4c6cc, $width: 6px) {
+  /* stylelint-disable-next-line nesting-selector-no-missing-scoping-root */
   &::-webkit-scrollbar {
     width: $width;
   }
 
+  /* stylelint-disable-next-line nesting-selector-no-missing-scoping-root */
   &::-webkit-scrollbar-thumb {
     background-color: $backgroundColor;
     border-radius: 3px;

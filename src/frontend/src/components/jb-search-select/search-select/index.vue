@@ -111,7 +111,7 @@
   </div>
 </template>
 <script>
-/* eslint-disable no-underscore-dangle */
+  /* eslint-disable no-underscore-dangle */
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
   import _ from 'lodash';
   import Vue from 'vue';

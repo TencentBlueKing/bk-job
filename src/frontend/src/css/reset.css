@@ -81,6 +81,6 @@ th {
   letter-spacing: initial;
 }
 
-.bk-switcher.is-checked:after {
+.bk-switcher.is-checked::after {
   transform: none !important;
 }

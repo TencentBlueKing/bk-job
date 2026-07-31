@@ -42,14 +42,14 @@
 </template>
 
 <script>
-/**
-     * @desc  app-exception
-     *  @desc 异常页面
-     *  @param type {String} - 异常类型，有：404（找不到）、403（权限不足）、500（服务器问题）、building（建设中）
-     *  @param delay {Number} - 延时显示
-     *  @param text {String} - 显示的文案，默认：有：404（页面找不到了！）、403（Sorry，您的权限不足）、500（）、building(功能正在建设中···)
-     *  @example1 <app-exception type="404"></app-exception>
-     */
+  /**
+   * @desc  app-exception
+   *  @desc 异常页面
+   *  @param type {String} - 异常类型，有：404（找不到）、403（权限不足）、500（服务器问题）、building（建设中）
+   *  @param delay {Number} - 延时显示
+   *  @param text {String} - 显示的文案，默认：有：404（页面找不到了！）、403（Sorry，您的权限不足）、500（）、building(功能正在建设中···)
+   *  @example1 <app-exception type="404"></app-exception>
+   */
 
   export default {
     name: 'AppException',

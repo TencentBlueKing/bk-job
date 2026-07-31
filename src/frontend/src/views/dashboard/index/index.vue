@@ -39,7 +39,7 @@
         <div class="date-info">
           <bk-popover>
             <icon
-              style="cursor: pointer; font-size: 14px;"
+              style=" font-size: 14px;cursor: pointer;"
               type="circle-italics-info" />
             <div slot="content">
               {{ $t('dashboard.运营时区提示', { timezone: operationTimezone }) }}
@@ -258,11 +258,11 @@
           margin-left: auto;
 
           .date-info {
+            display: flex;
             font-size: 12px;
             color: #c4c6cc;
-            transform-origin: right center;
             transform: scale(0.85);
-            display: flex;
+            transform-origin: right center;
             align-items: center;
             gap: 8px;
           }

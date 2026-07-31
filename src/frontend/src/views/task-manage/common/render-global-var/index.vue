@@ -555,9 +555,9 @@
     width: 300px;
 
     .varialbe-status {
-      margin: -7px -12px 5px;
-      padding: 0 18px;
       width: 90px;
+      padding: 0 18px;
+      margin: -7px -12px 5px;
     }
 
     .varialbe-status-item {
@@ -568,8 +568,8 @@
       }
 
       .varialbe-status-desc{
-        color: #979ba5;
-        margin-top: 3px
+        margin-top: 3px;
+        color: #979ba5
       }
     }
   }
@@ -686,15 +686,16 @@
         white-space: nowrap;
       }
     }
+
     .variable-operate-popover {
         margin-left: auto;
 
       .variable-operate {
         width: 25px;
         height: 25px;
-        background: #eaebf0;
-        text-align: center;
         line-height: 25px;
+        text-align: center;
+        background: #eaebf0;
         border-radius: 5px;
 
         .variable-change-switch {
@@ -702,8 +703,8 @@
         }
 
         &.sync {
-          background: #deecff;
           color: #3a84ff;
+          background: #deecff;
         }
 
         &:hover {

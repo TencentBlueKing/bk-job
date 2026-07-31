@@ -360,7 +360,7 @@
     }
 
     .try-show {
-      display: visible;
+      display: block;
       padding-left: 10px;
     }
 
