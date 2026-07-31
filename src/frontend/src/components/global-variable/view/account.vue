@@ -26,40 +26,37 @@
 -->
 
 <template>
-  <execute-account
-    account-type="system"
-    :field="field"
-    :form-data="formData"
-    :support-account-variable="supportAccountVariable"
-    :variable="variable"
-    v-on="$listeners" />
+  <div>
+    <span v-if="accountName">{{ accountName }}</span>
+    <span v-else>--</span>
+  </div>
 </template>
-<script>
-  import ExecuteAccount from '@components/task-step/common/execute-account';
+<script setup>
+  import { onMounted, ref } from 'vue';
 
-  export default {
-    name: 'FileExecuteAccount',
-    components: {
-      ExecuteAccount,
+  import AccountManageService from '@service/account-manage';
+
+  const props = defineProps({
+    data: {
+      type: Object,
+      required: true,
     },
-    props: {
-      field: {
-        type: String,
-        required: true,
-      },
-      formData: {
-        type: Object,
-        required: true,
-      },
-      variable: {
-        type: Array,
-        default: () => [],
-      },
-      // 是否需要【执行账号】全局变量
-      supportAccountVariable: {
-        type: Boolean,
-        default: false,
-      },
-    },
-  };
+  });
+
+  const accountName = ref('');
+
+  onMounted(() => {
+    // defaultValue 为字符串，需转换后才能匹配账号列表
+    const value = props.data.defaultValue || props.data.value;
+    if (!value) {
+      return;
+    }
+    AccountManageService.fetchAccountWhole()
+      .then((data) => {
+        const accountData = data.find(item => item.id === Number(value));
+        if (accountData) {
+          accountName.value = accountData.alias;
+        }
+      });
+  });
 </script>

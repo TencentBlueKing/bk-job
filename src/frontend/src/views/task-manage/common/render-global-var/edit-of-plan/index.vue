@@ -63,6 +63,12 @@
           value="array">
           {{ $t('template.数组') }}
         </bk-radio-button>
+        <bk-radio-button
+          class="item"
+          :disabled="isTypeDisabled"
+          value="account">
+          {{ $t('template.执行账号') }}
+        </bk-radio-button>
       </bk-radio-group>
     </jb-form-item>
     <component
@@ -76,6 +82,7 @@
 <script>
   import I18n from '@/i18n';
 
+  import VarAccount from './account';
   import VarArray from './array';
   import VarHost from './host';
   import VarNamespace from './namespace';
@@ -90,6 +97,7 @@
       VarHost,
       VarPassword,
       VarArray,
+      VarAccount,
     },
     props: {
       variable: {
@@ -121,6 +129,7 @@
           host: VarHost,
           password: VarPassword,
           array: VarArray,
+          account: VarAccount,
         };
         if (!Object.prototype.hasOwnProperty.call(globalVarMap, this.globalType)) {
           return 'div';
