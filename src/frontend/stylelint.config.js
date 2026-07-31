@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
 */
 
-module.exports = {
+export default {
   extends: [
     'stylelint-config-standard',
   ],
@@ -32,21 +32,14 @@ module.exports = {
     'stylelint-order',
   ],
   rules: {
-    'at-rule-no-unknown': [true, {
-      ignoreAtRules: [
-        'function',
-        'if',
-        'each',
-        'include',
-        'mixin',
-        'define-mixin',
-        'extend',
-      ],
+    'at-rule-no-unknown': null,
+    'scss/at-rule-no-unknown': true,
+    'selector-pseudo-class-no-unknown': [true, {
+      ignorePseudoClasses: ['deep'],
     }],
     'alpha-value-notation': 'percentage',
     'no-descending-specificity': null,
     'selector-id-pattern': null,
-    indentation: 2,
     'order/properties-order': [ // 指定声明块内属性的字母顺序
       'position',
       'top',

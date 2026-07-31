@@ -33,7 +33,7 @@
     <div
       ref="box"
       class="tag-box"
-      style="position: releative; width: 100%; height: 240px;" />
+      style="position: relative; width: 100%; height: 240px;" />
   </card-layout>
 </template>
 <script>

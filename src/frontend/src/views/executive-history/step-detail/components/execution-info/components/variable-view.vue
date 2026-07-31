@@ -141,7 +141,7 @@
       white-space: pre-line;
 
       &.variable-value {
-        word-break: break-word;
+        overflow-wrap: break-word;
       }
     }
   }

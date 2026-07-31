@@ -194,10 +194,7 @@
 
     .job-textarea-edit {
       position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
       padding: 6px 10px 0;
@@ -221,10 +218,7 @@
 
     .job-textarea-placeholder {
       position: absolute;
-      top: 1px;
-      right: 1px;
-      bottom: 1px;
-      left: 1px;
+      inset: 1px;
       height: 30px;
       padding: 6px 10px;
       overflow: hidden;

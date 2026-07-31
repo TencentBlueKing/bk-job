@@ -526,7 +526,7 @@
         font-family: Consolas, monospace, tahoma, Arial;
         font-size: 13px;
         word-break: break-all;
-        word-wrap: break-word;
+        overflow-wrap: break-word;
         white-space: pre-wrap;
         background-color: #f6f6f6;
         border: 1px solid #ddd;

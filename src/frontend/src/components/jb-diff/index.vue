@@ -115,7 +115,7 @@
         const oldContent = `${this.oldContent}\n// --end--`;
         const newContent = `${this.newContent}\n// -- end--`;
 
-        const dd = createPatch('', oldContent, newContent, '', '', {
+        const dd = createPatch('file', oldContent, newContent, '', '', {
           context: this.context,
         });
         const html = Diff2Html.html(dd, {

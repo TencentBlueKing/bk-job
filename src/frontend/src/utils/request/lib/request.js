@@ -24,11 +24,13 @@
 */
 
 import axios from 'axios'
+
+import requestMiddleware from '../middleware/request'
+import responseMiddleware from '../middleware/response'
+
 import {
     paramsSerializer,
 } from './utils'
-import requestMiddleware from '../middleware/request'
-import responseMiddleware from '../middleware/response'
 
 const CancelToken = axios.CancelToken
 

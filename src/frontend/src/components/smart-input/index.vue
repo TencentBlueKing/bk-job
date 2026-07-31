@@ -174,10 +174,7 @@
 
     .job-smart-input-placeholder {
       position: absolute;
-      top: 1px;
-      right: 1px;
-      bottom: 1px;
-      left: 1px;
+      inset: 1px;
       height: 30px;
       padding: 6px 10px;
       overflow: hidden;

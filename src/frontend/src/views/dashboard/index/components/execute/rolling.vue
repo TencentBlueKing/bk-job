@@ -57,7 +57,7 @@
   </card-layout>
 </template>
 <script>
-/* eslint-disable max-len */
+  /* eslint-disable max-len */
   import * as echarts from 'echarts';
   import _ from 'lodash';
 

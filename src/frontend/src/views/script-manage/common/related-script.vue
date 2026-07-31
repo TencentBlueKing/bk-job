@@ -307,7 +307,7 @@
         align-items: center;
 
         &.active {
-          color: ##313238;
+          color: #313238;
           background: #fff;
           border-color: #dcdee5;
 
