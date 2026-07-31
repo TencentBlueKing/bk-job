@@ -58,13 +58,7 @@ fi
 exec java -server \
      -Dfile.encoding=UTF-8 \
      -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
-     -Xloggc:$BK_JOB_LOG_DIR/gc.log \
-     -XX:+UseGCLogFileRotation \
-     -XX:NumberOfGCLogFiles=12 \
-     -XX:GCLogFileSize=1G \
-     -XX:+PrintTenuringDistribution \
-     -XX:+PrintGCDetails \
-     -XX:+PrintGCDateStamps \
+     -Xlog:gc*,gc+age=trace:file=${BK_JOB_LOG_DIR}/gc.log:time,uptime,level,tags:filecount=12,filesize=1g \
      -XX:+HeapDumpOnOutOfMemoryError \
      -XX:HeapDumpPath=${JVM_FILE_DIR}/${BK_JOB_POD_NAME}_${CONTAINER_ID}_heap.hprof \
      -XX:ErrorFile=${JVM_FILE_DIR}/${BK_JOB_POD_NAME}_${CONTAINER_ID}_jvm_error.log \
