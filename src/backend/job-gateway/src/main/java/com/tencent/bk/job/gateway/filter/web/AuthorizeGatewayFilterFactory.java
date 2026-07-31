@@ -77,7 +77,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             ServerHttpRequest request = exchange.getRequest();
             String username = loginExemptionConfig.getDefaultUser();
             log.info("loginExemption enabled, use default user:{}", username);
-            request.mutate().header("username", new String[]{username}).build();
+            request = request.mutate().header("username", new String[]{username}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
@@ -126,7 +126,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             }
             String username = user.getUsername();
 
-            request.mutate().header("username", new String[]{username}).build();
+            request = request.mutate().header("username", new String[]{username}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
