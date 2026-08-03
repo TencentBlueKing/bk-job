@@ -62,7 +62,13 @@ public class ExponentIncrementRollingExprPart extends RollingExprPart {
             ExponentIncrementRollingExprPart rollingExprPart = new ExponentIncrementRollingExprPart();
             rollingExprPart.setExpr(expr);
 
-            int exponent = Integer.parseInt(matcher.group(1));
+            int exponent;
+            try {
+                exponent = Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException e) {
+                log.warn("Invalid rolling expr part : {}", expr);
+                throw new RollingExprParseException(e);
+            }
             if (exponent <= 0) {
                 log.warn("Invalid rolling expr part : {}", expr);
                 throw new RollingExprParseException();

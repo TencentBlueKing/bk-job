@@ -62,7 +62,13 @@ public class PlusIncrementRollingExprPart extends RollingExprPart {
             PlusIncrementRollingExprPart rollingExprPart = new PlusIncrementRollingExprPart();
             rollingExprPart.setExpr(expr);
 
-            int addend = Integer.parseInt(matcher.group(1));
+            int addend;
+            try {
+                addend = Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException e) {
+                log.warn("Invalid rolling expr part : {}", expr);
+                throw new RollingExprParseException(e);
+            }
             if (addend <= 0) {
                 log.warn("Invalid rolling expr part : {}", expr);
                 throw new RollingExprParseException();
