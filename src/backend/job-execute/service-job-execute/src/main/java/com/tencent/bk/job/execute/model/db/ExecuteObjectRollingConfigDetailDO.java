@@ -79,22 +79,16 @@ public class ExecuteObjectRollingConfigDetailDO {
     private Integer executionMode;
 
     /**
-     * 批次间固定延迟（线性步长），单位毫秒，仅并行模式使用
+     * 批次间最小延迟，单位毫秒，仅并行模式使用
      */
-    @JsonProperty("batchStartWaitFixedMs")
-    private Long batchStartWaitFixedMs;
+    @JsonProperty("batchStartWaitMinMs")
+    private Long batchStartWaitMinMs;
 
     /**
-     * 批次间随机延迟下限，单位毫秒，仅并行模式使用
+     * 批次间最大延迟，单位毫秒，仅并行模式使用
      */
-    @JsonProperty("batchStartWaitRandomMinMs")
-    private Long batchStartWaitRandomMinMs;
-
-    /**
-     * 批次间随机延迟上限，单位毫秒，仅并行模式使用
-     */
-    @JsonProperty("batchStartWaitRandomMaxMs")
-    private Long batchStartWaitRandomMaxMs;
+    @JsonProperty("batchStartWaitMaxMs")
+    private Long batchStartWaitMaxMs;
 
     /**
      * 目标服务器滚动分批表达式

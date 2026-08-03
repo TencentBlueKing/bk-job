@@ -431,9 +431,8 @@ class GseStepEventHandlerTest {
         detail.setExecutionMode(RollingExecutionModeEnum.PARALLEL.getValue());
         detail.setMode(RollingModeEnum.PAUSE_IF_FAIL.getValue());
         detail.setTotalBatch(totalBatch);
-        detail.setBatchStartWaitFixedMs(10000L);
-        detail.setBatchStartWaitRandomMinMs(1000L);
-        detail.setBatchStartWaitRandomMaxMs(3000L);
+        detail.setBatchStartWaitMinMs(11000L);
+        detail.setBatchStartWaitMaxMs(13000L);
         rollingConfig.setExecuteObjectRollingConfig(detail);
         when(rollingConfigService.getRollingConfig(JOB_INSTANCE_ID, ROLLING_CONFIG_ID)).thenReturn(rollingConfig);
     }

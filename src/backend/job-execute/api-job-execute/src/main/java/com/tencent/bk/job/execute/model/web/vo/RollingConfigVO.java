@@ -62,10 +62,10 @@ public class RollingConfigVO {
         message = "{validation.constraints.RollingExecutionMode_illegal.message}")
     private Integer executionMode = RollingExecutionModeEnum.SERIAL.getValue();
 
-    @Schema(description = "批次间固定延迟（线性步长），单位毫秒，仅并行模式使用且必填")
+    @Schema(description = "批次间最小延迟，单位毫秒，仅并行模式使用且必填")
     @NotNull(
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitFixedMs_NotNull.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMinMs_NotNull.message}"
     )
     @Min(
         value = 0,
@@ -77,12 +77,12 @@ public class RollingConfigVO {
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
         message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
-    private Long batchStartWaitFixedMs;
+    private Long batchStartWaitMinMs;
 
-    @Schema(description = "批次间随机延迟下限，单位毫秒，仅并行模式使用且必填")
+    @Schema(description = "批次间最大延迟，单位毫秒，仅并行模式使用且必填，需 ≥ batchStartWaitMinMs")
     @NotNull(
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitRandomMinMs_NotNull.message}"
+        message = "{validation.constraints.RollingBatchStartWaitMaxMs_NotNull.message}"
     )
     @Min(
         value = 0,
@@ -94,24 +94,7 @@ public class RollingConfigVO {
         groups = ValidationGroups.RollingExecutionMode.Parallel.class,
         message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
     )
-    private Long batchStartWaitRandomMinMs;
-
-    @Schema(description = "批次间随机延迟上限，单位毫秒，仅并行模式使用且必填，需 ≥ batchStartWaitRandomMinMs")
-    @NotNull(
-        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitRandomMaxMs_NotNull.message}"
-    )
-    @Min(
-        value = 0,
-        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
-    )
-    @Max(
-        value = 3600000,
-        groups = ValidationGroups.RollingExecutionMode.Parallel.class,
-        message = "{validation.constraints.RollingBatchStartWaitMs_Range.message}"
-    )
-    private Long batchStartWaitRandomMaxMs;
+    private Long batchStartWaitMaxMs;
 
     @Schema(description = "滚动对象为【传输目标】时的滚动分批策略表达式")
     @NotBlank(

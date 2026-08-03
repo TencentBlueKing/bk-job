@@ -55,7 +55,13 @@ public class PercentRollingExprPart extends RollingExprPart {
             PercentRollingExprPart rollingExprPart = new PercentRollingExprPart();
             rollingExprPart.setExpr(expr);
 
-            int percent = Integer.parseInt(matcher.group(1));
+            int percent;
+            try {
+                percent = Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException e) {
+                log.warn("Invalid rolling expr part : {}", expr);
+                throw new RollingExprParseException(e);
+            }
             if (percent <= 0 || percent > 100) {
                 log.warn("Invalid rolling expr part : {}", expr);
                 throw new RollingExprParseException();
