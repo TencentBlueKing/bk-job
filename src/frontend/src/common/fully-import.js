@@ -100,6 +100,7 @@ const IpSelector = createIpSelector({
   fetchContainerDetail: HostManageService.fetchContainerInfoById,
   fetchDynamicContainerPreview: HostManageService.fetchDynamicContainerPreview,
   fetchDynamicContainerFieldMetadata: HostManageService.fetchDynamicContainerFieldMetadata,
+  fetchContainerNodesNames: HostManageService.fetchContainerNodesNames,
   fetchContainerCheck: HostManageService.fetchInputParseContainerList,
   fetchCustomSettings: CustomSettingsService.fetchAll,
   updateCustomSettings: CustomSettingsService.update,

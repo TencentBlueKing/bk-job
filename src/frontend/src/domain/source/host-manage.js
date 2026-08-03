@@ -203,6 +203,11 @@ class HostManage extends ModuleBase {
       params,
     });
   }
+  getContainerNodesNames(params = {}) {
+    return Request.post(`${this.path}/topology/container/nodes/names`, {
+      params,
+    });
+  }
 }
 
 export default new HostManage();

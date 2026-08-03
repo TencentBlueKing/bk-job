@@ -152,4 +152,8 @@ export default {
     return  HostManageSource.getDynamicContainerFieldMetadata(params)
       .then(({ data }) => IpSelectrAdapter.dynamicContainersFieldMetadata(data));
   },
+  fetchContainerNodesNames(params){
+    return  HostManageSource.getContainerNodesNames(params)
+      .then(({ data }) => data);
+  }
 };
