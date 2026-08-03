@@ -6,8 +6,8 @@ LABEL dockerfile.version="3.10.5"
 ENV LANG="en_US.UTF-8"
 
 # 操作系统相关
-RUN ln -snf /usr/share/zoneinfo/UTC /etc/localtime &&\
-    echo 'UTC' > /etc/timezone && \
+RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\
+    echo 'Asia/Shanghai' > /etc/timezone && \
     echo 'alias ls="ls --color=auto"' >> ~/.bashrc &&\
     echo 'alias ll="ls -l"' >> ~/.bashrc &&\
     echo 'alias tailf="tail -f"' >> ~/.bashrc

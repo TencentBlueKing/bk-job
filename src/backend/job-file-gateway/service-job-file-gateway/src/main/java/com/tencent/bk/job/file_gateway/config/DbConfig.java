@@ -27,6 +27,7 @@ package com.tencent.bk.job.file_gateway.config;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.jooq.conf.Settings;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
@@ -71,7 +72,9 @@ public class DbConfig {
     @Bean(name = "job-file-gateway-dsl-context")
     public DSLContext dslContext(
         @Qualifier("job-file-gateway-jooq-conf") org.jooq.Configuration configuration) {
-        return new DefaultDSLContext(configuration);
+        return new DefaultDSLContext(
+            configuration.derive(new Settings().withRenderGroupConcatMaxLenSessionVariable(false))
+        );
     }
 
     @Qualifier("job-file-gateway-jooq-conf")

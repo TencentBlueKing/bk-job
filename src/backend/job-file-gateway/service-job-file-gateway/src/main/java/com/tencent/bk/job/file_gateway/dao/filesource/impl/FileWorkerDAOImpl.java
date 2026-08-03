@@ -434,45 +434,55 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         if (conditions == null) {
             conditions = new ArrayList<>();
         }
-        Result<Record> records = null;
-        val query = defaultContext.select(
-            defaultTable.ID.as(KEY_FILE_WORKER_ID),
-            defaultTable.APP_ID.as(KEY_FILE_WORKER_APP_ID),
-            defaultTable.NAME.as(KEY_FILE_WORKER_NAME),
-            defaultTable.DESCRIPTION.as(KEY_FILE_WORKER_DESCRIPTION),
-            defaultTable.TOKEN.as(KEY_FILE_WORKER_TOKEN),
-            defaultTable.ACCESS_HOST.as(KEY_FILE_WORKER_ACCESS_HOST),
-            defaultTable.ACCESS_PORT.as(KEY_FILE_WORKER_ACCESS_PORT),
-            defaultTable.CLOUD_AREA_ID.as(KEY_FILE_WORKER_CLOUD_AREA_ID),
-            defaultTable.INNER_IP_PROTOCOL.as(KEY_FILE_WORKER_INNER_IP_PROTOCOL),
-            defaultTable.INNER_IP.as(KEY_FILE_WORKER_INNER_IP),
-            defaultTable.CPU_OVERLOAD.as(KEY_FILE_WORKER_CPU_OVERLOAD),
-            defaultTable.MEM_RATE.as(KEY_FILE_WORKER_MEM_RATE),
-            defaultTable.MEM_FREE_SPACE.as(KEY_FILE_WORKER_MEM_FREE_SPACE),
-            defaultTable.DISK_RATE.as(KEY_FILE_WORKER_DISK_RATE),
-            defaultTable.DISK_FREE_SPACE.as(KEY_FILE_WORKER_DISK_FREE_SPACE),
-            defaultTable.VERSION.as(KEY_FILE_WORKER_VERSION),
-            defaultTable.ONLINE_STATUS.as(KEY_FILE_WORKER_ONLINE_STATUS),
-            defaultTable.LAST_HEART_BEAT.as(KEY_FILE_WORKER_LAST_HEART_BEAT),
-            defaultTable.CREATOR.as(KEY_FILE_WORKER_CREATOR),
-            defaultTable.CREATE_TIME.as(KEY_FILE_WORKER_CREATE_TIME),
-            defaultTable.LAST_MODIFY_USER.as(KEY_FILE_WORKER_LAST_MODIFY_USER),
-            defaultTable.LAST_MODIFY_TIME.as(KEY_FILE_WORKER_LAST_MODIFY_TIME),
-            DSL.groupConcat(tFileWorkerAbility.TAG).separator(GROUP_CONCAT_SEPARATOR).as(KEY_FILE_WORKER_ABILITY_TAGS)
-        )
-            .from(defaultTable)
-            .leftJoin(tFileWorkerAbility)
-            .on(defaultTable.ID.eq(tFileWorkerAbility.WORKER_ID))
-            .where(conditions)
-            .groupBy(defaultTable.ID)
-            .orderBy(defaultTable.LAST_HEART_BEAT.desc());
-        try {
-            String sql = query.getSQL(ParamType.INLINED);
-            log.debug("SQL=" + sql);
-            records = query.fetch();
-        } catch (Exception e) {
-            log.error(String.format("Fail to execute SQL:%s", query.getSQL(ParamType.INLINED)), e);
-        }
+        Collection<Condition> finalConditions = conditions;
+        Result<Record> records = defaultContext.transactionResult(configuration -> {
+            DSLContext ctx = configuration.dsl();
+            ctx.execute("SET @t = @@group_concat_max_len");
+            ctx.execute("SET @@group_concat_max_len = 10240");
+            val query = ctx.select(
+                defaultTable.ID.as(KEY_FILE_WORKER_ID),
+                defaultTable.APP_ID.as(KEY_FILE_WORKER_APP_ID),
+                defaultTable.NAME.as(KEY_FILE_WORKER_NAME),
+                defaultTable.DESCRIPTION.as(KEY_FILE_WORKER_DESCRIPTION),
+                defaultTable.TOKEN.as(KEY_FILE_WORKER_TOKEN),
+                defaultTable.ACCESS_HOST.as(KEY_FILE_WORKER_ACCESS_HOST),
+                defaultTable.ACCESS_PORT.as(KEY_FILE_WORKER_ACCESS_PORT),
+                defaultTable.CLOUD_AREA_ID.as(KEY_FILE_WORKER_CLOUD_AREA_ID),
+                defaultTable.INNER_IP_PROTOCOL.as(KEY_FILE_WORKER_INNER_IP_PROTOCOL),
+                defaultTable.INNER_IP.as(KEY_FILE_WORKER_INNER_IP),
+                defaultTable.CPU_OVERLOAD.as(KEY_FILE_WORKER_CPU_OVERLOAD),
+                defaultTable.MEM_RATE.as(KEY_FILE_WORKER_MEM_RATE),
+                defaultTable.MEM_FREE_SPACE.as(KEY_FILE_WORKER_MEM_FREE_SPACE),
+                defaultTable.DISK_RATE.as(KEY_FILE_WORKER_DISK_RATE),
+                defaultTable.DISK_FREE_SPACE.as(KEY_FILE_WORKER_DISK_FREE_SPACE),
+                defaultTable.VERSION.as(KEY_FILE_WORKER_VERSION),
+                defaultTable.ONLINE_STATUS.as(KEY_FILE_WORKER_ONLINE_STATUS),
+                defaultTable.LAST_HEART_BEAT.as(KEY_FILE_WORKER_LAST_HEART_BEAT),
+                defaultTable.CREATOR.as(KEY_FILE_WORKER_CREATOR),
+                defaultTable.CREATE_TIME.as(KEY_FILE_WORKER_CREATE_TIME),
+                defaultTable.LAST_MODIFY_USER.as(KEY_FILE_WORKER_LAST_MODIFY_USER),
+                defaultTable.LAST_MODIFY_TIME.as(KEY_FILE_WORKER_LAST_MODIFY_TIME),
+                DSL.groupConcat(tFileWorkerAbility.TAG)
+                    .separator(GROUP_CONCAT_SEPARATOR)
+                    .as(KEY_FILE_WORKER_ABILITY_TAGS)
+            )
+                .from(defaultTable)
+                .leftJoin(tFileWorkerAbility)
+                .on(defaultTable.ID.eq(tFileWorkerAbility.WORKER_ID))
+                .where(finalConditions)
+                .groupBy(defaultTable.ID)
+                .orderBy(defaultTable.LAST_HEART_BEAT.desc());
+            try {
+                String sql = query.getSQL(ParamType.INLINED);
+                log.debug("SQL=" + sql);
+                return query.fetch();
+            } catch (Exception e) {
+                log.error(String.format("Fail to execute SQL:%s", query.getSQL(ParamType.INLINED)), e);
+                return null;
+            } finally {
+                ctx.execute("SET @@group_concat_max_len = @t");
+            }
+        });
         if (records == null || records.isEmpty()) {
             return Collections.emptyList();
         } else {
