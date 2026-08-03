@@ -68,6 +68,10 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
      * 执行账号别名
      */
     private String accountAlias;
+    /**
+     * 执行账号全局变量名
+     */
+    private String accountVar;
     // --------------脚本步骤字段--------------//
     /**
      * 脚本ID
@@ -199,6 +203,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.timeout = scriptStepInstance.getTimeout();
         this.accountId = scriptStepInstance.getAccountId();
         this.account = scriptStepInstance.getAccount();
+        this.accountVar = scriptStepInstance.getAccountVar();
         this.scriptId = scriptStepInstance.getScriptId();
         this.scriptVersionId = scriptStepInstance.getScriptVersionId();
         this.scriptContent = scriptStepInstance.getScriptContent();
@@ -222,6 +227,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.timeout = fileStepInstance.getTimeout();
         this.accountId = fileStepInstance.getAccountId();
         this.account = fileStepInstance.getAccount();
+        this.accountVar = fileStepInstance.getAccountVar();
         this.fileSourceList = fileStepInstance.getFileSourceList();
         this.fileTargetPath = fileStepInstance.getFileTargetPath();
         this.fileTargetName = fileStepInstance.getFileTargetName();

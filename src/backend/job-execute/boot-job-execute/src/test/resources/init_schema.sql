@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_script`
     `execution_timeout`     int(11)             DEFAULT NULL,
     `system_account_id`     bigint(20)          DEFAULT NULL,
     `system_account`        varchar(256)        DEFAULT NULL,
+    `account_var`           varchar(255)        DEFAULT NULL,
     `db_account_id`         bigint(20)          DEFAULT NULL,
     `db_type`               tinyint(4)          DEFAULT NULL,
     `db_account`            varchar(256)        DEFAULT NULL,
@@ -130,6 +131,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_file`
     `execution_timeout`         int(11)             DEFAULT NULL,
     `system_account_id`         bigint(20)          DEFAULT NULL,
     `system_account`            varchar(256)        DEFAULT NULL,
+    `account_var`               varchar(255)        DEFAULT NULL,
     `row_create_time`           DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`           DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`step_instance_id`)

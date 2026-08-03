@@ -1566,10 +1566,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             TaskStepTypeEnum stepType = StepTypeExecuteTypeConverter.convertToStepType(executeType);
             switch (stepType) {
                 case SCRIPT:
-                    parseScriptStepInstanceFromStepInstance(stepInstance, originStepInstance, finalVariableValueMap);
+                    parseScriptStepInstanceFromStepInstance(appId, stepInstance, originStepInstance,
+                        finalVariableValueMap);
                     break;
                 case FILE:
-                    parseFileStepInstanceFromStepInstance(stepInstance, originStepInstance, finalVariableValueMap);
+                    parseFileStepInstanceFromStepInstance(appId, stepInstance, originStepInstance,
+                        finalVariableValueMap);
                     break;
                 case APPROVAL:
                     parseManualConfirmStepInstance(stepInstance, originStepInstance);
@@ -1589,7 +1591,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 检查步骤
         checkStepInstance(taskInstance, stepInstanceList);
 
-        authRedoJob(operator, appId, originTaskInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
+        taskInstance.setStepInstances(stepInstanceList);
+        authRedoJob(operator, appId, taskInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
 
         saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
 
@@ -1779,33 +1782,43 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             return null;
         }
 
-        String accountVar = accountInfo.getAccountVar().trim();
+        return resolveAccountVar(appId, accountInfo.getAccountVar(), variableValueMap, expectedCategory, step.getId());
+    }
+
+    private ServiceAccountDTO resolveAccountVar(
+        Long appId,
+        String accountVar,
+        Map<String, TaskVariableDTO> variableValueMap,
+        AccountCategoryEnum expectedCategory,
+        long stepId
+    ) {
+        accountVar = accountVar.trim();
         if (variableValueMap == null) {
-            log.warn("Task variable value map is null, stepId={}, accountVar={}", step.getId(), accountVar);
+            log.warn("Task variable value map is null, stepId={}, accountVar={}", stepId, accountVar);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskVariableDTO accountVariable = variableValueMap.get(accountVar);
         if (accountVariable == null
             || accountVariable.getType() == null
             || accountVariable.getType() != TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType()) {
-            log.warn("Invalid execute account variable, stepId={}, accountVar={}", step.getId(), accountVar);
+            log.warn("Invalid execute account variable, stepId={}, accountVar={}", stepId, accountVar);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        Long accountId = parseAccountId(accountVariable.getValue(), step.getId(), accountVar);
+        Long accountId = parseAccountId(accountVariable.getValue(), stepId, accountVar);
         AccountDTO account = accountService.getAccountById(accountId);
         if (account == null) {
             log.warn("Resolved account is not exist, stepId={}, accountVar={}, accountId={}",
-                step.getId(), accountVar, accountId);
+                stepId, accountVar, accountId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray("ID=" + accountId));
         }
         if (!Objects.equals(account.getAppId(), appId)) {
             log.warn("Resolved account does not belong to current app, appId={}, stepId={}, accountVar={}, "
-                + "accountId={}, accountAppId={}", appId, step.getId(), accountVar, accountId, account.getAppId());
+                + "accountId={}, accountAppId={}", appId, stepId, accountVar, accountId, account.getAppId());
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (expectedCategory != null && account.getCategory() != expectedCategory) {
             log.warn("Resolved account category mismatch, stepId={}, accountVar={}, accountId={}, expected={}, " +
-                    "actual={}", step.getId(), accountVar, accountId, expectedCategory, account.getCategory());
+                    "actual={}", stepId, accountVar, accountId, expectedCategory, account.getCategory());
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         return buildServiceAccount(account);
@@ -1872,6 +1885,30 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return buildServiceAccount(systemAccount);
     }
 
+    private String getAccountVar(ServiceAccountDTO accountInfo) {
+        if (accountInfo == null || StringUtils.isBlank(accountInfo.getAccountVar())) {
+            return null;
+        }
+        return accountInfo.getAccountVar().trim();
+    }
+
+    private void setScriptStepAccount(StepInstanceDTO stepInstance,
+                                      ServiceAccountDTO accountInfo,
+                                      ScriptTypeEnum scriptType) {
+        if (scriptType == ScriptTypeEnum.SQL) {
+            stepInstance.setAccountId(accountInfo.getDbSystemAccount().getId());
+            stepInstance.setAccount(accountInfo.getDbSystemAccount().getAccount());
+            stepInstance.setDbAccountId(accountInfo.getId());
+            stepInstance.setDbAccount(accountInfo.getAccount());
+            stepInstance.setDbType(accountInfo.getType());
+            stepInstance.setDbPort(accountInfo.getDbPort());
+            stepInstance.setDbPass(accountInfo.getDbPassword());
+        } else {
+            stepInstance.setAccountId(accountInfo.getId());
+            stepInstance.setAccount(accountInfo.getAccount());
+        }
+    }
+
     private void parseScriptStepInstanceFromPlanStep(Long appId, StepInstanceDTO stepInstance, ServiceTaskStepDTO step,
                                                      Map<String, TaskVariableDTO> variableValueMap) {
         ServiceTaskScriptStepDTO scriptStepInfo = step.getScriptStepInfo();
@@ -1904,19 +1941,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("Account is null! step_id:{}", step.getId());
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
+        stepInstance.setAccountVar(getAccountVar(scriptStepInfo.getAccount()));
 
-        stepInstance.setAccountId(accountInfo.getId());
-        if (scriptType == ScriptTypeEnum.SQL) {
-            stepInstance.setAccountId(accountInfo.getDbSystemAccount().getId());
-            stepInstance.setAccount(accountInfo.getDbSystemAccount().getAccount());
-            stepInstance.setDbAccountId(accountInfo.getId());
-            stepInstance.setDbAccount(accountInfo.getAccount());
-            stepInstance.setDbType(accountInfo.getType());
-            stepInstance.setDbPort(accountInfo.getDbPort());
-            stepInstance.setDbPass(accountInfo.getDbPassword());
-        } else {
-            stepInstance.setAccountId(accountInfo.getId());
-            stepInstance.setAccount(accountInfo.getAccount());
+        setScriptStepAccount(stepInstance, accountInfo, scriptType);
+        if (scriptType != ScriptTypeEnum.SQL) {
             stepInstance.setWindowsInterpreter(scriptStepInfo.getWindowsInterpreter());
         }
 
@@ -1939,6 +1967,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         stepInstance.setAccountId(accountInfo.getId());
         stepInstance.setAccount(accountInfo.getAccount());
+        stepInstance.setAccountVar(getAccountVar(step.getFileStepInfo().getAccount()));
         stepInstance.setFileTargetPath(fileStepInfo.getDestinationFileLocation());
 
         List<ServiceTaskFileInfoDTO> originFileList = fileStepInfo.getOriginFileList();
@@ -1965,6 +1994,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 if (accountDTO != null) {
                     fileSource.setAccount(accountDTO.getAccount());
                     fileSource.setAccountId(accountDTO.getId());
+                    fileSource.setAccountVar(getAccountVar(originFile.getAccount()));
                 }
                 ServiceTaskTargetDTO target = originFile.getExecuteTarget();
                 ExecuteTargetDTO targetServers = buildFinalTargetServers(target, variableValueMap);
@@ -2005,7 +2035,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     }
 
-    private void parseScriptStepInstanceFromStepInstance(StepInstanceDTO stepInstance,
+    private void parseScriptStepInstanceFromStepInstance(Long appId,
+                                                         StepInstanceDTO stepInstance,
                                                          StepInstanceDTO originStepInstance,
                                                          Map<String, TaskVariableDTO> variableValueMap) {
         stepInstance.setScriptContent(originStepInstance.getScriptContent());
@@ -2021,18 +2052,23 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setScriptSource(originStepInstance.getScriptSource());
 
         ScriptTypeEnum scriptType = originStepInstance.getScriptType();
-        stepInstance.setAccountId(originStepInstance.getAccountId());
-        if (scriptType == ScriptTypeEnum.SQL) {
-            stepInstance.setAccountId(originStepInstance.getAccountId());
-            stepInstance.setAccount(originStepInstance.getAccount());
-            stepInstance.setDbAccountId(originStepInstance.getDbAccountId());
-            stepInstance.setDbAccount(originStepInstance.getDbAccount());
-            stepInstance.setDbType(originStepInstance.getDbType());
-            stepInstance.setDbPort(originStepInstance.getDbPort());
-            stepInstance.setDbPass(originStepInstance.getDbPass());
+        stepInstance.setAccountVar(originStepInstance.getAccountVar());
+        if (StringUtils.isNotBlank(originStepInstance.getAccountVar())) {
+            AccountCategoryEnum accountCategory = scriptType == ScriptTypeEnum.SQL ? AccountCategoryEnum.DB :
+                AccountCategoryEnum.SYSTEM;
+            ServiceAccountDTO accountInfo = resolveAccountVar(appId, originStepInstance.getAccountVar(),
+                variableValueMap, accountCategory, originStepInstance.getStepId());
+            setScriptStepAccount(stepInstance, accountInfo, scriptType);
         } else {
             stepInstance.setAccountId(originStepInstance.getAccountId());
             stepInstance.setAccount(originStepInstance.getAccount());
+            if (scriptType == ScriptTypeEnum.SQL) {
+                stepInstance.setDbAccountId(originStepInstance.getDbAccountId());
+                stepInstance.setDbAccount(originStepInstance.getDbAccount());
+                stepInstance.setDbType(originStepInstance.getDbType());
+                stepInstance.setDbPort(originStepInstance.getDbPort());
+                stepInstance.setDbPass(originStepInstance.getDbPass());
+            }
         }
 
         ExecuteTargetDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetExecuteObjects(),
@@ -2040,11 +2076,20 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setTargetExecuteObjects(targetServers);
     }
 
-    private void parseFileStepInstanceFromStepInstance(StepInstanceDTO stepInstance,
+    private void parseFileStepInstanceFromStepInstance(Long appId,
+                                                       StepInstanceDTO stepInstance,
                                                        StepInstanceDTO originStepInstance,
                                                        Map<String, TaskVariableDTO> variableValueMap) {
-        stepInstance.setAccountId(originStepInstance.getAccountId());
-        stepInstance.setAccount(originStepInstance.getAccount());
+        stepInstance.setAccountVar(originStepInstance.getAccountVar());
+        if (StringUtils.isNotBlank(originStepInstance.getAccountVar())) {
+            ServiceAccountDTO accountInfo = resolveAccountVar(appId, originStepInstance.getAccountVar(),
+                variableValueMap, AccountCategoryEnum.SYSTEM, originStepInstance.getStepId());
+            stepInstance.setAccountId(accountInfo.getId());
+            stepInstance.setAccount(accountInfo.getAccount());
+        } else {
+            stepInstance.setAccountId(originStepInstance.getAccountId());
+            stepInstance.setAccount(originStepInstance.getAccount());
+        }
         stepInstance.setFileTargetPath(originStepInstance.getFileTargetPath());
         stepInstance.setIgnoreError(originStepInstance.isIgnoreError());
         stepInstance.setTimeout(originStepInstance.getTimeout());
@@ -2055,6 +2100,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             List<FileSourceDTO> fileSourceList = new ArrayList<>();
             originStepInstance.getFileSourceList().forEach(fileSourceDTO -> {
                 FileSourceDTO newFileSource = fileSourceDTO.clone();
+                if (StringUtils.isNotBlank(newFileSource.getAccountVar())) {
+                    ServiceAccountDTO accountInfo = resolveAccountVar(appId, newFileSource.getAccountVar(),
+                        variableValueMap, AccountCategoryEnum.SYSTEM, originStepInstance.getStepId());
+                    newFileSource.setAccountId(accountInfo.getId());
+                    newFileSource.setAccount(accountInfo.getAccount());
+                }
                 // 重新解析源文件服务器信息
                 ExecuteTargetDTO targetServers = buildFinalTargetServers(newFileSource.getServers(), variableValueMap);
                 newFileSource.setServers(targetServers);
