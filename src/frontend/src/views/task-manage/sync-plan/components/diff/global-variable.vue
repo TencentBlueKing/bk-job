@@ -62,6 +62,12 @@
           <span class="value">{{ data.valueText }}</span>
         </div>
       </template>
+      <template v-else-if="data.isAccount">
+        <div :class="diffValue.defaultValue">
+          <span class="label">{{ $t('template.变量值：') }}</span>
+          <span class="value">{{ accName(data.valueText) }}</span>
+        </div>
+      </template>
       <template v-else>
         <div :class="diffValue.defaultValue">
           <span class="label">{{ $t('template.变量值：') }}</span>
@@ -104,6 +110,10 @@
         type: String,
         default: '',
       },
+      account: {
+        type: Array,
+        default: () => ([])
+      }
     },
     computed: {
       classes() {
@@ -120,6 +130,12 @@
         }
         return {};
       },
+      accName() {
+        return (val) => {
+          const filters = this.account.filter((item) => item.id === Number(val))
+          return filters?.[0]?.alias || val
+        }
+      }
     },
   };
 </script>
