@@ -376,6 +376,7 @@
        * @param { String } expr
        */
       validatorExpr(expr) {
+        this.$refs.expr && this.$refs.expr.clearValidator();
         try {
           this.errorMessage = '';
           this.tips = rollingExprParse(expr);
@@ -465,11 +466,6 @@
       handleExecutionModeChange(field, executionMode) {
         this.handleFieldChange(field, executionMode)
         if (executionMode === 2) {
-          // 切换到并行模式时，默认设置延迟值
-          this.$emit('on-reset', {
-            [this.batchStartWaitMinMsField]: 0,
-            [this.batchStartWaitMaxMsField]: 0,
-          });
           this.$nextTick(() => {
             if (this.isFileMode) {
               this.$refs.batchStartWait?.$el?.scrollIntoView();
