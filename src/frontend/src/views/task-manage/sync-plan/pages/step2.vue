@@ -58,12 +58,14 @@
               <div class="sync-before">
                 <diff-global-variable
                   v-if="planVariableList[index - 1]"
+                  :account="accountList"
                   :data="planVariableList[index - 1]"
                   :diff="beforeVariableDiff" />
               </div>
               <div class="sync-after">
                 <diff-global-variable
                   v-if="templateVariableList[index - 1]"
+                  :account="accountList"
                   :data="templateVariableList[index - 1]"
                   :diff="variableDiff"
                   type="sync-after" />

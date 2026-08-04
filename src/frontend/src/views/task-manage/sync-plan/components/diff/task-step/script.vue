@@ -123,3 +123,38 @@
     },
   };
 </script>
+<style lang="postcss" scoped>
+  .sync-plan-step-variable {
+    display: flex;
+    overflow: hidden;
+    cursor: pointer;
+
+    .variable-flag {
+      display: flex;
+      width: 24px;
+      height: 24px;
+      font-size: 13px;
+      color: #fff !important;
+      background: #c4c6cc;
+      border-bottom-left-radius: 2px;
+      border-top-left-radius: 2px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .variable-name {
+      display: flex;
+      height: 24px;
+      padding: 0 10px;
+      font-size: 12px;
+      color: #63656e;
+      background: #fff;
+      border: 1px solid #dcdee5;
+      border-left: none;
+      border-top-right-radius: 2px;
+      border-bottom-right-radius: 2px;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+</style>

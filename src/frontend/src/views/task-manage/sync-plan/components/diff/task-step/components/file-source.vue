@@ -86,7 +86,15 @@
                     :pre-host="preServerList[index].host" />
                 </td>
                 <td :class="checkDiffClass(row, 'account')">
-                  {{ generatorAccountAlias(row.account) }}
+                  <span
+                    v-if="row.accountVar"
+                    class="sync-plan-step-variable value-inline-block">
+                    <span class="variable-flag">
+                      <icon type="string" />
+                    </span>
+                    <span class="variable-name">{{ row.accountVar }}</span>
+                  </span>
+                  <span v-else>{{ generatorAccountAlias(row.account) }}</span>
                 </td>
               </tr>
             </tbody>
@@ -436,6 +444,39 @@
 <style lang='postcss'>
 .sync-step-server-file {
   flex: 1;
+
+  .sync-plan-step-variable {
+    display: flex;
+    overflow: hidden;
+
+    .variable-flag {
+      display: flex;
+      width: 24px;
+      height: 24px;
+      font-size: 13px;
+      color: #fff !important;
+      background: #c4c6cc;
+      border-bottom-left-radius: 2px;
+      border-top-left-radius: 2px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .variable-name {
+      display: flex;
+      height: 24px;
+      padding: 0 10px;
+      font-size: 12px;
+      color: #63656e;
+      background: #fff;
+      border: 1px solid #dcdee5;
+      border-left: none;
+      border-top-right-radius: 2px;
+      border-bottom-right-radius: 2px;
+      align-items: center;
+      justify-content: center;
+    }
+  }
 
   .bk-collapse-item-header {
     display: flex;
