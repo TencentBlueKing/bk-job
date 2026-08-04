@@ -221,8 +221,8 @@
     rollingExecutionMode: 1, // 执行模式：1-串行，2-并行
     rollingMaxExecuteObjectNum: null, // 单批次最大源执行对象数
     rollingMaxFileNum: null, // 单个执行对象的最大并发文件数
-    rollingBatchStartWaitMinMs: null, // 批次间最小延迟（毫秒）
-    rollingBatchStartWaitMaxMs: null, // 批次间最大延迟（毫秒）
+    rollingBatchStartWaitMinMs: 0, // 批次间最小延迟（毫秒）
+    rollingBatchStartWaitMaxMs: 0, // 批次间最大延迟（毫秒）
   });
 
   export default {
