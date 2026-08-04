@@ -13,6 +13,7 @@
 | `config.yaml` | 部署配置：`apigw_base_url` 与 `job_base_url`（仓库内为占位，部署时替换） |
 | `references/manuals/` | 本目录：按任务按需加载的手册 |
 | `references/apidocs/` | 字段级 API 文档 |
+| `tmp/` | **运行期临时文件的唯一存放位置**，用完即清；见 [temp-files.md](temp-files.md) |
 | `memory/businesses/` | 可选业务记忆；带 `--bk-scope-id` 的命令自动附加 `_business_memory`，`--no-business-memory` 可关闭 |
 
 打包上传前可在 bk-skill-creator 仓库内执行 `python -m scripts.quick_validate "<bk-job 根目录绝对路径>"` 校验技能包。
@@ -26,6 +27,7 @@
 | [host-query-and-selection.md](host-query-and-selection.md) | **执行类操作填写主机**：`host-topo-tree` 看拓扑、`host-search` 按 IP/主机名/操作系统/拓扑节点搜索主机 |
 | [account-query-and-selection.md](account-query-and-selection.md) | **执行类操作填写账号**：`account-list` 查询业务下可用执行账号（系统/DB），引导选择 alias/id |
 | [listing-and-token-efficient-analysis.md](listing-and-token-efficient-analysis.md) | **列举默认先 20 条**、大列表用 jq/脚本本地过滤、节省 Token |
+| [temp-files.md](temp-files.md) | **临时文件只放技能 `tmp/`**、命名约定、清理命令与清理红线（只清 `tmp/`） |
 | [confirmation-and-output-protocol.md](confirmation-and-output-protocol.md) | **plan-execute / fast-execute-script 确认门禁（G1–G4）**、摘要格式、**输出规范**（结构化交付、禁止过程叙述） |
 | [business-memory.md](business-memory.md) | **业务/业务集记忆**：路径、`memory/businesses/`、加载流程、沉淀触发与写入规则 |
 | [cron-tasks-and-last-execution.md](cron-tasks-and-last-execution.md) | 定时任务关键词检索、`cron-last-run` 最近执行与日志 |

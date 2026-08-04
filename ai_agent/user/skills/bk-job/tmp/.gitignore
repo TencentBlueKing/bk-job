@@ -1,0 +1,4 @@
+# 技能运行期临时文件目录：内容不入库，仅保留目录本身
+# 清理临时文件时请保留本文件，详见 references/manuals/temp-files.md
+*
+!.gitignore

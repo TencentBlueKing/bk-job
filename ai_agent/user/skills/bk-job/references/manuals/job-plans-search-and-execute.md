@@ -64,7 +64,7 @@ PowerShell 等环境传含主机的 JSON 易转义失败，统一走文件：
 
 ```bash
 # A. 写入全局变量文件（type=3 主机变量用 server.ip_list，须 bk_cloud_id + ip）
-cat > /tmp/exec_vars.json << 'EOF'
+cat > tmp/exec_vars.json << 'EOF'
 [
   {"name":"hosts","server":{"ip_list":[{"bk_cloud_id":0,"ip":"127.0.0.1"}]}},
   {"name":"TARGET_DIR","value":"/data/release"}
@@ -74,12 +74,12 @@ EOF
 # B. dry-run 校验请求体
 python scripts/job_apigw_client.py plan-execute \
   --bk-scope-id <业务ID> --job-plan-id 1000193 \
-  --global-vars-file /tmp/exec_vars.json --dry-run
+  --global-vars-file tmp/exec_vars.json --dry-run
 
 # C. 展示确认摘要 → 用户下一条独立确认（G2）后再真实启动
 python scripts/job_apigw_client.py plan-execute \
   --bk-scope-id <业务ID> --job-plan-id 1000193 \
-  --global-vars-file /tmp/exec_vars.json
+  --global-vars-file tmp/exec_vars.json
 # 成功返回含 job_instance_id 与 job_instance_url，须以可点击链接交付用户
 ```
 

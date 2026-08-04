@@ -104,14 +104,14 @@ python scripts/job_apigw_client.py host-search \
   --os-name linux,centos --host-name mysql
 
 # D. 按拓扑模块精确取主机（instance_id 取自 host-topo-tree）
-cat > /tmp/topo_nodes.json << 'EOF'
+cat > tmp/topo_nodes.json << 'EOF'
 [
   {"object_id": "module", "instance_id": 2001}
 ]
 EOF
 python scripts/job_apigw_client.py host-search \
   --bk-scope-id <业务ID> \
-  --topo-nodes-file /tmp/topo_nodes.json --length 50
+  --topo-nodes-file tmp/topo_nodes.json --length 50
 
 # E. 业务集下按 IP 搜索（拓扑节点对业务集不生效，仅关键字过滤）
 python scripts/job_apigw_client.py host-search \

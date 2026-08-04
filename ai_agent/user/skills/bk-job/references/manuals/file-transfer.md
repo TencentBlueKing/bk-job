@@ -126,7 +126,7 @@ python scripts/job_apigw_client.py fast-transfer-file \
   --dry-run
 
 # C. 服务器文件的复杂结构（如按源文件滚动）用 --file-source-file（仅 file_type=1/2）
-cat > /tmp/file_sources.json << 'EOF'
+cat > tmp/file_sources.json << 'EOF'
 [
   {"file_type": 1, "file_list": ["/data/1.txt", "/data/2.txt"], "account": {"alias": "root"}, "server": {"host_id_list": [101]}}
 ]
@@ -135,7 +135,7 @@ python scripts/job_apigw_client.py fast-transfer-file \
   --bk-scope-id <业务ID> \
   --file-target-path /tmp/ --account-alias root \
   --target-host-id-list 103,104 \
-  --file-source-file /tmp/file_sources.json --dry-run
+  --file-source-file tmp/file_sources.json --dry-run
 ```
 
 分发成功后脚本 JSON 会补充 **`job_instance_url`**（来自 `config.yaml` 的 `job_base_url`），格式为 `{job_base_url}/api_execute/{job_instance_id}`；须以可点击链接交付用户，并可用 `instance-status` / `get-instance-log` 跟进结果。

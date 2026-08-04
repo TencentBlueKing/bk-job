@@ -75,7 +75,7 @@
 # A. dry-run 校验请求体（脚本内容从文件读取，避免转义）
 python scripts/job_apigw_client.py fast-execute-script \
   --bk-scope-id <业务ID> \
-  --script-content-file /tmp/restart.sh --script-language shell \
+  --script-content-file tmp/restart.sh --script-language shell \
   --account-alias root \
   --host-id-list 101,102 \
   --dry-run
@@ -83,14 +83,14 @@ python scripts/job_apigw_client.py fast-execute-script \
 # B. 展示确认摘要 → 用户下一条独立确认（G2）后再真实执行
 python scripts/job_apigw_client.py fast-execute-script \
   --bk-scope-id <业务ID> \
-  --script-content-file /tmp/restart.sh --script-language shell \
+  --script-content-file tmp/restart.sh --script-language shell \
   --account-alias root \
   --ip-list 0:127.0.0.1,0:127.0.0.2 \
   --timeout 1000
 # 成功返回含 job_instance_id 与 job_instance_url，须以可点击链接交付用户
 
 # C. 复杂目标（动态分组/拓扑/容器）用 --execute-target-file
-cat > /tmp/target.json << 'EOF'
+cat > tmp/target.json << 'EOF'
 {
   "dynamic_group_list": [{"id": "blo8gojho0skft7pr5q0"}],
   "topo_node_list": [{"id": 1000, "node_type": "module"}]
@@ -98,9 +98,9 @@ cat > /tmp/target.json << 'EOF'
 EOF
 python scripts/job_apigw_client.py fast-execute-script \
   --bk-scope-id <业务ID> \
-  --script-content-file /tmp/restart.sh --script-language shell \
+  --script-content-file tmp/restart.sh --script-language shell \
   --account-alias root \
-  --execute-target-file /tmp/target.json --dry-run
+  --execute-target-file tmp/target.json --dry-run
 ```
 
 ## 8. 相关手册与接口文档
