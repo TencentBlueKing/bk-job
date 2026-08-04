@@ -22,7 +22,8 @@ PowerShell 用户注意：传递 JSON 参数时，推荐用文件方式避免转
     python job_apigw_client.py <command> [options]
 
 认证:
-    --access-token 或环境变量 BK_JOB_ACCESS_TOKEN
+    按 --access-token → ai-hub 命令 → 环境变量 BK_JOB_ACCESS_TOKEN 的顺序获取访问令牌。
+    在 imate 数字分身上存在 ai-hub 命令时，脚本自动执行 `ai-hub access-token get` 并取其 access_token 字段。
 
 网关与页面 URL:
     从技能根目录 config.yaml 读取 apigw_base_url、job_base_url（部署技能包时修改 config.yaml，不读环境变量）
@@ -39,6 +40,9 @@ import argparse
 import base64
 import json
 import os
+import re
+import shutil
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -51,6 +55,11 @@ import urllib.request
 # -----------------------------------------------------------------------------
 # 常量
 # -----------------------------------------------------------------------------
+
+# imate 数字分身提供的令牌获取命令：`ai-hub access-token get` 输出 {"access_token":"xxx", ...}
+AI_HUB_COMMAND = "ai-hub"
+AI_HUB_TOKEN_ARGS = ["access-token", "get"]
+AI_HUB_TIMEOUT_SECONDS = 10
 
 # 查询作业执行历史（v4 get_job_instance_list）时，回溯天数硬上限（含）
 MAX_JOB_HISTORY_LOOKBACK_DAYS = 31
@@ -264,15 +273,91 @@ def print_json(data: Any) -> None:
     print(json.dumps(data, ensure_ascii=False, indent=2))
 
 
-def get_access_token(cli_token: Optional[str]) -> str:
-    token = cli_token or os.environ.get("BK_JOB_ACCESS_TOKEN")
+def _ai_hub_executable() -> Optional[str]:
+    """在 PATH 中查找 ai-hub 命令；返回 None 表示当前不在 imate 数字分身环境。"""
+    return shutil.which(AI_HUB_COMMAND)
+
+
+def _extract_access_token(raw: str) -> Optional[str]:
+    """从 ai-hub 输出中提取 access_token。
+
+    正常输出为 {"access_token":"xxxx", ...}；若混入了日志行导致整体 JSON 解析失败，
+    退化为按字段名正则提取，避免因无关输出丢失可用令牌。
+    """
+    text = raw.strip()
+    if not text:
+        return None
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        payload = None
+    if isinstance(payload, dict):
+        token = payload.get("access_token")
+        if isinstance(token, str) and token.strip():
+            return token.strip()
+        return None
+    m = re.search(r'"access_token"\s*:\s*"([^"]+)"', text)
+    return m.group(1).strip() if m else None
+
+
+def _token_from_ai_hub(exe: str) -> Tuple[Optional[str], Optional[str]]:
+    """执行 `ai-hub access-token get` 取令牌。
+
+    返回 (令牌, 失败原因)；失败原因仅描述失败环节，不回显命令输出，避免令牌等敏感内容进入日志。
+    """
+    try:
+        proc = subprocess.run(
+            [exe, *AI_HUB_TOKEN_ARGS],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=AI_HUB_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        return None, f"ai-hub 命令执行超时（超过 {AI_HUB_TIMEOUT_SECONDS} 秒）"
+    except (OSError, subprocess.SubprocessError) as e:
+        return None, f"ai-hub 命令无法执行（{type(e).__name__}）"
+
+    if proc.returncode != 0:
+        return None, f"ai-hub 命令返回非零退出码（{proc.returncode}）"
+
+    token = _extract_access_token((proc.stdout or b"").decode("utf-8", "replace"))
     if not token:
+        return None, "ai-hub 命令输出中未找到 access_token 字段"
+    return token, None
+
+
+def get_access_token(cli_token: Optional[str]) -> str:
+    """按 --access-token → ai-hub 命令 → 环境变量的顺序获取用户态 access_token。"""
+    if cli_token:
+        return cli_token
+
+    ai_hub_exe = _ai_hub_executable()
+    ai_hub_error: Optional[str] = None
+    if ai_hub_exe:
+        token, ai_hub_error = _token_from_ai_hub(ai_hub_exe)
+        if token:
+            return token
+
+    env_token = os.environ.get("BK_JOB_ACCESS_TOKEN")
+    if env_token and env_token.strip():
+        return env_token.strip()
+
+    if ai_hub_exe:
+        # 存在 ai-hub 说明运行在 imate 数字分身上，优先引导排查 ai-hub 服务
         print(
-            "错误：未提供访问令牌。请使用 --access-token 或设置环境变量 BK_JOB_ACCESS_TOKEN。",
+            f"错误：未获取到访问令牌。已检测到 ai-hub 命令但取令牌失败（{ai_hub_error}）。\n"
+            "请检查 imate 数字分身上的 ai-hub 服务是否正常"
+            f"（可手动执行 `{AI_HUB_COMMAND} {' '.join(AI_HUB_TOKEN_ARGS)}` 验证），"
+            "或手动设置环境变量 BK_JOB_ACCESS_TOKEN（也可用 --access-token 传入）。",
             file=sys.stderr,
         )
-        sys.exit(1)
-    return token
+    else:
+        print(
+            "错误：未获取到访问令牌。请设置环境变量 BK_JOB_ACCESS_TOKEN"
+            "（也可用 --access-token 传入）。",
+            file=sys.stderr,
+        )
+    sys.exit(1)
 
 
 _SKILL_CONFIG_CACHE: Optional[Dict[str, str]] = None
@@ -1774,7 +1859,10 @@ def main() -> None:
         description="蓝鲸作业平台 API 网关客户端",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--access-token", help="蓝鲸用户态 access_token（或环境变量 BK_JOB_ACCESS_TOKEN）")
+    parser.add_argument(
+        "--access-token",
+        help="蓝鲸用户态 access_token；不传时依次尝试 ai-hub 命令（imate）与环境变量 BK_JOB_ACCESS_TOKEN",
+    )
     parser.add_argument(
         "--no-business-memory",
         action="store_true",
