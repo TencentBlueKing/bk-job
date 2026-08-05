@@ -60,8 +60,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -499,17 +501,30 @@ public class ExecuteTargetDTO implements Cloneable {
                 executeObjects.addAll(hosts.stream().map(ExecuteObject::new)
                     .collect(Collectors.toList()));
             }
-            if (CollectionUtils.isNotEmpty(staticContainerList)) {
-                executeObjects.addAll(staticContainerList.stream().map(ExecuteObject::new)
-                    .collect(Collectors.toList()));
-            }
-            if (CollectionUtils.isNotEmpty(containerFilters)) {
-                containerFilters.forEach(containerFilter -> {
-                    if (CollectionUtils.isNotEmpty(containerFilter.getContainers())) {
-                        executeObjects.addAll(containerFilter.getContainers().stream().map(ExecuteObject::new)
-                            .collect(Collectors.toList()));
-                    }
-                });
+            // 容器执行对象按容器 ID 全局去重，避免以下场景导致下游 execute_obj_id 重复：
+            // 背景：可能多个 containerFilter 分别命中相同的容器。
+            if (CollectionUtils.isNotEmpty(staticContainerList) || CollectionUtils.isNotEmpty(containerFilters)) {
+                Set<Long> distinctContainerIds = new HashSet<>();
+                if (CollectionUtils.isNotEmpty(staticContainerList)) {
+                    staticContainerList.forEach(container -> {
+                        if (container != null && container.getId() != null
+                            && distinctContainerIds.add(container.getId())) {
+                            executeObjects.add(new ExecuteObject(container));
+                        }
+                    });
+                }
+                if (CollectionUtils.isNotEmpty(containerFilters)) {
+                    containerFilters.forEach(containerFilter -> {
+                        if (CollectionUtils.isNotEmpty(containerFilter.getContainers())) {
+                            containerFilter.getContainers().forEach(container -> {
+                                if (container != null && container.getId() != null
+                                    && distinctContainerIds.add(container.getId())) {
+                                    executeObjects.add(new ExecuteObject(container));
+                                }
+                            });
+                        }
+                    });
+                }
             }
             this.executeObjects = executeObjects;
         } else {
