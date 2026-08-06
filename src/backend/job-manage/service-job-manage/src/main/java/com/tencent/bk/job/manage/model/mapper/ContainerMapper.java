@@ -37,7 +37,7 @@ public class ContainerMapper {
         containerVO.setName(container.getContainer().getName());
         containerVO.setPodName(container.getPod().getName());
         containerVO.setPodLabels(container.getPod().getLabels());
-        // 回填 cmdb 返回的容器所在拓扑（集群/命名空间/workload），此处仅有 ID，名称由前端按需反查
+        // 回填 cmdb 返回的容器所在拓扑（集群/命名空间/workload），此处仅有 ID，集群名/命名空间名由资源层按需借助缓存拓扑反查
         ContainerTopoDTO topo = container.getTopo();
         if (topo != null) {
             containerVO.setNodeHostId(topo.getHostId());

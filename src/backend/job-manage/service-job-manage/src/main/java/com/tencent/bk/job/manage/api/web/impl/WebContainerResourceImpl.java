@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNodeDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
 import com.tencent.bk.job.common.constant.KubeContainerOperator;
+import com.tencent.bk.job.common.constant.KubeTopoNodeTypeEnum;
 import com.tencent.bk.job.common.constant.QueryableContainerField;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.PageData;
@@ -205,6 +206,7 @@ public class WebContainerResourceImpl implements WebContainerResource {
         PageData<ContainerVO> containerVOPageData =
             PageData.from(pageData, ContainerMapper::toContainerVO);
         fillNodesHostInfo(containerVOPageData.getData());
+        fillClusterAndNamespaceNames(Long.parseLong(scopeId), containerVOPageData.getData());
 
         return Response.buildSuccessResp(containerVOPageData);
     }
@@ -292,7 +294,9 @@ public class WebContainerResourceImpl implements WebContainerResource {
             req.getContainerList().stream()
                 .map(ContainerIdWithMeta::getId).collect(Collectors.toList()));
 
-        return Response.buildSuccessResp(toContainerVOS(containers));
+        List<ContainerVO> containerVOS = toContainerVOS(containers);
+        fillClusterAndNamespaceNames(Long.parseLong(scopeId), containerVOS);
+        return Response.buildSuccessResp(containerVOS);
     }
 
     @Override
@@ -335,8 +339,43 @@ public class WebContainerResourceImpl implements WebContainerResource {
 
         PageData<ContainerVO> containerVOPageData = PageData.from(pageData, ContainerMapper::toContainerVO);
         fillNodesHostInfo(containerVOPageData.getData());
+        fillClusterAndNamespaceNames(Long.parseLong(scopeId), containerVOPageData.getData());
 
         return Response.buildSuccessResp(containerVOPageData);
+    }
+
+    /**
+     * 回填容器所属集群名 / 命名空间名：容器查询接口只返回 cmdb 内部 id，
+     * 名称借助业务的缓存拓扑树（cluster/namespace 节点带 name）反查得到。
+     */
+    private void fillClusterAndNamespaceNames(long bizId, Collection<ContainerVO> containerVOs) {
+        if (CollectionUtils.isEmpty(containerVOs)) {
+            return;
+        }
+        KubeTopologyDTO topo = containerService.getBizKubeCacheTopo(bizId);
+        if (topo == null || CollectionUtils.isEmpty(topo.getNodes())) {
+            return;
+        }
+        Map<String, KubeNodeDTO> nodeIndex = new HashMap<>();
+        for (KubeNodeDTO cluster : topo.getNodes()) {
+            collectKubeNodes(cluster, nodeIndex);
+        }
+        containerVOs.forEach(containerVO -> {
+            if (containerVO.getClusterId() != null) {
+                KubeNodeDTO clusterNode = nodeIndex.get(
+                    buildIndexKey(KubeTopoNodeTypeEnum.CLUSTER.getValue(), containerVO.getClusterId()));
+                if (clusterNode != null) {
+                    containerVO.setClusterName(clusterNode.getName());
+                }
+            }
+            if (containerVO.getNamespaceId() != null) {
+                KubeNodeDTO namespaceNode = nodeIndex.get(
+                    buildIndexKey(KubeTopoNodeTypeEnum.NAMESPACE.getValue(), containerVO.getNamespaceId()));
+                if (namespaceNode != null) {
+                    containerVO.setNamespace(namespaceNode.getName());
+                }
+            }
+        });
     }
 
     @Override
