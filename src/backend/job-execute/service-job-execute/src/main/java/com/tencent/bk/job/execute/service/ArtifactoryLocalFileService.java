@@ -5,6 +5,7 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
@@ -39,7 +40,7 @@ public class ArtifactoryLocalFileService {
         NodeDTO nodeDTO = getFileNodeAndHandleException(filePath);
         log.debug("nodeDTO={}", nodeDTO);
         if (nodeDTO == null) {
-            throw new InternalException(
+            throw new NotFoundException(
                 "local file not found in artifactory",
                 ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,
                 new String[]{filePath, String.valueOf(localFileConfig.getExpireDays())}
@@ -63,8 +64,9 @@ public class ArtifactoryLocalFileService {
             nodeDTO = artifactoryClient.getFileNode(fullPath);
         } catch (InternalException e) {
             if (e.getErrorCode() == ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY) {
-                log.error("[TransferLocalFile] transfer fail, local file {} not in artifactory", filePath);
-                throw new InternalException(
+                // 本地文件在制品库中不存在（通常是已过期被清理），属于可预期的业务场景，记录 INFO 即可
+                log.info("[TransferLocalFile] transfer fail, local file {} not in artifactory", filePath);
+                throw new NotFoundException(
                     "local file not found in artifactory",
                     ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,
                     new String[]{filePath, String.valueOf(localFileConfig.getExpireDays())}
