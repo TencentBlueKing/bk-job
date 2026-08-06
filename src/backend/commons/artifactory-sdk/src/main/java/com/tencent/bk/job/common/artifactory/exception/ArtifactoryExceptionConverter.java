@@ -29,39 +29,41 @@ import com.tencent.bk.job.common.artifactory.constants.ArtifactoryInterfaceConst
 import com.tencent.bk.job.common.artifactory.model.dto.ArtifactoryResp;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.HttpStatusException;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 
 /**
- * 制品库接口异常转换器
+ * 制品库接口异常转换器：把 bkrepo 的 HTTP 状态 / 业务错误码统一翻译成类型化异常。
+ * 这里是「业务错误码 -> 异常类型」映射的唯一维护点，调用方应基于返回的异常类型做后续判定。
  */
 public class ArtifactoryExceptionConverter {
 
     /**
-     * 将Http状态等异常转换为ArtifactoryException
+     * 将Http状态等异常转换为类型化的制品库异常。
+     * 只负责构造异常并返回、不抛出，由调用方决定抛出时机。
      *
-     * @param e   原始异常
-     * @param <R> 返回数据类型
-     * @return 转换后的异常
+     * @param e 原始异常
+     * @return 转换后的类型化异常
      */
-    public static <R> R convertException(Exception e) {
+    public static ServiceException convertException(Exception e) {
         if (e instanceof HttpStatusException) {
             HttpStatusException httpStatusException = (HttpStatusException) e;
             int httpStatus = httpStatusException.getHttpStatus();
             // bkrepo 返回 401 表示凭证无效（如用户名/密码或访问令牌错误），
             // 引导用户检查文件源凭证配置；原始 bkrepo 报错信息保留在 cause 中可在日志中查看
             if (httpStatus == HTTP_STATUS_UNAUTHORIZED) {
-                throw new ArtifactoryAuthFailException(e);
+                return new ArtifactoryAuthFailException(e);
             }
             String httpStatusExceptionRespStr = httpStatusException.getRespBodyStr();
             ArtifactoryResp<Object> artifactoryResp = JsonUtils.fromJson(httpStatusExceptionRespStr,
                 new TypeReference<ArtifactoryResp<Object>>() {
                 });
             if (artifactoryResp == null) {
-                // 响应体中没有详细的报错信息，抛出粗粒度接口访问异常
-                throw new ArtifactoryException(e);
+                // 响应体中没有详细的报错信息，返回粗粒度接口访问异常
+                return new ArtifactoryException(e);
             }
             if (artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND) {
-                throw new NodeNotFoundException(
+                return new NodeNotFoundException(
                     e,
                     ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY,
                     new String[]{
@@ -69,18 +71,18 @@ public class ArtifactoryExceptionConverter {
                     }
                 );
             } else if (artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_PROJECT_EXISTED) {
-                // 项目不存在
-                throw new ProjectExistedException(e);
+                // 项目已存在
+                return new ProjectExistedException(e);
             } else if (artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_REPO_NOT_FOUND) {
                 // 仓库不存在
-                throw new RepoNotFoundException(e);
+                return new RepoNotFoundException(e);
             } else {
                 // 暂未识别的异常
-                throw new ArtifactoryException(e);
+                return new ArtifactoryException(e);
             }
         } else {
-            // 未收到正常的HTTP响应，抛出粗粒度接口访问异常
-            throw new ArtifactoryException(e);
+            // 未收到正常的HTTP响应，返回粗粒度接口访问异常
+            return new ArtifactoryException(e);
         }
     }
 

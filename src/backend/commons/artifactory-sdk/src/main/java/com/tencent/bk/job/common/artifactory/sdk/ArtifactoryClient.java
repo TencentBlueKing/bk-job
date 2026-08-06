@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.artifactory.constants.ArtifactoryInterfaceConsts;
 import com.tencent.bk.job.common.artifactory.constants.MetricsConstants;
 import com.tencent.bk.job.common.artifactory.exception.ArtifactoryExceptionConverter;
+import com.tencent.bk.job.common.artifactory.exception.NodeNotFoundException;
 import com.tencent.bk.job.common.artifactory.model.dto.ArtifactoryResp;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
@@ -55,7 +56,6 @@ import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.exception.HttpStatusException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -357,9 +357,11 @@ public class ArtifactoryClient {
             statusRef.set(MetricsConstants.TAG_VALUE_OK);
             return result;
         } catch (Exception e) {
-            // 命中「可容忍」的业务错误(如节点不存在)时走旁路：按 INFO 记录、不打印堆栈，避免告警误告；
-            // 其它异常按原有级别 + 堆栈打印
-            TolerableArtifactoryError tolerableError = resolveTolerableError(e);
+            // 先由 converter 把原始异常翻译成类型化异常，再据其类型判定是否可容忍：
+            // 命中「可容忍」的业务错误(如节点不存在)时走旁路，按 INFO 记录、不打印堆栈，避免告警误告；
+            // 其它异常按原有级别 + 堆栈打印。
+            ServiceException serviceException = ArtifactoryExceptionConverter.convertException(e);
+            TolerableArtifactoryError tolerableError = TolerableArtifactoryError.resolve(serviceException);
             if (tolerableError != null) {
                 handleTolerableError(tolerableError, method, url, reqStr, statusRef);
             } else {
@@ -374,7 +376,7 @@ public class ArtifactoryClient {
                 log.log(errorLogLevel, msg, e);
                 statusRef.set(MetricsConstants.TAG_VALUE_ERROR);
             }
-            return ArtifactoryExceptionConverter.convertException(e);
+            throw serviceException;
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
@@ -398,30 +400,6 @@ public class ArtifactoryClient {
     }
 
     /**
-     * 从异常中解析出命中的「可容忍」制品库业务错误；未命中(需按正常错误处理)时返回 null。
-     * bkrepo 会以 HTTP 4xx + 响应体业务码的形式返回错误，需解析响应体才能识别。
-     */
-    private TolerableArtifactoryError resolveTolerableError(Exception e) {
-        if (!(e instanceof HttpStatusException)) {
-            return null;
-        }
-        String respBodyStr = ((HttpStatusException) e).getRespBodyStr();
-        if (StringUtils.isBlank(respBodyStr)) {
-            return null;
-        }
-        try {
-            ArtifactoryResp<Object> resp = JsonUtils.fromJson(
-                respBodyStr,
-                new TypeReference<ArtifactoryResp<Object>>() {
-                }
-            );
-            return resp == null ? null : TolerableArtifactoryError.valueOfCode(resp.getCode());
-        } catch (Exception parseException) {
-            return null;
-        }
-    }
-
-    /**
      * 可容忍错误的旁路处理：按 INFO 记录且不打印堆栈，避免可预期的正常场景造成告警误告。
      */
     private void handleTolerableError(TolerableArtifactoryError tolerableError,
@@ -440,22 +418,26 @@ public class ArtifactoryClient {
     }
 
     /**
-     * 制品库「可容忍」的业务错误码登记表：这些错误属于可预期的正常场景(如节点不存在)，
-     * 命中后按 INFO 记录而非 ERROR。后续若有其它可容忍错误码，只需在此新增一项，无需改动主流程。
+     * 制品库「可容忍」的业务错误登记表：命中的异常属于可预期的正常场景(如节点不存在)，
+     * 命中后按 INFO 记录而非 ERROR。判定源是 {@link ArtifactoryExceptionConverter} 转换出的类型化异常——
+     * 「业务错误码 -> 异常类型」的映射只在 converter 维护一处，这里只登记「哪些异常类型可容忍」，
+     * 后续新增可容忍场景无需在两处改动错误码。
      */
     private enum TolerableArtifactoryError {
         NODE_NOT_FOUND(
-            ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND,
+            NodeNotFoundException.class,
             MetricsConstants.TAG_VALUE_CLIENT_ERROR_NODE_NOT_FOUND,
             "Node not found in artifactory"
         );
 
-        private final int code;
+        private final Class<? extends ServiceException> exceptionClass;
         private final String metricTagValue;
         private final String logMessage;
 
-        TolerableArtifactoryError(int code, String metricTagValue, String logMessage) {
-            this.code = code;
+        TolerableArtifactoryError(Class<? extends ServiceException> exceptionClass,
+                                  String metricTagValue,
+                                  String logMessage) {
+            this.exceptionClass = exceptionClass;
             this.metricTagValue = metricTagValue;
             this.logMessage = logMessage;
         }
@@ -468,9 +450,12 @@ public class ArtifactoryClient {
             return logMessage;
         }
 
-        static TolerableArtifactoryError valueOfCode(int code) {
+        /**
+         * 找出与给定异常匹配的可容忍错误；不可容忍时返回 null。
+         */
+        static TolerableArtifactoryError resolve(ServiceException e) {
             for (TolerableArtifactoryError error : values()) {
-                if (error.code == code) {
+                if (error.exceptionClass.isInstance(e)) {
                     return error;
                 }
             }
@@ -861,29 +846,5 @@ public class ArtifactoryClient {
 
     private String getSimplifiedStrForLog(String rawStr) {
         return StringUtil.substring(rawStr, 20000);
-    }
-
-    private <R> R convertException(AtomicReference<String> statusRef, Exception e) {
-        if (e instanceof HttpStatusException) {
-            String httpStatusExceptionRespStr = ((HttpStatusException) e).getRespBodyStr();
-            ArtifactoryResp<Object> artifactoryResp = JsonUtils.fromJson(httpStatusExceptionRespStr,
-                new TypeReference<ArtifactoryResp<Object>>() {
-                });
-            if (artifactoryResp != null
-                && artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND) {
-                statusRef.set(MetricsConstants.TAG_VALUE_CLIENT_ERROR_NODE_NOT_FOUND);
-                throw new InternalException(
-                    artifactoryResp.getMessage(),
-                    ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY
-                );
-            } else {
-                throw new InternalException(
-                    "Fail to request ARTIFACTORY data",
-                    ErrorCode.ARTIFACTORY_API_DATA_ERROR
-                );
-            }
-        } else {
-            throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
-        }
     }
 }
