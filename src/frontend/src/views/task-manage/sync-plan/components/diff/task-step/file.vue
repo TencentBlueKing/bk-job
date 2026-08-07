@@ -81,7 +81,7 @@
         :account-list="account"
         :account-var="data.fileDestination.accountVar"
         :all-variables="allVariables"
-        :highlight="diff.accountVar === 'changed' || diff.account === 'changed'"
+        :highlight="diff.fileDestination === 'changed'"
         theme="gray" />
     </div>
     <div
