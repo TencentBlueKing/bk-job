@@ -116,7 +116,7 @@ ext {
     set('gradleJooqVersion', "2.0.11")
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
     set('apacheHttpClientVersion', "4.5.13")
-    set('apacheThriftVersion', "0.21.0")
+    set('apacheThriftVersion', "0.23.0")
     // Fix CVE-2024-47554 CVE-2021-29425 2.6->2.14.0
     set('commonsIOVersion', "2.16.1")
     set('jakartaServletVersion', "6.0.0")
@@ -150,10 +150,12 @@ ext {
     set('mockitoVersion', "5.14.2")
     set('embeddedRedisVersion', "0.6")
     set('openai4jVersion', "0.18.0")
-    // Fix CVE-2023-44981,CVE-2024-23944 3.7.1->3.8.4
-    set('zookeeperVersion', "3.8.4")
+    set('zookeeperVersion', "3.8.6")
     // Fix CVE-2023-4759 5.13.1.202206130422-r->6.6.1.202309021850-r
     set('jgitVersion', "6.6.1.202309021850-r")
+    // 使用Spring Boot内置的版本号变量，不采用驼峰命名，保持与官方BOM文件一致
+    // Fix CVE-2026-59901 CVE-2026-55831 CVE-2026-56745 CVE-2026-55833 CVE-2026-56819 4.1.135.Final->4.1.136.Final
+    set('netty.version', "4.1.136.Final")
 }
 
 group "com.tencent.bk.job"
