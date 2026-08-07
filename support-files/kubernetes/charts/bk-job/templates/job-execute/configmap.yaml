@@ -249,6 +249,8 @@ data:
           polling-strategy:
             {{- toYaml .Values.executeConfig.result.pollingStrategy | nindent 12 }}
           {{- end }}
+        limit:
+          {{- toYaml .Values.executeConfig.limit | nindent 10 }}
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
         openapi:

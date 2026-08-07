@@ -53,10 +53,10 @@ public class JobExecuteConfig {
     @Value("${job.encrypt.password}")
     private String encryptPassword;
 
-    @Value("${job.execute.limit.file-task.max-tasks:100000}")
+    @Value("${job.execute.limit.fileTask.maxTasks:100000}")
     private Integer fileTasksMax;
 
-    @Value("${job.execute.limit.script-task.max-target-server:50000}")
+    @Value("${job.execute.limit.scriptTask.maxTargetServer:50000}")
     private Integer scriptTaskMaxTargetServer;
 
     @Value("${gse.script.rootPath:/tmp/bkjob}")
