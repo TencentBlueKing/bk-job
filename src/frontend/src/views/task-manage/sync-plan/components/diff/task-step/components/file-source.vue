@@ -86,15 +86,14 @@
                     :pre-host="preServerList[index].host" />
                 </td>
                 <td :class="checkDiffClass(row, 'account')">
-                  <span
-                    v-if="row.accountVar"
-                    class="sync-plan-step-variable value-inline-block">
-                    <span class="variable-flag">
-                      <icon type="string" />
-                    </span>
-                    <span class="variable-name">{{ row.accountVar }}</span>
-                  </span>
-                  <span v-else>{{ generatorAccountAlias(row.account) }}</span>
+                  <render-execute-account
+                    :account-id="row.account"
+                    :account-list="account"
+                    :account-var="row.accountVar"
+                    :all-variables="allVariables"
+                    empty-text=""
+                    :highlight="checkDiffClass(row, 'account') === 'changed'"
+                    theme="gray" />
                 </td>
               </tr>
             </tbody>
@@ -112,6 +111,7 @@
   } from '@utils/vdom';
 
   import JbCollapseItem from '@components/jb-collapse-item';
+  import RenderExecuteAccount from '@components/render-execute-account';
 
   import SourceFileVO from '@domain/variable-object/source-file';
 
@@ -125,6 +125,7 @@
     name: '',
     components: {
       JbCollapseItem,
+      RenderExecuteAccount,
       FileSourceServer,
     },
     props: {
@@ -140,6 +141,10 @@
         type: Array,
         default: () => [],
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     data() {
       return {
@@ -169,13 +174,6 @@
       this.checkDiff();
     },
     methods: {
-      generatorAccountAlias(accountId) {
-        const account = this.account.find(_ => _.id === accountId);
-        if (!account) {
-          return '';
-        }
-        return account.alias;
-      },
       checkDiff() {
         const dataSourceParent = findParent(this, 'SyncPlanStep2');
 
@@ -445,38 +443,7 @@
 .sync-step-server-file {
   flex: 1;
 
-  .sync-plan-step-variable {
-    display: flex;
-    overflow: hidden;
 
-    .variable-flag {
-      display: flex;
-      width: 24px;
-      height: 24px;
-      font-size: 13px;
-      color: #fff !important;
-      background: #c4c6cc;
-      border-bottom-left-radius: 2px;
-      border-top-left-radius: 2px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .variable-name {
-      display: flex;
-      height: 24px;
-      padding: 0 10px;
-      font-size: 12px;
-      color: #63656e;
-      background: #fff;
-      border: 1px solid #dcdee5;
-      border-left: none;
-      border-top-right-radius: 2px;
-      border-bottom-right-radius: 2px;
-      align-items: center;
-      justify-content: center;
-    }
-  }
 
   .bk-collapse-item-header {
     display: flex;

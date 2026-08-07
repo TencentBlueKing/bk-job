@@ -87,6 +87,7 @@
                 <diff-task-step
                   v-if="planStepList[index - 1]"
                   :account="accountList"
+                  :all-variables="planVariableList"
                   :data="planStepList[index - 1]"
                   :diff="beforeStepDiff"
                   type="sync-before" />
@@ -95,6 +96,7 @@
                 <diff-task-step
                   v-if="templateStepList[index - 1]"
                   :account="accountList"
+                  :all-variables="templateVariableList"
                   :data="templateStepList[index - 1]"
                   :diff="stepDiff"
                   type="sync-after" />

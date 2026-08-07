@@ -58,6 +58,7 @@
       <file-source
         :id="id"
         :account="account"
+        :all-variables="allVariables"
         :data="data.originFileList" />
     </div>
     <div
@@ -73,21 +74,15 @@
       <span class="value">{{ data.transferModeText }}</span>
     </div>
     <div
-      class="row"
-      :class="diff.executeAccount">
+      class="row">
       <span class="label">{{ $t('template.执行账号：') }}</span>
-      <template v-if="data.fileDestination && data.fileDestination.accountVar">
-        <span
-          class="sync-plan-step-variable value-inline-block">
-          <span class="variable-flag">
-            <icon type="string" />
-          </span>
-          <span class="variable-name">{{ data.fileDestination.accountVar }}</span>
-        </span>
-      </template>
-      <span
-        v-else
-        class="value">{{ findName(data.executeAccount) }}</span>
+      <render-execute-account
+        :account-id="data.fileDestination.account"
+        :account-list="account"
+        :account-var="data.fileDestination.accountVar"
+        :all-variables="allVariables"
+        :highlight="diff.accountVar === 'changed' || diff.account === 'changed'"
+        theme="gray" />
     </div>
     <div
       class="row"
@@ -98,6 +93,8 @@
   </div>
 </template>
 <script>
+  import RenderExecuteAccount from '@components/render-execute-account';
+
   import FileExecuteTarget from './components/file-execute-target';
   import FileSource from './components/file-source';
 
@@ -106,6 +103,7 @@
     components: {
       FileSource,
       FileExecuteTarget,
+      RenderExecuteAccount,
     },
     props: {
       id: {
@@ -124,15 +122,10 @@
         type: Array,
         default: () => [],
       },
-    },
-    methods: {
-      findName(accountId) {
-        const account = this.account.find(_ => _.id === accountId);
-        if (!account) {
-          return '-';
-        }
-        return account.alias;
-      },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
   };
 </script>

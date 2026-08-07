@@ -64,21 +64,16 @@
       <span class="value">{{ data.ignoreErrorText }}</span>
     </div>
     <div
-      class="row"
-      :class="diff.executeAccount">
+      class="row">
       <span class="label">{{ $t('template.执行账号：') }}</span>
-      <template v-if="data.accountVar">
-        <span
-          class="sync-plan-step-variable value-inline-block">
-          <span class="variable-flag">
-            <icon type="string" />
-          </span>
-          <span class="variable-name">{{ data.accountVar }}</span>
-        </span>
-      </template>
-      <span
-        v-else
-        class="value">{{ findName(data.executeAccount) || '-' }}</span>
+      <render-execute-account
+        :account-id="data.account"
+        :account-list="account"
+        :account-var="data.accountVar"
+        :all-variables="allVariables"
+        empty-text="-"
+        :highlight="diff.accountVar === 'changed' || diff.account === 'changed'"
+        theme="gray" />
     </div>
     <div
       class="row"
@@ -89,6 +84,8 @@
   </div>
 </template>
 <script>
+  import RenderExecuteAccount from '@components/render-execute-account';
+
   import ScriptContent from './components/script-content';
   import ScriptExecuteTarget from './components/script-execute-target';
 
@@ -97,6 +94,7 @@
     components: {
       ScriptContent,
       ScriptExecuteTarget,
+      RenderExecuteAccount,
     },
     props: {
       data: {
@@ -111,50 +109,11 @@
         type: Array,
         default: () => [],
       },
-    },
-    methods: {
-      findName(accountId) {
-        const account = this.account.find(_ => _.id === accountId);
-        if (!account) {
-          return '';
-        }
-        return account.alias;
-      },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
   };
 </script>
-<style lang="postcss" scoped>
-  .sync-plan-step-variable {
-    display: flex;
-    overflow: hidden;
-    cursor: pointer;
 
-    .variable-flag {
-      display: flex;
-      width: 24px;
-      height: 24px;
-      font-size: 13px;
-      color: #fff !important;
-      background: #c4c6cc;
-      border-bottom-left-radius: 2px;
-      border-top-left-radius: 2px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .variable-name {
-      display: flex;
-      height: 24px;
-      padding: 0 10px;
-      font-size: 12px;
-      color: #63656e;
-      background: #fff;
-      border: 1px solid #dcdee5;
-      border-left: none;
-      border-top-right-radius: 2px;
-      border-bottom-right-radius: 2px;
-      align-items: center;
-      justify-content: center;
-    }
-  }
-</style>

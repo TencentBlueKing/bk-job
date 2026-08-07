@@ -136,21 +136,13 @@
                   </td>
                 </template>
                 <td>
-                  <div
-                    v-if="row.accountVar"
-                    class="step-view-global-variable">
-                    <div class="flag">
-                      <icon type="string" />
-                    </div>
-                    <div
-                      class="name"
-                      :title="row.accountVar">
-                      {{ row.accountVar }}
-                    </div>
-                  </div>
-                  <template v-else>
-                    {{ findAccountAlias(row.account) }}
-                  </template>
+                  <render-execute-account
+                    :account-id="row.account"
+                    :account-list="account"
+                    :account-var="row.accountVar"
+                    :all-variables="allVariables"
+                    theme="blue"
+                    :variables="variable" />
                 </td>
               </tr>
             </tbody>
@@ -166,6 +158,7 @@
   import ExecuteTargetModel from '@model/execute-target';
 
   import JbCollapseItem from '@components/jb-collapse-item';
+  import RenderExecuteAccount from '@components/render-execute-account';
   import RenderServerAgent from '@components/render-server-agent';
 
   import SourceFileVO from '@domain/variable-object/source-file';
@@ -181,6 +174,7 @@
       RenderServerAgent,
       RenderFilePath,
       RenderGlobalVariable,
+      RenderExecuteAccount,
       RenderFileServer,
     },
     props: {
@@ -196,6 +190,10 @@
         type: Array,
         default: () => [],
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     data() {
       return {
@@ -269,13 +267,6 @@
           return executeObjectsInfo;
         }
         return curVariable.defaultTargetValue.executeObjectsInfo;
-      },
-      findAccountAlias(payload) {
-        const accountData = this.account.find(item => item.id === payload);
-        if (accountData) {
-          return accountData.alias;
-        }
-        return '';
       },
       handleGoSource(payload, index) {
         const { fileSourceId } = payload;
@@ -393,36 +384,6 @@
       }
     }
 
-    .step-view-global-variable {
-      display: inline-flex;
-      height: 24px;
-      padding-right: 10px;
-      line-height: 1;
-      background: #fff;
 
-      .flag {
-        display: flex;
-        height: 24px;
-        font-size: 13px;
-        color: #fff;
-        background: #3a84ff;
-        border-bottom-left-radius: 2px;
-        border-top-left-radius: 2px;
-        flex: 0 0 24px;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .name {
-        display: flex;
-        padding: 0 10px;
-        white-space: nowrap;
-        border: 1px solid #dcdee5;
-        border-left: none;
-        border-top-right-radius: 2px;
-        border-bottom-right-radius: 2px;
-        align-items: center;
-      }
-    }
   }
 </style>
