@@ -50,10 +50,12 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        boolean selfCreated = false;
         Span span = tracer.currentSpan();
         if (span == null) {
             span = tracer.nextSpan();
             span.start();
+            selfCreated = true;
         }
         try (Tracer.SpanInScope ignore = tracer.withSpan(span)) {
             String traceId = span.context().traceId();
@@ -65,7 +67,11 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
             span.error(e);
             throw e;
         } finally {
-            span.end();
+            // 仅在自己创建的 span 时才手动 end
+            // 若是由 micrometer-tracing 创建的 span，由框架管理，手动 end 会导致 trace 传播异常
+            if (selfCreated) {
+                span.end();
+            }
         }
     }
 
