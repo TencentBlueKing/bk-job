@@ -584,29 +584,45 @@ public class TaskInstanceExecuteObjectProcessor {
                                          TaskInstanceDTO taskInstance,
                                          List<StepInstanceDTO> stepInstances,
                                          Collection<TaskVariableDTO> variables) {
+        // 与 acquireAndSetHosts 对称：独立 StopWatch 分段监控各阶段耗时，整体偏慢时打 WARN
+        StopWatch watch = new StopWatch("AcquireAndSetContainers");
+        try {
+            // 根据静态容器列表方式获取并设置容器执行对象
+            watch.start("acquireByStaticContainerList");
+            acquireAndSetContainersByStaticContainerList(
+                taskInstanceExecuteObjects,
+                taskInstance,
+                stepInstances,
+                variables
+            );
+            watch.stop();
 
-        // 根据静态容器列表方式获取并设置容器执行对象
-        acquireAndSetContainersByStaticContainerList(
-            taskInstanceExecuteObjects,
-            taskInstance,
-            stepInstances,
-            variables
-        );
+            // 根据 ContainerFilter 方式获取并设置容器执行对象（每个 filter 一次 CMDB 查询，单独计时）
+            watch.start("acquireByContainerFilters");
+            acquireAndSetContainersByContainerFilters(taskInstanceExecuteObjects,
+                taskInstance, stepInstances, variables);
+            watch.stop();
 
-        // 根据 ContainerFilter 方式获取并设置容器执行对象
-        acquireAndSetContainersByContainerFilters(taskInstanceExecuteObjects,
-            taskInstance, stepInstances, variables);
+            taskInstanceExecuteObjects.setContainsAnyContainer(
+                CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
 
-        taskInstanceExecuteObjects.setContainsAnyContainer(
-            CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
-
-        // 增加容器 topo 信息（集群 UID，集群名称、命名空间名称等)
-        fillContainerTopoInfo(
-            taskInstance.getAppId(),
-            taskInstanceExecuteObjects.getValidContainers(),
-            stepInstances,
-            variables
-        );
+            // 增加容器 topo 信息（集群 UID，集群名称、命名空间名称等)
+            watch.start("fillContainerTopoInfo");
+            fillContainerTopoInfo(
+                taskInstance.getAppId(),
+                taskInstanceExecuteObjects.getValidContainers(),
+                stepInstances,
+                variables
+            );
+            watch.stop();
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 1000) {
+                log.warn("AcquireAndSetContainers slow, watch: {}", watch.prettyPrint());
+            }
+        }
     }
 
     private void fillContainerTopoInfo(long appId,
