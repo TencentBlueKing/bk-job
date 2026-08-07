@@ -44,12 +44,6 @@
       :class="[{ 'text-value-highlight': highlight }]">
       {{ displayText }}
     </div>
-    <div
-      v-if="accountVar && isExpand"
-      class="jb-execute-account-value"
-      :title="valueText">
-      {{ valueText }}
-    </div>
   </div>
 </template>
 
@@ -60,7 +54,11 @@
 </script>
 
 <script setup>
-  import { computed, ref, watch } from 'vue';
+  import { computed, getCurrentInstance, ref, watch } from 'vue';
+
+  import I18n from '@/i18n';
+
+  const { proxy } = getCurrentInstance();
 
   const props = defineProps({
     // 全局变量名
@@ -124,7 +122,6 @@
   watch(() => props.accountList, resolveDisplayText);
   watch(() => props.accountId, resolveDisplayText);
 
-  const isExpand = ref(false);
   // 点击展开后由 accountVar 解析出的账号别名
   const resolvedAlias = ref('');
 
@@ -140,15 +137,13 @@
   };
 
   const handleToggle = () => {
-    isExpand.value = !isExpand.value;
-    // 点击展开时按 accountVar 解析账号别名
-    if (isExpand.value && props.accountVar && !resolvedAlias.value) {
-      resolveVariableAlias();
-    }
+    if (!props.accountVar) return;
+    resolveVariableAlias();
+    proxy.$bkInfo({
+      title: resolvedAlias.value || props.emptyText,
+      okText: I18n.t('关闭'),
+    });
   };
-
-  // 变量场景解析结果优先，未解析展示 emptyText
-  const valueText = computed(() => resolvedAlias.value || props.emptyText);
 </script>
 
 <style lang="postcss" scoped>
@@ -236,21 +231,6 @@
       color: #63656e;
       background: #fff;
     }
-  }
-
-  .jb-execute-account-value {
-    height: 24px;
-    min-width: 105px;
-    padding: 0 10px;
-    margin: 0 8px;
-    overflow: hidden;
-    line-height: 24px;
-    color: #63656e;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    background: #f0f1f5;
-    border-radius: 2px;
-    flex: 1 1 auto;
   }
 
 </style>
