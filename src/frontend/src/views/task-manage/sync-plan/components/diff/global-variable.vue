@@ -144,7 +144,7 @@
     .diff-global-variable {
       .info {
         .label {
-          flex-basis: 100px;
+          flex-basis: 115px;
         }
       }
     }
@@ -220,7 +220,7 @@
 
       .label {
         font-size: 14px;
-        flex: 0 0 75px;
+        flex: 0 0 90px;
       }
 
       .value {

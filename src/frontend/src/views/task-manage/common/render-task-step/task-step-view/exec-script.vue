@@ -87,19 +87,12 @@
         {{ stepInfo.ignoreErrorText }}
       </detail-item>
       <detail-item :label="$t('template.执行账号：')">
-        <div
-          v-if="stepInfo.accountVar"
-          class="step-view-global-variable">
-          <div class="flag">
-            <icon type="string" />
-          </div>
-          <div
-            class="name"
-            :title="stepInfo.accountVar">
-            {{ stepInfo.accountVar }}
-          </div>
-        </div>
-        <span v-else>{{ executeAccountText }}</span>
+        <render-execute-account
+          :account-id="stepInfo.account"
+          :account-list="account"
+          :account-var="stepInfo.accountVar"
+          :all-variables="allVariables"
+          theme="blue" />
       </detail-item>
     </div>
     <detail-item
@@ -137,6 +130,7 @@
   import DetailItem from '@components/detail-layout/item';
   import JbEditTextarea from '@components/jb-edit/textarea';
   import MonacoEditor from '@components/monaco-editor';
+  import RenderExecuteAccount from '@components/render-execute-account';
 
   import RenderGlobalVariable from './components/render-global-variable';
   import SyncScriptVersionDiff from './components/sync-script-version-diff';
@@ -148,6 +142,7 @@
       DetailItem,
       JbEditTextarea,
       RenderGlobalVariable,
+      RenderExecuteAccount,
       SyncScriptVersionDiff,
     },
     props: {
@@ -159,11 +154,15 @@
         type: Array,
         default: () => [],
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     data() {
       return {
         stepInfo: {},
-        executeAccountText: '',
+        account: [],
         language: '',
         scriptName: '',
         scriptInfo: {},
@@ -215,12 +214,7 @@
         this.requestQueue.push(true);
         AccountManageService.fetchAccountWhole()
           .then((data) => {
-            const accountData = data.find(item => item.id === this.stepInfo.account);
-            if (accountData) {
-              this.executeAccountText = accountData.alias;
-            } else {
-              this.executeAccountText = '--';
-            }
+            this.account = data
           })
           .finally(() => {
             this.requestQueue.pop();
@@ -291,39 +285,6 @@
       .script-update {
         color: #ff5656;
       }
-    }
-  }
-
-    .step-view-global-variable {
-    display: inline-flex;
-    height: 24px;
-    padding-right: 10px;
-    line-height: 1;
-    vertical-align: middle;
-    background: #fff;
-
-    .flag {
-      display: flex;
-      height: 24px;
-      font-size: 13px;
-      color: #fff;
-      background: #3a84ff;
-      border-bottom-left-radius: 2px;
-      border-top-left-radius: 2px;
-      flex: 0 0 24px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .name {
-      display: flex;
-      padding: 0 10px;
-      white-space: nowrap;
-      border: 1px solid #dcdee5;
-      border-left: none;
-      border-top-right-radius: 2px;
-      border-bottom-right-radius: 2px;
-      align-items: center;
     }
   }
 </style>

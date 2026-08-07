@@ -52,6 +52,7 @@
       <component
         :is="infoCom"
         :id="data.realId"
+        :all-variables="allVariables"
         :data="info"
         :diff="diffValue"
         v-bind="$attrs" />
@@ -87,6 +88,10 @@
         type: String,
         default: '',
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     computed: {
       infoCom() {

@@ -58,15 +58,12 @@
       {{ stepInfo.transferModeText }}
     </detail-item>
     <detail-item :label="$t('template.执行账号：')">
-      <span
-        v-if="stepInfo.fileDestination.accountVar"
-        class="step-view-global-variable">
-        <span class="flag">
-          <icon type="string" />
-        </span>
-        <span class="name">{{ stepInfo.fileDestination.accountVar }}</span>
-      </span>
-      <span v-else>{{ executeAccountText }}</span>
+      <render-execute-account
+        :account-id="stepInfo.fileDestination.account"
+        :account-list="account"
+        :account-var="stepInfo.fileDestination.accountVar"
+        theme="blue"
+        :variables="variable" />
     </detail-item>
     <detail-item
       :label="$t('template.执行目标：')"
@@ -89,6 +86,7 @@
   import AccountManageService from '@service/account-manage';
 
   import DetailItem from '@components/detail-layout/item';
+  import RenderExecuteAccount from '@components/render-execute-account';
 
   import {
     containerDetail,
@@ -110,19 +108,12 @@
 
   const isLoading = ref(true);
 
-  const executeAccountText = ref('');
   const account = shallowRef([]);
   const stepInfo = shallowRef(props.data.fileStepInfo);
 
   AccountManageService.fetchAccountWhole()
     .then((data) => {
       account.value = data;
-      const accountData = data.find(item => item.id === stepInfo.value.fileDestination.account);
-      if (accountData) {
-        executeAccountText.value = accountData.alias;
-      } else {
-        executeAccountText.value = '--';
-      }
     })
     .finally(() => {
       isLoading.value = false;
@@ -138,34 +129,6 @@
       margin-bottom: 0;
     }
 
-    .step-view-global-variable {
-      display: inline-flex;
-      height: 24px;
-      line-height: 1;
 
-      .flag {
-        display: flex;
-        height: 24px;
-        font-size: 13px;
-        color: #fff;
-        background: #3a84ff;
-        border-bottom-left-radius: 2px;
-        border-top-left-radius: 2px;
-        flex: 0 0 24px;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .name {
-        display: flex;
-        padding: 0 10px;
-        white-space: nowrap;
-        border: 1px solid #dcdee5;
-        border-left: none;
-        border-top-right-radius: 2px;
-        border-bottom-right-radius: 2px;
-        align-items: center;
-      }
-    }
   }
 </style>
