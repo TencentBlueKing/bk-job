@@ -1,6 +1,12 @@
 ### 功能描述
 
-生成本地文件上传URL。
+生成本地文件上传URL。本接口是**本地文件分发**流程的第一步：传入待分发的文件名列表，为每个文件返回带凭据的上传地址（upload_url）与分发路径（path）。
+
+本地文件分发的完整流程分为三步：
+
+1. 调用本接口，得到每个文件的 upload_url 与 path。
+2. 用 **HTTP PUT** 方法把文件内容上传到对应的 upload_url，详见下方「上传文件到 upload_url」。
+3. 调用快速分发文件接口（fast_transfer_file），源文件类型选择本地文件，并填入本接口返回的 path。
 
 ### 请求参数
 
@@ -41,11 +47,11 @@
     "data": {
         "url_map": {
             "file1.txt": {
-                "upload_url": "http://bkrepo.com/generic/temporary/upload/bkjob/localupload/1/008f821f-259b-4f62-bd84-1e89d6f05f0d/admin/file1.txt?token=30adf862fdce4b02b909e6a1a1c762c6",
+                "upload_url": "http://bkrepo.example.com/generic/temporary/upload/bkjob/localupload/1/008f821f-259b-4f62-bd84-1e89d6f05f0d/admin/file1.txt?token=xxx",
                 "path": "1/008f821f-259b-4f62-bd84-1e89d6f05f0d/admin/file1.txt"
             },
             "file2.txt": {
-                "upload_url": "http://bkrepo.com/generic/temporary/upload/bkjob/localupload/1/008f821f-259b-4f62-bd84-1e89d6f05f0d/admin/file2.txt?token=30adf862fdce4b02b909e6a1a1c762c6",
+                "upload_url": "http://bkrepo.example.com/generic/temporary/upload/bkjob/localupload/1/008f821f-259b-4f62-bd84-1e89d6f05f0d/admin/file2.txt?token=xxx",
                 "path": "1/008f821f-259b-4f62-bd84-1e89d6f05f0d/admin/file2.txt"
             }
         }
@@ -69,4 +75,30 @@
 
 | 字段      | 类型      |字段是否一定存在  | 描述      |
 |-----------|----------|---------------|---------|
-| url_map   | map      |  是           | key:传入的文件名，value:upload_url为带凭据的文件上传地址，path为分发该文件时要传给文件分发接口的路径 |
+| url_map   | map      |  是           | key为请求中传入的文件名，value为该文件的上传与分发信息 |
+
+##### url_map 的 value
+
+| 字段      | 类型      |字段是否一定存在  | 描述      |
+|-----------|----------|---------------|---------|
+| upload_url | string  |  是           | 带凭据（token）的文件上传地址，须用 HTTP PUT 方法将文件内容上传到该地址 |
+| path       | string  |  是           | 分发该文件时传给快速分发文件接口（fast_transfer_file）源文件路径列表的路径 |
+
+### 上传文件到 upload_url
+
+取得 upload_url 后，用 **HTTP PUT** 方法将文件内容作为请求体上传，请求头 Content-Type 固定为 application/octet-stream。upload_url 中已包含鉴权凭据 token，上传请求**无需**再附加接口鉴权信息。
+
+```bash
+curl -X PUT \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary @/path/to/file1.txt \
+  "http://bkrepo.example.com/generic/temporary/upload/bkjob/localupload/1/008f821f-259b-4f62-bd84-1e89d6f05f0d/admin/file1.txt?token=xxx"
+```
+
+请注意区分两步所用的方法：调用本接口生成上传地址用 POST，上传文件内容到 upload_url 用 PUT。
+
+上传成功后，把该文件的 path 填入快速分发文件接口的源文件路径列表，即可将其分发到目标机器。upload_url 带有有效期，请在生成后尽快完成上传。
+
+### 上传后文件的有效期
+
+本地文件上传后存在过期时间（当前为 7 天），过期文件会被定时清除。如果需要持久化存储，请将文件存储于业务自己的服务器或蓝鲸制品库仓库，并使用服务器文件分发或文件源文件分发。

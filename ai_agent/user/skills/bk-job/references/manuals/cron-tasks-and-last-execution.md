@@ -11,7 +11,32 @@
 | `cron-save` | 新建或保存定时任务（`POST /api/v3/save_cron`），详见 [job-plans-create-and-cron.md](job-plans-create-and-cron.md) |
 | `cron-update-status` | 启停定时任务（`POST /api/v3/update_cron_status`），创建后启用须用户确认 |
 
-## 2. `cron-last-run` 内部流程（脚本已实现）
+## 2. 推荐流程
+
+### 2.1 查询定时任务与执行历史
+
+```
+[A] 按名称定位定时任务
+     └─ cron-search --keyword "..."     （默认 --length 20；须展示「启停状态」）
+              ↓
+[B] 多条匹配时让用户确认目标任务，拿到 cron_id
+              ↓
+[C] 查最近一次定时执行的状态与各步骤日志
+     └─ cron-last-run --cron-id <ID>    （或 --keyword；--lookback-days 上限 31 天）
+              ↓
+[D] 以表格交付：任务名、启停状态、最近执行时间、总体状态、各步骤状态与关键日志
+```
+
+- 只查「有哪些定时任务」时用 `cron-search` 即可，**不必**接着调 `cron-last-run`。
+- `cron-last-run` 只统计**定时触发**（`launch_mode=3`）的执行；页面或 API 手动触发的记录不会返回。
+- 返回「无执行记录」时，先确认回溯窗口（默认天数是否够、是否超过 31 天上限），再确认该任务是否处于启用状态。
+- 需要该任务的**多条**历史，或包含页面/API 手动触发的记录时，用 `instance-list --cron-id <ID>`，见 [job-instance-status.md](job-instance-status.md)。
+
+### 2.2 新建定时任务
+
+见 [job-plans-create-and-cron.md](job-plans-create-and-cron.md) 的「创建定时任务」流程：`plan-search` 定位执行方案 → 确认 cron 表达式与时区 → `cron-save --dry-run` → 用户独立确认 → 保存（新建默认暂停）→ 再询问是否启用 → `cron-update-status --status 1`。
+
+## 3. `cron-last-run` 内部流程（脚本已实现）
 
 1. **定位定时任务**  
    - 若提供 `--keyword`：调用 `get_cron_list`，`name` 模糊匹配。  
@@ -32,14 +57,14 @@
    - **单请求最多 50 个执行对象**；超出时脚本只请求前 50，并在该步结果中带 `log_warning`。  
    - 无主机/容器对象的步骤（如纯人工确认）会标注 `log_note`，不调用日志接口。
 
-## 3. 详细说明与注意事项
+## 4. 详细说明与注意事项
 
-- **仅统计「定时触发」**：脚本固定 `launch_mode=3`。页面执行、API 触发不会在 `cron-last-run` 里作为「定时任务最近执行」返回；若需其它触发方式，须改脚本或直接用 `v4_get_job_instance_list` 自行组合参数（见 [`../apidocs/v4_get_job_instance_list.md`](../apidocs/v4_get_job_instance_list.md)）。
+- **仅统计「定时触发」**：脚本固定 `launch_mode=3`。页面执行、API 触发不会在 `cron-last-run` 里作为「定时任务最近执行」返回；需要页面/API 触发或该任务的**多条**历史记录时，改用 `instance-list`（可加 `--cron-id` 按定时任务过滤、`--launch-mode` 指定触发方式），见 [job-instance-status.md](job-instance-status.md)。
 - **时间窗口**：若长期未跑定时任务，会显示无执行记录；回溯**最多 31 天**（产品硬限制，不可通过参数突破）。
 - **启停状态**：脚本在每条定时任务上输出 **`启停状态`**（由网关返回的 `status` 映射：1 已启动、其他值表示已暂停）。向用户展示定时任务时必须带上该字段。
 - **关键词**：与产品侧「名称模糊匹配」行为一致；匹配过多时务必让用户确认 `--cron-id`。
 
-## 4. 命令示例
+## 5. 命令示例
 
 ```bash
 python scripts/job_apigw_client.py cron-search \
@@ -54,7 +79,7 @@ python scripts/job_apigw_client.py cron-last-run \
 
 业务集：增加 `--bk-scope-type biz_set`。
 
-## 5. 相关接口文档
+## 6. 相关接口文档
 
 - [`../apidocs/get_cron_list.md`](../apidocs/get_cron_list.md)  
 - [`../apidocs/save_cron.md`](../apidocs/save_cron.md)  

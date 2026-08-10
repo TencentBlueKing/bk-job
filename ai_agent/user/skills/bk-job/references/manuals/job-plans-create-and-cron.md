@@ -184,7 +184,7 @@ python scripts/job_apigw_client.py template-detail \
   --bk-scope-id <业务ID> --job-template-id 1000
 
 # C. 将变量 JSON 写入文件（避免命令行转义问题）
-cat > /tmp/variables.json << 'EOF'
+cat > tmp/variables.json << 'EOF'
 [
   {"name":"HOST_TARGET","execute_target":{"host_list":[{"bk_cloud_id":0,"ip":"127.0.0.1"}]}},
   {"name":"TARGET_DIR","value":"/data/release","follow_template":false}
@@ -202,7 +202,7 @@ python scripts/job_apigw_client.py plan-create \
   --job-template-id 1000 \
   --name "api-plan-demo" \
   --enable-steps '[101,102]' \
-  --variables-file /tmp/variables.json \
+  --variables-file tmp/variables.json \
   --dry-run
 
 # E. 用户独立确认后真实执行
@@ -211,7 +211,7 @@ python scripts/job_apigw_client.py plan-create \
   --job-template-id 1000 \
   --name "api-plan-demo" \
   --enable-steps '[101,102]' \
-  --variables-file /tmp/variables.json
+  --variables-file tmp/variables.json
 # 成功返回含 job_plan_id 与 job_plan_url，须以可点击链接交付用户
 ```
 
@@ -242,7 +242,7 @@ python scripts/job_apigw_client.py cron-update-status \
 
 ```bash
 # A. 将变量 JSON 写入文件（避免命令行转义问题）
-cat > /tmp/cron_vars.json << 'EOF'
+cat > tmp/cron_vars.json << 'EOF'
 [
   {"name":"hosts","type":3,"server":{"ip_list":[{"bk_cloud_id":0,"ip":"127.0.0.1"}]}},
   {"name":"var1","type":1,"value":"var1111x"},
@@ -262,7 +262,7 @@ python scripts/job_apigw_client.py cron-save \
   --name "定时任务示例" \
   --expression "0 10 * * *" \
   --execute-time-zone "Asia/Shanghai" \
-  --global-vars-file /tmp/cron_vars.json \
+  --global-vars-file tmp/cron_vars.json \
   --dry-run
 
 # C. 用户独立确认后真实执行
@@ -272,11 +272,12 @@ python scripts/job_apigw_client.py cron-save \
   --name "定时任务示例" \
   --expression "0 10 * * *" \
   --execute-time-zone "Asia/Shanghai" \
-  --global-vars-file /tmp/cron_vars.json
+  --global-vars-file tmp/cron_vars.json
 ```
 
 ## 6. 相关接口文档
 
+- [host-query-and-selection.md](host-query-and-selection.md) — 执行目标变量（type=3）填主机时，先查/搜业务下主机
 - [`../apidocs/get_job_template_list.md`](../apidocs/get_job_template_list.md)
 - [`../apidocs/v4_get_job_template_detail.md`](../apidocs/v4_get_job_template_detail.md)
 - [`../apidocs/v4_create_job_plan.md`](../apidocs/v4_create_job_plan.md)
