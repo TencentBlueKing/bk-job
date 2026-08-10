@@ -15,7 +15,7 @@
 
 用户在执行类操作中需要指定主机，且**没有直接给出可用的 `bk_host_id` 或 `bk_cloud_id:ip`** 时：
 
-- 用户用**自然语言**描述目标（如「重启 mysql 模块的机器」「给 10.0.0.x 网段的 centos 机器跑脚本」）→ 先查主机再执行。
+- 用户用**自然语言**描述目标（如「重启 mysql 模块的机器」「给 127.0.0.x 网段的 centos 机器跑脚本」）→ 先查主机再执行。
 - 用户只给了 **IP / 主机名 / 网段 / 操作系统**等模糊条件 → 用 `host-search` 关键字过滤定位。
 - 用户按**拓扑（集群/模块）**圈定范围 → 先 `host-topo-tree` 看结构，让用户选节点，再 `host-search --topo-nodes` 精确取主机。
 
@@ -96,7 +96,7 @@ python scripts/job_apigw_client.py host-topo-tree \
 # B. 按 IP 关键字 + 仅 Agent 正常，搜索主机（先一页 20 条）
 python scripts/job_apigw_client.py host-search \
   --bk-scope-id <业务ID> \
-  --ipv4 10.0.0 --alive 1 --length 20
+  --ipv4 127.0.0 --alive 1 --length 20
 
 # C. 按操作系统 + 主机名关键字搜索
 python scripts/job_apigw_client.py host-search \

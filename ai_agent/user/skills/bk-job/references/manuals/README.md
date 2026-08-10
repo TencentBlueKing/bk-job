@@ -22,13 +22,15 @@
 
 | 手册 | 适用场景 |
 |------|----------|
+| [workflows.md](workflows.md) | **常用组合工作流程**：执行脚本、分发文件、建方案/定时任务、查执行历史等链路的完整步骤 |
 | [environment-and-auth.md](environment-and-auth.md) | 配置网关地址、令牌、资源范围 `bk_scope` |
 | [scope-selection-and-onboarding.md](scope-selection-and-onboarding.md) | **首次引导选择业务/业务集**：`list-authorized-scopes`、无 `bk_scope` 上下文时的选择流程 |
 | [host-query-and-selection.md](host-query-and-selection.md) | **执行类操作填写主机**：`host-topo-tree` 看拓扑、`host-search` 按 IP/主机名/操作系统/拓扑节点搜索主机 |
 | [account-query-and-selection.md](account-query-and-selection.md) | **执行类操作填写账号**：`account-list` 查询业务下可用执行账号（系统/DB），引导选择 alias/id |
 | [listing-and-token-efficient-analysis.md](listing-and-token-efficient-analysis.md) | **列举默认先 20 条**、大列表用 jq/脚本本地过滤、节省 Token |
 | [temp-files.md](temp-files.md) | **临时文件只放技能 `tmp/`**、命名约定、清理命令与清理红线（只清 `tmp/`） |
-| [confirmation-and-output-protocol.md](confirmation-and-output-protocol.md) | **plan-execute / fast-execute-script 确认门禁（G1–G4）**、摘要格式、**输出规范**（结构化交付、禁止过程叙述） |
+| [confirmation-and-output-protocol.md](confirmation-and-output-protocol.md) | **plan-execute / fast-execute-script 确认门禁（G1–G4）**、摘要格式（**须含默认参数**）、**输出规范**（结构化交付、禁止过程叙述） |
+| [interactive-choice.md](interactive-choice.md) | **让用户做选择**：可用且选项 ≤ 8 时用 `ai-hub-ask-user-input` 弹结构化选项，否则用表格；确认门禁用 `confirm` 类型 |
 | [business-memory.md](business-memory.md) | **业务/业务集记忆**：路径、`memory/businesses/`、加载流程、沉淀触发与写入规则 |
 | [cron-tasks-and-last-execution.md](cron-tasks-and-last-execution.md) | 定时任务关键词检索、`cron-last-run` 最近执行与日志 |
 | [job-plans-create-and-cron.md](job-plans-create-and-cron.md) | **`template-search`** / **`template-detail`** / **`plan-create`** / **`cron-save`** / **`cron-update-status`** 及创建后启用询问 |

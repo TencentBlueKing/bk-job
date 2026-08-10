@@ -68,14 +68,23 @@
         └─ 返回 url_map：每个文件的 upload_url 与 path
              ↓
 [B] 对每个文件：upload-local-file --upload-url <upload_url> --file-path <本地文件>
+        └─ 上传成功后立即清理该文件在 tmp/ 中的副本（见下方「临时文件清理」）
              ↓
 [C] fast-transfer-file --local-file-list <path1>,<path2> ...
         └─ --dry-run 预览 → 确认摘要 → 用户独立确认（G2）→ 真实分发
+             ↓
+[D] 分发触发后清理本次剩余的 tmp/ 临时文件
 ```
 
 - 本地文件源（file_type=2）**不需要**源账号与源服务器，只需 `path`。
 - `path` 必须是 `gen-local-upload-url` 返回的原样路径；须先 `upload-local-file` 成功上传，否则分发时找不到文件。
 - 两步的 HTTP 方法不同，勿混淆：**[A] 生成上传地址走 APIGW 的 POST**，**[B] 上传文件字节走制品库地址的 PUT**（`Content-Type: application/octet-stream`，等价于 `curl -X PUT --data-binary @<file> "<upload_url>"`）；`upload_url` 自带 token，不附加 APIGW 鉴权头。
+
+#### 临时文件清理（本地文件分发尤其重要）
+
+待分发文件常常体积很大，若智能体为本次分发在 `tmp/` 下准备了副本或中间文件，**[B] 上传成功后就要立即删除**——文件已进入制品库，本地副本再无用途，堆积会直接吃掉磁盘空间。分发触发（[C] 拿到 `job_instance_id`）后再清理剩余的入参文件。
+
+注意区分：**用户自己的原始文件不是临时文件**，无论放在哪里都不要删；只清理 `tmp/` 下由本次任务产生的副本与中间文件。清理命令与红线见 [temp-files.md](temp-files.md)。
 
 ## 5. 确认摘要格式（真实分发前必须展示）
 
@@ -87,11 +96,16 @@
 - 目标路径：{file_target_path}{file_target_name 若有}
 - 执行账号：{account_alias 或 account_id}
 - 源文件：{服务器文件 路径 + 源机器 / 本地文件 N 个}
-- 传输模式：{严谨 / 强制}
-- 超时时间：{timeout 秒，默认 7200}
+- 传输模式：{严谨 / 强制}{未指定时为「强制模式 [默认] — 同名文件直接覆盖」}
+- 超时时间：{timeout 秒}{未指定时为「7200 秒 [默认]」}
+- 上传/下载限速：{值}{未指定时为「不限速 [默认]」}
+- 目标文件名：{file_target_name}{未指定时为「保持源文件名 [默认]」}
+- 是否立即启动：{是 [默认] / 否}
 
 请确认是否立即分发。
 ```
+
+上述取值以 `--dry-run` 输出为准：`request_body` 为显式参数，`defaults_applied` 为未指定而按默认生效的参数，**两块都要展示**，默认项标注 `[默认]`。规则见 [confirmation-and-output-protocol.md](confirmation-and-output-protocol.md) 1.4.1。
 
 ## 6. 命令示例
 

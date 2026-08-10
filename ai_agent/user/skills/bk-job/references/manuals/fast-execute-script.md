@@ -62,12 +62,20 @@
 - 执行账号：{account_alias 或 account_id}
 - 脚本来源：{脚本内容（语言：shell...）/ 引用脚本 script_id / 脚本版本 script_version_id}
 - 脚本预览：{前若干行，敏感信息脱敏}
-- 超时时间：{timeout 秒，默认 7200}
+- 脚本参数：{script_param 脱敏后}{未指定时省略}
+- 超时时间：{timeout 秒}{未指定时为「7200 秒 [默认]」}
+- 参数是否敏感：{是 / 否 [默认]}
+- 是否立即启动：{是 [默认] / 否}
+- Windows 解释器：{路径}{未指定时为「由目标机系统决定 [默认]」}
 
 请确认是否立即执行。
 ```
 
 脚本内容与参数中的敏感信息须脱敏；主机可摘要为「共 N 台」或列举片段。
+
+取值以 `--dry-run` 输出为准：`request_body` 为显式参数，`defaults_applied` 为未指定而按默认生效的参数，**两块都要展示**，默认项标注 `[默认]`。规则见 [confirmation-and-output-protocol.md](confirmation-and-output-protocol.md) 1.4.1。
+
+执行触发后，立即清理本次在 `tmp/` 下产生的脚本内容、执行目标等入参文件，见 [temp-files.md](temp-files.md)。
 
 ## 7. 命令示例
 

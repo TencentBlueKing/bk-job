@@ -45,7 +45,7 @@
 {
     "bk_scope_type": "biz",
     "bk_scope_id": "2",
-    "ipv4_key_list": ["127.0.0.1", "10.0.0"],
+    "ipv4_key_list": ["127.0.0.1", "192.168.0"],
     "alive": 1,
     "offset": 0,
     "length": 20

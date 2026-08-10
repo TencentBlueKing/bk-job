@@ -23,13 +23,14 @@ metadata: {"version":"1.0.0","bk_skill_code":"bk-job","openclaw":{"displayName":
 
 ## 核心规则（必读）
 
-- **写操作须过 G1–G4 门禁**：`plan-execute`、`fast-execute-script`、`fast-transfer-file`、`plan-create`、`cron-save`、`cron-update-status`（非 `--dry-run`）须先展示确认摘要，**再等用户下一条独立回复**才执行；「立即执行」只表达意图，**不算**确认。**一次确认只授权一次执行**，重复执行（含「相同参数再执行一次」）须重新走门禁，不得跳过。格式与反例见 [确认门禁](references/manuals/confirmation-and-output-protocol.md)。
+- **写操作须过 G1–G4 门禁**：`plan-execute`、`fast-execute-script`、`fast-transfer-file`、`plan-create`、`cron-save`、`cron-update-status`（非 `--dry-run`）须先展示确认摘要，**再等用户下一条独立回复**才执行；「立即执行」只表达意图，**不算**确认。**一次确认只授权一次执行**，重复执行（含「相同参数再执行一次」）须重新走门禁，不得跳过。**摘要须列全部生效参数**：以 `--dry-run` 的 `request_body` 加 `defaults_applied` 为准，未指定项标 `[默认]` 并说明后果（如强制模式覆盖同名文件），不得省略。格式与反例见 [确认门禁](references/manuals/confirmation-and-output-protocol.md)。
 - **填主机先查再填**：需要目标机（含分发源机）而用户未给 `bk_host_id` 或 `bk_cloud_id:ip` 时，先用 `host-topo-tree`、`host-search` 定位，列候选经用户确认，**不要凭空猜主机 ID**。
 - **填账号先查再填**：需要执行账号而用户未指定时，先用 `account-list` 列出该范围可用账号供选择，**不要凭空猜账号别名**。
 - **文件分发仅两种源**：只支持「服务器文件」与「本地文件」；第三方文件源（如 COS）未提供接口，**不要**给该选项，脚本会拒绝。
 - **列表先查一页**：默认 `--length 20` 并用 `--keyword` 缩小，`total > length` 时先说明「本页 N 条，共 M 条」再问翻页；大列表用 jq 过滤，**勿把整页 JSON 贴进对话**。见 [列举与分析](references/manuals/listing-and-token-efficient-analysis.md)。
 - **对用户输出**：不叙述调脚本/调 API 过程，表格化交付结论；同一轮内不得既给摘要又真实执行。
-- **临时文件只放技能 `tmp/`**：内联 JSON 在 PowerShell 易转义失败，改用 `--*-file` 入参；这类中间文件一律写 `tmp/`，用完即清，且**只许清 `tmp/` 内容**，严禁删其它路径。见 [临时文件](references/manuals/temp-files.md)。
+- **临时文件只放技能 `tmp/`**：内联 JSON 在 PowerShell 易转义失败，改用 `--*-file` 入参；这类中间文件一律写 `tmp/`，**操作触发后即清**（本地文件上传成功即清，避免占满磁盘），且**只许清 `tmp/` 内容**，严禁删其它路径。见 [临时文件](references/manuals/temp-files.md)。
+- **让用户选择优先用选项卡**：`ai-hub-ask-user-input` 可用且候选 ≤8 时用它发结构化选项（确认门禁用 `confirm` 类型），否则表格呈现；候选过多先收敛再选。见 [交互选择](references/manuals/interactive-choice.md)。
 - **主机变量结构因接口而异**：`plan-create` 与 `plan-execute`/`cron-save` 字段名不同，组装前先查手册差异表。
 - **切换业务后重查资源**：切换业务后必须重新查询拓扑、主机、账号、方案、定时任务，禁止复用上一业务的资源。
 - **必给结果链接**：无论成败，触发后须以可点击链接交付 `job_instance_url`（执行类）或 `job_plan_url`（建方案）。
@@ -53,16 +54,7 @@ metadata: {"version":"1.0.0","bk_skill_code":"bk-job","openclaw":{"displayName":
 
 ## 常用组合工作流程
 
-下列**只是常见示例，非能力边界**：可按需用上表原子能力自由组装；但写操作一律走 G1–G4 门禁，不得绕过。「确认」均指门禁两轮确认；参数见对应手册。
-
-- **快速执行脚本**：`host-search` 定位目标机 → `account-list` 选账号 → `--dry-run` 出摘要 → 确认 → 执行。
-- **分发本地文件**：`gen-local-upload-url` → `upload-local-file` 上传 → `fast-transfer-file` 引用返回的 `path` 分发；前两步不过门禁。
-- **分发服务器文件**：定位源机与源账号 → 定位目标机、目标账号与目标目录 → `fast-transfer-file --server-file-list <源机上的绝对路径>` `--dry-run` → 确认 → 分发。
-- **查模板建方案**：`template-search` → `template-detail` 看步骤与全局变量 → 与用户确认启用步骤及变量 → `plan-create --dry-run` → 确认 → 创建。
-- **搜方案并启动**：`plan-search` → `plan-detail` 核对必填与主机变量 → 组装 `global_var_list` → `plan-execute --dry-run` → 确认 → 启动。
-- **建定时任务并启用**：`plan-search` 定位方案 → 确认 cron 表达式与时区 → `cron-save --dry-run` → 确认 → 保存（默认暂停）→ **再问是否启用** → `cron-update-status --status 1`。
-- **查定时任务与执行历史**：`cron-search` 找任务（须展示启停状态）→ `cron-last-run` 取最近一次定时执行的状态与各步骤日志。
-- **查执行历史**：`instance-list` 按时间窗口与状态/类型/执行人筛出实例 → `instance-status` 看状态 → `get-instance-log` 取步骤日志。
+**只是常见示例，非能力边界**：可按需用上表原子能力自由组装，但写操作一律走 G1–G4 门禁。各链路步骤见 [工作流程手册](references/manuals/workflows.md)：快速执行脚本、分发本地/服务器文件、搜方案并启动、查模板建方案、建定时任务并启用、查定时任务与执行历史、查执行历史并下钻。
 
 ## 异常处理
 

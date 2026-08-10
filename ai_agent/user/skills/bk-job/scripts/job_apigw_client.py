@@ -273,6 +273,60 @@ def print_json(data: Any) -> None:
     print(json.dumps(data, ensure_ascii=False, indent=2))
 
 
+# 写操作中「不传即由后端按默认值生效」的参数。--dry-run 时据此列出未显式指定的项，
+# 供确认摘要向用户完整披露实际生效值，避免出现用户意料之外的参数。
+# 默认值来源：references/apidocs/ 下对应接口文档的字段说明。
+FAST_EXEC_SCRIPT_DEFAULTS: Dict[str, Tuple[str, str]] = {
+    "timeout": ("7200 秒", "脚本执行超时时间，实际上限可能受资源范围级配置限制"),
+    "param_sensitive": ("false", "脚本参数值在执行详情页可见"),
+    "start_task": ("true", "创建后立即启动任务"),
+    "windows_interpreter": ("由目标机系统决定", "Windows 目标机的脚本解释器"),
+    "task_name": ("由作业平台生成", "任务名称"),
+    "callback_url": ("不回调", "任务结束后的回调地址"),
+}
+
+FAST_TRANSFER_FILE_DEFAULTS: Dict[str, Tuple[str, str]] = {
+    "timeout": ("7200 秒", "任务超时时间"),
+    "transfer_mode": ("2（强制模式）", "目标路径已存在同名文件时直接覆盖"),
+    "download_speed_limit": ("不限速", "下载限速，单位 MB"),
+    "upload_speed_limit": ("不限速", "上传限速，单位 MB"),
+    "start_task": ("true", "创建后立即启动任务"),
+    "file_target_name": ("保持源文件名", "分发到目标机后的文件名"),
+    "task_name": ("由作业平台生成", "任务名称"),
+    "callback_url": ("不回调", "任务结束后的回调地址"),
+}
+
+
+def defaults_applied(body: Dict[str, Any], spec: Dict[str, Tuple[str, str]]) -> Dict[str, Dict[str, str]]:
+    """列出请求体中未显式指定、将按默认值生效的参数，用于确认摘要完整披露。"""
+    return {
+        key: {"默认值": value, "说明": desc}
+        for key, (value, desc) in spec.items()
+        if key not in body
+    }
+
+
+def print_dry_run(
+    args: argparse.Namespace,
+    body: Dict[str, Any],
+    spec: Dict[str, Tuple[str, str]],
+) -> None:
+    """输出 --dry-run 预览：显式参数 + 未显式指定但会生效的默认值。"""
+    _scope_print(
+        args,
+        {
+            "dry_run": True,
+            "request_body": body,
+            "defaults_applied": defaults_applied(body, spec),
+            "_note": (
+                "defaults_applied 为未显式指定、将按默认值生效的参数。"
+                "确认摘要须把 request_body 与 defaults_applied 一并完整展示给用户，"
+                "默认值项需标注「默认」，不得省略。"
+            ),
+        },
+    )
+
+
 def _ai_hub_executable() -> Optional[str]:
     """在 PATH 中查找 ai-hub 命令；返回 None 表示当前不在 imate 数字分身环境。"""
     return shutil.which(AI_HUB_COMMAND)
@@ -1429,7 +1483,7 @@ def cmd_fast_execute_script(args: argparse.Namespace) -> None:
     body["execute_target"] = _build_fast_exec_target(args)
 
     if args.dry_run:
-        _scope_print(args, {"dry_run": True, "request_body": body})
+        print_dry_run(args, body, FAST_EXEC_SCRIPT_DEFAULTS)
         return
 
     data = v4_post_json(base, "/api/v4/fast_execute_script", body, token)
@@ -1845,7 +1899,7 @@ def cmd_fast_transfer_file(args: argparse.Namespace) -> None:
         body["start_task"] = False
 
     if args.dry_run:
-        _scope_print(args, {"dry_run": True, "request_body": body})
+        print_dry_run(args, body, FAST_TRANSFER_FILE_DEFAULTS)
         return
 
     data = v3_post_json(base, "/api/v3/fast_transfer_file", body, token)
