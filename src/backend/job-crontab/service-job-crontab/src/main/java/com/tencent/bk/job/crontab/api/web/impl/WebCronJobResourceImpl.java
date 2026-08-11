@@ -360,13 +360,9 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         Long appId = appResourceScope.getAppId();
         checkReqAndProcess(appId, cronJobCreateUpdateReq);
         CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
-        if (cronJobInfoDTO.validate()) {
-            CronJobInfoDTO createdCronJob = cronJobService.createCronJobInfo(JobContextUtil.getUser(), cronJobInfoDTO);
-            return Response.buildSuccessResp(CronJobInfoDTO.toVO(createdCronJob));
-        } else {
-            log.warn("Validate cron job failed!|{}", JobContextUtil.getDebugMessage());
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
+        cronJobInfoDTO.validate();
+        CronJobInfoDTO createdCronJob = cronJobService.createCronJobInfo(JobContextUtil.getUser(), cronJobInfoDTO);
+        return Response.buildSuccessResp(CronJobInfoDTO.toVO(createdCronJob));
     }
 
     @Override
@@ -382,13 +378,9 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         cronJobCreateUpdateReq.setId(cronJobId);
         checkReqAndProcess(appId, cronJobCreateUpdateReq);
         CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
-        if (cronJobInfoDTO.validate()) {
-            CronJobInfoDTO updatedCronJob = cronJobService.updateCronJobInfo(JobContextUtil.getUser(), cronJobInfoDTO);
-            return Response.buildSuccessResp(CronJobInfoDTO.toVO(updatedCronJob));
-        } else {
-            log.warn("Validate cron job failed!|{}", JobContextUtil.getDebugMessage());
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
+        cronJobInfoDTO.validate();
+        CronJobInfoDTO updatedCronJob = cronJobService.updateCronJobInfo(JobContextUtil.getUser(), cronJobInfoDTO);
+        return Response.buildSuccessResp(CronJobInfoDTO.toVO(updatedCronJob));
     }
 
     private void checkReqAndProcess(Long appId, CronJobCreateUpdateReq cronJobCreateUpdateReq) {

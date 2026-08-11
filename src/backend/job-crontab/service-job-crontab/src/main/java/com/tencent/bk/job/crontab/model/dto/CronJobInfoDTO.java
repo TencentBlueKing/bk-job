@@ -538,21 +538,21 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         return esbCronInfoResponse;
     }
 
-    public boolean validate() {
+    public void validate() {
         if (notifyOffset == null || notifyOffset <= 0) {
             notifyOffset = 0L;
             notifyUser = new UserRoleInfoDTO();
             notifyChannel = Collections.emptyList();
         } else {
-            if (!notifyUser.validate()) {
+            if (notifyUser == null || !notifyUser.validate()) {
                 JobContextUtil.addDebugMessage("Empty notify user or role!");
                 // 1.指定了notifyOffset，但是未指定有效的notifyUser
-                return false;
+                throw new InvalidParamException(ErrorCode.CRON_JOB_NOTIFY_USER_EMPTY);
             }
             if (CollectionUtils.isEmpty(notifyChannel)) {
                 JobContextUtil.addDebugMessage("Empty notify channel!");
                 // 2.指定了notifyOffset，但是未指定有效的notifyChannel
-                return false;
+                throw new InvalidParamException(ErrorCode.CRON_JOB_NOTIFY_CHANNEL_EMPTY);
             }
         }
         if (endTime == null || endTime <= 0) {
@@ -570,13 +570,13 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         } else {
             JobContextUtil.addDebugMessage("Missing execute plan/script info!");
             // 3.脚本与执行方案都没指定或无效
-            return false;
+            throw new InvalidParamException(ErrorCode.CRON_JOB_PLAN_OR_SCRIPT_INVALID);
         }
 
-        return validateCronExpression();
+        validateCronExpression();
     }
 
-    private boolean validateCronExpression() {
+    private void validateCronExpression() {
         if (StringUtils.isNotBlank(cronExpression)) {
             try {
                 cronExpression = CronExpressionUtil.fixExpressionForQuartz(cronExpression);
@@ -585,12 +585,12 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
                 JobContextUtil.addDebugMessage("Invalid cron expression!");
                 JobContextUtil.addDebugMessage(e.getMessage());
                 // 4.定时任务cron表达式不正确
-                return false;
+                throw new InvalidParamException(ErrorCode.CRON_JOB_CRON_EXPRESSION_INVALID);
             } catch (ParseException e) {
                 JobContextUtil.addDebugMessage("Invalid cron expression!");
                 JobContextUtil.addDebugMessage(e.getErrorOffset() + "|" + e.getMessage());
                 // 4.定时任务cron表达式不正确
-                return false;
+                throw new InvalidParamException(ErrorCode.CRON_JOB_CRON_EXPRESSION_INVALID);
             }
             executeTime = null;
             if (endTime > 0) {
@@ -610,9 +610,8 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             }
         } else {
             // 7.定时执行/单次执行参数均未有效配置
-            return false;
+            throw new InvalidParamException(ErrorCode.CRON_JOB_EXECUTE_TIME_CONFIG_INVALID);
         }
-        return true;
     }
 
     public ServiceCronJobDTO toServiceCronJobDTO() {
