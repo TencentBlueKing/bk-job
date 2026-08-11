@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.manage.api.common.ExecuteAccountVariableValidator;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
@@ -69,18 +70,21 @@ public class TaskPlanSyncServiceImpl implements TaskPlanSyncService {
     private final TaskTemplateService taskTemplateService;
     private final AbstractTaskStepService taskPlanStepService;
     private final AbstractTaskVariableService taskPlanVariableService;
+    private final ExecuteAccountVariableValidator executeAccountVariableValidator;
 
     @Autowired
     public TaskPlanSyncServiceImpl(
         TaskPlanDAO taskPlanDAO,
         TaskTemplateService taskTemplateService,
         @Qualifier("TaskPlanStepServiceImpl") AbstractTaskStepService taskPlanStepService,
-        @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService
+        @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService,
+        ExecuteAccountVariableValidator executeAccountVariableValidator
     ) {
         this.taskPlanDAO = taskPlanDAO;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanStepService = taskPlanStepService;
         this.taskPlanVariableService = taskPlanVariableService;
+        this.executeAccountVariableValidator = executeAccountVariableValidator;
     }
 
     @Override
@@ -115,6 +119,8 @@ public class TaskPlanSyncServiceImpl implements TaskPlanSyncService {
 
         // 构建执行方案全局变量
         buildPlanVariablesFromTemplate(taskPlan, taskTemplate);
+        executeAccountVariableValidator.validate(appId, taskPlan.getStepList(),
+            taskPlan.getVariableList());
 
         // 同步
         syncPlan(taskPlan);

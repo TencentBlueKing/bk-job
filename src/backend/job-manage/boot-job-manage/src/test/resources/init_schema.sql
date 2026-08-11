@@ -311,7 +311,8 @@ CREATE TABLE `task_plan_variable`
     `is_changeable`        TINYINT(1) UNSIGNED NOT NULL,
     `is_required`          TINYINT(1) UNSIGNED NOT NULL,
     PRIMARY KEY (`id`),
-    KEY (`plan_id`) USING BTREE
+    KEY (`plan_id`) USING BTREE,
+    KEY `idx_type_default_value` (`type`, `default_value`(32)) USING BTREE
 ) ENGINE = INNODB
   DEFAULT CHARSET = UTF8MB4;
 
@@ -477,7 +478,8 @@ CREATE TABLE `task_template_variable`
     `is_changeable`   TINYINT(1) UNSIGNED NOT NULL,
     `is_required`     TINYINT(1) UNSIGNED NOT NULL,
     PRIMARY KEY (`id`),
-    KEY (`template_id`) USING BTREE
+    KEY (`template_id`) USING BTREE,
+    KEY `idx_type_default_value` (`type`, `default_value`(32)) USING BTREE
 ) ENGINE = INNODB
   DEFAULT CHARSET = UTF8MB4;
 
