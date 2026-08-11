@@ -18,20 +18,39 @@
 占位示例（**非真实地址**）：
 
 ```yaml
-# access_token 仍通过环境变量 BK_JOB_ACCESS_TOKEN 提供，勿写入本文件
+# access_token 由 ai-hub 命令或环境变量 BK_JOB_ACCESS_TOKEN 提供，勿写入本文件
 apigw_base_url: https://bkapi.example.com/api/bk-job/prod
 job_base_url: https://job.example.com
 ```
 
-## 3. 环境变量（仅令牌）
+## 3. 访问令牌
 
-| 变量 | 含义 |
-|------|------|
-| `BK_JOB_ACCESS_TOKEN` | 蓝鲸用户态 **access_token**，放入请求头 `X-Bkapi-Authorization: {"access_token":"<token>"}` |
+令牌为蓝鲸用户态 **access_token**，脚本放入请求头 `X-Bkapi-Authorization: {"access_token":"<token>"}`。
 
-命令行可覆盖：`--access-token`。
+### 3.1 获取顺序（脚本自动完成，无需智能体介入）
 
-**不要把 access_token 写进 config.yaml、SKILL、手册或仓库**；用环境变量或本地私密配置。
+| 顺序 | 来源 | 说明 |
+|------|------|------|
+| 1 | `--access-token` | 显式传入，优先级最高，用于临时覆盖 |
+| 2 | **`ai-hub` 命令** | PATH 中存在 `ai-hub` 时（即运行在 **imate 数字分身**上），脚本执行 `ai-hub access-token get`，从输出 JSON 中取 `access_token` 字段 |
+| 3 | `BK_JOB_ACCESS_TOKEN` | 环境变量，`ai-hub` 不存在或取令牌失败时回退 |
+
+`ai-hub` 输出形如 `{"access_token":"xxxx", ...}`；解析与回退**全部在脚本内完成**，智能体不要自行调用 `ai-hub`，也不要解析其输出或把令牌贴进对话。
+
+`ai-hub` 调用超时为 10 秒，返回非零退出码、输出非 JSON、缺少 `access_token` 字段时均视为失败并回退到环境变量。
+
+### 3.2 取不到令牌时的报错
+
+脚本按是否检测到 `ai-hub` 给出不同引导：
+
+| 环境 | 提示方向 |
+|------|---------|
+| 无 `ai-hub`（非 imate 环境） | 只提示设置环境变量 `BK_JOB_ACCESS_TOKEN` |
+| 有 `ai-hub`（imate 环境） | 提示检查 imate 数字分身上的 ai-hub 服务是否正常（可手动执行 `ai-hub access-token get` 验证），或手动设置 `BK_JOB_ACCESS_TOKEN` |
+
+向用户转述时按脚本给出的方向引导，**不要**在非 imate 环境让用户去查 ai-hub 服务。
+
+**不要把 access_token 写进 config.yaml、SKILL、手册或仓库**，也不要在对话中回显；用 `ai-hub`、环境变量或本地私密配置。
 
 ## 4. 资源范围
 
