@@ -453,6 +453,10 @@ public class ErrorCode {
     public static final int DELETE_CRON_FAILED = 1245008;
     // 保存定时任务(id={0})自定义消息通知策略失败
     public static final int SAVE_CRON_CUSTOM_NOTIFY_FAILED = 1245009;
+    // 定时任务提前通知时间已失效（结束前通知，Web 保存校验）
+    public static final int CRON_JOB_END_NOTIFY_TIME_ALREADY_PASSED = 1245010;
+    // 定时任务提前通知时间已失效（执行前通知，Web 保存校验）
+    public static final int CRON_JOB_EXECUTE_NOTIFY_TIME_ALREADY_PASSED = 1245011;
     // 定时作业 end
 
     // 日志服务

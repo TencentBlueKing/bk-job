@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -596,7 +597,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
                 if (endTime - notifyOffset <= DateUtils.currentTimeSeconds()) {
                     JobContextUtil.addDebugMessage("Invalid end time or notify time config!");
                     // 5.定时任务指定了结束时间但结束时间太早导致无法进行结束前通知
-                    return false;
+                    throw new InvalidParamException(ErrorCode.CRON_JOB_END_NOTIFY_TIME_ALREADY_PASSED);
                 }
             }
         } else if (executeTime != null && executeTime > DateUtils.currentTimeSeconds()) {
@@ -605,7 +606,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             if (executeTime - notifyOffset <= DateUtils.currentTimeSeconds()) {
                 JobContextUtil.addDebugMessage("Invalid notify time config!");
                 // 6.单次执行任务指定了执行前通知但执行时间太早导致无法进行执行前通知
-                return false;
+                throw new InvalidParamException(ErrorCode.CRON_JOB_EXECUTE_NOTIFY_TIME_ALREADY_PASSED);
             }
         } else {
             // 7.定时执行/单次执行参数均未有效配置
