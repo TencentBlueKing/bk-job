@@ -197,7 +197,6 @@ public class ApprovalTaskDAOImpl implements ApprovalTaskDAO {
         return dslContext.deleteFrom(defaultTable)
             .where(defaultTable.CREATE_TIME.lessOrEqual(JooqDataTypeUtil.buildULong(maxCreateTime)))
             .and(defaultTable.STATUS.ne(ApprovalStatusEnum.EXECUTING.name()))
-            .orderBy(defaultTable.CREATE_TIME)
             .limit(limit)
             .execute();
     }

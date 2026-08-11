@@ -62,3 +62,35 @@ CREATE TABLE `analysis_task`  (
   PRIMARY KEY (`id`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 3;
 
+DROP TABLE IF EXISTS `approval_task`;
+CREATE TABLE `approval_task`  (
+  `id`                    bigint(20)          NOT NULL AUTO_INCREMENT,
+  `approval_task_id`      varchar(64)         NOT NULL COMMENT '对外暴露的审批任务ID(UUID，不可猜测)',
+  `tenant_id`             varchar(32)         NOT NULL COMMENT '租户ID',
+  `app_id`                bigint(20)          NOT NULL COMMENT '业务ID',
+  `operation_type`        varchar(64)         NOT NULL COMMENT '操作类型',
+  `operation_params`      mediumtext          NOT NULL COMMENT '操作参数快照(JSON，敏感字段已加密)',
+  `params_schema_version` int(11)             NOT NULL DEFAULT 1 COMMENT '参数快照结构版本',
+  `resolved_summary`      mediumtext          NULL COMMENT 'dryRun解析出的概要(JSON)',
+  `creator`               varchar(128)        NOT NULL COMMENT '发起人',
+  `app_code`              varchar(128)        NOT NULL DEFAULT '' COMMENT '发起方appCode',
+  `approval_channel`      varchar(32)         NOT NULL COMMENT '审批渠道枚举',
+  `approval_ticket_id`    varchar(256)        NULL COMMENT '审批渠道单据ID',
+  `ticket_fetched_at`     bigint(20) UNSIGNED NULL COMMENT '审批渠道拉取单据的时间(毫秒)',
+  `status`                varchar(32)         NOT NULL COMMENT '状态',
+  `approver`              varchar(128)        NULL COMMENT '审批人',
+  `approved_at`           bigint(20) UNSIGNED NULL COMMENT '审批通过时间(毫秒)',
+  `execute_result`        mediumtext          NULL COMMENT '放行后的操作结果(JSON)',
+  `expire_at`             bigint(20) UNSIGNED NOT NULL COMMENT '过期时刻(毫秒)',
+  `consumed_at`           bigint(20) UNSIGNED NULL COMMENT '被消费(CAS成功)时刻(毫秒)',
+  `dispatched_at`         bigint(20) UNSIGNED NULL COMMENT '下发下游执行请求的时刻(毫秒)',
+  `create_time`           bigint(20) UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间(毫秒)',
+  `row_create_time`       datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `row_update_time`       datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`approval_task_id`) USING BTREE,
+  KEY `idx_app_creator_status` (`app_id`, `creator`, `status`) USING BTREE,
+  KEY `idx_create_time` (`create_time`) USING BTREE,
+  KEY `idx_expire_at` (`expire_at`) USING BTREE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+

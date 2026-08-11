@@ -54,16 +54,22 @@ public class DryRunResult<T> {
     private Object[] errorParams;
 
     /**
-     * dryRun 解析出的概要，由各服务填充自己的类型
+     * 校验失败的错误类型（ErrorType 的 type 值），供调用方映射到对外错误响应的语义分类，
+     * 不必再按错误码逐个猜是参数问题还是资源不存在
      */
-    private Object resolvedSummary;
+    private Integer errorType;
+
+    /**
+     * dryRun 解析出的操作概要，用于渲染审批单据的概要区
+     */
+    private ResolvedSummary resolvedSummary;
 
     /**
      * dryRun=false 时的执行结果
      */
     private T executeResult;
 
-    public static <T> DryRunResult<T> valid(Object resolvedSummary, T executeResult) {
+    public static <T> DryRunResult<T> valid(ResolvedSummary resolvedSummary, T executeResult) {
         DryRunResult<T> result = new DryRunResult<>();
         result.setValid(true);
         result.setResolvedSummary(resolvedSummary);
@@ -72,10 +78,15 @@ public class DryRunResult<T> {
     }
 
     public static <T> DryRunResult<T> invalid(Integer errorCode, Object[] errorParams) {
+        return invalid(errorCode, errorParams, null);
+    }
+
+    public static <T> DryRunResult<T> invalid(Integer errorCode, Object[] errorParams, Integer errorType) {
         DryRunResult<T> result = new DryRunResult<>();
         result.setValid(false);
         result.setErrorCode(errorCode);
         result.setErrorParams(errorParams);
+        result.setErrorType(errorType);
         return result;
     }
 }
