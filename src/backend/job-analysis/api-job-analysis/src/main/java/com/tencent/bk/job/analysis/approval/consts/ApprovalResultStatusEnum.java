@@ -22,20 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-api')
-    api project(':commons:common-i18n')
-    api project(':commons:cmdb-sdk')
-    api project(':commons:common-iam')
-    api project(':job-analysis:api-common-job-analysis')
-    api project(':job-execute:api-job-execute')
-    api project(':job-manage:api-job-manage')
-    api project(':job-crontab:api-job-crontab')
-    implementation "org.springframework:spring-web"
-    implementation "jakarta.ws.rs:jakarta.ws.rs-api"
-    implementation("org.apache.commons:commons-collections4")
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.analysis.approval.consts;
+
+/**
+ * 审批渠道回查响应中的审批结论。
+ * <p>
+ * 这是唯一可信的授权来源，只能来自作业平台主动回查审批渠道的响应，
+ * 绝不接受调用方（AI）传入。
+ */
+public enum ApprovalResultStatusEnum {
+
+    /**
+     * 审批中，未完成
+     */
+    PENDING,
+    /**
+     * 已通过
+     */
+    APPROVED,
+    /**
+     * 已拒绝
+     */
+    REJECTED
 }

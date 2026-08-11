@@ -22,20 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-api')
-    api project(':commons:common-i18n')
-    api project(':commons:cmdb-sdk')
-    api project(':commons:common-iam')
-    api project(':job-analysis:api-common-job-analysis')
-    api project(':job-execute:api-job-execute')
-    api project(':job-manage:api-job-manage')
-    api project(':job-crontab:api-job-crontab')
-    implementation "org.springframework:spring-web"
-    implementation "jakarta.ws.rs:jakarta.ws.rs-api"
-    implementation("org.apache.commons:commons-collections4")
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.analysis.approval.consts;
+
+/**
+ * 审批渠道。
+ * <p>
+ * 调用方只能通过本枚举指定渠道，<b>绝不能传地址、密钥、回调 URL 或任何可影响回查目标的参数</b>。
+ * 渠道的地址、appCode、密钥等一律来自服务端配置（job.analysis.approval.channels.*）。
+ */
+public enum ApprovalChannelEnum {
+
+    /**
+     * IMate 审批渠道
+     */
+    IMATE;
+
+    public static ApprovalChannelEnum valOf(String channel) {
+        if (channel == null) {
+            return null;
+        }
+        for (ApprovalChannelEnum channelEnum : values()) {
+            if (channelEnum.name().equals(channel)) {
+                return channelEnum;
+            }
+        }
+        return null;
+    }
 }

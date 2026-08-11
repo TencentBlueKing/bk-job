@@ -240,6 +240,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
 
+        if (Boolean.TRUE.equals(fastTask.getDryRun())) {
+            // 预检走裸调用，不进入 ActionAuditContext 包裹：审批任务有自己的审计链路，
+            // 预检不应伪造一条"已执行作业"的审计事件
+            return executeFastTaskInternal(fastTask);
+        }
+
         ActionAuditContext actionAuditContext;
         if (stepInstance.isFileStep()) {
             actionAuditContext = ActionAuditContext.builder(ActionId.QUICK_TRANSFER_FILE)
@@ -322,6 +328,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             authFastExecute(fastTask.getOperator(), taskInstance, stepInstance,
                 taskInstanceExecuteObjects.getWhiteHostAllowActions());
             watch.stop();
+
+            // ============ dryRun 预检返回点 ============
+            // 此行之上不得新增写操作：预检与真实执行必须走同一段校验代码，但预检绝不能落作业实例、
+            // 发 MQ 事件或产生审计事件。往上插入写操作会让预检穿透成真实执行 ——
+            // 这是本机制最危险的失效方式，TaskExecuteServiceDryRunTest 锁定了该性质。
+            // 已知例外：checkAndSetScript 内的 saveDangerousRecord 会同步写 dangerous_record 表，
+            // 该写入在本返回点之上，尚未确认预检期是否应保留（见 PR 说明）。
+            if (Boolean.TRUE.equals(fastTask.getDryRun())) {
+                fillDryRunResolvedResult(taskInstance, Collections.singletonList(stepInstance));
+                return taskInstance;
+            }
 
             // 保存作业
             saveTaskInstance(watch, fastTask, taskInstance, stepInstance);
@@ -589,6 +606,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             quotaWeight
         );
         watch.stop();
+    }
+
+    /**
+     * dryRun 返回前把解析结果挂到作业实例上，供上层组装审批单据所需的"实际影响面"。
+     * 这里只做只读的执行对象提取，不产生任何写操作。
+     */
+    private void fillDryRunResolvedResult(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
+        taskInstance.setStepInstances(stepInstanceList);
+        taskInstance.setAllHosts(taskInstanceExecuteObjectProcessor.extractHosts(stepInstanceList, null));
     }
 
     private void addJobInstanceContext(TaskInstanceDTO taskInstance) {
@@ -1172,11 +1198,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam) {
+        executeParam.assertDryRunNotSkipAuth();
         StopWatch watch = new StopWatch("createTaskInstanceForTask");
         TaskInfo taskInfo = buildTaskInfoFromExecuteParam(executeParam, watch);
         ServiceTaskPlanDTO plan = taskInfo.getJobPlan();
-        ActionAuditContext actionAuditContext;
 
+        if (executeParam.isDryRun()) {
+            // 预检走裸调用，不进入 ActionAuditContext 包裹，也不产生 auditJobPlanExecute 事件
+            return executeJobPlanInternal(watch, executeParam, taskInfo);
+        }
+
+        ActionAuditContext actionAuditContext;
         if (plan.isDebugTask()) {
             // 作业模版调试
             actionAuditContext = ActionAuditContext.builder(ActionId.DEBUG_JOB_TEMPLATE)
@@ -1250,6 +1282,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), jobPlan, stepInstanceList,
                     taskInstanceExecuteObjects.getWhiteHostAllowActions());
                 watch.stop();
+            }
+
+            // ============ dryRun 预检返回点 ============
+            // 此行之上不得新增写操作，理由与已知例外同 executeFastTaskInternal 的返回点注释
+            // （本链路的例外在 batchCheckScriptMatchDangerousRule 内）
+            if (executeParam.isDryRun()) {
+                fillDryRunResolvedResult(taskInstance, stepInstanceList);
+                return taskInstance;
             }
 
             watch.start("saveInstance");

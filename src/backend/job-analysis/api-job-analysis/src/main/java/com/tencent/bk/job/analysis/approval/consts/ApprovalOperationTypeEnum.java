@@ -22,20 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-api')
-    api project(':commons:common-i18n')
-    api project(':commons:cmdb-sdk')
-    api project(':commons:common-iam')
-    api project(':job-analysis:api-common-job-analysis')
-    api project(':job-execute:api-job-execute')
-    api project(':job-manage:api-job-manage')
-    api project(':job-crontab:api-job-crontab')
-    implementation "org.springframework:spring-web"
-    implementation "jakarta.ws.rs:jakarta.ws.rs-api"
-    implementation("org.apache.commons:commons-collections4")
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.analysis.approval.consts;
+
+/**
+ * 带审批的操作类型
+ */
+public enum ApprovalOperationTypeEnum {
+
+    FAST_EXECUTE_SCRIPT("task.approval.operation.fastExecuteScript"),
+    FAST_TRANSFER_FILE("task.approval.operation.fastTransferFile"),
+    EXECUTE_JOB_PLAN("task.approval.operation.executeJobPlan"),
+    CREATE_JOB_PLAN("task.approval.operation.createJobPlan"),
+    SAVE_CRON("task.approval.operation.saveCron"),
+    UPDATE_CRON_STATUS("task.approval.operation.updateCronStatus");
+
+    /**
+     * 操作名称的国际化 key，用于渲染单据标题
+     */
+    private final String nameI18nKey;
+
+    ApprovalOperationTypeEnum(String nameI18nKey) {
+        this.nameI18nKey = nameI18nKey;
+    }
+
+    public String getNameI18nKey() {
+        return nameI18nKey;
+    }
+
+    public static ApprovalOperationTypeEnum valOf(String operationType) {
+        if (operationType == null) {
+            return null;
+        }
+        for (ApprovalOperationTypeEnum typeEnum : values()) {
+            if (typeEnum.name().equals(operationType)) {
+                return typeEnum;
+            }
+        }
+        return null;
+    }
 }

@@ -22,63 +22,60 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.common.api.model;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * 快速执行任务
+ * 内部（inner）接口的预检/执行统一返回契约。
+ * <p>
+ * <b>硬性契约：校验失败必须作为正常返回值（HTTP 200）传回，不得靠抛异常传播。</b>
+ * 原因是 FeignErrorDecoder 会把下游的 INVALID_PARAM 一律转成 InternalException，
+ * 丢掉具体的校验信息；而这里的参数是用户填的，必须原样告诉用户。
+ *
+ * @param <T> dryRun=false 时的执行结果类型
  */
 @Data
-@Builder
-public class FastTaskDTO {
-    /**
-     * 作业实例
-     */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
+public class DryRunResult<T> {
 
     /**
-     * 目标主机密码
+     * 校验是否通过
      */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
+    private boolean valid;
 
     /**
-     * 是否为预检（dryRun）。为 true 时走完全部业务校验与鉴权后立即返回，不产生任何写操作。
-     * <p>
-     * 供带审批的接口在创建审批任务时触发完整业务层校验并产出单据所需的解析结果。
-     * 快速执行任务链路没有 skipAuth 概念，鉴权在 dryRun 下必然真实执行。
+     * 校验失败时的错误码（ErrorCode 常量）
      */
-    @Builder.Default
-    private Boolean dryRun = false;
+    private Integer errorCode;
 
     /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
+     * 错误码占位参数，供调用方按调用方语言渲染
      */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
+    private Object[] errorParams;
+
+    /**
+     * dryRun 解析出的概要，由各服务填充自己的类型
+     */
+    private Object resolvedSummary;
+
+    /**
+     * dryRun=false 时的执行结果
+     */
+    private T executeResult;
+
+    public static <T> DryRunResult<T> valid(Object resolvedSummary, T executeResult) {
+        DryRunResult<T> result = new DryRunResult<>();
+        result.setValid(true);
+        result.setResolvedSummary(resolvedSummary);
+        result.setExecuteResult(executeResult);
+        return result;
+    }
+
+    public static <T> DryRunResult<T> invalid(Integer errorCode, Object[] errorParams) {
+        DryRunResult<T> result = new DryRunResult<>();
+        result.setValid(false);
+        result.setErrorCode(errorCode);
+        result.setErrorParams(errorParams);
+        return result;
     }
 }
