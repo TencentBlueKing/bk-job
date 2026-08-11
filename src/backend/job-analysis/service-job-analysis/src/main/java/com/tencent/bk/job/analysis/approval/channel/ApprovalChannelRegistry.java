@@ -121,6 +121,20 @@ public class ApprovalChannelRegistry {
     }
 
     /**
+     * 取该渠道取单时使用的内置 appCode，未配置时返回空串。
+     * <p>
+     * 取单接口据此判断"调用方正是该任务指派的渠道"。<b>未配置一律视为不匹配</b>：
+     * 配置缺失时若放开校验，任何有网关权限的应用都能读到别人的单据内容（含脚本明文）。
+     */
+    public String getChannelAppCode(String channelName) {
+        ApprovalChannelEnum channelEnum = ApprovalChannelEnum.valOf(channelName);
+        if (channelEnum == ApprovalChannelEnum.IMATE) {
+            return StringUtils.defaultString(approvalProperties.getChannels().getImate().getAppCode());
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
      * TODO: 第二个审批渠道接入时，在此按 (tenantId, appCode, operationType) 收窄可选渠道，
      * 避免调用方总是挑审批要求最松的渠道。当前只有一个渠道，默认返回全集。
      */

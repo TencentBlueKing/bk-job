@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.approval;
 
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.model.ApprovalCallerContext;
@@ -76,4 +77,20 @@ public interface ApprovalTaskService {
      * 主动作废：PENDING → CANCELED。只作废本地任务，不反向通知渠道
      */
     ApprovalTaskDTO cancel(String approvalTaskId, ApprovalCallerContext caller);
+
+    /**
+     * 应用态取单：审批渠道拉取单据内容用于建单。
+     * <p>
+     * <b>调用方必须是该任务指派的那个渠道</b>，否则不同渠道之间可以互相枚举单据内容 ——
+     * 单据里有脚本明文。租户与渠道 appCode 任一不符都按"任务不存在"返回，不区分"不存在"与"无权访问"。
+     * <p>
+     * 单据内容<b>只从 DB 读</b>（resolved_summary 与 operation_params），不做实时 dryRun：
+     * 每次取单都重新解析既慢，又会让"用户看到的"与"当初批准的"产生新的差异。
+     *
+     * @param approvalTaskId 审批任务ID
+     * @param tenantId       请求头中的租户ID，必须与任务所属租户严格相等
+     * @param appCode        调用方应用编码，必须等于该任务 approval_channel 配置的 appCode
+     * @return 已脱敏的审批单据
+     */
+    ApprovalTicket getTicket(String approvalTaskId, String tenantId, String appCode);
 }

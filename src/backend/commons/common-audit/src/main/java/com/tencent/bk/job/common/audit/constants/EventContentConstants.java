@@ -128,5 +128,21 @@ public interface EventContentConstants {
 
     String EDIT_BUSINESS_NOTIFY_SETTINGS = "Modify business notification settings";
 
+    /**
+     * 审批链路的四个阶段。因为 dryRun 跳过了下游"已执行作业"的审计事件，
+     * 发起阶段的事件只能由审批域自己产出，否则审计链在"谁发起"这一环断裂
+     */
+    String INITIATE_APPROVAL = "Initiate an approval task ({{" + JobAuditAttributeNames.APPROVAL_TASK_ID
+        + "}}) for operation [{{" + JobAuditAttributeNames.APPROVAL_OPERATION_TYPE
+        + "}}] via channel [{{" + JobAuditAttributeNames.APPROVAL_CHANNEL + "}}]";
+    String RELEASE_APPROVAL = "Release approval task ({{" + JobAuditAttributeNames.APPROVAL_TASK_ID
+        + "}}) for operation [{{" + JobAuditAttributeNames.APPROVAL_OPERATION_TYPE
+        + "}}] approved by [{{" + JobAuditAttributeNames.APPROVER
+        + "}}], result [{{" + JobAuditAttributeNames.APPROVAL_RESULT + "}}]";
+    String REJECT_APPROVAL = "Approval task ({{" + JobAuditAttributeNames.APPROVAL_TASK_ID
+        + "}}) for operation [{{" + JobAuditAttributeNames.APPROVAL_OPERATION_TYPE
+        + "}}] was rejected by [{{" + JobAuditAttributeNames.APPROVER + "}}]";
+    String CANCEL_APPROVAL = "Cancel approval task ({{" + JobAuditAttributeNames.APPROVAL_TASK_ID
+        + "}}) for operation [{{" + JobAuditAttributeNames.APPROVAL_OPERATION_TYPE + "}}]";
 
 }

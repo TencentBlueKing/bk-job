@@ -22,29 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.audit;
+package com.tencent.bk.job.analysis.approval;
+
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
+import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 
 /**
- * 审计事件-扩展数据-KEY 定义
+ * 把审批任务渲染成交给审批渠道展示的单据。
+ * <p>
+ * <b>渲染只读库，不重跑 dryRun</b>：单据内容取自落库的 resolved_summary 与 operation_params。
+ * 每次取单都重新解析执行对象，既慢又会让"用户看到的"与"当初批准的"产生新的差异。
  */
-public interface JobAuditExtendDataKeys {
-    /**
-     * 作业实例 ID
-     */
-    String JOB_INSTANCE_ID = "job_instance_id";
+public interface ApprovalTicketRenderer {
 
     /**
-     * 审批任务 ID。审批链路的发起、放行、驳回、作废事件都带上它，便于按此串起完整链路
+     * 渲染单据。
+     * <p>
+     * <b>敏感字段一律只输出占位符</b>（脚本内容例外，见 {@link ApprovalSensitiveFields}），
+     * 明文与密文都不得出现在返回值里。
      */
-    String APPROVAL_TASK_ID = "approval_task_id";
-
-    /**
-     * 审批渠道给出审批结论的时刻（毫秒）
-     */
-    String APPROVAL_APPROVED_AT = "approval_approved_at";
-
-    /**
-     * 放行后下游返回的操作结果
-     */
-    String APPROVAL_EXECUTE_RESULT = "approval_execute_result";
+    ApprovalTicket render(ApprovalTaskDTO task);
 }

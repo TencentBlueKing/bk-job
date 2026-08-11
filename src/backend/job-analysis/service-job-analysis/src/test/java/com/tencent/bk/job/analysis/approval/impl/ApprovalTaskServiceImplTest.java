@@ -24,9 +24,13 @@
 
 package com.tencent.bk.job.analysis.approval.impl;
 
+import com.tencent.bk.job.analysis.approval.ApprovalAuditor;
+import com.tencent.bk.job.analysis.approval.ApprovalMetrics;
+import com.tencent.bk.job.analysis.approval.ApprovalTicketRenderer;
 import com.tencent.bk.job.analysis.approval.channel.ApprovalChannel;
 import com.tencent.bk.job.analysis.approval.channel.ApprovalChannelRegistry;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalResult;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalParamsSchemaVersion;
@@ -53,6 +57,9 @@ import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalExecuteJobP
 import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastTransferFileRequest;
 import com.tencent.bk.job.manage.model.inner.request.ServiceApprovalCreateJobPlanRequest;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -92,12 +99,18 @@ class ApprovalTaskServiceImplTest {
     private static final String TENANT_ID = "default";
     private static final Long APP_ID = 2L;
 
+    private static final String CHANNEL_APP_CODE = "bk_imate";
+
     private ApprovalTaskDAO approvalTaskDAO;
     private ApprovalChannelRegistry channelRegistry;
     private OperationExecutorRegistry executorRegistry;
     private ApprovalParamsCryptoServiceStub paramsCryptoService;
     private ApprovalChannel approvalChannel;
     private RecordingOperationExecutor executor;
+    private ApprovalProperties approvalProperties;
+    private ApprovalTicketRenderer ticketRenderer;
+    private MeterRegistry meterRegistry;
+    private ApprovalAuditor approvalAuditor;
     private ApprovalTaskServiceImpl approvalTaskService;
 
     @BeforeEach
@@ -108,14 +121,20 @@ class ApprovalTaskServiceImplTest {
         approvalChannel = mock(ApprovalChannel.class);
         paramsCryptoService = new ApprovalParamsCryptoServiceStub();
         executor = new RecordingOperationExecutor();
+        approvalProperties = new ApprovalProperties();
+        ticketRenderer = mock(ApprovalTicketRenderer.class);
+        meterRegistry = new SimpleMeterRegistry();
+        approvalAuditor = mock(ApprovalAuditor.class);
 
         when(channelRegistry.getChannelByName(anyString())).thenReturn(approvalChannel);
         when(channelRegistry.getChannel(any())).thenReturn(approvalChannel);
+        when(channelRegistry.getChannelAppCode(anyString())).thenReturn(CHANNEL_APP_CODE);
         // getExecutor 返回带通配符的泛型，用 doReturn 绕开捕获类型不可赋值的限制
         doReturn(executor).when(executorRegistry).getExecutor(any());
 
         approvalTaskService = new ApprovalTaskServiceImpl(
-            approvalTaskDAO, channelRegistry, executorRegistry, paramsCryptoService, new ApprovalProperties());
+            approvalTaskDAO, channelRegistry, executorRegistry, paramsCryptoService, approvalProperties,
+            ticketRenderer, new ApprovalMetrics(meterRegistry, approvalProperties), approvalAuditor);
     }
 
     @Nested
@@ -491,6 +510,167 @@ class ApprovalTaskServiceImplTest {
             assertThat(used.getContent()).isEqualTo("echo from-snapshot");
             // appId 是 @JsonIgnore 字段，快照里不存在，必须由任务的 app_id 补齐
             assertThat(used.getAppId()).isEqualTo(APP_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("应用态取单")
+    class GetTicketTest {
+
+        @Test
+        @DisplayName("调用方正是该任务指派的渠道时返回单据，并记录取单时间")
+        void givenAssignedChannelThenReturnTicket() {
+            ApprovalTaskDTO task = buildPendingTask();
+            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(task);
+            ApprovalTicket rendered = new ApprovalTicket();
+            rendered.setApprovalTaskId(TASK_ID);
+            when(ticketRenderer.render(task)).thenReturn(rendered);
+
+            ApprovalTicket ticket = approvalTaskService.getTicket(TASK_ID, TENANT_ID, CHANNEL_APP_CODE);
+
+            assertThat(ticket).isSameAs(rendered);
+            verify(approvalTaskDAO).updateTicketFetchedAt(eq(TASK_ID), anyLong());
+        }
+
+        @Test
+        @DisplayName("调用方不是该任务指派的渠道时按任务不存在处理，且不渲染单据")
+        void givenOtherAppCodeThenNotFound() {
+            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(buildPendingTask());
+
+            assertThatThrownBy(() -> approvalTaskService.getTicket(TASK_ID, TENANT_ID, "bk_other"))
+                .isInstanceOf(NotFoundException.class)
+                .satisfies(e -> assertThat(((ServiceException) e).getErrorCode())
+                    .isEqualTo(ErrorCode.APPROVAL_TASK_NOT_EXIST));
+            verify(ticketRenderer, never()).render(any());
+            verify(approvalTaskDAO, never()).updateTicketFetchedAt(anyString(), anyLong());
+        }
+
+        @Test
+        @DisplayName("跨租户取单按任务不存在处理")
+        void givenOtherTenantThenNotFound() {
+            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(buildPendingTask());
+
+            assertThatThrownBy(() -> approvalTaskService.getTicket(TASK_ID, "other_tenant", CHANNEL_APP_CODE))
+                .isInstanceOf(NotFoundException.class);
+            verify(ticketRenderer, never()).render(any());
+        }
+
+        @Test
+        @DisplayName("渠道未配置 appCode 时不得放过任何调用方")
+        void givenChannelAppCodeNotConfiguredThenNotFound() {
+            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(buildPendingTask());
+            when(channelRegistry.getChannelAppCode(anyString())).thenReturn("");
+
+            assertThatThrownBy(() -> approvalTaskService.getTicket(TASK_ID, TENANT_ID, ""))
+                .isInstanceOf(NotFoundException.class);
+            verify(ticketRenderer, never()).render(any());
+        }
+
+        @Test
+        @DisplayName("记录取单时间失败不影响取单结果")
+        void givenUpdateFetchedAtFailThenStillReturnTicket() {
+            ApprovalTaskDTO task = buildPendingTask();
+            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(task);
+            when(ticketRenderer.render(task)).thenReturn(new ApprovalTicket());
+            when(approvalTaskDAO.updateTicketFetchedAt(anyString(), anyLong()))
+                .thenThrow(new InternalException("db error", ErrorCode.INTERNAL_ERROR));
+
+            assertThat(approvalTaskService.getTicket(TASK_ID, TENANT_ID, CHANNEL_APP_CODE)).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("放行路径的可观测指标")
+    class MetricsTest {
+
+        @Test
+        @DisplayName("渠道从未取单就放行时计数：这是发现单据未经作业平台生成的唯一手段")
+        void givenNoTicketFetchThenCountDispatchedWithoutTicketFetch() {
+            long createTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10);
+            givenDispatchedTask(createTime, createTime + TimeUnit.MINUTES.toMillis(9), null);
+
+            approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
+
+            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_TICKET_FETCH)).isEqualTo(1.0);
+            assertThat(counterCount(ApprovalMetrics.NAME_FAST_APPROVED)).isZero();
+        }
+
+        @Test
+        @DisplayName("秒批时计数：审批耗时低于阈值即视为疑似自动审批")
+        void givenFastApprovedThenCountFastApproved() {
+            long createTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10);
+            givenDispatchedTask(createTime, createTime + 1000, createTime + 500);
+
+            approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
+
+            assertThat(counterCount(ApprovalMetrics.NAME_FAST_APPROVED)).isEqualTo(1.0);
+            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_TICKET_FETCH)).isZero();
+        }
+
+        @Test
+        @DisplayName("指标带 operation_type / approval_channel / app_code 标签")
+        void givenDispatchedThenTagsCarryOperationChannelAndAppCode() {
+            long createTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10);
+            givenDispatchedTask(createTime, createTime + 1000, createTime + 500);
+
+            approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
+
+            Counter counter = meterRegistry.find(ApprovalMetrics.NAME_FAST_APPROVED).counter();
+            assertThat(counter).isNotNull();
+            assertThat(counter.getId().getTag("operation_type"))
+                .isEqualTo(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT.name());
+            assertThat(counter.getId().getTag("approval_channel")).isEqualTo(ApprovalChannelEnum.IMATE.name());
+            assertThat(counter.getId().getTag("app_code")).isEqualTo(APP_CODE);
+        }
+
+        @Test
+        @DisplayName("正常取过单且审批耗时超过阈值时两个指标都不计数")
+        void givenNormalApprovalThenNoCount() {
+            long createTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10);
+            givenDispatchedTask(createTime, createTime + TimeUnit.MINUTES.toMillis(9),
+                createTime + TimeUnit.SECONDS.toMillis(30));
+
+            approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
+
+            assertThat(counterCount(ApprovalMetrics.NAME_FAST_APPROVED)).isZero();
+            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_TICKET_FETCH)).isZero();
+        }
+
+        @Test
+        @DisplayName("下发结果未知也不影响计数：指标反映的是「已放行」这一事实")
+        void givenUnknownDispatchResultThenStillCount() {
+            long createTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10);
+            givenDispatchedTask(createTime, createTime + 1000, null);
+            executor.exceptionToThrow = new InternalException("read timeout", ErrorCode.INTERNAL_ERROR);
+
+            approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
+
+            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_TICKET_FETCH)).isEqualTo(1.0);
+            assertThat(counterCount(ApprovalMetrics.NAME_FAST_APPROVED)).isEqualTo(1.0);
+        }
+
+        /**
+         * 造一个能一路走到 markDispatched 的任务：approvedAt / ticketFetchedAt 由用例指定
+         */
+        private void givenDispatchedTask(long createTime, Long approvedAt, Long ticketFetchedAt) {
+            ApprovalTaskDTO task = buildPendingTask();
+            task.setCreateTime(createTime);
+            task.setExpireAt(createTime + TimeUnit.HOURS.toMillis(8));
+            task.setApprovedAt(approvedAt);
+            task.setTicketFetchedAt(ticketFetchedAt);
+            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(task);
+            givenChannelApproved(TASK_ID, CREATOR);
+            when(approvalTaskDAO.bindTicketIdIfAbsent(TASK_ID, TICKET_ID)).thenReturn(1);
+            when(approvalTaskDAO.casConsumeToExecuting(eq(TASK_ID), eq(CREATOR), anyLong(), anyLong(), anyLong()))
+                .thenReturn(1);
+            if (executor.exceptionToThrow == null) {
+                executor.result = DryRunResult.valid(null, "job-instance-1");
+            }
+        }
+
+        private double counterCount(String name) {
+            Counter counter = meterRegistry.find(name).counter();
+            return counter == null ? 0.0 : counter.count();
         }
     }
 

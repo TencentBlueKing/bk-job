@@ -24,11 +24,15 @@
 
 package com.tencent.bk.job.analysis.approval.impl;
 
+import com.tencent.bk.job.analysis.approval.ApprovalAuditor;
+import com.tencent.bk.job.analysis.approval.ApprovalMetrics;
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
 import com.tencent.bk.job.analysis.approval.ApprovalTaskService;
+import com.tencent.bk.job.analysis.approval.ApprovalTicketRenderer;
 import com.tencent.bk.job.analysis.approval.channel.ApprovalChannel;
 import com.tencent.bk.job.analysis.approval.channel.ApprovalChannelRegistry;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalResult;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalParamsSchemaVersion;
@@ -83,17 +87,26 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     private final OperationExecutorRegistry executorRegistry;
     private final ApprovalParamsCryptoService paramsCryptoService;
     private final ApprovalProperties approvalProperties;
+    private final ApprovalTicketRenderer ticketRenderer;
+    private final ApprovalMetrics approvalMetrics;
+    private final ApprovalAuditor approvalAuditor;
 
     public ApprovalTaskServiceImpl(ApprovalTaskDAO approvalTaskDAO,
                                    ApprovalChannelRegistry channelRegistry,
                                    OperationExecutorRegistry executorRegistry,
                                    ApprovalParamsCryptoService paramsCryptoService,
-                                   ApprovalProperties approvalProperties) {
+                                   ApprovalProperties approvalProperties,
+                                   ApprovalTicketRenderer ticketRenderer,
+                                   ApprovalMetrics approvalMetrics,
+                                   ApprovalAuditor approvalAuditor) {
         this.approvalTaskDAO = approvalTaskDAO;
         this.channelRegistry = channelRegistry;
         this.executorRegistry = executorRegistry;
         this.paramsCryptoService = paramsCryptoService;
         this.approvalProperties = approvalProperties;
+        this.ticketRenderer = ticketRenderer;
+        this.approvalMetrics = approvalMetrics;
+        this.approvalAuditor = approvalAuditor;
     }
 
     @Override
@@ -144,6 +157,8 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         log.info("Approval task created, approvalTaskId: {}, operationType: {}, creator: {}, channel: {}, "
                 + "expireAt: {}",
             task.getApprovalTaskId(), operationType, task.getCreator(), targetChannel, task.getExpireAt());
+        // 发起阶段的审计事件只能由审批域产出：dryRun 已明确跳过下游"已执行作业"的审计
+        approvalAuditor.auditInitiate(task);
         return task;
     }
 
@@ -192,7 +207,9 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
             // CAS 之前唯一允许的状态变更：PENDING → REJECTED
             approvalTaskDAO.markRejected(approvalTaskId, approvalResult.getApprover(),
                 approvalResult.getApprovedAt(), approvalResult.getComment());
-            return loadOwnTask(approvalTaskId, caller);
+            ApprovalTaskDTO rejectedTask = loadOwnTask(approvalTaskId, caller);
+            approvalAuditor.auditRejected(rejectedTask);
+            return rejectedTask;
         }
         if (approvalResult.getStatus() != ApprovalResultStatusEnum.APPROVED) {
             log.info("Approval task {} is still pending in channel {}", approvalTaskId, task.getApprovalChannel());
@@ -244,7 +261,46 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         }
         // 只作废本地任务，不反向通知渠道：渠道侧单据由审批人自行处理
         approvalTaskDAO.markCanceled(approvalTaskId);
-        return loadOwnTask(approvalTaskId, caller);
+        ApprovalTaskDTO canceledTask = loadOwnTask(approvalTaskId, caller);
+        approvalAuditor.auditCancel(canceledTask);
+        return canceledTask;
+    }
+
+    @Override
+    public ApprovalTicket getTicket(String approvalTaskId, String tenantId, String appCode) {
+        ApprovalTaskDTO task = approvalTaskDAO.getByApprovalTaskId(approvalTaskId);
+        if (task == null || !isAssignedChannelCaller(task, tenantId, appCode)) {
+            throw new NotFoundException(ErrorCode.APPROVAL_TASK_NOT_EXIST, new Object[]{approvalTaskId});
+        }
+        ApprovalTicket ticket = ticketRenderer.render(task);
+        try {
+            // 仅观测：写失败不影响取单，也不影响放行（放行不校验 ticket_fetched_at，
+            // 其观测价值由 ApprovalMetrics 的两个代理指标兑现）
+            approvalTaskDAO.updateTicketFetchedAt(approvalTaskId, System.currentTimeMillis());
+        } catch (Exception e) {
+            log.warn("Update ticketFetchedAt failed, approvalTaskId: {}", approvalTaskId, e);
+        }
+        return ticket;
+    }
+
+    /**
+     * 取单方必须是该任务指派的渠道本身。
+     * <p>
+     * 租户与渠道 appCode 都必须严格相等，任一不符按"任务不存在"处理：
+     * 单据里有脚本明文，若只校验网关权限，任何被授予取单接口权限的应用都能枚举他人的单据内容。
+     */
+    private boolean isAssignedChannelCaller(ApprovalTaskDTO task, String tenantId, String appCode) {
+        if (!Objects.equals(task.getTenantId(), tenantId)) {
+            log.warn("Get approval ticket rejected: tenant mismatch, approvalTaskId: {}", task.getApprovalTaskId());
+            return false;
+        }
+        String channelAppCode = channelRegistry.getChannelAppCode(task.getApprovalChannel());
+        if (StringUtils.isBlank(channelAppCode) || !channelAppCode.equals(appCode)) {
+            log.warn("Get approval ticket rejected: appCode {} is not the assigned channel {} of task {}",
+                appCode, task.getApprovalChannel(), task.getApprovalTaskId());
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -263,6 +319,9 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         ApprovalOperationTypeEnum operationType = ApprovalOperationTypeEnum.valOf(task.getOperationType());
         OperationExecutor<?> executor = executorRegistry.getExecutor(operationType);
         approvalTaskDAO.markDispatched(approvalTaskId, System.currentTimeMillis());
+        // 埋在放行成功路径上、且在下发之前：下发结果如何都不影响"这一单已被放行"这个事实，
+        // 漏计会让"从未取单就放行""秒批"两类异常彻底不可见
+        approvalMetrics.recordDispatched(task);
 
         DryRunResult<?> result;
         try {
@@ -284,7 +343,10 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         Object executeResult = result.getExecuteResult();
         approvalTaskDAO.markExecuted(approvalTaskId, executeResult == null ? null : JsonUtils.toJson(executeResult));
         log.info("Approval task {} executed", approvalTaskId);
-        return loadOwnTask(approvalTaskId, caller);
+        ApprovalTaskDTO executedTask = loadOwnTask(approvalTaskId, caller);
+        // 放行审计带上审批人与审批时间：审计侧只有这一条事件能回答"这次执行是谁批的"
+        approvalAuditor.auditRelease(executedTask);
+        return executedTask;
     }
 
     /**

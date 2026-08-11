@@ -22,29 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.audit;
+package com.tencent.bk.job.analysis.approval.consts;
 
 /**
- * 审计事件-扩展数据-KEY 定义
+ * 审批单据的风险等级，由高危命中与目标规模推导，供审批渠道决定展示强度与审批流。
+ * <p>
+ * 它只是<b>给审批人的提示</b>，不参与放行校验：等级低不代表可以不看单据。
  */
-public interface JobAuditExtendDataKeys {
-    /**
-     * 作业实例 ID
-     */
-    String JOB_INSTANCE_ID = "job_instance_id";
+public enum ApprovalRiskLevelEnum {
 
     /**
-     * 审批任务 ID。审批链路的发起、放行、驳回、作废事件都带上它，便于按此串起完整链路
+     * 命中高危脚本规则，或以 root 等高危账号执行
      */
-    String APPROVAL_TASK_ID = "approval_task_id";
+    HIGH,
 
     /**
-     * 审批渠道给出审批结论的时刻（毫秒）
+     * 执行目标规模较大，或目标含动态分组 / 拓扑节点（实际影响面在放行时才确定）
      */
-    String APPROVAL_APPROVED_AT = "approval_approved_at";
+    MEDIUM,
+
+    LOW;
 
     /**
-     * 放行后下游返回的操作结果
+     * 目标数达到该值即视为规模较大。取值偏保守：宁可多提示，不可漏提示
      */
-    String APPROVAL_EXECUTE_RESULT = "approval_execute_result";
+    public static final int MEDIUM_RISK_EXECUTE_OBJECT_COUNT = 10;
+
+    public String getNameI18nKey() {
+        return "task.approval.riskLevel." + name().toLowerCase();
+    }
 }

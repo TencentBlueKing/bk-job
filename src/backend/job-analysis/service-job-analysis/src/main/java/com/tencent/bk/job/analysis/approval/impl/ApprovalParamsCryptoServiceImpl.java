@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
+import com.tencent.bk.job.analysis.approval.ApprovalSensitiveFields;
+import com.tencent.bk.job.analysis.approval.ApprovalSensitiveFields.SensitiveField;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.crypto.CryptoScenarioEnum;
@@ -40,63 +42,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 按操作类型逐字段加解密参数快照。
  * <p>
- * <b>敏感字段路径必须与 6 个 v4 Request DTO 保持同步</b>：新增任何密码/密钥/脚本明文类字段时，
- * 必须同步登记到 {@link #SENSITIVE_PATHS}，并按 ApprovalParamsSchemaVersion 的规则升版本号。
- * 漏登记不会有任何编译或运行期报错，只会安静地把明文写进库里 —— 这是本类唯一的漂移风险，
- * 评审时按 DTO 字段清单逐条核对。
+ * 敏感字段路径取自 {@link ApprovalSensitiveFields}，与审批单据的脱敏共用同一份登记，
+ * 避免"库里加密了、单据里明文展示"这类不会报错的漂移。
  */
 @Slf4j
 @Service
 public class ApprovalParamsCryptoServiceImpl implements ApprovalParamsCryptoService {
-
-    /**
-     * 数组通配段：匹配数组中的每一个元素
-     */
-    private static final String ARRAY_WILDCARD = "*";
-
-    /**
-     * 各操作类型的敏感字段路径（JSON 字段名，与 DTO 的 @JsonProperty 一致）。
-     * <p>
-     * FAST_TRANSFER_FILE 与 UPDATE_CRON_STATUS 的 v4 请求体不含任何密码类字段
-     * （账号只以 account_id / account_alias 引用，密码不随请求传输），故为空。
-     * <p>
-     * 另外，{@code host_password_list} 只存在于 FAST_EXECUTE_SCRIPT 的 v4 请求体上：
-     * 分发文件与启动执行方案的 v4 请求体没有这个字段，因此它们的路径里也不应出现，
-     * 不是漏登记。这三处与方案 §8.1 的字段表有出入，以实际 DTO 为准。
-     * <p>
-     * 全局变量与执行方案变量的 value 一律加密，不区分变量类型：v4 请求体里没有变量类型字段，
-     * 无法在此判断是否为 CIPHER 变量，宁可多加密（对称加解密后逐字段等值还原）也不能漏掉密码类变量。
-     */
-    private static final Map<ApprovalOperationTypeEnum, List<List<String>>> SENSITIVE_PATHS =
-        new EnumMap<>(ApprovalOperationTypeEnum.class);
-
-    static {
-        SENSITIVE_PATHS.put(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, Arrays.asList(
-            Collections.singletonList("script_content"),
-            Collections.singletonList("script_param"),
-            Arrays.asList("host_password_list", ARRAY_WILDCARD, "encrypted_password")
-        ));
-        SENSITIVE_PATHS.put(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE, Collections.emptyList());
-        SENSITIVE_PATHS.put(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN, Collections.singletonList(
-            Arrays.asList("global_var_list", ARRAY_WILDCARD, "value")
-        ));
-        SENSITIVE_PATHS.put(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, Collections.singletonList(
-            Arrays.asList("variables", ARRAY_WILDCARD, "value")
-        ));
-        SENSITIVE_PATHS.put(ApprovalOperationTypeEnum.SAVE_CRON, Collections.singletonList(
-            Arrays.asList("global_var_list", ARRAY_WILDCARD, "value")
-        ));
-        SENSITIVE_PATHS.put(ApprovalOperationTypeEnum.UPDATE_CRON_STATUS, Collections.emptyList());
-    }
 
     private final SymmetricCryptoService symmetricCryptoService;
 
@@ -118,8 +74,8 @@ public class ApprovalParamsCryptoServiceImpl implements ApprovalParamsCryptoServ
         if (StringUtils.isEmpty(paramsJson)) {
             return paramsJson;
         }
-        List<List<String>> paths = SENSITIVE_PATHS.get(operationType);
-        if (paths == null || paths.isEmpty()) {
+        List<SensitiveField> fields = ApprovalSensitiveFields.of(operationType);
+        if (fields.isEmpty()) {
             return paramsJson;
         }
         JsonNode root = JsonUtils.toJsonNode(paramsJson);
@@ -131,8 +87,8 @@ public class ApprovalParamsCryptoServiceImpl implements ApprovalParamsCryptoServ
             );
         }
         boolean changed = false;
-        for (List<String> path : paths) {
-            changed |= transformPath(root, path, 0, encrypt);
+        for (SensitiveField field : fields) {
+            changed |= transformPath(root, field.getPath(), 0, encrypt);
         }
         return changed ? JsonUtils.toJson(root) : paramsJson;
     }
@@ -148,7 +104,7 @@ public class ApprovalParamsCryptoServiceImpl implements ApprovalParamsCryptoServ
         }
         String segment = path.get(depth);
         boolean lastSegment = depth == path.size() - 1;
-        if (ARRAY_WILDCARD.equals(segment)) {
+        if (ApprovalSensitiveFields.ARRAY_WILDCARD.equals(segment)) {
             if (!(node instanceof ArrayNode)) {
                 return false;
             }
