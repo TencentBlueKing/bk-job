@@ -30,6 +30,25 @@ import org.apache.commons.lang3.StringUtils;
 
 public class ParamCheckUtil {
 
+    public static Long parseExecuteAccountId(String value, String variableName) {
+        try {
+            Long accountId = Long.valueOf(StringUtils.trim(value));
+            if (accountId > 0) {
+                return accountId;
+            }
+        } catch (NumberFormatException e) {
+            throw invalidExecuteAccountIdException(variableName);
+        }
+        throw invalidExecuteAccountIdException(variableName);
+    }
+
+    private static InvalidParamException invalidExecuteAccountIdException(String variableName) {
+        return new InvalidParamException(
+            ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+            new Object[]{"variables", String.format("value of variable[%s] must be a valid account ID", variableName)}
+        );
+    }
+
     public static void checkAppId(Long appId, String paramName) {
         if (appId == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,

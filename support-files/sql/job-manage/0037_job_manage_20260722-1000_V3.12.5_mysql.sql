@@ -68,6 +68,24 @@ BEGIN
   ALTER TABLE task_plan_step_file_list ADD COLUMN `host_account_var` varchar(255) NULL DEFAULT NULL AFTER `host_account`;
   END IF;
 
+  IF NOT EXISTS(SELECT 1
+                FROM information_schema.STATISTICS
+                WHERE TABLE_SCHEMA = db
+                AND TABLE_NAME = 'task_template_variable'
+                AND INDEX_NAME = 'idx_type_default_value') THEN
+  ALTER TABLE task_template_variable
+    ADD INDEX idx_type_default_value (`type`, `default_value`(32));
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                FROM information_schema.STATISTICS
+                WHERE TABLE_SCHEMA = db
+                AND TABLE_NAME = 'task_plan_variable'
+                AND INDEX_NAME = 'idx_type_default_value') THEN
+  ALTER TABLE task_plan_variable
+    ADD INDEX idx_type_default_value (`type`, `default_value`(32));
+  END IF;
+
 COMMIT;
 END <JOB_UBF>
 DELIMITER ;

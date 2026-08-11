@@ -46,7 +46,6 @@ import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteTargetDTO;
 import com.tencent.bk.job.manage.api.esb.impl.v4.OpenApiJobPlanV4ResourceImpl;
 import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
-import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
@@ -55,7 +54,6 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
-import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
@@ -103,7 +101,6 @@ class OpenApiJobPlanV4ResourceImplTest {
     private PlanAuthService planAuthService;
     private AppScopeMappingService appScopeMappingService;
     private TenantHostService tenantHostService;
-    private AccountService accountService;
 
     private OpenApiJobPlanV4ResourceImpl resource;
     private User testUser;
@@ -116,7 +113,6 @@ class OpenApiJobPlanV4ResourceImplTest {
         planAuthService = mock(PlanAuthService.class);
         appScopeMappingService = mock(AppScopeMappingService.class);
         tenantHostService = mock(TenantHostService.class);
-        accountService = mock(AccountService.class);
         testUser = new User(TENANT_ID, USERNAME, USERNAME);
 
         when(appScopeMappingService.getAppIdByScope(SCOPE_TYPE, SCOPE_ID)).thenReturn(APP_ID);
@@ -134,8 +130,7 @@ class OpenApiJobPlanV4ResourceImplTest {
             templateAuthService,
             planAuthService,
             appScopeMappingService,
-            tenantHostService,
-            accountService
+            tenantHostService
         );
         JobContextUtil.setUser(testUser);
     }
@@ -273,11 +268,10 @@ class OpenApiJobPlanV4ResourceImplTest {
     }
 
     @Test
-    @DisplayName("执行账号全局变量，并校验账号属于当前业务")
-    void execAccountVar_validAccountId() {
+    @DisplayName("映射执行账号全局变量值")
+    void execAccountVar_mapsValue() {
         TaskVariableDTO var = buildTemplateVar(30L, "ACCOUNT_VAR", TaskVariableTypeEnum.EXECUTE_ACCOUNT, "1");
         stubTemplateAndCreate(Collections.singletonList(101L), Collections.singletonList(var));
-        when(accountService.getAccount(APP_ID, 20001L)).thenReturn(buildAccount(20001L));
 
         V4JobPlanVariableItem item = new V4JobPlanVariableItem();
         item.setName("ACCOUNT_VAR");
@@ -291,28 +285,6 @@ class OpenApiJobPlanV4ResourceImplTest {
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
         verify(planService).createTaskPlan(any(User.class), captor.capture());
         assertThat(captor.getValue().getVariableList().get(0).getDefaultValue()).isEqualTo("20001");
-        verify(accountService).getAccount(APP_ID, 20001L);
-    }
-
-    @Test
-    @DisplayName("执行账号全局变量引用不存在账号时抛 ACCOUNT_NOT_EXIST")
-    void execAccountVar_notExist_throws() {
-        TaskVariableDTO var = buildTemplateVar(30L, "ACCOUNT_VAR", TaskVariableTypeEnum.EXECUTE_ACCOUNT, "1");
-        stubTemplateAndCreate(Collections.singletonList(101L), Collections.singletonList(var));
-        when(accountService.getAccount(APP_ID, 20001L))
-            .thenThrow(new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST));
-
-        V4JobPlanVariableItem item = new V4JobPlanVariableItem();
-        item.setName("ACCOUNT_VAR");
-        item.setValue("20001");
-        V4CreateJobPlanRequest request = buildBaseRequest();
-        request.setVariables(Collections.singletonList(item));
-
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, request))
-            .isInstanceOfSatisfying(NotFoundException.class, e ->
-                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.ACCOUNT_NOT_EXIST)
-            );
-        verify(planService, times(0)).createTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
     }
 
     @Test
@@ -469,15 +441,6 @@ class OpenApiJobPlanV4ResourceImplTest {
         host.setCloudAreaId(cloudId);
         host.setIp(ip);
         return host;
-    }
-
-    private static AccountDTO buildAccount(Long accountId) {
-        AccountDTO account = new AccountDTO();
-        account.setId(accountId);
-        account.setAppId(APP_ID);
-        account.setAccount("root");
-        account.setAlias("root");
-        return account;
     }
 
     private void createWithExecuteTarget(V4ExecuteTargetDTO executeTarget) {
