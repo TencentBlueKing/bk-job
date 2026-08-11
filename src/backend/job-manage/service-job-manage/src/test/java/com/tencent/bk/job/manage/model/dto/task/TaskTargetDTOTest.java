@@ -93,6 +93,21 @@ class TaskTargetDTOTest {
     }
 
     @Test
+    @DisplayName("脏hostId(-1、0)不作为查询键，只收集有效hostId")
+    void collectHostIdsSkipInvalidHostId() {
+        List<ApplicationHostDTO> hostList = Arrays.asList(
+            buildHost(-1L, 0L, "127.0.0.1", null),
+            buildHost(0L, 0L, "127.0.0.1", null),
+            buildHost(null, 0L, "127.0.0.1", null),
+            buildHost(101L, 0L, "127.0.0.1", null));
+
+        Set<Long> hostIds = TaskTargetDTO.collectHostIds(hostList);
+
+        assertThat(hostIds).containsExactly(101L);
+        assertThat(hostIds).doesNotContain(-1L, 0L);
+    }
+
+    @Test
     @DisplayName("仅有cloudIp无hostId时按cloudIp匹配并回填主机信息")
     void fillHostDetailByCloudIpWhenHostIdAbsent() {
         ApplicationHostDTO node = buildHost(null, 0L, "127.0.0.1", null);
@@ -137,6 +152,8 @@ class TaskTargetDTOTest {
     void fillHostDetailFallbackToCloudIpWhenHostIdInvalid() {
         ApplicationHostDTO node = buildHost(-1L, 0L, "127.0.0.1", null);
         List<ApplicationHostDTO> hostList = Collections.singletonList(node);
+
+        assertThat(TaskTargetDTO.collectHostIds(hostList)).isEmpty();
 
         Map<String, ApplicationHostDTO> cloudIpHostMapping = new HashMap<>();
         cloudIpHostMapping.put("0:127.0.0.1", buildHost(401L, 0L, "127.0.0.1", null));

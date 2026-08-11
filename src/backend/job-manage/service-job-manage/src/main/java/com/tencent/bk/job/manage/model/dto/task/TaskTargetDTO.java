@@ -164,11 +164,18 @@ public class TaskTargetDTO {
     static Set<Long> collectHostIds(List<ApplicationHostDTO> hostList) {
         Set<Long> hostIds = new HashSet<>();
         for (ApplicationHostDTO host : hostList) {
-            if (host.getHostId() != null) {
+            if (isValidHostId(host.getHostId())) {
                 hostIds.add(host.getHostId());
             }
         }
         return hostIds;
+    }
+
+    /**
+     * 历史脏数据中 hostId 可能为 -1（匹配不到时的占位值），这类值不是有效的主机标识，不应作为查询与匹配的键
+     */
+    private static boolean isValidHostId(Long hostId) {
+        return hostId != null && hostId > 0;
     }
 
     static Set<String> collectCloudIps(List<ApplicationHostDTO> hostList) {
@@ -201,8 +208,8 @@ public class TaskTargetDTO {
                                Map<String, ApplicationHostDTO> cloudIpHostMapping) {
         for (ApplicationHostDTO hostNode : hostList) {
             // hostId 是主机唯一标识，优先按 hostId 匹配
-            ApplicationHostDTO hostDTO = hostNode.getHostId() == null
-                ? null : hostIdHostMapping.get(hostNode.getHostId());
+            ApplicationHostDTO hostDTO = isValidHostId(hostNode.getHostId())
+                ? hostIdHostMapping.get(hostNode.getHostId()) : null;
             if (hostDTO == null) {
                 // hostId 缺失或查不到（备份恢复导入、历史脏数据）时回退到 cloudIp 匹配
                 String cloudIp = buildValidCloudIp(hostNode);
