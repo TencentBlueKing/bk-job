@@ -22,37 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.approval.consts;
+package com.tencent.bk.job.analysis.api.esb.v4;
+
+import com.tencent.bk.job.analysis.model.esb.v4.req.V4SaveCronWithApprovalRequest;
+import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalTaskCreatedDTO;
+import com.tencent.bk.job.common.annotation.EsbV4API;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 审批渠道。
- * <p>
- * 调用方只能通过本枚举指定渠道，<b>绝不能传地址、密钥、回调 URL 或任何可影响回查目标的参数</b>。
- * 渠道的地址、appCode、密钥等一律来自服务端配置（job.analysis.approval.channels.*）。
+ * 发起「保存定时任务」审批。新建与更新都走这一个接口，审计 actionId 由 dryRun 概要中的 operation 字段区分
  */
-public enum ApprovalChannelEnum {
+@RequestMapping("/esb/api/v4")
+@EsbV4API
+@RestController
+@Validated
+public interface OpenApiSaveCronWithApprovalV4Resource {
 
-    /**
-     * IMate 审批渠道
-     */
-    IMATE;
-
-    public static ApprovalChannelEnum valOf(String channel) {
-        if (channel == null) {
-            return null;
-        }
-        for (ApprovalChannelEnum channelEnum : values()) {
-            if (channelEnum.name().equals(channel)) {
-                return channelEnum;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 供发起接口的 {@code @CheckEnum} 校验用
-     */
-    public static boolean isValid(String channel) {
-        return valOf(channel) != null;
-    }
+    @PostMapping("/save_cron_with_approval")
+    EsbV4Response<V4ApprovalTaskCreatedDTO> saveCronWithApproval(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody
+        @Validated
+        V4SaveCronWithApprovalRequest request
+    );
 }

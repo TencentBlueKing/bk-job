@@ -367,8 +367,13 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     }
 
     private boolean isSameOwner(ApprovalTaskDTO task, ApprovalCallerContext caller) {
+        // appId 只在调用上下文里有值时才比对：流转接口的请求体不带资源范围（app_id 只以 DB 为准），
+        // 这时无条件比对 appId 会让所有流转请求都被判成"任务不存在"。
+        // 归属仍由 tenant_id / creator / app_code 三者共同保证，creator 已经锚定到具体的人
+        boolean appIdMatched = caller.getAppId() == null
+            || Objects.equals(task.getAppId(), caller.getAppId());
         return Objects.equals(task.getTenantId(), caller.getTenantId())
-            && Objects.equals(task.getAppId(), caller.getAppId())
+            && appIdMatched
             && Objects.equals(task.getCreator(), caller.getUsername())
             && Objects.equals(StringUtils.defaultString(task.getAppCode()),
             StringUtils.defaultString(caller.getAppCode()));

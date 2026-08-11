@@ -22,37 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.approval.consts;
+package com.tencent.bk.job.analysis.model.esb.v4.req;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4FastTransferFileRequest;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * 审批渠道。
- * <p>
- * 调用方只能通过本枚举指定渠道，<b>绝不能传地址、密钥、回调 URL 或任何可影响回查目标的参数</b>。
- * 渠道的地址、appCode、密钥等一律来自服务端配置（job.analysis.approval.channels.*）。
+ * 发起「快速分发文件」审批。字段与直接分发接口完全一致，只多一个审批渠道
  */
-public enum ApprovalChannelEnum {
+@Getter
+@Setter
+public class V4FastTransferFileWithApprovalRequest extends V4FastTransferFileRequest
+    implements V4WithApprovalRequest {
 
     /**
-     * IMate 审批渠道
+     * 审批渠道。不传时使用服务端默认渠道
      */
-    IMATE;
-
-    public static ApprovalChannelEnum valOf(String channel) {
-        if (channel == null) {
-            return null;
-        }
-        for (ApprovalChannelEnum channelEnum : values()) {
-            if (channelEnum.name().equals(channel)) {
-                return channelEnum;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 供发起接口的 {@code @CheckEnum} 校验用
-     */
-    public static boolean isValid(String channel) {
-        return valOf(channel) != null;
-    }
+    @JsonProperty("approval_channel")
+    @CheckEnum(
+        enumClass = ApprovalChannelEnum.class,
+        message = "{validation.constraints.ApprovalChannel_illegal.message}"
+    )
+    private String approvalChannel;
 }

@@ -22,37 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.approval.consts;
+package com.tencent.bk.job.analysis.model.esb.v4.resp;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
- * 审批渠道。
+ * 发起接口的返回体。
  * <p>
- * 调用方只能通过本枚举指定渠道，<b>绝不能传地址、密钥、回调 URL 或任何可影响回查目标的参数</b>。
- * 渠道的地址、appCode、密钥等一律来自服务端配置（job.analysis.approval.channels.*）。
+ * <b>不返回任何操作结果</b>：发起阶段只做 dryRun 预检，作业没有真的执行，
+ * 返回任何 taskInstanceId 之类的字段都是在骗调用方。
  */
-public enum ApprovalChannelEnum {
+@Data
+public class V4ApprovalTaskCreatedDTO {
+
+    @JsonProperty("approval_task_id")
+    private String approvalTaskId;
 
     /**
-     * IMate 审批渠道
+     * 任务所属租户。审批渠道调用取单接口时必须以此值作为 X-Bk-Tenant-Id 请求头，
+     * 否则多租户环境下会在网关层直接 401
      */
-    IMATE;
-
-    public static ApprovalChannelEnum valOf(String channel) {
-        if (channel == null) {
-            return null;
-        }
-        for (ApprovalChannelEnum channelEnum : values()) {
-            if (channelEnum.name().equals(channel)) {
-                return channelEnum;
-            }
-        }
-        return null;
-    }
+    @JsonProperty("tenant_id")
+    private String tenantId;
 
     /**
-     * 供发起接口的 {@code @CheckEnum} 校验用
+     * 任务状态，新建时固定为 PENDING
      */
-    public static boolean isValid(String channel) {
-        return valOf(channel) != null;
-    }
+    @JsonProperty("status")
+    private String status;
+
+    @JsonProperty("approval_channel")
+    private String approvalChannel;
+
+    /**
+     * 过期时刻，Unix 时间戳，单位毫秒
+     */
+    @JsonProperty("expire_at")
+    private Long expireAt;
 }

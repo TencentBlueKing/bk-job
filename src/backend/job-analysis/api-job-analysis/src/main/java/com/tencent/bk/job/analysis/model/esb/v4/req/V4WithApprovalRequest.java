@@ -22,37 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.approval.consts;
+package com.tencent.bk.job.analysis.model.esb.v4.req;
 
 /**
- * 审批渠道。
+ * 发起审批的请求体共有契约。
  * <p>
- * 调用方只能通过本枚举指定渠道，<b>绝不能传地址、密钥、回调 URL 或任何可影响回查目标的参数</b>。
- * 渠道的地址、appCode、密钥等一律来自服务端配置（job.analysis.approval.channels.*）。
+ * 6 个发起接口按操作类型拆分（网关的权限、限流、授权都是资源粒度，统一入口做不到"只许发起脚本执行审批"），
+ * 各自的请求体<b>继承对应操作原有的 v4 请求体</b>，只多一个 approval_channel。有了这个接口，
+ * 接口层读取渠道时不必对 6 个类型分别取值。
+ * <p>
+ * <b>渠道只能用枚举指定</b>：地址、appCode、密钥一律来自服务端配置，请求体中不得出现任何
+ * URL / host / token 类字段 —— 否则调用方就能把回查目标指向自己控制的服务。
  */
-public enum ApprovalChannelEnum {
+public interface V4WithApprovalRequest {
 
     /**
-     * IMate 审批渠道
+     * 审批渠道枚举值，为空表示使用服务端默认渠道
      */
-    IMATE;
-
-    public static ApprovalChannelEnum valOf(String channel) {
-        if (channel == null) {
-            return null;
-        }
-        for (ApprovalChannelEnum channelEnum : values()) {
-            if (channelEnum.name().equals(channel)) {
-                return channelEnum;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 供发起接口的 {@code @CheckEnum} 校验用
-     */
-    public static boolean isValid(String channel) {
-        return valOf(channel) != null;
-    }
+    String getApprovalChannel();
 }

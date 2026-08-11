@@ -22,37 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.approval.consts;
+package com.tencent.bk.job.analysis.model.esb.v4.req;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+
+import jakarta.validation.constraints.NotBlank;
 
 /**
- * 审批渠道。
- * <p>
- * 调用方只能通过本枚举指定渠道，<b>绝不能传地址、密钥、回调 URL 或任何可影响回查目标的参数</b>。
- * 渠道的地址、appCode、密钥等一律来自服务端配置（job.analysis.approval.channels.*）。
+ * 作废审批任务的请求体。同样不继承 {@code EsbAppScopeReq}，归属只由 DB 中的任务信息决定
  */
-public enum ApprovalChannelEnum {
+@Getter
+@Setter
+public class V4CancelApprovalTaskRequest {
 
-    /**
-     * IMate 审批渠道
-     */
-    IMATE;
-
-    public static ApprovalChannelEnum valOf(String channel) {
-        if (channel == null) {
-            return null;
-        }
-        for (ApprovalChannelEnum channelEnum : values()) {
-            if (channelEnum.name().equals(channel)) {
-                return channelEnum;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 供发起接口的 {@code @CheckEnum} 校验用
-     */
-    public static boolean isValid(String channel) {
-        return valOf(channel) != null;
-    }
+    @JsonProperty("approval_task_id")
+    @NotBlank(message = "{validation.constraints.ApprovalTask_approvalTaskIdEmpty.message}")
+    private String approvalTaskId;
 }
