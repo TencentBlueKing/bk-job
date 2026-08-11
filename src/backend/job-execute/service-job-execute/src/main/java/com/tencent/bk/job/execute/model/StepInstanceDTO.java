@@ -165,6 +165,14 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
     private List<String> confirmUsers;
     private List<String> confirmRoles;
     private List<String> notifyChannels;
+    // --------------dryRun 预检产出字段（不落库）--------------//
+    /**
+     * 高危脚本规则命中的概要信息。
+     * <p>
+     * 仅在 dryRun 预检期填充：预检不写 dangerous_record 表，命中结果只能随返回值带回上层，
+     * 供审批单据展示"命中高危规则 X"。正式执行时该字段保持为空，命中结果照常落 dangerous_record。
+     */
+    private String dangerousCheckSummary;
 
     // --------------构造函数-------------------//
     public StepInstanceDTO() {

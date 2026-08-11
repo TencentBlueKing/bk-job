@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.AbortedException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.User;
@@ -61,6 +63,7 @@ import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
+import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -100,6 +103,7 @@ public class TaskExecuteServiceDryRunTest {
     private static final long APP_ID = 100L;
     private static final long ACCOUNT_ID = 9001L;
     private static final long HOST_ID = 1001L;
+    private static final String DANGEROUS_SUMMARY = "dry-run-step 命中高危规则：rm -rf";
 
     @Mock
     private AccountService accountService;
@@ -247,6 +251,58 @@ public class TaskExecuteServiceDryRunTest {
     }
 
     // ========================================================================
+    // 高危脚本检查：预检期不写 dangerous_record，但拦截照常生效
+    // ========================================================================
+
+    @Test
+    @DisplayName("dryRun=true 命中高危规则（非拦截级）：不写 dangerous_record，命中概要随返回结果带回")
+    void fastTaskDryRun_dangerousRuleHit_noDangerousRecordWritten() {
+        stubDangerousRuleHit(false);
+        FastTaskDTO fastTask = scriptFastTask(true);
+
+        TaskInstanceDTO result = service.executeFastTask(fastTask);
+
+        // 同一次操作会先预检、审批通过后再执行，预检也写库会让高危统计翻倍
+        verify(dangerousScriptCheckService, never()).saveDangerousRecord(any(), any(), any());
+        // 命中结果不能因为不写库就丢掉，它要进审批单据的概要
+        assertThat(result.getStepInstances()).hasSize(1);
+        assertThat(result.getStepInstances().get(0).getDangerousCheckSummary())
+            .isEqualTo(DANGEROUS_SUMMARY);
+    }
+
+    @Test
+    @DisplayName("dryRun=true 命中拦截级高危规则：照常拦下，不因为不写库而弱化门禁")
+    void fastTaskDryRun_fatalDangerousRule_stillIntercepts() {
+        stubDangerousRuleHit(true);
+        FastTaskDTO fastTask = scriptFastTask(true);
+
+        assertThatThrownBy(() -> service.executeFastTask(fastTask))
+            .isInstanceOf(AbortedException.class)
+            .satisfies(e -> {
+                AbortedException aborted = (AbortedException) e;
+                assertThat(aborted.getErrorCode())
+                    .isEqualTo(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION);
+                // 高危信息必须回传给用户，否则他不知道被拦在哪条规则上
+                assertThat(aborted.getErrorParams()).containsExactly(DANGEROUS_SUMMARY);
+            });
+
+        verify(dangerousScriptCheckService, never()).saveDangerousRecord(any(), any(), any());
+        verifyNoInteractions(taskInstanceService);
+    }
+
+    @Test
+    @DisplayName("dryRun=false 命中高危规则：dangerous_record 照常落库（正式执行行为不变）")
+    void fastTaskRealRun_dangerousRuleHit_stillSavesDangerousRecord() {
+        stubDangerousRuleHit(true);
+        FastTaskDTO fastTask = scriptFastTask(false);
+
+        assertThatThrownBy(() -> service.executeFastTask(fastTask))
+            .isInstanceOf(AbortedException.class);
+
+        verify(dangerousScriptCheckService).saveDangerousRecord(any(), any(), any());
+    }
+
+    // ========================================================================
     // dryRun 与 skipAuth 互斥
     // ========================================================================
 
@@ -308,6 +364,22 @@ public class TaskExecuteServiceDryRunTest {
             .thenReturn(AuthResult.pass(operator));
         when(executeAuthService.authFastExecuteScript(any(), any(AppResourceScope.class), any()))
             .thenReturn(AuthResult.pass(operator));
+    }
+
+    /**
+     * 让高危脚本检查命中一条规则。
+     *
+     * @param intercept 命中的规则是否为拦截级（FATAL）
+     */
+    private void stubDangerousRuleHit(boolean intercept) {
+        ServiceScriptCheckResultItemDTO item = new ServiceScriptCheckResultItemDTO();
+        item.setRuleId(1L);
+        item.setRuleExpression("rm -rf");
+        when(dangerousScriptCheckService.check(anyString(), any(), any()))
+            .thenReturn(Collections.singletonList(item));
+        when(dangerousScriptCheckService.summaryDangerousScriptCheckResult(any(), any()))
+            .thenReturn(DANGEROUS_SUMMARY);
+        when(dangerousScriptCheckService.shouldIntercept(anyString(), any())).thenReturn(intercept);
     }
 
     private FastTaskDTO scriptFastTask(boolean dryRun) {

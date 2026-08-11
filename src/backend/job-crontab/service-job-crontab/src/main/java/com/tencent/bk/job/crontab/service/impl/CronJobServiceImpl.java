@@ -223,6 +223,19 @@ public class CronJobServiceImpl implements CronJobService {
         content = EventContentConstants.CREATE_CRON_JOB
     )
     public CronJobInfoDTO createCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        return doCreateCronJobInfo(user, cronJobInfo, false);
+    }
+
+    /**
+     * 预检不走 {@link ActionAuditRecord} 注解：审批任务有自己的审计链路，
+     * 预检不应伪造一条"已创建定时任务"的审计事件，因此单独开一个不带注解的入口。
+     */
+    @Override
+    public CronJobInfoDTO dryRunCreateCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        return doCreateCronJobInfo(user, cronJobInfo, true);
+    }
+
+    private CronJobInfoDTO doCreateCronJobInfo(User user, CronJobInfoDTO cronJobInfo, boolean dryRun) {
         checkCronJobExists(cronJobInfo);
         cronAuthService.authCreateCron(user,
             new AppResourceScope(cronJobInfo.getAppId())).denyIfNoPermission();
@@ -234,6 +247,13 @@ public class CronJobServiceImpl implements CronJobService {
         authExecuteTask(cronJobInfo);
         cronJobInfo.setCreateTime(DateUtils.currentTimeSeconds());
         cronJobInfo.setEnable(false);
+
+        // ============ dryRun 预检返回点 ============
+        // 此行之上不得新增写操作：预检与真实创建必须走同一段校验代码，但预检绝不能落定时任务、
+        // 注册调度或注册权限中心资源。往上插入写操作会让预检穿透成真实创建。
+        if (dryRun) {
+            return cronJobInfo;
+        }
 
         Long id = cronJobDAO.insertCronJob(cronJobInfo);
         // 保存定时任务自定义通知策略
@@ -267,6 +287,18 @@ public class CronJobServiceImpl implements CronJobService {
         content = EventContentConstants.EDIT_CRON_JOB
     )
     public CronJobInfoDTO updateCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        return doUpdateCronJobInfo(user, cronJobInfo, false);
+    }
+
+    /**
+     * 预检不走 {@link ActionAuditRecord} 注解，理由同 {@link #dryRunCreateCronJobInfo}。
+     */
+    @Override
+    public CronJobInfoDTO dryRunUpdateCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        return doUpdateCronJobInfo(user, cronJobInfo, true);
+    }
+
+    private CronJobInfoDTO doUpdateCronJobInfo(User user, CronJobInfoDTO cronJobInfo, boolean dryRun) {
         checkCronJobExists(cronJobInfo);
         cronAuthService.authManageCron(user,
             new AppResourceScope(cronJobInfo.getAppId()), cronJobInfo.getId(), null).denyIfNoPermission();
@@ -280,7 +312,17 @@ public class CronJobServiceImpl implements CronJobService {
         processCronJobVariableValueMask(cronJobInfo);
 
         if (cronJobInfo.getEnable()) {
+            // 启用状态下更新需要执行方案的执行权限，该校验对预检同样生效
             authExecuteTask(cronJobInfo);
+        }
+
+        // ============ dryRun 预检返回点 ============
+        // 此行之上不得新增写操作，理由同 doCreateCronJobInfo 的返回点注释
+        if (dryRun) {
+            return cronJobInfo;
+        }
+
+        if (cronJobInfo.getEnable()) {
             if (cronJobDAO.updateCronJobById(cronJobInfo)) {
                 informAllToAddJobToQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
             } else {
@@ -476,6 +518,22 @@ public class CronJobServiceImpl implements CronJobService {
         content = EventContentConstants.SWITCH_CRON_JOB_STATUS
     )
     public Boolean changeCronJobEnableStatus(User user, Long appId, Long cronJobId, Boolean enable) {
+        return doChangeCronJobEnableStatus(user, appId, cronJobId, enable, false);
+    }
+
+    /**
+     * 预检不走 {@link ActionAuditRecord} 注解，理由同 {@link #dryRunCreateCronJobInfo}。
+     */
+    @Override
+    public Boolean dryRunChangeCronJobEnableStatus(User user, Long appId, Long cronJobId, Boolean enable) {
+        return doChangeCronJobEnableStatus(user, appId, cronJobId, enable, true);
+    }
+
+    private Boolean doChangeCronJobEnableStatus(User user,
+                                                Long appId,
+                                                Long cronJobId,
+                                                Boolean enable,
+                                                boolean dryRun) {
         cronAuthService.authManageCron(user,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
 
@@ -484,10 +542,12 @@ public class CronJobServiceImpl implements CronJobService {
             throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
         }
 
-        // 审计
-        ActionAuditContext.current()
-            .setInstanceName(originCronJobInfo.getName())
-            .addAttribute(OPERATION, enable ? "Switch on" : "Switch off");
+        if (!dryRun) {
+            // 审计
+            ActionAuditContext.current()
+                .setInstanceName(originCronJobInfo.getName())
+                .addAttribute(OPERATION, enable ? "Switch on" : "Switch off");
+        }
 
         originCronJobInfo.setEnable(enable);
         originCronJobInfo.setLastModifyUser(user.getUsername());
@@ -502,6 +562,11 @@ public class CronJobServiceImpl implements CronJobService {
                 }
                 executeTaskService.authExecuteTask(appId, originCronJobInfo.getTaskPlanId(),
                     cronJobId, originCronJobInfo.getName(), taskVariables, user.getUsername());
+                // ============ dryRun 预检返回点 ============
+                // 此行之上不得新增写操作：预检绝不能改定时任务状态或变更调度
+                if (dryRun) {
+                    return true;
+                }
                 if (cronJobDAO.updateCronJobById(originCronJobInfo)) {
                     return informAllToAddJobToQuartz(appId, cronJobId);
                 } else {
@@ -512,6 +577,10 @@ public class CronJobServiceImpl implements CronJobService {
                 throw e;
             }
         } else {
+            // ============ dryRun 预检返回点 ============
+            if (dryRun) {
+                return true;
+            }
             if (cronJobDAO.updateCronJobById(originCronJobInfo)) {
                 return informAllToDeleteJobFromQuartz(appId, cronJobId);
             } else {

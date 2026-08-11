@@ -121,6 +121,18 @@ public interface CronJobService {
     CronJobInfoDTO createCronJobInfo(User user, CronJobInfoDTO cronJobInfo);
 
     /**
+     * 预检创建定时任务：走完与 {@link #createCronJobInfo} 完全相同的校验与鉴权，但不落库、不注册调度、不产生审计事件。
+     * <p>
+     * 供带审批的接口在创建审批任务时提前暴露参数问题，避免用户审批通过后才拿到失败。
+     * 与真实创建共用同一段校验代码，两边不得各写一份，否则预检与执行迟早漂移。
+     *
+     * @param user        用户账号
+     * @param cronJobInfo 定时任务信息
+     * @return 校验通过、待落库的定时任务信息（没有 id）
+     */
+    CronJobInfoDTO dryRunCreateCronJobInfo(User user, CronJobInfoDTO cronJobInfo);
+
+    /**
      * 更新定时任务信息
      *
      * @param user        用户账号
@@ -128,6 +140,15 @@ public interface CronJobService {
      * @return 定时任务
      */
     CronJobInfoDTO updateCronJobInfo(User user, CronJobInfoDTO cronJobInfo);
+
+    /**
+     * 预检更新定时任务：语义同 {@link #dryRunCreateCronJobInfo}，对应 {@link #updateCronJobInfo}。
+     *
+     * @param user        用户账号
+     * @param cronJobInfo 定时任务信息
+     * @return 校验通过、待更新的定时任务信息
+     */
+    CronJobInfoDTO dryRunUpdateCronJobInfo(User user, CronJobInfoDTO cronJobInfo);
 
     /**
      * 删除定时任务
@@ -148,6 +169,18 @@ public interface CronJobService {
      * @return 是否操作成功
      */
     Boolean changeCronJobEnableStatus(User user, Long appId, Long cronJobId, Boolean enable);
+
+    /**
+     * 预检启用、禁用定时任务：走完与 {@link #changeCronJobEnableStatus} 完全相同的校验与鉴权（启用时含执行方案执行权限），
+     * 但不更新状态、不变更调度、不产生审计事件。
+     *
+     * @param user      用户名
+     * @param appId     业务 ID
+     * @param cronJobId 定时任务 ID
+     * @param enable    目标状态
+     * @return 校验是否通过（不通过一律以异常形式抛出，正常返回即 true）
+     */
+    Boolean dryRunChangeCronJobEnableStatus(User user, Long appId, Long cronJobId, Boolean enable);
 
     /**
      * 禁用过期任务

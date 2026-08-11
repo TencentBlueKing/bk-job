@@ -56,6 +56,7 @@ import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.job.manage.service.plan.impl.V4JobPlanCreateServiceImpl;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -125,12 +126,15 @@ class OpenApiJobPlanV4ResourceImplTest {
         when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(0L), any())).thenReturn(true);
 
         resource = new OpenApiJobPlanV4ResourceImpl(
-            planService,
-            templateService,
-            templateAuthService,
-            planAuthService,
-            appScopeMappingService,
-            tenantHostService
+            new V4JobPlanCreateServiceImpl(
+                planService,
+                templateService,
+                templateAuthService,
+                planAuthService,
+                appScopeMappingService,
+                tenantHostService
+            ),
+            appScopeMappingService
         );
         JobContextUtil.setUser(testUser);
     }
