@@ -1,0 +1,132 @@
+### 功能描述
+
+发起「保存定时任务」的审批，新建与更新定时任务都用本接口。本接口只创建审批任务并对参数做一次完整预检，**定时任务不会被保存**；审批通过后由作业平台用发起人的身份自动保存。
+
+调用前须满足：要定时执行的执行方案已存在，调用身份对该资源范围具备新建或编辑定时任务的操作权限；更新已有定时任务时，该定时任务须存在于同一资源范围内（预检不通过会直接返回错误，不会创建审批任务）。
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| approval_channel | string | 否 | 审批渠道。可选值：`IMATE`（IMate 审批渠道）。不传时使用服务端配置的默认渠道。只能指定渠道枚举值，渠道地址与密钥一律取自服务端配置 |
+| id | long | 否 | 定时任务 ID。更新已有定时任务时必填，新建时不填 |
+| job_plan_id | long | 否 | 要定时执行的执行方案 ID。新建时必填，更新时选填 |
+| name | string | 否 | 定时任务名称，长度不可超过 60 个字符，不可包含 HTML 特殊字符 `<`、`>`、`"`、`'`。新建时必填，更新时选填 |
+| expression | string | 否 | 周期执行的 cron 表达式，各字段含义为「分 时 日 月 周」，如 `0/5 * * * ?` 表示每 5 分钟执行一次。与 `execute_time` 二者至少填一个 |
+| execute_time | long | 否 | 单次执行的指定执行时间，Unix 时间戳，单位为秒。与 `expression` 二者至少填一个 |
+| execute_time_zone | string | 否 | 定时任务触发时间所在的时区，如 `Asia/Shanghai`。不传时取业务时区，业务时区为空时取服务器时区 |
+| global_var_list | array | 否 | 定时任务启动执行方案时的全局变量取值列表，不传表示全部使用执行方案中的默认值 |
+
+##### global_var_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| id | long | 否 | 全局变量 ID。与 `name` 二者填一个，同时存在时以本字段为准 |
+| name | string | 否 | 全局变量名。与 `id` 二者填一个 |
+| value | string | 否 | 全局变量取值。执行目标类变量请用 `execute_target` 传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用本字段。密文类型变量在审批单据中只显示占位符 |
+| execute_target | object | 否 | 执行目标类全局变量的取值 |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target.md.j2' %}
+
+**注：** 取值中含动态分组或拓扑节点时，定时任务每次触发都会重新解析实际执行目标，可能与发起审批时不同；审批单据中会显著标注这一点。
+
+### 请求参数示例
+
+- POST
+
+新建一个周期执行的定时任务：
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "approval_channel": "IMATE",
+    "job_plan_id": 50001,
+    "name": "nightly-clean",
+    "expression": "0/5 * * * ?",
+    "execute_time_zone": "Asia/Shanghai",
+    "global_var_list": [
+        {
+            "id": 300001,
+            "value": "/data/release"
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "dynamic_group_list": [
+                    {
+                        "id": "asdo8gojhasdfskft7pr5"
+                    }
+                ],
+                "topo_node_list": [
+                    {
+                        "id": 1000,
+                        "node_type": "module"
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
+
+更新已有定时任务，改为在指定时刻单次执行：
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 700001,
+    "name": "one-shot-clean",
+    "execute_time": 1786694400,
+    "execute_time_zone": "Asia/Shanghai"
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "tenant_id": "system",
+        "status": "PENDING",
+        "approval_channel": "IMATE",
+        "expire_at": 1786694400000
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+本接口只返回审批任务信息，**不返回任何执行结果**，此时定时任务尚未保存。
+
+{% include '_generic_v4_approval_task_created.md.j2' %}

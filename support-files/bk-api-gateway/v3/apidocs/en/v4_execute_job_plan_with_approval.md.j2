@@ -1,0 +1,117 @@
+### Description
+
+Initiate an approval for launching a job plan. This API only creates an approval task and runs a full pre-check on the parameters. **The job plan is not launched.** Once the approval is granted, Job launches it automatically as the creator of the task.
+
+Before calling: the target job plan must exist and the caller must have the permission to view and launch it in the resource scope. If the pre-check fails, an error is returned and no approval task is created.
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bk_scope_type | string | Yes | Resource scope type. Options: `biz` (business), `biz_set` (business set) |
+| bk_scope_id | string | Yes | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
+| approval_channel | string | No | Approval channel. Options: `IMATE` (IMate approval channel). The default channel configured on the server is used when omitted. Only the channel enum can be specified; the channel address and secret always come from the server configuration |
+| job_plan_id | long | Yes | ID of the job plan to launch |
+| global_var_list | array | No | Global variable values. All default values defined in the job plan are used when omitted |
+| callback_url | string | No | Callback URL invoked after the job finishes, at most 1024 characters. Job calls it once the released job completes |
+| start_task | boolean | No | Whether to start the job immediately after the approval is granted. Options: `true` (start immediately, the default), `false` (only create the job instance without starting it) |
+
+##### global_var_list[] element
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| id | long | No | Global variable ID. Provide either `id` or `name`; this one wins if both are given |
+| name | string | No | Global variable name. Provide either `id` or `name` |
+| value | string | No | Global variable value. Use `execute_target` for an execution-target variable and this field for the other types (string, namespace, ciphertext, associative array, indexed array). A ciphertext variable is shown as a placeholder in the approval ticket |
+| execute_target | object | No | Value of an execution-target global variable |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target.md.j2' %}
+
+**Note:** When the value contains dynamic groups or topology nodes, the actual number of execution objects is resolved again at release time and may differ from the moment of initiation; the approval ticket highlights this explicitly.
+
+### Request Parameters Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "approval_channel": "IMATE",
+    "job_plan_id": 50001,
+    "global_var_list": [
+        {
+            "id": 300001,
+            "value": "/data/release"
+        },
+        {
+            "name": "DB_PASSWORD",
+            "value": "p@ssw0rd"
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "dynamic_group_list": [
+                    {
+                        "id": "asdo8gojhasdfskft7pr5"
+                    }
+                ],
+                "topo_node_list": [
+                    {
+                        "id": 1000,
+                        "node_type": "module"
+                    }
+                ]
+            }
+        }
+    ],
+    "callback_url": "https://example.com/job/callback",
+    "start_task": true
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "tenant_id": "system",
+        "status": "PENDING",
+        "approval_channel": "IMATE",
+        "expire_at": 1786694400000
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+This API returns approval task information only and **returns no execution result**, because the job plan has not been launched yet.
+
+{% include '_generic_v4_approval_task_created.md.j2' %}

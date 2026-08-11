@@ -1,0 +1,184 @@
+### 功能描述
+
+发起「快速执行脚本」的审批。本接口只创建审批任务并对参数做一次完整预检，**脚本不会被执行**；审批通过后由作业平台用发起人的身份自动执行。
+
+调用前须满足：调用身份对目标资源范围具备快速执行脚本的操作权限，且对所引用的脚本、执行账号、目标主机具备相应权限（预检不通过会直接返回错误，不会创建审批任务）。
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| approval_channel | string | 否 | 审批渠道。可选值：`IMATE`（IMate 审批渠道）。不传时使用服务端配置的默认渠道。只能指定渠道枚举值，渠道地址与密钥一律取自服务端配置 |
+| task_name | string | 否 | 自定义作业名称，长度不可超过 512 字符；不传时由系统生成 |
+| script_version_id | long | 否 | 引用的脚本版本 ID。与 `script_id`、`script_content` 三者填一个，优先级最高 |
+| script_id | string | 否 | 引用的脚本 ID，使用该脚本的上线版本。与 `script_version_id`、`script_content` 三者填一个，优先级次之 |
+| script_content | string | 否 | Base64 编码后的脚本内容。与 `script_version_id`、`script_id` 三者填一个，优先级最低。脚本内容会在审批单据中原样展示，以便审批人判断风险 |
+| script_language | int | 否 | 脚本语言，仅用 `script_content` 传入自定义脚本时需要。可选值：1（shell）、2（bat）、3（perl）、4（python）、5（powershell）、6（sql）。不传默认 1 |
+| script_param | string | 否 | Base64 编码后的脚本参数。注意：1. 如果有多个参数，如 `param1 param2`，需要对 `param1 param2` 整体进行 Base64 编码，而不是对每个参数分别编码再拼接；2. 非敏感参数编码前长度不能超过 64K，敏感参数编码前长度不能超过 47K |
+| param_sensitive | boolean | 否 | 脚本参数是否为敏感参数。可选值：`true`（敏感，在执行详情页面隐藏，且在审批单据中只显示占位符）、`false`（非敏感，默认 `false`） |
+| account_alias | string | 否 | 执行账号别名，一般与机器上的账号名相同，如 `root`、`user00`。与 `account_id` 二者填一个，同时存在时以 `account_id` 为准 |
+| account_id | long | 否 | 执行账号 ID。与 `account_alias` 二者填一个，同时存在时以本字段为准 |
+| windows_interpreter | string | 否 | 自定义 Windows 解释器路径，须以 `.exe` 结尾，长度不可超过 260 字符 |
+| timeout | int | 否 | 脚本执行超时时间，单位为秒。不传默认 7200，取值范围 1～259200 |
+| execute_target | object | 是 | 执行目标 |
+| callback_url | string | 否 | 作业执行完成后的回调 URL，长度不可超过 1024 字符。审批放行执行的作业完成后，作业平台会回调该地址 |
+| rolling_config | object | 否 | 滚动执行配置，不传表示不滚动执行 |
+| start_task | boolean | 否 | 审批通过后是否立即启动作业。可选值：`true`（立即启动，默认）、`false`（仅创建作业实例不启动） |
+| host_password_list | array | 否 | 目标主机的自定义账号密码列表。默认情况下无需填写，使用作业平台中配置的账号密码；只有各主机账号相同、密码不同时才需要填写 |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target.md.j2' %}
+
+**注：** 主机与容器不能混合执行。目标中含动态分组或拓扑节点时，实际执行台数在审批放行时重新解析确定，可能与发起时不同；审批单据中会显著标注这一点。
+
+{% include '_generic_rolling_config.md.j2' %}
+
+{% include '_generic_host_password_list.md.j2' %}
+
+**注：** `encrypted_password` 在审批单据中只显示占位符，不含真实值。
+
+### 请求参数示例
+
+- POST
+
+在主机上执行脚本：
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "approval_channel": "IMATE",
+    "task_name": "restart-nginx-with-approval",
+    "script_content": "ZWNobyAkMQ==",
+    "script_language": 1,
+    "script_param": "aGVsbG8=",
+    "param_sensitive": false,
+    "account_alias": "root",
+    "windows_interpreter": "C:\\Python38\\python.exe",
+    "timeout": 1000,
+    "execute_target": {
+        "host_list": [
+            {
+                "bk_host_id": 10001
+            },
+            {
+                "bk_cloud_id": 0,
+                "ip": "127.0.0.2"
+            }
+        ],
+        "dynamic_group_list": [
+            {
+                "id": "asdo8gojhasdfskft7pr5"
+            }
+        ],
+        "topo_node_list": [
+            {
+                "id": 1000,
+                "node_type": "module"
+            }
+        ]
+    },
+    "callback_url": "https://example.com/job/callback",
+    "rolling_config": {
+        "type": 1,
+        "execution_mode": 1,
+        "mode": 1,
+        "expression": "1 5 10 100%"
+    },
+    "start_task": true,
+    "host_password_list": [
+        {
+            "host_id": 10001,
+            "encrypted_password": "Ug8mLwIDAQAB..."
+        },
+        {
+            "bk_cloud_id": 0,
+            "ip": "127.0.0.2",
+            "encrypted_password": "Ug8mLwIDAQAB..."
+        }
+    ]
+}
+```
+
+在容器上执行脚本：
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "script_version_id": 1,
+    "script_param": "aGVsbG8=",
+    "param_sensitive": false,
+    "account_id": 1000,
+    "timeout": 1000,
+    "execute_target": {
+        "kube_container_filters": [
+            {
+                "kube_cluster_filter": {
+                    "cluster_uid_list": ["BCS-K8S-00001"]
+                },
+                "kube_namespace_filter": {
+                    "namespace_name_list": ["bkjob"]
+                },
+                "kube_workload_filter": {
+                    "kind": "deployment",
+                    "workload_name_list": ["bk-job-execute"]
+                },
+                "kube_pod_filter": {
+                    "pod_name_list": ["bk-job-execute-0"],
+                    "label_selector": [
+                        {
+                            "key": "app",
+                            "operator": "in",
+                            "values": ["bk-job-execute"]
+                        }
+                    ],
+                    "label_selector_expr": ["app in (bk-job-execute)"]
+                },
+                "kube_container_prop_filter": {
+                    "container_name_list": ["job-execute"]
+                },
+                "execute_in_whole_cluster": false
+            }
+        ]
+    }
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "tenant_id": "system",
+        "status": "PENDING",
+        "approval_channel": "IMATE",
+        "expire_at": 1786694400000
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+本接口只返回审批任务信息，**不返回任何执行结果**，此时脚本尚未执行。
+
+{% include '_generic_v4_approval_task_created.md.j2' %}

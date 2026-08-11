@@ -1,0 +1,89 @@
+### 功能描述
+
+查询一个审批任务的状态与结果，用于向用户反馈审批进度、以及在放行后取得操作结果。本接口**只读**，不会推进审批任务，也不会触发任何执行。
+
+只能查询本人通过同一应用发起的审批任务；其余情况（任务不存在、属于他人、由其他应用发起）一律返回「审批任务不存在」，不区分这几种情形。
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### 请求参数
+
+#### Query参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| approval_task_id | string | 是 | 审批任务 ID，由发起审批的接口返回 |
+
+### 请求参数示例
+
+- GET
+
+```
+/api/v4/get_approval_task?approval_task_id=5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+审批中：
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "status": "PENDING",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": null,
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": null,
+        "approved_at": null,
+        "execute_result": null,
+        "result_unknown": false,
+        "message": "审批中"
+    }
+}
+```
+
+审批通过并已执行完成：
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "status": "EXECUTED",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": "IMATE-202608110001",
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": "admin",
+        "approved_at": 1786669200000,
+        "execute_result": {
+            "job_instance_id": 10000,
+            "job_instance_name": "API Quick execution script1",
+            "step_instance_id": 10001
+        },
+        "result_unknown": false,
+        "message": "已执行完成"
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+{% include '_generic_v4_approval_task.md.j2' %}

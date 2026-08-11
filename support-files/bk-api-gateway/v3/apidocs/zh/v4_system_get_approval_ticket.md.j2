@@ -1,0 +1,158 @@
+### 功能描述
+
+获取一个审批任务的审批单据内容，供**审批渠道**建单并展示给审批人。本接口是应用态接口，没有用户身份。
+
+调用方限制：
+
+- 调用方必须是该审批任务**指派的审批渠道对应的应用**（渠道 appCode 与任务记录严格相等），其余应用即使拥有本接口权限也一律按「审批任务不存在」处理——单据中含脚本明文，不能让任何应用枚举他人的单据内容。
+- 必须透传租户请求头 `X-Bk-Tenant-Id`，取值为发起审批接口返回的 `tenant_id`。多租户环境下缺失该请求头会在网关层直接返回 401；服务端还会将其与审批任务的租户严格比对，不一致同样按「审批任务不存在」处理。
+
+单据内容为**字段化结构**而非渲染好的富文本，便于不同渠道按自身展示能力各自渲染。敏感字段的值只是占位符，不含真实值；**脚本内容例外，原样展示**，否则审批人无从判断风险。
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### 请求参数
+
+#### Header参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| X-Bk-Tenant-Id | string | 是 | 审批任务所属租户 ID，取发起审批接口返回的 `tenant_id`；与审批任务的租户不一致时按审批任务不存在处理 |
+
+#### Query参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| approval_task_id | string | 是 | 审批任务 ID，由发起审批的接口返回并由调用方交给审批渠道 |
+
+### 请求参数示例
+
+- GET
+
+```
+/api/v4/system/get_approval_ticket?approval_task_id=5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "title": "快速执行脚本 - 蓝鲸 - 37个执行对象",
+        "risk_level": "HIGH",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "creator": "admin",
+        "expire_at": 1786694400000,
+        "sections": [
+            {
+                "key": "summary",
+                "title": "操作概要",
+                "collapsed": false,
+                "fields": [
+                    {
+                        "label": "操作类型",
+                        "value": "快速执行脚本",
+                        "sensitive": false,
+                        "highlight": false
+                    },
+                    {
+                        "label": "执行账号",
+                        "value": "root",
+                        "sensitive": false,
+                        "highlight": true
+                    },
+                    {
+                        "label": "执行对象数量",
+                        "value": "37",
+                        "sensitive": false,
+                        "highlight": false
+                    },
+                    {
+                        "label": "执行对象",
+                        "value": "127.0.0.1, 127.0.0.2 等，另有 35 个",
+                        "sensitive": false,
+                        "highlight": false
+                    },
+                    {
+                        "label": "高危规则命中",
+                        "value": "已命中高危脚本规则",
+                        "sensitive": false,
+                        "highlight": true
+                    }
+                ]
+            },
+            {
+                "key": "raw_params",
+                "title": "原始参数",
+                "collapsed": true,
+                "fields": [
+                    {
+                        "label": "script_content",
+                        "value": "echo $1",
+                        "sensitive": false,
+                        "highlight": false
+                    },
+                    {
+                        "label": "script_param",
+                        "value": "******",
+                        "sensitive": true,
+                        "highlight": false
+                    },
+                    {
+                        "label": "execute_target.host_list[0].ip",
+                        "value": "127.0.0.1",
+                        "sensitive": false,
+                        "highlight": false
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| approval_task_id | string | 审批任务 ID |
+| title | string | 单据标题，形如「快速执行脚本 - 某业务 - 37个执行对象」 |
+| risk_level | string | 风险等级，由高危命中与目标规模推导，**仅作为给审批人的提示强度，不参与放行校验**。可选值：`HIGH`（高危，命中高危脚本规则或使用 root 等高危账号）、`MEDIUM`（中等，执行目标规模较大，或目标含动态分组、拓扑节点）、`LOW`（低） |
+| operation_type | string | 操作类型。可选值：`FAST_EXECUTE_SCRIPT`（快速执行脚本）、`FAST_TRANSFER_FILE`（快速分发文件）、`EXECUTE_JOB_PLAN`（启动执行方案）、`CREATE_JOB_PLAN`（创建执行方案）、`SAVE_CRON`（保存定时任务）、`UPDATE_CRON_STATUS`（启停定时任务） |
+| bk_scope_type | string | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| creator | string | 审批任务发起人。审批人必须为发起人本人，渠道需据此校验 |
+| expire_at | long | 审批任务过期时刻，Unix 时间戳，单位毫秒；过期后不可再放行 |
+| sections | array | 单据内容区块列表，至少包含操作概要区与原始参数区 |
+
+##### sections[] 元素
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| key | string | 区块标识。可选值：`summary`（操作概要区，摊开解析后的实际影响面）、`raw_params`（原始参数区，完整请求参数） |
+| title | string | 区块标题 |
+| collapsed | boolean | 渲染建议。可选值：`true`（建议默认折叠）、`false`（建议默认展开）。渠道不支持折叠时全部展开也不影响正确性 |
+| fields | array | 区块内的字段列表 |
+
+##### sections[].fields[] 元素
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| label | string | 字段展示名 |
+| value | string | 字段值；`sensitive` 为 `true` 时此处仅为占位符，不含真实值 |
+| sensitive | boolean | 是否为敏感字段。可选值：`true`（服务端已将其替换为占位符）、`false`（为真实值） |
+| highlight | boolean | 是否为需要显著标注的高危项，如 root 账号、命中高危脚本规则、动态分组目标。可选值：`true`（需显著标注）、`false`（普通字段） |

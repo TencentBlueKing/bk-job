@@ -1,0 +1,165 @@
+### 功能描述
+
+发起「快速分发文件」的审批。本接口只创建审批任务并对参数做一次完整预检，**文件不会被分发**；审批通过后由作业平台用发起人的身份自动执行。
+
+调用前须满足：调用身份对目标资源范围具备快速分发文件的操作权限，且对源文件所在主机、第三方文件源、执行账号、分发目标主机具备相应权限（预检不通过会直接返回错误，不会创建审批任务）。
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| approval_channel | string | 否 | 审批渠道。可选值：`IMATE`（IMate 审批渠道）。不传时使用服务端配置的默认渠道。只能指定渠道枚举值，渠道地址与密钥一律取自服务端配置 |
+| task_name | string | 否 | 自定义作业名称，长度不可超过 512 字符；不传时由系统生成 |
+| file_source_list | array | 是 | 源文件列表，不可为空 |
+| file_target_path | string | 是 | 文件分发到目标主机的目录 |
+| file_target_name | string | 否 | 文件分发到目标主机后的文件名，不传时沿用源文件名 |
+| account_alias | string | 否 | 目标主机的执行账号别名。与 `account_id` 二者填一个，同时存在时以 `account_id` 为准 |
+| account_id | long | 否 | 目标主机的执行账号 ID。与 `account_alias` 二者填一个，同时存在时以本字段为准 |
+| execute_target | object | 是 | 分发目标 |
+| transfer_mode | int | 否 | 传输模式。可选值：1（严谨模式，目标路径不存在则失败）、2（强制模式，目标路径不存在则创建，同名文件会被覆盖）。不传默认 2 |
+| download_speed_limit | int | 否 | 下载限速，单位为 MB；不传表示不限速 |
+| upload_speed_limit | int | 否 | 上传限速，单位为 MB；不传表示不限速 |
+| timeout | int | 否 | 文件分发超时时间，单位为秒。不传默认 7200，取值范围 1～259200 |
+| callback_url | string | 否 | 作业执行完成后的回调 URL，长度不可超过 1024 字符。审批放行执行的作业完成后，作业平台会回调该地址 |
+| rolling_config | object | 否 | 滚动执行配置，不传表示不滚动执行 |
+| start_task | boolean | 否 | 审批通过后是否立即启动作业。可选值：`true`（立即启动，默认）、`false`（仅创建作业实例不启动） |
+
+##### file_source_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| file_list | array | 是 | 源文件路径列表，元素为字符串形式的文件路径 |
+| file_type | int | 否 | 文件源类型。可选值：1（服务器文件）、2（本地文件）、3（第三方文件源文件）。不传默认 1 |
+| account_alias | string | 否 | 源文件所在主机的执行账号别名。与 `account_id` 二者填一个；文件源类型为服务器文件时必填 |
+| account_id | long | 否 | 源文件所在主机的执行账号 ID。与 `account_alias` 二者填一个；文件源类型为服务器文件时必填 |
+| execute_target | object | 否 | 源文件所在主机；文件源类型为服务器文件时必填 |
+| file_source_id | long | 否 | 第三方文件源 ID。与 `file_source_code` 二者填一个；文件源类型为第三方文件源文件时必填 |
+| file_source_code | string | 否 | 第三方文件源标识。与 `file_source_id` 二者填一个；文件源类型为第三方文件源文件时必填 |
+
+##### execute_target 与 file_source_list[].execute_target
+
+分发目标 `execute_target` 与源文件所在主机 `file_source_list[].execute_target` 使用相同的结构，字段如下：
+
+{% include '_generic_v4_execute_target.md.j2' %}
+
+**注：** 主机与容器不能混合执行。分发目标中含动态分组或拓扑节点时，实际分发台数在审批放行时重新解析确定，可能与发起时不同；审批单据中会显著标注这一点。
+
+{% include '_generic_rolling_config.md.j2' %}
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "approval_channel": "IMATE",
+    "task_name": "push-config-with-approval",
+    "file_source_list": [
+        {
+            "file_list": [
+                "/tmp/REGEX:[a-z]*.txt"
+            ],
+            "file_type": 1,
+            "account_alias": "root",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.1"
+                    }
+                ]
+            }
+        },
+        {
+            "file_list": [
+                "testbucket/test.txt"
+            ],
+            "file_type": 3,
+            "file_source_id": 1
+        },
+        {
+            "file_list": [
+                "testbucket/test2.txt"
+            ],
+            "file_type": 3,
+            "file_source_code": "testInnerCOS"
+        }
+    ],
+    "file_target_path": "/data/release/",
+    "file_target_name": "app.conf",
+    "account_id": 1000,
+    "execute_target": {
+        "host_list": [
+            {
+                "bk_cloud_id": 0,
+                "ip": "127.0.0.2"
+            }
+        ],
+        "dynamic_group_list": [
+            {
+                "id": "asdo8gojhasdfskft7pr5"
+            }
+        ],
+        "topo_node_list": [
+            {
+                "id": 1000,
+                "node_type": "module"
+            }
+        ]
+    },
+    "transfer_mode": 2,
+    "download_speed_limit": 100,
+    "upload_speed_limit": 100,
+    "timeout": 1000,
+    "callback_url": "https://example.com/job/callback",
+    "rolling_config": {
+        "type": 1,
+        "execution_mode": 1,
+        "mode": 1,
+        "expression": "1 5 10 100%"
+    },
+    "start_task": true
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "tenant_id": "system",
+        "status": "PENDING",
+        "approval_channel": "IMATE",
+        "expire_at": 1786694400000
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+本接口只返回审批任务信息，**不返回任何执行结果**，此时文件尚未分发。
+
+{% include '_generic_v4_approval_task_created.md.j2' %}

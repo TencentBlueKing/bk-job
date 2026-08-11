@@ -1,0 +1,7 @@
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| approval_task_id | string | 审批任务 ID。后续查询、推进、作废审批任务，以及审批渠道取单，都使用该 ID |
+| tenant_id | string | 审批任务所属租户 ID。审批渠道调用取单接口时必须以该值作为 `X-Bk-Tenant-Id` 请求头 |
+| status | string | 审批任务状态。新建时固定为 `PENDING`（待审批） |
+| approval_channel | string | 实际使用的审批渠道。可选值：`IMATE`（IMate 审批渠道） |
+| expire_at | long | 审批任务过期时刻，Unix 时间戳，单位毫秒；过期后不可再放行，需重新发起 |

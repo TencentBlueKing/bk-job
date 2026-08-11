@@ -1,0 +1,158 @@
+### Description
+
+Fetch the approval ticket content of an approval task, so that the **approval channel** can create a ticket and present it to the approver. This is an application-level API and carries no user identity.
+
+Caller restrictions:
+
+- The caller must be **the application of the approval channel assigned to the task** (the channel appCode must strictly equal the one recorded on the task). Any other application, even one granted permission on this API, gets the "approval task does not exist" error: the ticket contains plaintext script content, so no application may enumerate other users' ticket content.
+- The tenant header `X-Bk-Tenant-Id` must be forwarded, with the `tenant_id` returned by the initiating API as its value. In a multi-tenant environment a missing header is rejected with 401 at the gateway; the server also strictly compares it with the tenant of the approval task and returns "approval task does not exist" on mismatch.
+
+The ticket content is a **field-based structure** rather than pre-rendered rich text, so that each channel can render it according to its own capabilities. The value of a sensitive field is only a placeholder and never carries the real value. **Script content is the single exception and is shown as is**, otherwise the approver has no way to assess the risk.
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### Request Parameters
+
+#### Header Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| X-Bk-Tenant-Id | string | Yes | ID of the tenant the approval task belongs to, taken from `tenant_id` returned by the initiating API. A mismatch with the tenant of the approval task is treated as "approval task does not exist" |
+
+#### Query Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| approval_task_id | string | Yes | Approval task ID returned by the initiating API and handed over to the approval channel by the caller |
+
+### Request Parameters Example
+
+- GET
+
+```
+/api/v4/system/get_approval_ticket?approval_task_id=5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "title": "Fast execute script - BlueKing - 37 execute objects",
+        "risk_level": "HIGH",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "creator": "admin",
+        "expire_at": 1786694400000,
+        "sections": [
+            {
+                "key": "summary",
+                "title": "Summary",
+                "collapsed": false,
+                "fields": [
+                    {
+                        "label": "Operation type",
+                        "value": "Fast execute script",
+                        "sensitive": false,
+                        "highlight": false
+                    },
+                    {
+                        "label": "Account",
+                        "value": "root",
+                        "sensitive": false,
+                        "highlight": true
+                    },
+                    {
+                        "label": "Execute object count",
+                        "value": "37",
+                        "sensitive": false,
+                        "highlight": false
+                    },
+                    {
+                        "label": "Execute objects",
+                        "value": "127.0.0.1, 127.0.0.2 and 35 more",
+                        "sensitive": false,
+                        "highlight": false
+                    },
+                    {
+                        "label": "Dangerous rule matched",
+                        "value": "A dangerous script rule was matched",
+                        "sensitive": false,
+                        "highlight": true
+                    }
+                ]
+            },
+            {
+                "key": "raw_params",
+                "title": "Raw parameters",
+                "collapsed": true,
+                "fields": [
+                    {
+                        "label": "script_content",
+                        "value": "echo $1",
+                        "sensitive": false,
+                        "highlight": false
+                    },
+                    {
+                        "label": "script_param",
+                        "value": "******",
+                        "sensitive": true,
+                        "highlight": false
+                    },
+                    {
+                        "label": "execute_target.host_list[0].ip",
+                        "value": "127.0.0.1",
+                        "sensitive": false,
+                        "highlight": false
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Description |
+|-------|------|-------------|
+| approval_task_id | string | Approval task ID |
+| title | string | Ticket title, such as "Fast execute script - BlueKing - 37 execute objects" |
+| risk_level | string | Risk level derived from dangerous-rule matches and target scale. It is **only a hint for the approver and does not take part in the release checks**. Options: `HIGH` (a dangerous script rule was matched, or a high-risk account such as root is used), `MEDIUM` (large target scale, or the target contains dynamic groups or topology nodes), `LOW` (low) |
+| operation_type | string | Operation type. Options: `FAST_EXECUTE_SCRIPT` (fast execute script), `FAST_TRANSFER_FILE` (fast transfer file), `EXECUTE_JOB_PLAN` (launch a job plan), `CREATE_JOB_PLAN` (create a job plan), `SAVE_CRON` (save a cron job), `UPDATE_CRON_STATUS` (enable or disable a cron job) |
+| bk_scope_type | string | Resource scope type. Options: `biz` (business), `biz_set` (business set) |
+| bk_scope_id | string | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
+| creator | string | Creator of the approval task. The approver must be the creator, and the channel must verify this |
+| expire_at | long | Expiry moment of the approval task, Unix timestamp in milliseconds. After expiry the task can no longer be released |
+| sections | array | Sections of the ticket content, containing at least the summary section and the raw parameters section |
+
+##### sections[] element
+
+| Field | Type | Description |
+|-------|------|-------------|
+| key | string | Section key. Options: `summary` (summary section, listing the resolved actual impact), `raw_params` (raw parameters section, the full request parameters) |
+| title | string | Section title |
+| collapsed | boolean | Rendering hint. Options: `true` (collapse by default is suggested), `false` (expand by default is suggested). Expanding everything does not affect correctness when the channel does not support collapsing |
+| fields | array | Fields inside the section |
+
+##### sections[].fields[] element
+
+| Field | Type | Description |
+|-------|------|-------------|
+| label | string | Display name of the field |
+| value | string | Field value. It is only a placeholder and carries no real value when `sensitive` is `true` |
+| sensitive | boolean | Whether the field is sensitive. Options: `true` (the server has replaced it with a placeholder), `false` (the real value) |
+| highlight | boolean | Whether the field is a high-risk item that must be highlighted, such as a root account, a matched dangerous script rule or a dynamic group target. Options: `true` (highlight it), `false` (ordinary field) |

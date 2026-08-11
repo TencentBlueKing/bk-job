@@ -1,0 +1,78 @@
+### 功能描述
+
+主动作废一个审批任务。作废后任务进入 `CANCELED` 终态，不可再放行；如仍需执行该操作，须重新发起审批。
+
+只有处于待审批（`PENDING`）状态的任务可以作废；已放行、已驳回、已作废或已失败的任务再次调用会返回状态不允许的错误。作废**只处理作业平台侧的审批任务，不会反向通知审批渠道**，渠道侧的单据需由审批人自行处理。
+
+只能作废本人通过同一应用发起的审批任务；其余情况一律返回「审批任务不存在」。
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| approval_task_id | string | 是 | 审批任务 ID，由发起审批的接口返回。只有处于待审批状态的任务可以作废 |
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f"
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "status": "CANCELED",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": null,
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": null,
+        "approved_at": null,
+        "execute_result": null,
+        "result_unknown": false,
+        "message": "已作废"
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| approval_task_id | string | 审批任务 ID |
+| status | string | 审批任务状态。作废成功后固定为 `CANCELED`（已作废） |
+| operation_type | string | 操作类型。可选值：`FAST_EXECUTE_SCRIPT`（快速执行脚本）、`FAST_TRANSFER_FILE`（快速分发文件）、`EXECUTE_JOB_PLAN`（启动执行方案）、`CREATE_JOB_PLAN`（创建执行方案）、`SAVE_CRON`（保存定时任务）、`UPDATE_CRON_STATUS`（启停定时任务） |
+| approval_channel | string | 审批渠道。可选值：`IMATE`（IMate 审批渠道） |
+| approval_ticket_id | string | 已绑定的审批单据 ID；尚未绑定时为 `null`。作废不会反向通知审批渠道，渠道侧单据需由审批人自行处理 |
+| creator | string | 审批任务发起人 |
+| create_time | long | 发起时刻，Unix 时间戳，单位毫秒 |
+| expire_at | long | 过期时刻，Unix 时间戳，单位毫秒 |
+| approver | string | 审批人。可作废的任务尚未获得审批结论，因此该字段为 `null` |
+| approved_at | long | 审批时刻，Unix 时间戳，单位毫秒。可作废的任务尚未获得审批结论，因此该字段为 `null` |
+| execute_result | object | 操作结果。被作废的任务从未执行，因此固定为 `null` |
+| result_unknown | boolean | 执行结果未知标记。作废场景固定为 `false` |
+| message | string | 面向用户的可读说明 |

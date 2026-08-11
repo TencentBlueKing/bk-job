@@ -1,0 +1,18 @@
+### Approval Workflow
+
+An approval-enabled API **does not execute the operation immediately**. It creates an approval task first. The full workflow is:
+
+1. The caller invokes the initiating API. Job runs a full pre-check on the parameters (permissions, target resolution, dangerous-script rules, etc.) and returns an `approval_task_id` once the pre-check passes. At this point the operation has **not** been executed.
+2. The caller passes `approval_task_id` to the approval channel, which creates an approval ticket.
+3. The approval channel calls `/api/v4/system/get_approval_ticket` with `approval_task_id` to fetch the ticket content and present it to the approver.
+4. After the approver makes a decision in the channel, the caller invokes `/api/v4/refresh_approval_task` with `approval_task_id` and the channel ticket ID `approval_ticket_id` to advance the task.
+5. Job **queries the approval decision from the approval channel by itself**: if approved, it executes the original operation and returns the result in `execute_result`; if rejected, the task moves to `REJECTED`.
+
+Mandatory constraints:
+
+- **The approval decision can only be obtained by Job querying the channel.** `refresh_approval_task` accepts only the two IDs `approval_task_id` and `approval_ticket_id`. It accepts no approval-decision field, so a caller cannot declare whether the request was approved.
+- **The approver must be the creator of the approval task.** Approval by anyone else will not release the operation.
+- An approval task has a time to live, **8 hours** by default (adjustable on the server side at deployment time). The exact expiry moment is given by `expire_at` in the response. Once expired the task can no longer be released and must be initiated again.
+- **One approval releases the operation exactly once.** Once released, the task is consumed; calling `refresh_approval_task` again only returns the same existing result and never executes the operation twice.
+- An approval task is never released automatically, and never released because of a channel failure: if the query to the channel fails, the release is rejected and the task stays pending.
+- Sensitive content in the approval ticket (ciphertext global variables, encrypted host account passwords, script parameters declared as sensitive) is shown as a placeholder only. **Script content is the single exception and is shown as is**, otherwise the approver has no way to assess the risk.

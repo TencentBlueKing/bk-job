@@ -8584,10 +8584,10 @@ paths:
                   description: '传输模式。可选值: 1 - 严谨模式（目标路径不存在则失败）, 2 - 强制模式（目标路径不存在则创建，同名文件会被覆盖）。不传默认2'
                 download_speed_limit:
                   type: number
-                  description: 下载限速，单位MB/s，不传表示不限速
+                  description: 下载限速，单位MB，不传表示不限速
                 upload_speed_limit:
                   type: number
-                  description: 上传限速，单位MB/s，不传表示不限速
+                  description: 上传限速，单位MB，不传表示不限速
                 timeout:
                   type: number
                   default: 7200

@@ -1,0 +1,89 @@
+### Description
+
+Query the status and result of an approval task, so that the approval progress can be reported to the user and the operation result can be read after the release. This API is **read-only**: it neither advances the approval task nor triggers any execution.
+
+Only approval tasks created by the same user through the same application can be queried. In every other case (the task does not exist, belongs to someone else, or was created by another application) the same "approval task does not exist" error is returned, without distinguishing between these situations.
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### Request Parameters
+
+#### Query Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| approval_task_id | string | Yes | Approval task ID returned by the initiating API |
+
+### Request Parameters Example
+
+- GET
+
+```
+/api/v4/get_approval_task?approval_task_id=5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+Waiting for approval:
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "status": "PENDING",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": null,
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": null,
+        "approved_at": null,
+        "execute_result": null,
+        "result_unknown": false,
+        "message": "Waiting for approval"
+    }
+}
+```
+
+Approved and executed:
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "status": "EXECUTED",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": "IMATE-202608110001",
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": "admin",
+        "approved_at": 1786669200000,
+        "execute_result": {
+            "job_instance_id": 10000,
+            "job_instance_name": "API Quick execution script1",
+            "step_instance_id": 10001
+        },
+        "result_unknown": false,
+        "message": "Executed"
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+{% include '_generic_v4_approval_task.md.j2' %}
