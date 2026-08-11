@@ -198,7 +198,7 @@ class ApprovalTaskDAOImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("清理任务按 limit 分批删除")
+    @DisplayName("清理任务按 limit 分批删除，且每批按主键从小到大推进")
     void givenLimitThenCleanUpDeletesInBatch() {
         long baseCreateTime = 2_000L;
         List<String> taskIds = IntStream.range(0, 5)
@@ -206,11 +206,31 @@ class ApprovalTaskDAOImplIntegrationTest {
             .collect(Collectors.toList());
 
         assertThat(approvalTaskDAO.deleteByCreateTimeBefore(baseCreateTime + 10, 2)).isEqualTo(2);
+        // 删除按主键升序推进，最早插入的两条先走，剩下的还在
+        assertThat(approvalTaskDAO.getByApprovalTaskId(taskIds.get(0))).isNull();
+        assertThat(approvalTaskDAO.getByApprovalTaskId(taskIds.get(1))).isNull();
+        assertThat(approvalTaskDAO.getByApprovalTaskId(taskIds.get(2))).isNotNull();
+
         assertThat(approvalTaskDAO.deleteByCreateTimeBefore(baseCreateTime + 10, 2)).isEqualTo(2);
         assertThat(approvalTaskDAO.deleteByCreateTimeBefore(baseCreateTime + 10, 2)).isEqualTo(1);
         assertThat(approvalTaskDAO.deleteByCreateTimeBefore(baseCreateTime + 10, 2)).isEqualTo(0);
 
         taskIds.forEach(taskId -> assertThat(approvalTaskDAO.getByApprovalTaskId(taskId)).isNull());
+    }
+
+    @Test
+    @DisplayName("清理任务的 limit 只作用于待删记录，EXECUTING 不占配额")
+    void givenExecutingTasksThenLimitOnlyCountsDeletableRows() {
+        long baseCreateTime = 3_000L;
+        String executingTaskId = insertTask(ApprovalStatusEnum.EXECUTING, baseCreateTime + 1);
+        String canceledTaskId = insertTask(ApprovalStatusEnum.CANCELED, baseCreateTime + 2);
+        String rejectedTaskId = insertTask(ApprovalStatusEnum.REJECTED, baseCreateTime + 3);
+
+        // EXECUTING 排在最前，若它占掉 limit 配额，这一批就只会删到 1 条
+        assertThat(approvalTaskDAO.deleteByCreateTimeBefore(baseCreateTime + 10, 2)).isEqualTo(2);
+        assertThat(approvalTaskDAO.getByApprovalTaskId(canceledTaskId)).isNull();
+        assertThat(approvalTaskDAO.getByApprovalTaskId(rejectedTaskId)).isNull();
+        assertThat(approvalTaskDAO.getByApprovalTaskId(executingTaskId)).isNotNull();
     }
 
     private String insertPendingTask(long expireAt) {

@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.api.util.DryRunResultUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.error.ErrorType;
@@ -198,19 +199,23 @@ public class ServiceApprovalCronResourceImpl implements ServiceApprovalCronResou
 
     /**
      * 启停操作的入参只有 id 与目标状态，必须补出定时任务名与执行方案，
-     * 否则审批人看到的只是一个数字 ID，无法判断启的是哪个任务
+     * 否则审批人看到的只是一个数字 ID，无法判断启的是哪个任务。
+     * <p>
+     * 定时任务不存在时<b>直接拒绝，不允许产出"只剩 id 与目标状态"的概要</b>：
+     * 那样的单据无法判断影响面，等于让审批人盲签。
      */
     private ResolvedSummary buildUpdateStatusSummary(Long appId, Long cronJobId, boolean enable) {
+        CronJobInfoDTO cronJobInfo = cronJobService.getCronJobInfoById(appId, cronJobId);
+        if (cronJobInfo == null) {
+            throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
+        }
         ResolvedSummary summary = new ResolvedSummary();
+        summary.setName(cronJobInfo.getName());
         summary.addField("cron_id", String.valueOf(cronJobId));
         summary.addField("target_status",
             enable ? CronStatusEnum.RUNNING.name() : CronStatusEnum.STOPPING.name());
-        CronJobInfoDTO cronJobInfo = cronJobService.getCronJobInfoById(appId, cronJobId);
-        if (cronJobInfo != null) {
-            summary.setName(cronJobInfo.getName());
-            summary.addField("job_plan_id", String.valueOf(cronJobInfo.getTaskPlanId()));
-            summary.addField("cron_expression", cronJobInfo.getCronExpression());
-        }
+        summary.addField("job_plan_id", String.valueOf(cronJobInfo.getTaskPlanId()));
+        summary.addField("cron_expression", cronJobInfo.getCronExpression());
         return summary;
     }
 

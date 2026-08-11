@@ -30,10 +30,13 @@ import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.analysis.model.tables.ApprovalTask;
 import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Slf4j
 @Repository
@@ -193,11 +196,21 @@ public class ApprovalTaskDAOImpl implements ApprovalTaskDAO {
 
     @Override
     public int deleteByCreateTimeBefore(long maxCreateTime, int limit) {
+        // 先查出待删主键再按主键删除：多一次查询，换来删除语句只按主键定位，锁范围最小；
+        // 直接 delete ... limit 会让删除语句自己扫索引范围，清理任务与在线读写更容易互相等待。
         // 显式排除 EXECUTING：这类任务正是需要人工介入的对象，静默删掉会毁掉排障线索
-        return dslContext.deleteFrom(defaultTable)
+        List<Long> ids = dslContext.select(defaultTable.ID)
+            .from(defaultTable)
             .where(defaultTable.CREATE_TIME.lessOrEqual(JooqDataTypeUtil.buildULong(maxCreateTime)))
             .and(defaultTable.STATUS.ne(ApprovalStatusEnum.EXECUTING.name()))
+            .orderBy(defaultTable.ID.asc())
             .limit(limit)
+            .fetch(defaultTable.ID);
+        if (CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
+        return dslContext.deleteFrom(defaultTable)
+            .where(defaultTable.ID.in(ids))
             .execute();
     }
 

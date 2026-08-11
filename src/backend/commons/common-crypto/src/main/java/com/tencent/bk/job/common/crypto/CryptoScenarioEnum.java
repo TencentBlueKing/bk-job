@@ -43,7 +43,9 @@ public enum CryptoScenarioEnum {
     // 导出作业的备份文件
     BACKUP_FILE((byte) 0, "backupFile", null),
     // 前端给后端提交账号的密码
-    SUBMIT_ACCOUNT_PASSWORD((byte) 1, "submitAccountPassword", CryptorNames.SM2);
+    SUBMIT_ACCOUNT_PASSWORD((byte) 1, "submitAccountPassword", CryptorNames.SM2),
+    // 审批任务的操作参数快照
+    APPROVAL_PARAMS_SNAPSHOT((byte) 0, "approvalParamsSnapshot", null);
 
     // 加密类型：0为对称加密，1为非对称加密
     private final byte type;

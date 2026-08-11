@@ -26,7 +26,18 @@ package com.tencent.bk.job.common.api.util;
 
 import com.tencent.bk.job.common.api.model.DryRunResult;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.AbortedException;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.NotImplementedException;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.TimeoutException;
+import com.tencent.bk.job.common.exception.UnauthenticatedException;
+import com.tencent.bk.job.common.exception.UnavailableException;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.extern.slf4j.Slf4j;
 
@@ -110,6 +121,53 @@ public final class DryRunResultUtil {
             new Object[]{paramNames, reasons},
             ErrorType.INVALID_PARAM.getType()
         );
+    }
+
+    /**
+     * 调用方侧的反向转换：把 {@code valid=false} 的结果还原成对应语义的异常，原样带上错误码与占位参数。
+     * <p>
+     * 错误码与占位参数一路透传、由最外层按调用方语言渲染，因此下游的具体校验信息不会在中转过程中丢失
+     * —— 这正是"校验失败以返回值而非异常传播"的收益所在。
+     *
+     * @param result 下游返回的失败结果
+     * @return 与 errorType 语义对应的异常
+     */
+    public static ServiceException toException(DryRunResult<?> result) {
+        Integer errorCode = result.getErrorCode() == null ? ErrorCode.INTERNAL_ERROR : result.getErrorCode();
+        Object[] errorParams = result.getErrorParams();
+        ErrorType errorType = ErrorType.valOf(result.getErrorType());
+        if (errorType == null) {
+            return new InternalException(errorCode, errorParams);
+        }
+        switch (errorType) {
+            case INVALID_PARAM:
+                return new InvalidParamException(errorCode, errorParams);
+            case NOT_FOUND:
+                return new NotFoundException(errorCode, errorParams);
+            case ALREADY_EXISTS:
+                return new AlreadyExistsException(errorCode, errorParams);
+            case RESOURCE_EXHAUSTED:
+                return new ResourceExhaustedException(errorCode, errorParams);
+            case ABORTED:
+                return new AbortedException(errorCode, errorParams);
+            case UNAUTHENTICATED:
+                return new UnauthenticatedException(errorCode, errorParams);
+            case UNIMPLEMENTED:
+                return new NotImplementedException(errorCode, errorParams);
+            case UNAVAILABLE:
+                return new UnavailableException(errorCode, errorParams);
+            case TIMEOUT:
+                return new TimeoutException(errorCode, errorParams);
+            case FAILED_PRECONDITION:
+            // PERMISSION_DENIED 只能退化为 FAILED_PRECONDITION：PermissionDeniedException 需要一个
+            // AuthResult 才能构造，而 DryRunResult 里没有可申请权限的信息（在下游被 call() 转成返回值时就丢了）。
+            // 错误码原样保留，用户仍能看到"权限不足"的文案，但拿不到"去申请权限"的跳转信息。
+            // TODO: 若要补齐，需在 DryRunResult 中增加可申请权限的字段，属协议层改动，不在本期范围内。
+            case PERMISSION_DENIED:
+                return new FailedPreconditionException(errorCode, errorParams);
+            default:
+                return new InternalException(errorCode, errorParams);
+        }
     }
 
     private static boolean isInternalError(ServiceException e) {

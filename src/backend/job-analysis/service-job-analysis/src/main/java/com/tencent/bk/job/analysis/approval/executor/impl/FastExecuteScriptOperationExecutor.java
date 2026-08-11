@@ -1,0 +1,68 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.analysis.approval.executor.impl;
+
+import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
+import com.tencent.bk.job.analysis.approval.executor.AbstractOperationExecutor;
+import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
+import com.tencent.bk.job.common.api.model.DryRunResult;
+import com.tencent.bk.job.execute.api.inner.ServiceApprovalExecuteResource;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
+import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastExecuteScriptRequest;
+import org.springframework.stereotype.Component;
+
+/**
+ * 快速执行脚本的出站分发
+ */
+@Component
+public class FastExecuteScriptOperationExecutor extends AbstractOperationExecutor<V4FastExecuteScriptRequest> {
+
+    private final ServiceApprovalExecuteResource approvalExecuteResource;
+
+    public FastExecuteScriptOperationExecutor(ServiceApprovalExecuteResource approvalExecuteResource) {
+        this.approvalExecuteResource = approvalExecuteResource;
+    }
+
+    @Override
+    public ApprovalOperationTypeEnum getOperationType() {
+        return ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT;
+    }
+
+    @Override
+    public Class<V4FastExecuteScriptRequest> getParamsClass() {
+        return V4FastExecuteScriptRequest.class;
+    }
+
+    @Override
+    public DryRunResult<?> invoke(V4FastExecuteScriptRequest params, ApprovalTaskDTO task, boolean dryRun) {
+        ServiceApprovalFastExecuteScriptRequest request = new ServiceApprovalFastExecuteScriptRequest();
+        request.setRequest(params);
+        // operator 只能取任务的 creator，且该值只能来自 DB
+        request.setOperator(task.getCreator());
+        request.setAppCode(task.getAppCode());
+        request.setDryRun(dryRun);
+        return unwrap(approvalExecuteResource.fastExecuteScript(request));
+    }
+}
