@@ -453,6 +453,20 @@ public class ErrorCode {
     public static final int DELETE_CRON_FAILED = 1245008;
     // 保存定时任务(id={0})自定义消息通知策略失败
     public static final int SAVE_CRON_CUSTOM_NOTIFY_FAILED = 1245009;
+    // 定时任务提前通知时间已失效（结束前通知，Web 保存校验）
+    public static final int CRON_JOB_END_NOTIFY_TIME_ALREADY_PASSED = 1245010;
+    // 定时任务提前通知时间已失效（执行前通知，Web 保存校验）
+    public static final int CRON_JOB_EXECUTE_NOTIFY_TIME_ALREADY_PASSED = 1245011;
+    // 定时任务配置了提前通知，请指定通知人或通知角色
+    public static final int CRON_JOB_NOTIFY_USER_EMPTY = 1245012;
+    // 定时任务配置了提前通知，请指定通知渠道
+    public static final int CRON_JOB_NOTIFY_CHANNEL_EMPTY = 1245013;
+    // 定时任务必须指定有效的执行方案或脚本
+    public static final int CRON_JOB_PLAN_OR_SCRIPT_INVALID = 1245014;
+    // 定时任务cron表达式不正确
+    public static final int CRON_JOB_CRON_EXPRESSION_INVALID = 1245015;
+    // 定时任务必须指定cron表达式，或指定晚于当前时间的执行时间
+    public static final int CRON_JOB_EXECUTE_TIME_CONFIG_INVALID = 1245016;
     // 定时作业 end
 
     // 日志服务
