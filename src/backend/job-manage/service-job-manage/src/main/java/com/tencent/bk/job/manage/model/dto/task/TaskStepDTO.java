@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbStepV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -92,6 +93,7 @@ public class TaskStepDTO {
     /**
      * 判断步骤是否标记为删除。
      */
+    @JsonIgnore
     public boolean isDeleted() {
         return delete != null && delete == 1;
     }
