@@ -33,7 +33,7 @@ Only approval tasks created by the same user through the same application can be
 
 ```json
 {
-    "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+    "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
     "approval_ticket_id": "IMATE-202608110001"
 }
 ```
@@ -52,7 +52,7 @@ Approved and executed:
 # http status=200
 {
     "data": {
-        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
         "status": "EXECUTED",
         "operation_type": "FAST_EXECUTE_SCRIPT",
         "approval_channel": "IMATE",
@@ -79,7 +79,7 @@ The channel has no decision yet, the task stays pending:
 # http status=200
 {
     "data": {
-        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
         "status": "PENDING",
         "operation_type": "FAST_EXECUTE_SCRIPT",
         "approval_channel": "IMATE",
@@ -102,7 +102,7 @@ The execution request was dispatched but the result is unknown and needs manual 
 # http status=200
 {
     "data": {
-        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
         "status": "EXECUTING",
         "operation_type": "FAST_EXECUTE_SCRIPT",
         "approval_channel": "IMATE",

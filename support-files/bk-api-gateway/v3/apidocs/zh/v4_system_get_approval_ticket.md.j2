@@ -7,7 +7,7 @@
 - 调用方必须是该审批任务**指派的审批渠道对应的应用**（渠道 appCode 与任务记录严格相等），其余应用即使拥有本接口权限也一律按「审批任务不存在」处理——单据中含脚本明文，不能让任何应用枚举他人的单据内容。
 - 必须透传租户请求头 `X-Bk-Tenant-Id`，取值为发起审批接口返回的 `tenant_id`。多租户环境下缺失该请求头会在网关层直接返回 401；服务端还会将其与审批任务的租户严格比对，不一致同样按「审批任务不存在」处理。
 
-单据内容为**字段化结构**而非渲染好的富文本，便于不同渠道按自身展示能力各自渲染。敏感字段的值只是占位符，不含真实值；**脚本内容例外，原样展示**，否则审批人无从判断风险。
+单据正文 `approval_content` 是一份**由作业平台渲染好的 Markdown**，渠道直接展示即可，无需自行拼装。正文依次包含操作概要表格、各执行步骤的明细表格、脚本内容代码块与原始参数 JSON 代码块，其中概要部分摊开的是**解析后的实际影响面**（真实的目标机清单、执行账号、生效的默认值等），让审批人看清「要在哪些机器上执行什么」。敏感字段的值只是占位符，不含真实值；**脚本内容例外，原样展示**，否则审批人无从判断风险。
 
 {% include '_generic_v4_approval_flow.md.j2' %}
 
@@ -30,7 +30,7 @@
 - GET
 
 ```
-/api/v4/system/get_approval_ticket?approval_task_id=5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f
+/api/v4/system/get_approval_ticket?approval_task_id=5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f
 ```
 
 ### 返回结果示例
@@ -45,7 +45,7 @@
 # http status=200
 {
     "data": {
-        "approval_task_id": "5f9c1d1a-3f2b-4a1e-9f2d-7c1b2e3a4d5f",
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
         "title": "快速执行脚本 - 蓝鲸 - 37个执行对象",
         "risk_level": "HIGH",
         "operation_type": "FAST_EXECUTE_SCRIPT",
@@ -53,70 +53,7 @@
         "bk_scope_id": "2",
         "creator": "admin",
         "expire_at": 1786694400000,
-        "sections": [
-            {
-                "key": "summary",
-                "title": "操作概要",
-                "collapsed": false,
-                "fields": [
-                    {
-                        "label": "操作类型",
-                        "value": "快速执行脚本",
-                        "sensitive": false,
-                        "highlight": false
-                    },
-                    {
-                        "label": "执行账号",
-                        "value": "root",
-                        "sensitive": false,
-                        "highlight": true
-                    },
-                    {
-                        "label": "执行对象数量",
-                        "value": "37",
-                        "sensitive": false,
-                        "highlight": false
-                    },
-                    {
-                        "label": "执行对象",
-                        "value": "127.0.0.1, 127.0.0.2 等，另有 35 个",
-                        "sensitive": false,
-                        "highlight": false
-                    },
-                    {
-                        "label": "高危规则命中",
-                        "value": "已命中高危脚本规则",
-                        "sensitive": false,
-                        "highlight": true
-                    }
-                ]
-            },
-            {
-                "key": "raw_params",
-                "title": "原始参数",
-                "collapsed": true,
-                "fields": [
-                    {
-                        "label": "script_content",
-                        "value": "echo $1",
-                        "sensitive": false,
-                        "highlight": false
-                    },
-                    {
-                        "label": "script_param",
-                        "value": "******",
-                        "sensitive": true,
-                        "highlight": false
-                    },
-                    {
-                        "label": "execute_target.host_list[0].ip",
-                        "value": "127.0.0.1",
-                        "sensitive": false,
-                        "highlight": false
-                    }
-                ]
-            }
-        ]
+        "approval_content": "# 快速执行脚本 - 蓝鲸 - 37个执行对象\n\n## 操作概要\n\n| 项目 | 内容 |\n| --- | --- |\n| 操作类型 | 快速执行脚本 |\n| 资源范围 | 蓝鲸(biz:2) |\n| 发起人 | admin |\n| **风险等级** | **高** |\n| 执行对象数量 | 37 |\n| **高危语句命中** | **已命中高危语句规则，请重点确认** |\n| **目标包含动态分组** | **目标包含动态分组或拓扑节点，实际执行的机器在放行时重新解析确定，可能与此处不同** |\n| 默认生效 超时时间 | 7200 |\n\n## 步骤1\n\n| 项目 | 内容 |\n| --- | --- |\n| 步骤名称 | 执行脚本 |\n| **执行账号** | **root** |\n| 脚本名称 | check_disk.sh |\n| 执行对象数量 | 37 |\n| 执行对象 | 127.0.0.1, 127.0.0.2 等另外35个 |\n\n## 脚本内容\n\n`script_content`\n\n```\n#!/bin/bash\nrm -rf /tmp/cache\n```\n\n## 原始参数\n\n```json\n{\n  \"script_content\" : \"见「脚本内容」章节\",\n  \"script_param\" : \"******\"\n}\n```\n"
     }
 }
 ```
@@ -137,22 +74,4 @@
 | bk_scope_id | string | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
 | creator | string | 审批任务发起人。审批人必须为发起人本人，渠道需据此校验 |
 | expire_at | long | 审批任务过期时刻，Unix 时间戳，单位毫秒；过期后不可再放行 |
-| sections | array | 单据内容区块列表，至少包含操作概要区与原始参数区 |
-
-##### sections[] 元素
-
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| key | string | 区块标识。可选值：`summary`（操作概要区，摊开解析后的实际影响面）、`raw_params`（原始参数区，完整请求参数） |
-| title | string | 区块标题 |
-| collapsed | boolean | 渲染建议。可选值：`true`（建议默认折叠）、`false`（建议默认展开）。渠道不支持折叠时全部展开也不影响正确性 |
-| fields | array | 区块内的字段列表 |
-
-##### sections[].fields[] 元素
-
-| 字段 | 类型 | 描述 |
-|------|------|------|
-| label | string | 字段展示名 |
-| value | string | 字段值；`sensitive` 为 `true` 时此处仅为占位符，不含真实值 |
-| sensitive | boolean | 是否为敏感字段。可选值：`true`（服务端已将其替换为占位符）、`false`（为真实值） |
-| highlight | boolean | 是否为需要显著标注的高危项，如 root 账号、命中高危脚本规则、动态分组目标。可选值：`true`（需显著标注）、`false`（普通字段） |
+| approval_content | string | 单据正文，Markdown 格式，由作业平台渲染完成，渠道直接展示即可。依次包含操作概要表格（操作类型、资源范围、发起人、风险等级、执行对象清单、生效的默认值等）、各执行步骤的明细表格、脚本内容代码块、原始参数 JSON 代码块。需显著标注的高危项（root 等高危账号、命中高危语句规则、动态分组目标）在正文中以 Markdown 加粗呈现。密码类敏感字段的值仅为占位符，不含真实值，**脚本内容例外、原样展示**；目标含动态分组或拓扑节点时正文中会给出「实际执行的机器在放行时重新解析确定」的提示 |

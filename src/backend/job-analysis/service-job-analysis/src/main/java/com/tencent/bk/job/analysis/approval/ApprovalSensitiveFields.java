@@ -40,8 +40,7 @@ import java.util.Map;
  * 或"单据里打了码、库里存的是明文"，而这两种漂移都不会有编译或运行期报错。因此本类同时给出
  * JSON 路径与单据呈现方式，{@link ApprovalParamsCryptoService} 与单据渲染都从这里取。
  * <p>
- * <b>新增任何密码/密钥/脚本类字段时必须同步登记</b>，并按 ApprovalParamsSchemaVersion 的规则升版本号。
- * 评审时按 6 个 v4 Request DTO 的字段清单逐条核对。
+ * <b>新增任何密码/密钥/脚本类字段时必须同步登记</b>，评审时按 6 个 v4 Request DTO 的字段清单逐条核对。
  * <p>
  * 几处与方案 §8.1 字段表的出入，以实际 DTO 为准：{@code host_password_list} 只存在于
  * FAST_EXECUTE_SCRIPT 的 v4 请求体上；FAST_TRANSFER_FILE 与 UPDATE_CRON_STATUS 的 v4 请求体

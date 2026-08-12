@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 归属校验由 Service 用"请求头租户 == 任务 tenant_id"与"调用方 appCode == 任务指派渠道的 appCode"两条完成，
  * 任一不符按"任务不存在"返回，不区分"不存在"与"无权访问"。
  * <p>
- * 取单不产出审计事件：这是渠道的读取动作，审批链路的审计事件由发起 / 放行 / 驳回 / 作废四个时点产出。
+ * 取单不产出审计事件：这是渠道的读取动作，审批链路只在审批通过并放行时产出一条审计事件。
  */
 @RestController
 public class OpenApiApprovalTicketV4ResourceImpl implements OpenApiApprovalTicketV4Resource {

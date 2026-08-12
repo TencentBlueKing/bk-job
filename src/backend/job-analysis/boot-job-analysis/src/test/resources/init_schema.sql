@@ -65,12 +65,11 @@ CREATE TABLE `analysis_task`  (
 DROP TABLE IF EXISTS `approval_task`;
 CREATE TABLE `approval_task`  (
   `id`                    bigint(20)          NOT NULL AUTO_INCREMENT,
-  `approval_task_id`      varchar(64)         NOT NULL COMMENT '对外暴露的审批任务ID(UUID，不可猜测)',
+  `approval_task_id`      varchar(32)         NOT NULL COMMENT '对外暴露的审批任务ID(32位UUID，无连字符，不可猜测)',
   `tenant_id`             varchar(32)         NOT NULL COMMENT '租户ID',
   `app_id`                bigint(20)          NOT NULL COMMENT '业务ID',
   `operation_type`        varchar(64)         NOT NULL COMMENT '操作类型',
   `operation_params`      mediumtext          NOT NULL COMMENT '操作参数快照(JSON，敏感字段已加密)',
-  `params_schema_version` int(11)             NOT NULL DEFAULT 1 COMMENT '参数快照结构版本',
   `resolved_summary`      mediumtext          NULL COMMENT 'dryRun解析出的概要(JSON)',
   `creator`               varchar(128)        NOT NULL COMMENT '发起人',
   `app_code`              varchar(128)        NOT NULL DEFAULT '' COMMENT '发起方appCode',

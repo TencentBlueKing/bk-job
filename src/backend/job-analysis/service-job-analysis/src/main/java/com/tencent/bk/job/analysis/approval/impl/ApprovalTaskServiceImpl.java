@@ -35,7 +35,6 @@ import com.tencent.bk.job.analysis.approval.channel.model.ApprovalResult;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
-import com.tencent.bk.job.analysis.approval.consts.ApprovalParamsSchemaVersion;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalResultStatusEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalStatusEnum;
 import com.tencent.bk.job.analysis.approval.executor.OperationExecutor;
@@ -52,6 +51,7 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +60,6 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -122,7 +121,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
 
         long now = System.currentTimeMillis();
         ApprovalTaskDTO task = new ApprovalTaskDTO();
-        task.setApprovalTaskId(UUID.randomUUID().toString());
+        task.setApprovalTaskId(JobUUID.getUUID());
         task.setTenantId(caller.getTenantId());
         task.setAppId(caller.getAppId());
         task.setOperationType(operationType.name());
@@ -130,7 +129,6 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         task.setAppCode(caller.getAppCode() == null ? StringUtils.EMPTY : caller.getAppCode());
         task.setApprovalChannel(targetChannel.name());
         task.setStatus(ApprovalStatusEnum.PENDING.name());
-        task.setParamsSchemaVersion(ApprovalParamsSchemaVersion.CURRENT);
         task.setCreateTime(now);
         task.setExpireAt(now + TimeUnit.HOURS.toMillis(resolveTtlHours()));
 
@@ -157,8 +155,6 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         log.info("Approval task created, approvalTaskId: {}, operationType: {}, creator: {}, channel: {}, "
                 + "expireAt: {}",
             task.getApprovalTaskId(), operationType, task.getCreator(), targetChannel, task.getExpireAt());
-        // 发起阶段的审计事件只能由审批域产出：dryRun 已明确跳过下游"已执行作业"的审计
-        approvalAuditor.auditInitiate(task);
         return task;
     }
 
@@ -207,9 +203,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
             // CAS 之前唯一允许的状态变更：PENDING → REJECTED
             approvalTaskDAO.markRejected(approvalTaskId, approvalResult.getApprover(),
                 approvalResult.getApprovedAt(), approvalResult.getComment());
-            ApprovalTaskDTO rejectedTask = loadOwnTask(approvalTaskId, caller);
-            approvalAuditor.auditRejected(rejectedTask);
-            return rejectedTask;
+            return loadOwnTask(approvalTaskId, caller);
         }
         if (approvalResult.getStatus() != ApprovalResultStatusEnum.APPROVED) {
             log.info("Approval task {} is still pending in channel {}", approvalTaskId, task.getApprovalChannel());
@@ -261,9 +255,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         }
         // 只作废本地任务，不反向通知渠道：渠道侧单据由审批人自行处理
         approvalTaskDAO.markCanceled(approvalTaskId);
-        ApprovalTaskDTO canceledTask = loadOwnTask(approvalTaskId, caller);
-        approvalAuditor.auditCancel(canceledTask);
-        return canceledTask;
+        return loadOwnTask(approvalTaskId, caller);
     }
 
     @Override
@@ -439,17 +431,8 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
      * <b>参数只有这一个来源</b>：解密、反序列化，然后用任务的 app_id 覆盖资源范围。覆盖是必需的 ——
      * appId 是 {@code @JsonIgnore} 字段、快照里根本没有，而 scope 到 appId 的映射在 8 小时内可能变化，
      * 以 DB 的 app_id 为准才能保证不会落到别的业务上。
-     * <p>
-     * 参数快照版本不匹配时<b>只拒绝本次放行，不改变任务状态</b>：该校验在 CAS 之前，
-     * 状态机中不存在 PENDING → FAILED，任务留在 PENDING 直至自然过期。
      */
     private Object resolveParamsFromSnapshot(ApprovalTaskDTO task) {
-        if (task.getParamsSchemaVersion() == null
-            || task.getParamsSchemaVersion() != ApprovalParamsSchemaVersion.CURRENT) {
-            log.warn("Approval task {} params schema version {} mismatches current {}, reject this release only",
-                task.getApprovalTaskId(), task.getParamsSchemaVersion(), ApprovalParamsSchemaVersion.CURRENT);
-            throw new FailedPreconditionException(ErrorCode.APPROVAL_PARAMS_SCHEMA_MISMATCH);
-        }
         ApprovalOperationTypeEnum operationType = ApprovalOperationTypeEnum.valOf(task.getOperationType());
         OperationExecutor<?> executor = executorRegistry.getExecutor(operationType);
         String paramsJson = paramsCryptoService.decryptSensitiveFields(operationType, task.getOperationParams());

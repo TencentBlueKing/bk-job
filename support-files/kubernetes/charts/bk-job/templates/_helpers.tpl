@@ -888,6 +888,25 @@ Return the Job Storage Env Content
 {{- end -}}
 
 {{/*
+Return the approval config of job-analysis.
+Mock 的"视为审批通过"ID 列表刻意不在此处下发：它随 common-refreshable 配置下发，改桩数据无需重启。
+*/}}
+{{- define "job.analysis.approval.config" -}}
+approval:
+  ttlHours: {{ .Values.analysisConfig.approval.ttlHours }}
+  defaultChannel: {{ .Values.analysisConfig.approval.defaultChannel }}
+  maxKeepDays: {{ .Values.analysisConfig.approval.maxKeepDays }}
+  fastApproveThresholdMillis: {{ .Values.analysisConfig.approval.fastApproveThresholdMillis }}
+  channels:
+    imate:
+      url: {{ .Values.analysisConfig.approval.channels.imate.url | quote }}
+      appCode: {{ .Values.analysisConfig.approval.channels.imate.appCode | quote }}
+      mock:
+        # 该开关决定 Mock 渠道 Bean 是否注册，只能在启动前就位，改动后必须重启
+        enabled: {{ .Values.analysisConfig.approval.channels.imate.mock.enabled }}
+{{- end -}}
+
+{{/*
 Return the Job Config Env Content
 */}}
 {{- define "job.config.env" -}}

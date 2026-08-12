@@ -33,7 +33,6 @@ import com.tencent.bk.job.analysis.approval.channel.model.ApprovalResult;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
-import com.tencent.bk.job.analysis.approval.consts.ApprovalParamsSchemaVersion;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalResultStatusEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalStatusEnum;
 import com.tencent.bk.job.analysis.approval.executor.OperationExecutor;
@@ -92,7 +91,7 @@ import static org.mockito.Mockito.when;
  */
 class ApprovalTaskServiceImplTest {
 
-    private static final String TASK_ID = "e2a1c0d4-1111-2222-3333-444455556666";
+    private static final String TASK_ID = "e2a1c0d4111122223333444455556666";
     private static final String TICKET_ID = "IMATE-20260811-0001";
     private static final String CREATOR = "admin";
     private static final String APP_CODE = "bk_ai";
@@ -153,9 +152,9 @@ class ApprovalTaskServiceImplTest {
                 ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildParams(), ApprovalChannelEnum.IMATE, caller());
 
             assertThat(executor.dryRunFlags).containsExactly(true);
-            assertThat(task.getApprovalTaskId()).isNotBlank().hasSize(36);
+            // 32 位无连字符 UUID：便于复制粘贴
+            assertThat(task.getApprovalTaskId()).isNotBlank().hasSize(32).doesNotContain("-");
             assertThat(task.getStatus()).isEqualTo(ApprovalStatusEnum.PENDING.name());
-            assertThat(task.getParamsSchemaVersion()).isEqualTo(ApprovalParamsSchemaVersion.CURRENT);
             assertThat(task.getCreator()).isEqualTo(CREATOR);
             assertThat(task.getApprovalChannel()).isEqualTo(ApprovalChannelEnum.IMATE.name());
             // 固定 8 小时 TTL
@@ -194,6 +193,47 @@ class ApprovalTaskServiceImplTest {
                 ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildParams(), null, caller());
 
             assertThat(task.getApprovalChannel()).isEqualTo(ApprovalChannelEnum.IMATE.name());
+        }
+    }
+
+    @Nested
+    @DisplayName("审计事件")
+    class AuditTest {
+
+        @Test
+        @DisplayName("只在审批通过并放行时审计一次：这条事件已回答了谁发起、谁审批、批的是什么")
+        void givenReleasedThenAuditExactlyOnce() {
+            givenPendingTask();
+            givenChannelApproved(TASK_ID, CREATOR);
+            when(approvalTaskDAO.bindTicketIdIfAbsent(TASK_ID, TICKET_ID)).thenReturn(1);
+            when(approvalTaskDAO.casConsumeToExecuting(eq(TASK_ID), eq(CREATOR), anyLong(), anyLong(), anyLong()))
+                .thenReturn(1);
+            executor.result = DryRunResult.valid(null, "job-instance-1");
+
+            approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
+
+            verify(approvalAuditor, times(1)).auditRelease(any());
+        }
+
+        @Test
+        @DisplayName("发起、驳回、作废都不审计：它们不曾真正改变系统，记下来只会淹没放行事件")
+        void givenNotReleasedThenNoAudit() {
+            executor.result = DryRunResult.valid(new ResolvedSummary(), null);
+            approvalTaskService.create(
+                ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildParams(), ApprovalChannelEnum.IMATE, caller());
+
+            givenPendingTask();
+            ApprovalResult rejected = new ApprovalResult();
+            rejected.setStatus(ApprovalResultStatusEnum.REJECTED);
+            rejected.setApprover(CREATOR);
+            rejected.setApprovedAt(System.currentTimeMillis());
+            when(approvalChannel.queryResult(any(), anyString())).thenReturn(rejected);
+            approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
+
+            when(approvalTaskDAO.markCanceled(TASK_ID)).thenReturn(1);
+            approvalTaskService.cancel(TASK_ID, caller());
+
+            verify(approvalAuditor, never()).auditRelease(any());
         }
     }
 
@@ -279,7 +319,7 @@ class ApprovalTaskServiceImplTest {
         }
 
         @Test
-        @DisplayName("回查未回带审批人时拒绝：Mock 不自动填充，缺失即失败")
+        @DisplayName("回查未回带审批人时拒绝：校验链不为渠道兜底，缺失即失败")
         void givenBlankApproverThenReject() {
             givenPendingTask();
             givenChannelApproved(TASK_ID, null);
@@ -327,21 +367,6 @@ class ApprovalTaskServiceImplTest {
             assertThat(result.getStatus()).isEqualTo(ApprovalStatusEnum.EXECUTING.name());
             verify(approvalChannel, never()).queryResult(any(), anyString());
             assertNoExecuteAndNoStatusWrite();
-        }
-
-        @Test
-        @DisplayName("参数快照版本不匹配时只拒绝本次放行，状态仍为 PENDING 且下游零调用")
-        void givenParamsSchemaMismatchThenRejectAndKeepPending() {
-            ApprovalTaskDTO task = buildPendingTask();
-            task.setParamsSchemaVersion(ApprovalParamsSchemaVersion.CURRENT + 1);
-            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(task);
-            givenChannelApproved(TASK_ID, CREATOR);
-            when(approvalTaskDAO.bindTicketIdIfAbsent(TASK_ID, TICKET_ID)).thenReturn(1);
-
-            assertApprovalRejected(ErrorCode.APPROVAL_PARAMS_SCHEMA_MISMATCH);
-            assertThat(task.getStatus()).isEqualTo(ApprovalStatusEnum.PENDING.name());
-            assertThat(executor.dryRunFlags).isEmpty();
-            assertNoFinalStatusWrite();
         }
 
         @Test
@@ -713,7 +738,6 @@ class ApprovalTaskServiceImplTest {
         task.setAppId(APP_ID);
         task.setOperationType(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT.name());
         task.setOperationParams(ApprovalParamsCryptoServiceStub.PREFIX + JsonUtils.toJson(buildParams()));
-        task.setParamsSchemaVersion(ApprovalParamsSchemaVersion.CURRENT);
         task.setCreator(CREATOR);
         task.setAppCode(APP_CODE);
         task.setApprovalChannel(ApprovalChannelEnum.IMATE.name());

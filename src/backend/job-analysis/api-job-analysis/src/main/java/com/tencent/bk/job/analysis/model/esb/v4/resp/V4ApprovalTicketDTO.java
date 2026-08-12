@@ -27,13 +27,11 @@ package com.tencent.bk.job.analysis.model.esb.v4.resp;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * 应用态取单接口的返回体。审批渠道据此建单。
  * <p>
- * 字段化而非渲染好的富文本，便于不同渠道按自身展示能力各自渲染；
- * {@code sensitive=true} 的字段值<b>只会是占位符</b>，不含真实敏感值。
+ * 单据正文是一份由作业平台渲染好的 Markdown（{@link #approvalContent}），渠道直接展示即可；
+ * 其中敏感字段的值<b>只会是占位符</b>，不含真实敏感值，脚本内容例外、原样展示。
  */
 @Data
 public class V4ApprovalTicketDTO {
@@ -77,56 +75,11 @@ public class V4ApprovalTicketDTO {
     @JsonProperty("expire_at")
     private Long expireAt;
 
-    @JsonProperty("sections")
-    private List<Section> sections;
-
     /**
-     * 单据区块
+     * 单据内容，Markdown 格式，含操作概要表格、执行步骤、脚本内容与原始参数。
+     * <p>
+     * 敏感字段只出现占位符，脚本内容例外、原样展示
      */
-    @Data
-    public static class Section {
-
-        /**
-         * 区块标识，可选值：summary / raw_params
-         */
-        @JsonProperty("key")
-        private String key;
-
-        @JsonProperty("title")
-        private String title;
-
-        /**
-         * 渲染建议，true 表示建议默认折叠；渠道不支持折叠时全部展开也不影响正确性
-         */
-        @JsonProperty("collapsed")
-        private Boolean collapsed;
-
-        @JsonProperty("fields")
-        private List<Field> fields;
-    }
-
-    /**
-     * 单据字段
-     */
-    @Data
-    public static class Field {
-
-        @JsonProperty("label")
-        private String label;
-
-        /**
-         * 字段值。sensitive 为 true 时此处仅为占位符，不含真实值
-         */
-        @JsonProperty("value")
-        private String value;
-
-        @JsonProperty("sensitive")
-        private Boolean sensitive;
-
-        /**
-         * 是否为需要显著标注的高危项，如 root 账号、命中高危脚本规则、动态分组目标
-         */
-        @JsonProperty("highlight")
-        private Boolean highlight;
-    }
+    @JsonProperty("approval_content")
+    private String approvalContent;
 }

@@ -58,7 +58,6 @@ public class ApprovalTaskDAOImpl implements ApprovalTaskDAO {
             .set(defaultTable.APP_ID, task.getAppId())
             .set(defaultTable.OPERATION_TYPE, task.getOperationType())
             .set(defaultTable.OPERATION_PARAMS, task.getOperationParams())
-            .set(defaultTable.PARAMS_SCHEMA_VERSION, task.getParamsSchemaVersion())
             .set(defaultTable.RESOLVED_SUMMARY, task.getResolvedSummary())
             .set(defaultTable.CREATOR, task.getCreator())
             .set(defaultTable.APP_CODE, task.getAppCode() == null ? "" : task.getAppCode())
@@ -84,7 +83,6 @@ public class ApprovalTaskDAOImpl implements ApprovalTaskDAO {
                 defaultTable.APP_ID,
                 defaultTable.OPERATION_TYPE,
                 defaultTable.OPERATION_PARAMS,
-                defaultTable.PARAMS_SCHEMA_VERSION,
                 defaultTable.RESOLVED_SUMMARY,
                 defaultTable.CREATOR,
                 defaultTable.APP_CODE,
@@ -222,7 +220,6 @@ public class ApprovalTaskDAOImpl implements ApprovalTaskDAO {
         dto.setAppId(record.get(defaultTable.APP_ID));
         dto.setOperationType(record.get(defaultTable.OPERATION_TYPE));
         dto.setOperationParams(record.get(defaultTable.OPERATION_PARAMS));
-        dto.setParamsSchemaVersion(record.get(defaultTable.PARAMS_SCHEMA_VERSION));
         dto.setResolvedSummary(record.get(defaultTable.RESOLVED_SUMMARY));
         dto.setCreator(record.get(defaultTable.CREATOR));
         dto.setAppCode(record.get(defaultTable.APP_CODE));

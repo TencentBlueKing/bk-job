@@ -99,7 +99,7 @@ public class ApprovalProperties {
      * Mock 渠道配置。
      * <p>
      * <b>这里刻意没有"默认返回 APPROVED"之类的开关</b>：Mock 的默认结论永远是 PENDING，
-     * 放行只能靠 {@link #approvedTickets} 里显式登记且自带完整绑定证明的桩数据。
+     * 放行只能靠 {@link #approvedIds} 里显式登记的 ID 命中。
      */
     @Getter
     @Setter
@@ -107,42 +107,18 @@ public class ApprovalProperties {
     public static class MockConfig {
 
         /**
-         * 仅自测环境开启；生产 values 模板中不出现该节点
+         * 仅自测环境开启；生产 values 模板中不出现该节点。
+         * <p>
+         * 该开关决定 Mock 渠道 Bean 是否注册（{@code @ConditionalOnProperty}），因此只能在启动前就位，
+         * 改动必须重启 job-analysis
          */
         private boolean enabled = false;
 
         /**
-         * 显式登记为"已通过"的桩单据
+         * 视为"审批通过"的 ID 列表，与审批任务 ID 或审批单据 ID 任一相等即算通过，其余一律视为未通过。
+         * <p>
+         * 放在可热刷新的配置中：自测时改桩数据无需重启 job-analysis
          */
-        private List<MockApprovedTicket> approvedTickets = new ArrayList<>();
-    }
-
-    /**
-     * Mock 的已通过桩单据。
-     * <p>
-     * {@link #approvalTaskId} 与 {@link #approver} 都是必填的：Mock 只把它们如实回传、不做任何自动填充，
-     * 于是放行校验链里的"绑定证明"与"approver == creator"在 Mock 模式下照常执行、照常可能失败。
-     * Mock 替换的只是"结论从哪来"，没有削弱"结论怎么校验"。
-     */
-    @Getter
-    @Setter
-    @ToString
-    public static class MockApprovedTicket {
-
-        private String ticketId;
-
-        /**
-         * 该单据绑定的审批任务 ID，必须填真实值；填错则放行被拒
-         */
-        private String approvalTaskId;
-
-        /**
-         * 审批人，必须填该任务真实的 creator；填错则放行被拒
-         */
-        private String approver;
-
-        private Long approvedAt;
-
-        private String comment;
+        private List<String> approvedIds = new ArrayList<>();
     }
 }

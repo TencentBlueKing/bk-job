@@ -36,7 +36,7 @@ import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 public interface ApprovalTaskDAO {
 
     /**
-     * 插入审批任务。operation_params / resolved_summary / params_schema_version 只在此写入
+     * 插入审批任务。operation_params / resolved_summary 只在此写入
      */
     long insertApprovalTask(ApprovalTaskDTO task);
 

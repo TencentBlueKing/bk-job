@@ -36,7 +36,7 @@ public class ApprovalTaskDTO {
     private Long id;
 
     /**
-     * 对外暴露的审批任务ID（UUID，不可猜测）
+     * 对外暴露的审批任务ID（32位UUID，无连字符，不可猜测）
      */
     private String approvalTaskId;
 
@@ -53,11 +53,6 @@ public class ApprovalTaskDTO {
      * 操作参数快照（JSON，敏感字段已加密）。仅在 insert 时写入，DAO 层不提供 update
      */
     private String operationParams;
-
-    /**
-     * 参数快照结构版本，放行时不匹配即拒绝本次放行（不改变任务状态）
-     */
-    private Integer paramsSchemaVersion;
 
     /**
      * dryRun 解析出的概要（JSON）

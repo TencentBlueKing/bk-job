@@ -200,8 +200,8 @@ class ApprovalV4ApiSupportTest {
     }
 
     @Test
-    @DisplayName("取单返回体保留敏感与高危标记，供渠道按自身能力渲染")
-    void ticketKeepsFieldFlags() {
+    @DisplayName("取单返回体把 Markdown 正文与元信息原样带出，scope 拆成 scopeType/scopeId")
+    void ticketKeepsMarkdownContentAndScope() {
         ApprovalTicket ticket = new ApprovalTicket();
         ticket.setApprovalTaskId("task-1");
         ticket.setTitle("快速执行脚本");
@@ -210,25 +210,15 @@ class ApprovalV4ApiSupportTest {
         ticket.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, "2"));
         ticket.setCreator(USERNAME);
         ticket.setExpireAt(1000L);
-        ApprovalTicket.Section section = ticket.addSection(ApprovalTicket.SECTION_SUMMARY, "操作概要", false);
-        section.addField(ApprovalTicket.Field.highlighted("账号", "root"));
-        section.addField(ApprovalTicket.Field.sensitive("主机账号密码", "******"));
+        ticket.setApprovalContent("# 快速执行脚本\n\n| 项目 | 内容 |\n| --- | --- |\n| 账号 | **root** |\n");
 
         V4ApprovalTicketDTO ticketDTO = support.toTicketDTO(ticket);
 
         assertThat(ticketDTO.getApprovalTaskId()).isEqualTo("task-1");
         assertThat(ticketDTO.getScopeType()).isEqualTo(ResourceScopeTypeEnum.BIZ.getValue());
         assertThat(ticketDTO.getScopeId()).isEqualTo("2");
-        assertThat(ticketDTO.getSections()).hasSize(1);
-        V4ApprovalTicketDTO.Section sectionDTO = ticketDTO.getSections().get(0);
-        assertThat(sectionDTO.getKey()).isEqualTo(ApprovalTicket.SECTION_SUMMARY);
-        assertThat(sectionDTO.getCollapsed()).isFalse();
-        assertThat(sectionDTO.getFields()).hasSize(2);
-        assertThat(sectionDTO.getFields().get(0).getHighlight()).isTrue();
-        V4ApprovalTicketDTO.Field sensitiveField = sectionDTO.getFields().get(1);
-        assertThat(sensitiveField.getSensitive()).isTrue();
-        // 敏感字段只允许是占位符：单据里绝不能出现明文或密文
-        assertThat(sensitiveField.getValue()).doesNotContain("root");
+        assertThat(ticketDTO.getRiskLevel()).isEqualTo("HIGH");
+        assertThat(ticketDTO.getApprovalContent()).isEqualTo(ticket.getApprovalContent());
     }
 
     @SuppressWarnings("unchecked")

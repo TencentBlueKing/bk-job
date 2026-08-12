@@ -43,8 +43,9 @@ import org.springframework.stereotype.Component;
 /**
  * 审批链路的审计事件产出。
  * <p>
- * <b>发起阶段的事件必须由审批域自己产出</b>：发起走的是 dryRun，下游明确跳过了"已执行作业"的审计事件，
- * 若审批域不补这一条，审计链就在"谁用什么参数发起了这次操作"这一环断裂。
+ * <b>只在审批通过并放行时产出一条事件</b>：这条事件同时回答了"谁发起、谁审批、批的是什么操作、
+ * 放行结果如何"，是审计侧唯一需要的答案。发起、驳回、作废都不曾真正改变系统，为它们各记一条
+ * 只会把真正重要的放行事件淹没在噪声里。
  * <p>
  * <b>scope 必须显式设置</b>：流转接口（get / refresh / cancel）的请求体不继承 EsbAppScopeReq，
  * {@code JobContextUtil.getApp()} 为空，{@code AddResourceScopeAuditPostFilter} 补 scope 会失效。
@@ -73,51 +74,12 @@ public class ApprovalAuditor {
     }
 
     /**
-     * 发起审批
-     */
-    public void auditInitiate(ApprovalTaskDTO task) {
-        record(task, EventContentConstants.INITIATE_APPROVAL, context -> {
-        });
-    }
-
-    /**
-     * 放行：把"谁发起、谁审批、何时审批、放行结果"记在同一条事件上
-     */
-    public void auditRelease(ApprovalTaskDTO task) {
-        record(task, EventContentConstants.RELEASE_APPROVAL, context -> {
-            context.addAttribute(JobAuditAttributeNames.APPROVER, StringUtils.defaultString(task.getApprover()));
-            context.addAttribute(JobAuditAttributeNames.APPROVAL_RESULT,
-                StringUtils.defaultString(task.getStatus()));
-            context.addExtendData(JobAuditExtendDataKeys.APPROVAL_APPROVED_AT, task.getApprovedAt());
-            context.addExtendData(JobAuditExtendDataKeys.APPROVAL_EXECUTE_RESULT, task.getExecuteResult());
-        });
-    }
-
-    /**
-     * 渠道给出驳回结论
-     */
-    public void auditRejected(ApprovalTaskDTO task) {
-        record(task, EventContentConstants.REJECT_APPROVAL, context -> {
-            context.addAttribute(JobAuditAttributeNames.APPROVER, StringUtils.defaultString(task.getApprover()));
-            context.addExtendData(JobAuditExtendDataKeys.APPROVAL_APPROVED_AT, task.getApprovedAt());
-        });
-    }
-
-    /**
-     * 发起人主动作废
-     */
-    public void auditCancel(ApprovalTaskDTO task) {
-        record(task, EventContentConstants.CANCEL_APPROVAL, context -> {
-        });
-    }
-
-    /**
-     * 产出一条操作审计事件。
+     * 放行：把"谁发起、谁审批、何时审批、放行结果"记在同一条事件上。
      * <p>
-     * 事件在操作完成之后补记，而不是包裹操作本身：审批域的写操作都已经落库，
+     * 事件在操作完成之后补记，而不是包裹操作本身：审批任务的状态已经落库，
      * 失败路径由请求层的 {@code @AuditEntry} 记录错误结果。<b>审计失败绝不影响业务结果</b>。
      */
-    private void record(ApprovalTaskDTO task, String content, AuditContextCustomizer customizer) {
+    public void auditRelease(ApprovalTaskDTO task) {
         try {
             ResolvedSummary summary = parseSummary(task);
             String actionId = resolveActionId(task, summary);
@@ -127,7 +89,7 @@ public class ApprovalAuditor {
             }
             ApprovalOperationTypeEnum operationType = ApprovalOperationTypeEnum.valOf(task.getOperationType());
             ActionAuditContext auditContext = ActionAuditContext.builder(actionId)
-                .setContent(content)
+                .setContent(EventContentConstants.RELEASE_APPROVAL)
                 .setInstanceId(task.getApprovalTaskId())
                 .setInstanceName(instanceName(summary))
                 .addAttribute(JobAuditAttributeNames.APPROVAL_TASK_ID, task.getApprovalTaskId())
@@ -139,7 +101,14 @@ public class ApprovalAuditor {
             fillScope(auditContext, task.getAppId());
             auditContext.addExtendData(JobAuditExtendDataKeys.APPROVAL_TASK_ID, task.getApprovalTaskId());
             AuditContext.current().updateActionId(actionId);
-            auditContext.wrapActionRunnable(() -> customizer.customize(auditContext)).run();
+            auditContext.wrapActionRunnable(() -> {
+                auditContext.addAttribute(JobAuditAttributeNames.APPROVER,
+                    StringUtils.defaultString(task.getApprover()));
+                auditContext.addAttribute(JobAuditAttributeNames.APPROVAL_RESULT,
+                    StringUtils.defaultString(task.getStatus()));
+                auditContext.addExtendData(JobAuditExtendDataKeys.APPROVAL_APPROVED_AT, task.getApprovedAt());
+                auditContext.addExtendData(JobAuditExtendDataKeys.APPROVAL_EXECUTE_RESULT, task.getExecuteResult());
+            }).run();
         } catch (Exception e) {
             log.warn("Record approval audit event failed, approvalTaskId: {}", task.getApprovalTaskId(), e);
         }
@@ -216,14 +185,5 @@ public class ApprovalAuditor {
             log.warn("Parse resolved summary for audit failed, approvalTaskId: {}", task.getApprovalTaskId(), e);
             return null;
         }
-    }
-
-    /**
-     * 各阶段各自补充的事件属性
-     */
-    @FunctionalInterface
-    private interface AuditContextCustomizer {
-
-        void customize(ActionAuditContext auditContext);
     }
 }

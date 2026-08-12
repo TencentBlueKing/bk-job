@@ -129,20 +129,12 @@ public interface EventContentConstants {
     String EDIT_BUSINESS_NOTIFY_SETTINGS = "Modify business notification settings";
 
     /**
-     * 审批链路的四个阶段。因为 dryRun 跳过了下游"已执行作业"的审计事件，
-     * 发起阶段的事件只能由审批域自己产出，否则审计链在"谁发起"这一环断裂
+     * 审批链路只在"审批通过并放行"这一个时点产出审计事件：该事件同时回答了"谁发起、谁批的、批了什么、
+     * 结果如何"，而发起 / 驳回 / 作废都不曾真正改变系统，多记只会淹没这条真正重要的事件
      */
-    String INITIATE_APPROVAL = "Initiate an approval task ({{" + JobAuditAttributeNames.APPROVAL_TASK_ID
-        + "}}) for operation [{{" + JobAuditAttributeNames.APPROVAL_OPERATION_TYPE
-        + "}}] via channel [{{" + JobAuditAttributeNames.APPROVAL_CHANNEL + "}}]";
     String RELEASE_APPROVAL = "Release approval task ({{" + JobAuditAttributeNames.APPROVAL_TASK_ID
         + "}}) for operation [{{" + JobAuditAttributeNames.APPROVAL_OPERATION_TYPE
         + "}}] approved by [{{" + JobAuditAttributeNames.APPROVER
         + "}}], result [{{" + JobAuditAttributeNames.APPROVAL_RESULT + "}}]";
-    String REJECT_APPROVAL = "Approval task ({{" + JobAuditAttributeNames.APPROVAL_TASK_ID
-        + "}}) for operation [{{" + JobAuditAttributeNames.APPROVAL_OPERATION_TYPE
-        + "}}] was rejected by [{{" + JobAuditAttributeNames.APPROVER + "}}]";
-    String CANCEL_APPROVAL = "Cancel approval task ({{" + JobAuditAttributeNames.APPROVAL_TASK_ID
-        + "}}) for operation [{{" + JobAuditAttributeNames.APPROVAL_OPERATION_TYPE + "}}]";
 
 }

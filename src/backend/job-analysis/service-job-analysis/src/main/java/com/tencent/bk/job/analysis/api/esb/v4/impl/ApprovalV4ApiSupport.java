@@ -46,9 +46,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 审批相关 v4 接口的公共装配逻辑。
  * <p>
@@ -237,40 +234,8 @@ public class ApprovalV4ApiSupport {
         }
         ticketDTO.setCreator(ticket.getCreator());
         ticketDTO.setExpireAt(ticket.getExpireAt());
-        ticketDTO.setSections(toSections(ticket));
+        // 单据正文在渲染阶段就已完成脱敏，这里原样透传，不做任何还原
+        ticketDTO.setApprovalContent(ticket.getApprovalContent());
         return ticketDTO;
-    }
-
-    private List<V4ApprovalTicketDTO.Section> toSections(ApprovalTicket ticket) {
-        if (ticket.getSections() == null) {
-            return null;
-        }
-        List<V4ApprovalTicketDTO.Section> sections = new ArrayList<>(ticket.getSections().size());
-        for (ApprovalTicket.Section section : ticket.getSections()) {
-            V4ApprovalTicketDTO.Section sectionDTO = new V4ApprovalTicketDTO.Section();
-            sectionDTO.setKey(section.getKey());
-            sectionDTO.setTitle(section.getTitle());
-            sectionDTO.setCollapsed(section.isCollapsed());
-            sectionDTO.setFields(toFields(section));
-            sections.add(sectionDTO);
-        }
-        return sections;
-    }
-
-    private List<V4ApprovalTicketDTO.Field> toFields(ApprovalTicket.Section section) {
-        if (section.getFields() == null) {
-            return null;
-        }
-        List<V4ApprovalTicketDTO.Field> fields = new ArrayList<>(section.getFields().size());
-        for (ApprovalTicket.Field field : section.getFields()) {
-            V4ApprovalTicketDTO.Field fieldDTO = new V4ApprovalTicketDTO.Field();
-            fieldDTO.setLabel(field.getLabel());
-            // 敏感字段的 value 在渲染阶段就已被替换为占位符，这里原样透传，不做任何还原
-            fieldDTO.setValue(field.getValue());
-            fieldDTO.setSensitive(field.isSensitive());
-            fieldDTO.setHighlight(field.isHighlight());
-            fields.add(fieldDTO);
-        }
-        return fields;
     }
 }

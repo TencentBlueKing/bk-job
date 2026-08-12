@@ -47,20 +47,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.StringJoiner;
 
 /**
- * 默认单据渲染实现。
+ * 默认单据渲染实现：把审批任务渲染成一份 Markdown。
  * <p>
- * <b>概要区（默认展开）承担"让审批人看清要在哪些机器上执行什么"的全部责任</b>：它把 resolved_summary
- * 里解析后的实际影响面（目标机、账号、脚本、高危命中、生效的默认值）逐条摊开，高危项打 highlight。
- * 原始参数区默认折叠 —— 完整参数必须可查，但摊在最前面只会淹没关键信息、加重盲签。
+ * <b>概要表格承担"让审批人看清要在哪些机器上执行什么"的全部责任</b>：它把 resolved_summary 里解析后的
+ * 实际影响面（目标机、账号、脚本、高危命中、生效的默认值）逐行摊开，高危项加粗。脚本内容单独成章、
+ * 用代码块原样呈现 —— 塞进表格单元格会因换行被压成一行，等于让审批人看不清要执行的东西。
+ * 原始参数放在最后的 JSON 代码块里：完整参数必须可查，但摊在最前面只会淹没关键信息、加重盲签。
  * <p>
  * <b>敏感字段的呈现方式由 {@link ApprovalSensitiveFields} 统一登记</b>，本类不自行判断哪个字段敏感。
  * 脚本内容是唯一原样展示的敏感字段：不展示则审批人无从判断风险。
@@ -75,10 +73,10 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
     private static final String MASK = "******";
 
     /**
-     * 原始参数区最多展开的字段数。参数体理论上可以很大（如上千台主机的 host_id 列表），
+     * 原始参数 JSON 最多展示的字符数。参数体理论上可以很大（如上千台主机的 host_id 列表），
      * 全量摊开会把单据撑到没人看得完，反而不利于审批
      */
-    private static final int MAX_RAW_PARAM_FIELDS = 200;
+    private static final int MAX_RAW_PARAMS_LENGTH = 20000;
 
     /**
      * 执行对象列表在单据中最多逐个列出的条数，超出只给总数
@@ -86,6 +84,8 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
     private static final int MAX_LISTED_EXECUTE_OBJECTS = 20;
 
     private static final String I18N_PREFIX = "task.approval.ticket.";
+
+    private static final String LINE_SEPARATOR = "\n";
 
     private final MessageI18nService i18nService;
     private final CommonAppService appService;
@@ -104,6 +104,8 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
         ApprovalOperationTypeEnum operationType = ApprovalOperationTypeEnum.valOf(task.getOperationType());
         ResolvedSummary summary = parseSummary(task);
         BasicApp app = loadApp(task.getAppId());
+        ApprovalRiskLevelEnum riskLevel = resolveRiskLevel(summary);
+        String title = buildTitle(operationType, app, summary);
 
         ApprovalTicket ticket = new ApprovalTicket();
         ticket.setApprovalTaskId(task.getApprovalTaskId());
@@ -111,153 +113,177 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
         ticket.setCreator(task.getCreator());
         ticket.setExpireAt(task.getExpireAt());
         ticket.setScope(app == null ? null : app.getScope());
-        ApprovalRiskLevelEnum riskLevel = resolveRiskLevel(summary);
         ticket.setRiskLevel(riskLevel.name());
-        ticket.setTitle(buildTitle(operationType, app, summary));
-
-        fillSummarySection(ticket, task, operationType, app, summary, riskLevel);
-        fillRawParamsSection(ticket, task, operationType);
+        ticket.setTitle(title);
+        ticket.setApprovalContent(buildContent(task, operationType, app, summary, riskLevel, title));
         return ticket;
     }
 
+    private String buildContent(ApprovalTaskDTO task,
+                                ApprovalOperationTypeEnum operationType,
+                                BasicApp app,
+                                ResolvedSummary summary,
+                                ApprovalRiskLevelEnum riskLevel,
+                                String title) {
+        StringBuilder content = new StringBuilder();
+        appendHeading(content, 1, title);
+        appendSummary(content, task, operationType, app, summary, riskLevel);
+        appendSteps(content, summary);
+
+        // 脚本正文与原始参数出自同一份解密后的参数树：脚本被摘出去单独展示，树里只留占位符
+        List<PlainTextBlock> scriptBlocks = new ArrayList<>();
+        String rawParamsJson = renderRawParams(task, operationType, scriptBlocks);
+        appendScripts(content, scriptBlocks);
+        appendRawParams(content, rawParamsJson);
+        return content.toString();
+    }
+
     /**
-     * 概要区：默认展开
+     * 操作概要：默认最先看到的东西，用表格逐行摊开解析后的实际影响面
      */
-    private void fillSummarySection(ApprovalTicket ticket,
-                                    ApprovalTaskDTO task,
-                                    ApprovalOperationTypeEnum operationType,
-                                    BasicApp app,
-                                    ResolvedSummary summary,
-                                    ApprovalRiskLevelEnum riskLevel) {
-        ApprovalTicket.Section section = ticket.addSection(
-            ApprovalTicket.SECTION_SUMMARY, label("section.summary"), false);
-
-        section.addField(ApprovalTicket.Field.of(label("operationType"), operationName(operationType)));
-        section.addField(ApprovalTicket.Field.of(label("scope"), describeScope(app, task.getAppId())));
-        section.addField(ApprovalTicket.Field.of(label("creator"), task.getCreator()));
-        section.addField(ApprovalTicket.Field.of(label("riskLevel"), riskLevelName(riskLevel)));
+    private void appendSummary(StringBuilder content,
+                               ApprovalTaskDTO task,
+                               ApprovalOperationTypeEnum operationType,
+                               BasicApp app,
+                               ResolvedSummary summary,
+                               ApprovalRiskLevelEnum riskLevel) {
+        List<TableRow> rows = new ArrayList<>();
+        putRow(rows, label("operationType"), operationName(operationType), false);
+        putRow(rows, label("scope"), describeScope(app, task.getAppId()), false);
+        putRow(rows, label("creator"), task.getCreator(), false);
+        putRow(rows, label("riskLevel"), riskLevelName(riskLevel), riskLevel == ApprovalRiskLevelEnum.HIGH);
         if (StringUtils.isNotBlank(summary.getName())) {
-            section.addField(ApprovalTicket.Field.of(label("name"), summary.getName()));
+            putRow(rows, label("name"), summary.getName(), false);
         }
-        addResolvedFields(section, summary.getFields(), StringUtils.EMPTY);
-
+        putResolvedFields(rows, summary.getFields(), StringUtils.EMPTY);
         if (summary.getTotalExecuteObjectCount() != null) {
-            section.addField(ApprovalTicket.Field.of(label("totalExecuteObjectCount"),
-                String.valueOf(summary.getTotalExecuteObjectCount())));
+            putRow(rows, label("totalExecuteObjectCount"),
+                String.valueOf(summary.getTotalExecuteObjectCount()), false);
         }
         if (Boolean.TRUE.equals(summary.getDangerousRuleMatched())) {
-            section.addField(ApprovalTicket.Field.highlighted(
-                label("dangerousRuleMatched"), label("value.dangerousRuleMatched")));
+            putRow(rows, label("dangerousRuleMatched"), label("value.dangerousRuleMatched"), true);
         }
-        // 动态目标的实际影响面在放行时才确定，这是 B3 已知限制，必须如实披露给审批人
+        // 动态目标的实际影响面在放行时才确定，这是已知限制，必须如实披露给审批人
         if (Boolean.TRUE.equals(summary.getContainsDynamicTarget())) {
-            section.addField(ApprovalTicket.Field.highlighted(
-                label("containsDynamicTarget"), label("value.dynamicTargetHint")));
+            putRow(rows, label("containsDynamicTarget"), label("value.dynamicTargetHint"), true);
         }
-
-        List<ResolvedSummary.ResolvedStep> steps = summary.getSteps();
-        if (CollectionUtils.isNotEmpty(steps)) {
-            for (int i = 0; i < steps.size(); i++) {
-                fillStepFields(section, steps.get(i), steps.size() == 1 ? StringUtils.EMPTY
-                    : labelWithArgs("stepPrefix", i + 1));
-            }
-        }
-
         if (CollectionUtils.isNotEmpty(summary.getDefaultsApplied())) {
             // 默认生效的参数是用户没写、系统替他决定的部分，后果与显式指定完全一样，必须逐项披露
-            addResolvedFields(section, summary.getDefaultsApplied(), label("defaultPrefix"));
+            putResolvedFields(rows, summary.getDefaultsApplied(), label("defaultPrefix"));
+        }
+
+        appendHeading(content, 2, label("section.summary"));
+        appendTable(content, rows);
+    }
+
+    private void appendSteps(StringBuilder content, ResolvedSummary summary) {
+        List<ResolvedSummary.ResolvedStep> steps = summary.getSteps();
+        if (CollectionUtils.isEmpty(steps)) {
+            return;
+        }
+        for (int i = 0; i < steps.size(); i++) {
+            appendHeading(content, 2, labelWithArgs("stepPrefix", i + 1));
+            appendTable(content, buildStepRows(steps.get(i)));
         }
     }
 
-    private void fillStepFields(ApprovalTicket.Section section,
-                                ResolvedSummary.ResolvedStep step,
-                                String labelPrefix) {
-        if (StringUtils.isNotBlank(step.getName())) {
-            section.addField(ApprovalTicket.Field.of(prefixed(labelPrefix, label("step.name")), step.getName()));
-        }
-        if (StringUtils.isNotBlank(step.getExecuteType())) {
-            section.addField(ApprovalTicket.Field.of(prefixed(labelPrefix, label("step.executeType")),
-                step.getExecuteType()));
-        }
-        if (StringUtils.isNotBlank(step.getAccountAlias())) {
-            // root 等高危账号意味着目标机上不受限，必须显著标注
-            boolean highRisk = Boolean.TRUE.equals(step.getHighRiskAccount());
-            String accountLabel = prefixed(labelPrefix, label("step.account"));
-            section.addField(highRisk
-                ? ApprovalTicket.Field.highlighted(accountLabel, step.getAccountAlias())
-                : ApprovalTicket.Field.of(accountLabel, step.getAccountAlias()));
-        }
-        if (StringUtils.isNotBlank(step.getScriptName())) {
-            section.addField(ApprovalTicket.Field.of(prefixed(labelPrefix, label("step.scriptName")),
-                step.getScriptName()));
-        }
+    private List<TableRow> buildStepRows(ResolvedSummary.ResolvedStep step) {
+        List<TableRow> rows = new ArrayList<>();
+        putRow(rows, label("step.name"), step.getName(), false);
+        putRow(rows, label("step.executeType"), step.getExecuteType(), false);
+        // root 等高危账号意味着目标机上不受限，必须显著标注
+        putRow(rows, label("step.account"), step.getAccountAlias(), Boolean.TRUE.equals(step.getHighRiskAccount()));
+        putRow(rows, label("step.scriptName"), step.getScriptName(), false);
         if (step.getScriptVersionId() != null) {
-            section.addField(ApprovalTicket.Field.of(prefixed(labelPrefix, label("step.scriptVersionId")),
-                String.valueOf(step.getScriptVersionId())));
+            putRow(rows, label("step.scriptVersionId"), String.valueOf(step.getScriptVersionId()), false);
         }
-        if (StringUtils.isNotBlank(step.getDangerousCheckSummary())) {
-            section.addField(ApprovalTicket.Field.highlighted(prefixed(labelPrefix, label("step.dangerousCheck")),
-                step.getDangerousCheckSummary()));
-        }
+        putRow(rows, label("step.dangerousCheck"), step.getDangerousCheckSummary(), true);
         if (step.getExecuteObjectCount() != null) {
-            section.addField(ApprovalTicket.Field.of(prefixed(labelPrefix, label("step.executeObjectCount")),
-                String.valueOf(step.getExecuteObjectCount())));
+            putRow(rows, label("step.executeObjectCount"), String.valueOf(step.getExecuteObjectCount()), false);
         }
-        String executeObjects = describeExecuteObjects(step);
-        if (executeObjects != null) {
-            section.addField(ApprovalTicket.Field.of(prefixed(labelPrefix, label("step.executeObjects")),
-                executeObjects));
-        }
+        putRow(rows, label("step.executeObjects"), describeExecuteObjects(step), false);
         if (Boolean.TRUE.equals(step.getContainsDynamicTarget())) {
-            section.addField(ApprovalTicket.Field.highlighted(prefixed(labelPrefix, label("containsDynamicTarget")),
-                label("value.dynamicTargetHint")));
+            putRow(rows, label("containsDynamicTarget"), label("value.dynamicTargetHint"), true);
         }
-        addResolvedFields(section, step.getFields(), labelPrefix);
+        putResolvedFields(rows, step.getFields(), StringUtils.EMPTY);
+        return rows;
     }
 
     /**
-     * 原始参数区：默认折叠，敏感字段只出占位符
+     * 脚本内容：唯一原样展示的敏感字段，用代码块承载，换行与缩进都保持原样
      */
-    private void fillRawParamsSection(ApprovalTicket ticket,
-                                      ApprovalTaskDTO task,
-                                      ApprovalOperationTypeEnum operationType) {
-        ApprovalTicket.Section section = ticket.addSection(
-            ApprovalTicket.SECTION_RAW_PARAMS, label("section.rawParams"), true);
-        if (StringUtils.isBlank(task.getOperationParams())) {
+    private void appendScripts(StringBuilder content, List<PlainTextBlock> scriptBlocks) {
+        if (CollectionUtils.isEmpty(scriptBlocks)) {
             return;
+        }
+        appendHeading(content, 2, label("section.scriptContent"));
+        for (PlainTextBlock block : scriptBlocks) {
+            content.append('`').append(block.path).append('`').append(LINE_SEPARATOR).append(LINE_SEPARATOR);
+            appendCodeBlock(content, StringUtils.EMPTY, block.value);
+        }
+    }
+
+    private void appendRawParams(StringBuilder content, String rawParamsJson) {
+        if (rawParamsJson == null) {
+            appendHeading(content, 2, label("section.rawParams"));
+            content.append(label("value.rawParamsRenderFail")).append(LINE_SEPARATOR).append(LINE_SEPARATOR);
+            return;
+        }
+        if (rawParamsJson.isEmpty()) {
+            // 没有参数快照可展示时连标题都不出：空章节只会让人以为单据渲染缺了东西
+            return;
+        }
+        appendHeading(content, 2, label("section.rawParams"));
+        appendCodeBlock(content, "json", rawParamsJson);
+    }
+
+    /**
+     * 把参数快照渲染成脱敏后的 JSON 文本，同时把 PLAIN_TEXT 类敏感字段（脚本内容）摘出到
+     * {@code scriptBlocks}，树里只留一个指向脚本章节的占位符。
+     *
+     * @return 脱敏后的 JSON 文本；无参数快照时为空串，渲染失败时为 null
+     */
+    private String renderRawParams(ApprovalTaskDTO task,
+                                   ApprovalOperationTypeEnum operationType,
+                                   List<PlainTextBlock> scriptBlocks) {
+        if (StringUtils.isBlank(task.getOperationParams())) {
+            return StringUtils.EMPTY;
         }
         JsonNode root;
         try {
             root = JsonUtils.toJsonNode(paramsCryptoService.decryptSensitiveFields(
                 operationType, task.getOperationParams()));
         } catch (Exception e) {
-            // 参数区渲染失败不能让整张单据出不来：概要区仍然可用，审批人至少不是完全瞎的
+            // 参数区渲染失败不能让整张单据出不来：概要与步骤仍然可用，审批人至少不是完全瞎的
             log.error("Render raw params failed, approvalTaskId: {}", task.getApprovalTaskId(), e);
-            root = null;
+            return null;
         }
         if (root == null) {
-            section.addField(ApprovalTicket.Field.of(label("section.rawParams"), label("value.rawParamsRenderFail")));
-            return;
+            return null;
         }
-
-        Set<String> sensitivePaths = new HashSet<>();
         for (SensitiveField field : ApprovalSensitiveFields.of(operationType)) {
-            applyTicketDisplay(root, field, 0, StringUtils.EMPTY, sensitivePaths);
+            applyTicketDisplay(root, field, 0, StringUtils.EMPTY, scriptBlocks);
         }
-        flatten(root, StringUtils.EMPTY, section, sensitivePaths);
+        // 统一换行符：Jackson 的缩进输出跟随运行平台，不统一会让同一份单据在不同节点上长得不一样
+        String json = root.toPrettyString().replace("\r\n", LINE_SEPARATOR);
+        if (json.length() > MAX_RAW_PARAMS_LENGTH) {
+            return json.substring(0, MAX_RAW_PARAMS_LENGTH) + LINE_SEPARATOR
+                + labelWithArgs("value.rawParamsTruncated", MAX_RAW_PARAMS_LENGTH);
+        }
+        return json;
     }
 
     /**
-     * 按登记的呈现方式改写敏感字段的值，并记录哪些扁平化路径是敏感字段。
+     * 按登记的呈现方式改写敏感字段的值。
      * <p>
-     * <b>改写发生在扁平化之前</b>：先把树里的敏感值换成占位符，再逐叶子输出，
-     * 这样即便敏感字段藏在数组元素里，也不会有任何一条 Field 的 value 携带原值。
+     * <b>改写发生在输出之前</b>：先把树里的敏感值换成占位符，再整棵树序列化输出，
+     * 这样即便敏感字段藏在数组元素里，输出的 JSON 里也不会有任何一处携带原值。
      */
     private void applyTicketDisplay(JsonNode node,
                                     SensitiveField field,
                                     int depth,
                                     String pathPrefix,
-                                    Set<String> sensitivePaths) {
+                                    List<PlainTextBlock> scriptBlocks) {
         if (node == null || node.isNull()) {
             return;
         }
@@ -270,7 +296,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
             }
             for (int i = 0; i < node.size(); i++) {
                 applyTicketDisplay(node.get(i), field, depth + 1,
-                    pathPrefix + "[" + i + "]", sensitivePaths);
+                    pathPrefix + "[" + i + "]", scriptBlocks);
             }
             return;
         }
@@ -280,7 +306,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
         ObjectNode objectNode = (ObjectNode) node;
         String childPath = joinPath(pathPrefix, segment);
         if (!lastSegment) {
-            applyTicketDisplay(objectNode.get(segment), field, depth + 1, childPath, sensitivePaths);
+            applyTicketDisplay(objectNode.get(segment), field, depth + 1, childPath, scriptBlocks);
             return;
         }
         JsonNode leaf = objectNode.get(segment);
@@ -296,19 +322,17 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
         }
         switch (field.getTicketDisplay()) {
             case PLAIN_TEXT:
-                // 脚本内容：审批人要审的对象本身，不展示等于盲签
-                if (field.isBase64Encoded()) {
-                    objectNode.put(segment, decodeBase64(leaf.asText()));
-                }
+                // 脚本内容：审批人要审的对象本身，摘出来单独用代码块展示，不展示等于盲签
+                scriptBlocks.add(new PlainTextBlock(childPath,
+                    field.isBase64Encoded() ? decodeBase64(leaf.asText()) : leaf.asText()));
+                objectNode.put(segment, label("value.scriptInSection"));
                 break;
             case PASSWORD_PROVIDED:
                 objectNode.put(segment, label("value.passwordProvided"));
-                sensitivePaths.add(childPath);
                 break;
             case MASKED:
             default:
                 objectNode.put(segment, MASK);
-                sensitivePaths.add(childPath);
                 break;
         }
     }
@@ -329,48 +353,6 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
             node = node.get(segment);
         }
         return node != null && node.asBoolean(false);
-    }
-
-    /**
-     * 把 JSON 树摊成"路径 - 值"的字段列表。标量叶子逐条输出，方便渠道逐行展示
-     */
-    private void flatten(JsonNode node, String path, ApprovalTicket.Section section, Set<String> sensitivePaths) {
-        if (node == null || node.isNull()) {
-            return;
-        }
-        if (isFieldLimitReached(section)) {
-            return;
-        }
-        if (node.isObject()) {
-            Iterator<Map.Entry<String, JsonNode>> it = node.fields();
-            while (it.hasNext()) {
-                Map.Entry<String, JsonNode> entry = it.next();
-                flatten(entry.getValue(), joinPath(path, entry.getKey()), section, sensitivePaths);
-            }
-            return;
-        }
-        if (node.isArray()) {
-            for (int i = 0; i < node.size(); i++) {
-                flatten(node.get(i), path + "[" + i + "]", section, sensitivePaths);
-            }
-            return;
-        }
-        boolean sensitive = sensitivePaths.contains(path);
-        section.addField(sensitive
-            ? ApprovalTicket.Field.sensitive(path, node.asText())
-            : ApprovalTicket.Field.of(path, node.asText()));
-    }
-
-    private boolean isFieldLimitReached(ApprovalTicket.Section section) {
-        List<ApprovalTicket.Field> fields = section.getFields();
-        if (fields == null || fields.size() < MAX_RAW_PARAM_FIELDS) {
-            return false;
-        }
-        if (fields.size() == MAX_RAW_PARAM_FIELDS) {
-            section.addField(ApprovalTicket.Field.of(label("rawParams.truncated"),
-                labelWithArgs("value.rawParamsTruncated", MAX_RAW_PARAM_FIELDS)));
-        }
-        return true;
     }
 
     /**
@@ -445,7 +427,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
         return value.toString();
     }
 
-    private void addResolvedFields(ApprovalTicket.Section section,
+    private void putResolvedFields(List<TableRow> rows,
                                    List<ResolvedSummary.ResolvedField> fields,
                                    String labelPrefix) {
         if (CollectionUtils.isEmpty(fields)) {
@@ -453,10 +435,74 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
         }
         for (ResolvedSummary.ResolvedField field : fields) {
             String fieldLabel = prefixed(labelPrefix, resolvedFieldLabel(field.getLabel()));
-            section.addField(field.isHighlight()
-                ? ApprovalTicket.Field.highlighted(fieldLabel, field.getValue())
-                : ApprovalTicket.Field.of(fieldLabel, field.getValue()));
+            putRow(rows, fieldLabel, field.getValue(), field.isHighlight());
         }
+    }
+
+    /**
+     * 值为空的行直接不出现：空行只会占满审批人的视线。{@code highlight} 的行加粗，
+     * 这是 Markdown 里唯一稳定可用的"显著标注"手段
+     */
+    private void putRow(List<TableRow> rows, String label, String value, boolean highlight) {
+        if (StringUtils.isBlank(value)) {
+            return;
+        }
+        String cellValue = escapeTableCell(value);
+        rows.add(new TableRow(highlight ? bold(label) : label, highlight ? bold(cellValue) : cellValue));
+    }
+
+    private void appendTable(StringBuilder content, List<TableRow> rows) {
+        content.append("| ").append(label("table.item")).append(" | ").append(label("table.value"))
+            .append(" |").append(LINE_SEPARATOR)
+            .append("| --- | --- |").append(LINE_SEPARATOR);
+        for (TableRow row : rows) {
+            content.append("| ").append(row.label).append(" | ").append(row.value)
+                .append(" |").append(LINE_SEPARATOR);
+        }
+        content.append(LINE_SEPARATOR);
+    }
+
+    private void appendHeading(StringBuilder content, int level, String text) {
+        content.append(StringUtils.repeat('#', level)).append(' ').append(StringUtils.defaultString(text))
+            .append(LINE_SEPARATOR).append(LINE_SEPARATOR);
+    }
+
+    /**
+     * 围栏按内容里最长的连续反引号加长，避免脚本本身含 ``` 时把代码块提前闭合、后续内容被当成正文
+     */
+    private void appendCodeBlock(StringBuilder content, String language, String code) {
+        String fence = StringUtils.repeat('`', Math.max(3, longestBacktickRun(code) + 1));
+        content.append(fence).append(language).append(LINE_SEPARATOR)
+            .append(code).append(LINE_SEPARATOR)
+            .append(fence).append(LINE_SEPARATOR).append(LINE_SEPARATOR);
+    }
+
+    private int longestBacktickRun(String text) {
+        int longest = 0;
+        int current = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '`') {
+                current++;
+                longest = Math.max(longest, current);
+            } else {
+                current = 0;
+            }
+        }
+        return longest;
+    }
+
+    /**
+     * 表格单元格里的竖线会切断列，换行会把一行截成两行：前者转义，后者换成 {@code <br>}
+     */
+    private String escapeTableCell(String value) {
+        return value.replace("|", "\\|")
+            .replace("\r\n", "<br>")
+            .replace("\n", "<br>")
+            .replace("\r", "<br>");
+    }
+
+    private String bold(String text) {
+        return "**" + text + "**";
     }
 
     /**
@@ -548,5 +594,35 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
 
     private String prefixed(String prefix, String label) {
         return StringUtils.isEmpty(prefix) ? label : prefix + " " + label;
+    }
+
+    /**
+     * 概要表格的一行
+     */
+    private static class TableRow {
+
+        private final String label;
+
+        private final String value;
+
+        TableRow(String label, String value) {
+            this.label = label;
+            this.value = value;
+        }
+    }
+
+    /**
+     * 一段从参数树里摘出来、原样展示的文本（目前只有脚本内容）
+     */
+    private static class PlainTextBlock {
+
+        private final String path;
+
+        private final String value;
+
+        PlainTextBlock(String path, String value) {
+            this.path = path;
+            this.value = value;
+        }
     }
 }

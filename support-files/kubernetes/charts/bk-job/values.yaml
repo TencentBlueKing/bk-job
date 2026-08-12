@@ -1957,6 +1957,34 @@ analysisConfig:
       maxKeepDays: 31
       # 单个用户最大保留的对话记录数量，默认1000条
       maxHistoryPerUser: 1000
+  # 审批相关配置，带审批的执行类接口（fast_execute_script_with_approval等）依赖此处的渠道配置
+  approval:
+    # 审批任务TTL，单位小时。TTL越长，参数快照在库中驻留越久、动态分组目标的漂移窗口越大
+    ttlHours: 8
+    # 调用方未指定审批渠道时使用的默认渠道，当前支持的取值：IMATE
+    defaultChannel: IMATE
+    # 审批任务记录的保留天数。审批记录是安全审计凭据，且参数快照含加密后的敏感数据，保留期越长数据面越大
+    maxKeepDays: 30
+    # "疑似秒批"监控指标的阈值，单位毫秒：审批通过时刻与发起时刻之差小于该值即计数
+    fastApproveThresholdMillis: 5000
+    # 各审批渠道的配置。渠道地址与appCode一律由服务端配置决定，调用方只能传渠道枚举值
+    channels:
+      # IMate审批渠道
+      imate:
+        # 渠道服务地址
+        url: ""
+        # 该渠道取单时使用的appCode。取单接口据此校验"调用方正是该任务指派的渠道"，
+        # 留空或配错会导致审批渠道取不到单据内容
+        appCode: ""
+        # Mock渠道配置，仅用于IMate回查接口就绪之前的自测
+        mock:
+          # 是否启用Mock渠道，默认不启用。启用后审批结果不再向真实渠道回查，因此在生产环境
+          # （job.profile含prod）下启用会直接导致job-analysis启动失败。
+          # 该开关决定Mock渠道Bean是否注册，只能在启动前就位，改动后必须重启job-analysis
+          enabled: false
+          # 视为"审批通过"的ID列表：与审批任务ID(approval_task_id)或审批单据ID(approval_ticket_id)
+          # 任一相等即算通过，其余一律视为未通过。该项随可热刷新的配置下发，改动无需重启job-analysis
+          approvedIds: []
   mysql:
     slowSql:
       # 是否打印慢查询SQL语句到日志中

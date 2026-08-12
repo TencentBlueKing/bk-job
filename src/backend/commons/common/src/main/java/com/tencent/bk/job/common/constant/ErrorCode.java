@@ -582,7 +582,7 @@ public class ErrorCode {
     public static final int APPROVAL_TASK_STATUS_NOT_ALLOWED = 1264008;
     // 审批单据ID与该任务已绑定的单据不一致
     public static final int APPROVAL_TICKET_ID_MISMATCH = 1264009;
-    // 审批渠道回查响应未回带匹配的审批任务ID，无法确认单据与任务的绑定关系
+    // 审批单据与审批任务的绑定关系不正确
     public static final int APPROVAL_TASK_ID_BINDING_MISMATCH = 1264010;
     // 审批人必须为发起人本人
     public static final int APPROVAL_APPROVER_NOT_CREATOR = 1264011;
@@ -594,7 +594,5 @@ public class ErrorCode {
     public static final int APPROVAL_TICKET_ACCESS_DENIED = 1264014;
     // 审批放行后执行失败：{0}
     public static final int APPROVAL_OPERATION_EXECUTE_FAIL = 1264015;
-    // 审批期间系统已升级，参数格式发生变化，请重新发起审批
-    public static final int APPROVAL_PARAMS_SCHEMA_MISMATCH = 1264016;
     // 统计分析服务job-analysis错误码 end
 }

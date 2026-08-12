@@ -41,16 +41,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * 单元测试 - IMate 渠道 Mock 实现。
  * <p>
- * 锁定 Mock 的四条约束：默认 PENDING、桩数据原样回传不自动填充、生产 profile 下启动失败。
+ * 锁定 Mock 的三条约束：未登记的 ID 一律 PENDING（不存在任何把默认结论改成 APPROVED 的开关）、
+ * 任务 ID 与单据 ID 任一命中即通过、生产 profile 下开启直接启动失败。
  */
 class MockImateApprovalChannelTest {
 
-    private static final String TASK_ID = "approval-task-1";
+    private static final String TASK_ID = "3f8a9b1c2d3e4f5061728394a5b6c7d8";
     private static final String TICKET_ID = "IMATE-0001";
 
     @Test
-    @DisplayName("未登记的单据一律返回 PENDING，绝不自动放行")
-    void givenUnregisteredTicketThenReturnPending() {
+    @DisplayName("未登记任何 ID 时一律返回 PENDING，绝不自动放行")
+    void givenNoApprovedIdThenReturnPending() {
         MockImateApprovalChannel channel = buildChannel(new ApprovalProperties());
 
         ApprovalResult result = channel.queryResult(buildTask(), TICKET_ID);
@@ -62,17 +63,52 @@ class MockImateApprovalChannelTest {
     }
 
     @Test
-    @DisplayName("桩数据原样回传，不自动填充 approvalTaskId 与 approver")
-    void givenRegisteredTicketThenReturnStubAsIs() {
-        ApprovalProperties properties = buildPropertiesWithStub("wrong-task-id", "someone_else");
-        MockImateApprovalChannel channel = buildChannel(properties);
+    @DisplayName("登记了别的 ID 时仍然返回 PENDING：只有命中才算通过")
+    void givenOtherApprovedIdThenReturnPending() {
+        MockImateApprovalChannel channel = buildChannel(buildProperties("some-other-id"));
+
+        ApprovalResult result = channel.queryResult(buildTask(), TICKET_ID);
+
+        assertThat(result.getStatus()).isEqualTo(ApprovalResultStatusEnum.PENDING);
+    }
+
+    @Test
+    @DisplayName("命中单据 ID 即视为通过：单据 ID 由调用方自由指定，配一个约定值就能反复自测")
+    void givenApprovedTicketIdThenApproved() {
+        MockImateApprovalChannel channel = buildChannel(buildProperties(TICKET_ID));
 
         ApprovalResult result = channel.queryResult(buildTask(), TICKET_ID);
 
         assertThat(result.getStatus()).isEqualTo(ApprovalResultStatusEnum.APPROVED);
-        // 填错的绑定证明与审批人被原样带出，交由放行校验链拒绝，Mock 不做任何"修正"
-        assertThat(result.getApprovalTaskId()).isEqualTo("wrong-task-id");
-        assertThat(result.getApprover()).isEqualTo("someone_else");
+        // Mock 期绑定证明与 approver == creator 自动满足，这两项校验只有对接真实渠道后才真正被检验
+        assertThat(result.getApprovalTaskId()).isEqualTo(TASK_ID);
+        assertThat(result.getApprover()).isEqualTo("admin");
+        assertThat(result.getApprovedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("命中任务 ID 也视为通过：适合精确放行某一单")
+    void givenApprovedTaskIdThenApproved() {
+        MockImateApprovalChannel channel = buildChannel(buildProperties(TASK_ID));
+
+        ApprovalResult result = channel.queryResult(buildTask(), TICKET_ID);
+
+        assertThat(result.getStatus()).isEqualTo(ApprovalResultStatusEnum.APPROVED);
+        assertThat(result.getApprovalTaskId()).isEqualTo(TASK_ID);
+    }
+
+    @Test
+    @DisplayName("通过 ID 列表每次回查都重新读取，改配置后无需重启即可生效")
+    void givenApprovedIdsChangedThenTakeEffectWithoutRestart() {
+        ApprovalProperties properties = new ApprovalProperties();
+        MockImateApprovalChannel channel = buildChannel(properties);
+        assertThat(channel.queryResult(buildTask(), TICKET_ID).getStatus())
+            .isEqualTo(ApprovalResultStatusEnum.PENDING);
+
+        properties.getChannels().getImate().getMock().setApprovedIds(Collections.singletonList(TICKET_ID));
+
+        assertThat(channel.queryResult(buildTask(), TICKET_ID).getStatus())
+            .isEqualTo(ApprovalResultStatusEnum.APPROVED);
     }
 
     @Test
@@ -93,14 +129,10 @@ class MockImateApprovalChannelTest {
         return new MockImateApprovalChannel(properties, environment);
     }
 
-    private ApprovalProperties buildPropertiesWithStub(String approvalTaskId, String approver) {
-        ApprovalProperties.MockApprovedTicket ticket = new ApprovalProperties.MockApprovedTicket();
-        ticket.setTicketId(TICKET_ID);
-        ticket.setApprovalTaskId(approvalTaskId);
-        ticket.setApprover(approver);
+    private ApprovalProperties buildProperties(String approvedId) {
         ApprovalProperties properties = new ApprovalProperties();
         properties.getChannels().getImate().getMock().setEnabled(true);
-        properties.getChannels().getImate().getMock().setApprovedTickets(Collections.singletonList(ticket));
+        properties.getChannels().getImate().getMock().setApprovedIds(Collections.singletonList(approvedId));
         return properties;
     }
 

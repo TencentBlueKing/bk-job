@@ -28,6 +28,7 @@ import com.tencent.bk.job.analysis.approval.consts.ApprovalStatusEnum;
 import com.tencent.bk.job.analysis.dao.ApprovalTaskDAO;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
+import com.tencent.bk.job.common.util.JobUUID;
 import org.h2.jdbcx.JdbcDataSource;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultDSLContext;
@@ -42,7 +43,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -243,12 +243,11 @@ class ApprovalTaskDAOImplIntegrationTest {
 
     private String insertTask(ApprovalStatusEnum status, long createTime, long expireAt) {
         ApprovalTaskDTO task = new ApprovalTaskDTO();
-        task.setApprovalTaskId(UUID.randomUUID().toString());
+        task.setApprovalTaskId(JobUUID.getUUID());
         task.setTenantId("default");
         task.setAppId(2L);
         task.setOperationType("FAST_EXECUTE_SCRIPT");
         task.setOperationParams("{\"bk_scope_type\":\"biz\"}");
-        task.setParamsSchemaVersion(1);
         task.setResolvedSummary("{\"totalExecuteObjectCount\":1}");
         task.setCreator("admin");
         task.setAppCode("bk_test");

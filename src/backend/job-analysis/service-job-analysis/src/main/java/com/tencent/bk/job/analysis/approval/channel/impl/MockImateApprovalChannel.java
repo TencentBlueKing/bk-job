@@ -42,19 +42,21 @@ import java.util.List;
 /**
  * IMate 渠道的 Mock 实现，用于 IMate 回查接口就绪之前的自测。
  * <p>
- * <b>Mock 的四条约束一条都不能松，它们是这套机制在依赖未就绪期间的全部安全保障</b>：
+ * 结论只看一件事：<b>审批任务 ID 或审批单据 ID 是否命中配置里登记的"视为审批通过"列表</b>，命中即 APPROVED，
+ * 其余一律 PENDING。之所以两个 ID 都认，是因为单据 ID 由调用方在放行时自由指定，配一个约定值就能反复自测，
+ * 而任务 ID 要发起之后才知道、适合精确放行某一单。
+ * <p>
+ * <b>放宽只到这里为止，两条底线不能动</b>：
  * <ol>
- *     <li><b>默认一律返回 PENDING，绝不返回 APPROVED</b>。即 Mock 期间"放行"这条路径默认走不通，
- *     功能上表现为"审批中"。配置里不存在任何能把默认结论改成 APPROVED 的开关。</li>
- *     <li>放行只能靠<b>显式登记、且自带完整绑定证明</b>的桩数据：桩数据必须同时提供 approvalTaskId 与 approver，
- *     <b>Mock 只如实回传、不做任何自动填充</b>。于是放行校验链里的绑定证明与"approver == creator"
- *     在 Mock 模式下照常执行、照常可能失败 —— Mock 替换的只是"结论从哪来"，
- *     没有削弱"结论怎么校验"。桩数据里的 approvalTaskId 填错，放行依然被拒。</li>
+ *     <li><b>默认一律返回 PENDING，绝不返回 APPROVED</b>：配置里不存在任何能把默认结论改成 APPROVED 的开关；</li>
  *     <li>开关默认 false，生产 values 模板中不出现 mock 节点；一旦在生产 profile 下被开启，
  *     <b>直接启动失败</b>，把误配置从"线上静默降级"变成"部署期暴露"；开启时打显著 WARN 日志便于巡检发现。</li>
- *     <li>切换到真实实现时，<b>放行校验链一行都不用改</b>：校验链在 Mock 期就已在真实执行，
- *     回归范围仅限渠道实现本身。</li>
  * </ol>
+ * <p>
+ * <b>注意：Mock 期间"绑定证明"与"approver == creator"这两项校验会自动满足</b> —— 本类回带的
+ * approvalTaskId 就取自任务本身、approver 就取自任务的 creator。这是为自测便利付出的代价：
+ * <b>Mock 下跑通不等于放行校验链有效</b>，那两项校验只有对接真实渠道后才真正被检验。
+ * 反过来，本类的放宽<b>只发生在渠道实现内部</b>，放行校验链一行都没改，切换到真实实现时也不需要改。
  */
 @Slf4j
 @Component
@@ -73,8 +75,8 @@ public class MockImateApprovalChannel implements ApprovalChannel {
         checkNotProductionProfile(environment);
         log.warn("!!! Approval channel IMATE is running in MOCK mode, DO NOT use it in production !!! "
             + "Approval results are NOT queried from the real approval channel. "
-            + "Registered mock approved tickets: {}",
-            CollectionUtils.size(approvalProperties.getChannels().getImate().getMock().getApprovedTickets()));
+            + "Registered mock approved id count: {}",
+            CollectionUtils.size(approvalProperties.getChannels().getImate().getMock().getApprovedIds()));
     }
 
     @Override
@@ -84,35 +86,26 @@ public class MockImateApprovalChannel implements ApprovalChannel {
 
     @Override
     public ApprovalResult queryResult(ApprovalTaskDTO task, String approvalTicketId) {
-        List<ApprovalProperties.MockApprovedTicket> approvedTickets =
-            approvalProperties.getChannels().getImate().getMock().getApprovedTickets();
-        ApprovalProperties.MockApprovedTicket stub = null;
-        if (CollectionUtils.isNotEmpty(approvedTickets)) {
-            stub = approvedTickets.stream()
-                .filter(ticket -> approvalTicketId != null && approvalTicketId.equals(ticket.getTicketId()))
-                .findFirst()
-                .orElse(null);
-        }
-        if (stub == null) {
-            // 未登记即"审批尚未完成"。这里绝不能兜底成 APPROVED
-            log.info("Mock approval channel: ticket {} is not registered as approved, return PENDING",
-                approvalTicketId);
-            return buildPendingResult();
-        }
+        List<String> approvedIds = approvalProperties.getChannels().getImate().getMock().getApprovedIds();
+        boolean approved = containsId(approvedIds, task.getApprovalTaskId())
+            || containsId(approvedIds, approvalTicketId);
         ApprovalResult result = new ApprovalResult();
+        if (!approved) {
+            // 未登记即"审批尚未完成"。这里绝不能兜底成 APPROVED
+            log.info("Mock approval channel: neither approvalTaskId {} nor approvalTicketId {} is registered "
+                + "as approved, return PENDING", task.getApprovalTaskId(), approvalTicketId);
+            result.setStatus(ApprovalResultStatusEnum.PENDING);
+            return result;
+        }
         result.setStatus(ApprovalResultStatusEnum.APPROVED);
-        // 原样回传桩数据，不做任何自动填充：填错的绑定证明或审批人必须让校验链拒掉
-        result.setApprovalTaskId(stub.getApprovalTaskId());
-        result.setApprover(stub.getApprover());
-        result.setApprovedAt(stub.getApprovedAt() == null ? System.currentTimeMillis() : stub.getApprovedAt());
-        result.setComment(stub.getComment());
+        result.setApprovalTaskId(task.getApprovalTaskId());
+        result.setApprover(task.getCreator());
+        result.setApprovedAt(System.currentTimeMillis());
         return result;
     }
 
-    private ApprovalResult buildPendingResult() {
-        ApprovalResult result = new ApprovalResult();
-        result.setStatus(ApprovalResultStatusEnum.PENDING);
-        return result;
+    private boolean containsId(List<String> approvedIds, String id) {
+        return id != null && CollectionUtils.isNotEmpty(approvedIds) && approvedIds.contains(id);
     }
 
     private void checkNotProductionProfile(Environment environment) {

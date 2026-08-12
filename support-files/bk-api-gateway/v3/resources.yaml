@@ -9866,40 +9866,9 @@ paths:
                       expire_at:
                         type: number
                         description: 审批任务过期时刻，Unix时间戳，单位毫秒；过期后不可再放行
-                      sections:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            key:
-                              type: string
-                              description: '区块标识。可选值: summary - 操作概要区，raw_params - 原始参数区'
-                            title:
-                              type: string
-                              description: 区块标题
-                            collapsed:
-                              type: boolean
-                              description: '渲染建议。可选值: true - 建议默认折叠, false - 建议默认展开。渠道不支持折叠时全部展开也不影响正确性'
-                            fields:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  label:
-                                    type: string
-                                    description: 字段展示名
-                                  value:
-                                    type: string
-                                    description: 字段值；sensitive为true时此处仅为占位符，不含真实值
-                                  sensitive:
-                                    type: boolean
-                                    description: '是否为敏感字段。可选值: true - 服务端已将其替换为占位符, false - 为真实值'
-                                  highlight:
-                                    type: boolean
-                                    description: '是否为需要显著标注的高危项，如root账号、命中高危脚本规则、动态分组目标。可选值: true - 需显著标注, false - 普通字段'
-                              description: 区块内的字段列表
-                          description: 单据区块
-                        description: 单据内容区块列表，至少包含操作概要区与原始参数区
+                      approval_content:
+                        type: string
+                        description: 单据正文，Markdown格式，由作业平台渲染完成，审批渠道直接展示即可。依次包含操作概要表格（操作类型、资源范围、发起人、风险等级、执行对象清单、生效的默认值等）、各执行步骤的明细表格、脚本内容代码块、原始参数JSON代码块。密码类敏感字段的值仅为占位符，不含真实值，脚本内容例外、原样展示；目标含动态分组或拓扑节点时正文中会给出「放行时重新解析」的提示
                     description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
           description: ''
         '400':
