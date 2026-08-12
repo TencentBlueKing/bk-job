@@ -283,7 +283,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             esbGlobalVarV3DTO.setType(taskVariableDTO.getType());
             if (TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType() == taskVariableDTO.getType()) {
                 esbGlobalVarV3DTO.setValue(CronJobVariableDTO.validateExecuteAccountValue(
-                    esbGlobalVarV3DTO.getValue()));
+                    esbGlobalVarV3DTO.getValue(), taskVariableDTO.getName()));
             }
         }
         cronJobInfo.setVariableValue(globalVarV3DTOList.stream().map(globalVarV3DTO -> {

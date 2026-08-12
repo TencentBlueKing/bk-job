@@ -90,6 +90,13 @@ public class TaskStepDTO {
     private List<TaskVariableDTO> refVariables;
 
     /**
+     * 判断步骤是否标记为删除。
+     */
+    public boolean isDeleted() {
+        return delete != null && delete == 1;
+    }
+
+    /**
      * 转 Web VO；若需 {@code ref_variables}，须先经 {@link com.tencent.bk.job.manage.manager.variable.StepRefVariableParser} 填充 {@link #refVariables}。
      */
     public static TaskStepVO toVO(TaskStepDTO taskStep) {

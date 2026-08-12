@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.manage.api.common.ExecuteAccountVariableValidator;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
@@ -61,16 +62,19 @@ public class TaskPlanVarUpdateServiceImpl implements TaskPlanVarUpdateService {
     private final TaskPlanDAO taskPlanDAO;
     private final AbstractTaskStepService taskPlanStepService;
     private final AbstractTaskVariableService taskPlanVariableService;
+    private final ExecuteAccountVariableValidator executeAccountVariableValidator;
 
     @Autowired
     public TaskPlanVarUpdateServiceImpl(
         TaskPlanDAO taskPlanDAO,
         @Qualifier("TaskPlanStepServiceImpl") AbstractTaskStepService taskPlanStepService,
-        @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService
+        @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService,
+        ExecuteAccountVariableValidator executeAccountVariableValidator
     ) {
         this.taskPlanDAO = taskPlanDAO;
         this.taskPlanStepService = taskPlanStepService;
         this.taskPlanVariableService = taskPlanVariableService;
+        this.executeAccountVariableValidator = executeAccountVariableValidator;
     }
 
     @Override
@@ -97,6 +101,8 @@ public class TaskPlanVarUpdateServiceImpl implements TaskPlanVarUpdateService {
                 if (CollectionUtils.isEmpty(updatableVariables)) {
                     continue;
                 }
+                executeAccountVariableValidator.validate(originPlan.getAppId(), originPlan.getStepList(),
+                    updatableVariables);
 
                 if (taskPlanVariableService.batchUpdateVariableByName(updatableVariables)) {
                     if (taskPlanDAO.updateTaskPlanById(planInfo)) {

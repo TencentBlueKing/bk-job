@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.check.ParamCheckUtil;
 import com.tencent.bk.job.crontab.model.CronJobVariableVO;
 import com.tencent.bk.job.crontab.model.inner.ServerDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
@@ -102,26 +103,19 @@ public class CronJobVariableDTO implements Cloneable {
         if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == variableInfo.getType()) {
             variableInfo.setServer(ServerDTO.fromTargetVO(variableVO.getTargetValue()));
         } else if (TaskVariableTypeEnum.EXECUTE_ACCOUNT == variableInfo.getType()) {
-            variableInfo.setValue(validateExecuteAccountValue(variableVO.getValue()));
+            variableInfo.setValue(validateExecuteAccountValue(variableVO.getValue(), variableVO.getName()));
         } else {
             variableInfo.setValue(variableVO.getValue());
         }
         return variableInfo;
     }
 
-    public static String validateExecuteAccountValue(String value) {
+    public static String validateExecuteAccountValue(String value, String variableName) {
         String accountValue = StringUtils.trim(value);
         if (StringUtils.isBlank(accountValue)) {
             return accountValue;
         }
-        try {
-            Long accountId = Long.valueOf(accountValue);
-            if (accountId <= 0) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-            }
-        } catch (NumberFormatException e) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
+        ParamCheckUtil.parseExecuteAccountId(accountValue, variableName);
         return accountValue;
     }
 
