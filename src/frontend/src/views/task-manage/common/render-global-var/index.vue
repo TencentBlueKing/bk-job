@@ -77,7 +77,7 @@
                   {{ item.name }}
                 </div>
                 <div class="variable-description">
-                  {{ item.valueText }}
+                  {{ getItemValueText(item) }}
                 </div>
               </div>
               <bk-popover
@@ -158,6 +158,7 @@
       </div>
       <popover-detail
         v-if="currentPopoverDetail.name"
+        :account-list="accountList"
         :data="currentPopoverDetail"
         :default-field="defaultField"
         :edit-of-plan="isEditOfPlan"
@@ -177,6 +178,7 @@
         :title="$t('template.查看全局变量')">
         <detail
           v-if="isShowDetail"
+          :account-list="accountList"
           :data="currentData"
           :default-field="defaultField" />
       </jb-sideslider>
@@ -231,6 +233,8 @@
   </div>
 </template>
 <script>
+  import AccountManageService from '@service/account-manage';
+
   import VariableModel from '@model/task/global-variable';
 
   import I18n from '@/i18n';
@@ -302,6 +306,7 @@
         currentIndex: -1,
         currentOperation: 'create',
         detailMedia: [],
+        accountList: [],
       };
     },
     computed: {
@@ -397,6 +402,7 @@
     },
     created() {
       this.batchOperationMediaQuery = [1080, 1280, 1520, 1800];
+      this.fetchAccount();
     },
     methods: {
       /**
@@ -404,6 +410,33 @@
        */
       triggerChange() {
         this.$emit('on-change', [...this.variableList]);
+      },
+      /**
+       * @desc 获取账号列表
+       */
+      fetchAccount() {
+        AccountManageService.fetchAccountWhole()
+          .then((data) => {
+            this.accountList = data;
+          });
+      },
+      /**
+       * @desc 将账号ID转为账号别名
+       * @param { String } val 账号ID
+       */
+      accName(val) {
+        const filters = this.accountList.filter(item => item.id === Number(val));
+        return filters?.[0]?.alias || val;
+      },
+      /**
+       * @desc 变量的展示值，执行账号类型展示别名
+       * @param { Object } variable 全局变量
+       */
+      getItemValueText(variable) {
+        if (variable.isAccount) {
+          return this.accName(variable.valueText);
+        }
+        return variable.valueText;
       },
       /**
        * @desc 显示全局变量详情tips

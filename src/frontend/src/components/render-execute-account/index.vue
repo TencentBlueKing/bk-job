@@ -32,7 +32,7 @@
       :class="[themeClass, { 'jb-execute-account-highlight': highlight }]"
       @click="handleToggle">
       <div class="jb-execute-account-flag">
-        <icon type="string" />
+        <icon type="zhixingzhanghao" />
       </div>
       <div class="jb-execute-account-name">
         {{ accountVar }}

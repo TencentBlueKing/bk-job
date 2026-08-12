@@ -50,7 +50,7 @@ export default class GlobalVariable {
     [TYPE_PASSWORD]: 'password',
     [TYPE_RELATE_ARRAY]: 'array',
     [TYPE_INDEX_ARRAY]: 'array',
-    [TYPE_ACCOUNT]: 'string',
+    [TYPE_ACCOUNT]: 'zhixingzhanghao',
   };
 
   static typeTextMap = {

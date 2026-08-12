@@ -52,8 +52,6 @@
   </div>
 </template>
 <script>
-  import AccountManageService from '@service/account-manage';
-
   import GlobalVariableModel from '@model/task/global-variable';
 
   import JbEditTextarea from '@components/jb-edit/textarea';
@@ -93,30 +91,18 @@
         type: String,
         default: I18n.t('template.初始值'),
       },
-    },
-    data() {
-      return {
-        accountList: [],
-      };
+      // 账号列表
+      accountList: {
+        type: Array,
+        default: () => [],
+      },
     },
     computed: {
       describeMap() {
         return generateVariableDescribeMap(this.defaultField)[this.data.type];
       },
     },
-    created() {
-      this.fetchAccount();
-    },
     methods: {
-      /**
-       * @desc 获取账号列表
-       */
-      fetchAccount() {
-        AccountManageService.fetchAccountWhole()
-          .then((data) => {
-            this.accountList = data;
-          });
-      },
       /**
        * @desc 将账号ID转为账号别名
        * @param { String } val 账号ID
