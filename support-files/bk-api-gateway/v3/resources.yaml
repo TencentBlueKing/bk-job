@@ -1017,6 +1017,82 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Fast transfer file
+  /api/v3/generate_local_file_upload_url:
+    post:
+      operationId: generate_local_file_upload_url
+      description: 生成本地文件上传URL
+      tags:
+        - open
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: object
+                    properties:
+                      url_map:
+                        type: object
+                        description: 文件上传与分发信息。key为请求中传入的文件名；value为对象，含upload_url（带凭据token的文件上传地址，须用HTTP
+                          PUT方法将文件内容上传到该地址，请求头Content-Type为application/octet-stream）与path（分发该文件时传给快速分发文件接口fast_transfer_file源文件路径列表的路径）
+                    description: 数据
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - file_name_list
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                file_name_list:
+                  type: array
+                  description: 要上传的文件名列表，只填文件名，不含目录
+                  items:
+                    type: string
+                    description: 待上传的文件名
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v3/job-manage/generate_local_file_upload_url
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Generate local file upload url
   /api/v3/get_account_list:
     get:
       operationId: get_account_list
@@ -3503,11 +3579,52 @@ paths:
       tags:
         - system
       responses:
-        default:
+        '200':
           content:
             application/json:
-              schema: {}
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: object
+                    properties:
+                      url_map:
+                        type: object
+                        description: 文件上传与分发信息。key为请求中传入的文件名；value为对象，含upload_url（带凭据token的文件上传地址，须用HTTP
+                          PUT方法将文件内容上传到该地址，请求头Content-Type为application/octet-stream）与path（分发该文件时传给快速分发文件接口fast_transfer_file源文件路径列表的路径）
+                    description: 数据
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
           description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - file_name_list
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                file_name_list:
+                  type: array
+                  description: 要上传的文件名列表，只填文件名，不含目录
+                  items:
+                    type: string
+                    description: 待上传的文件名
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false

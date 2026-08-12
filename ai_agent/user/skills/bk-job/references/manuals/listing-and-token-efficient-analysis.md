@@ -47,20 +47,24 @@ for row in data.get("data", []):
 
 ### 2.2 使用 `jq`（已安装时）
 
-先将脚本输出写入 **UTF-8 文件**（Windows 下避免 PowerShell 管道破坏编码，可用 `cmd /c "chcp 65001>nul && python ... > out.json"`），再：
+先将脚本输出写入 **UTF-8 文件**（Windows 下避免 PowerShell 管道破坏编码，可用 `cmd /c "chcp 65001>nul && python ... > tmp/out.json"`），再：
 
 ```bash
 jq '.total, (.data | length)'
-jq -r '.data[] | "\(.id)\t\(.name)"' out.json
+jq -r '.data[] | "\(.id)\t\(.name)"' tmp/out.json
 ```
 
 ### 2.3 使用 `python` 读文件
 
 ```bash
-python -c "import json; d=json.load(open('out.json',encoding='utf-8')); print(d['total']); [print(x['id'], x['name']) for x in d['data']]"
+python -c "import json; d=json.load(open('tmp/out.json',encoding='utf-8')); print(d['total']); [print(x['id'], x['name']) for x in d['data']]"
 ```
 
-### 2.4 回复用户时的原则
+### 2.4 落盘文件必须清理
+
+上面写入的 `tmp/out.json` 等中间文件只能放在**技能目录下的 `tmp/`**，分析完成后立即删除；清理范围**只限 `tmp/` 内**，不得删除其它目录或文件。命名、清理命令与红线见 [temp-files.md](temp-files.md)。
+
+### 2.5 回复用户时的原则
 
 - 优先 **表格或条目列表**（仅关键列：`id`、`name`、`status`/`启停状态` 等）。
 - 需要细节再 **`plan-detail` / `cron-last-run`** 针对单条拉取，而不是把整页原始 JSON 重复贴出。
