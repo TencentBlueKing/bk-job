@@ -25,7 +25,7 @@ Before calling: the target job template must exist and the caller must have the 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | name | string | Yes | Global variable name in the template, matched by name (matching by variable ID is not supported); cannot be empty |
-| value | string | No | Default value of the variable. Applies when the template variable type is string, namespace, ciphertext, associative array or indexed array; ignored when `follow_template` is `true`. A ciphertext variable is shown as a placeholder in the approval ticket |
+| value | string | No | Default value of the variable. Applies when the template variable type is string, namespace, ciphertext, associative array or indexed array; ignored when `follow_template` is `true`. A ciphertext variable is shown as a placeholder in the approval content |
 | execute_target | object | No | Execution target. Provide it only when the template variable is of the execution-target list type and `follow_template` is `false`; `value` must not be provided together with it |
 | follow_template | boolean | No | Whether to keep the default value defined in the template. Options: `true` (keep the template default), `false` (use `value` or `execute_target` from this request, the default). `execute_target` must not be provided when it is `true` |
 

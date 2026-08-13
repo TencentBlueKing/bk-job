@@ -50,7 +50,7 @@ public interface ApprovalTaskDAO {
     int bindTicketIdIfAbsent(String approvalTaskId, String approvalTicketId);
 
     /**
-     * 记录渠道拉取单据时间，仅观测
+     * 记录渠道拉取审批内容的时间，仅观测
      */
     int updateTicketFetchedAt(String approvalTaskId, long fetchedAt);
 

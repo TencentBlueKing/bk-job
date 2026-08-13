@@ -34,25 +34,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
- * 审批链路的可观测代理指标。
- * <p>
- * 这两个计数器<b>只观测、不拦截</b>，是渠道接入契约中"平台无法机器校验"那几条的唯一事后发现手段：
+ * 审批链路的可观测代理指标，只观测、不拦截：
  * <ul>
- *     <li>{@link #NAME_DISPATCHED_WITHOUT_TICKET_FETCH}：渠道从未取过单却拿到了 APPROVED，
- *     说明审批人看到的单据不是作业平台生成的（"单据由作业平台生成"这条支柱失效）；</li>
- *     <li>{@link #NAME_FAST_APPROVED}：近乎瞬时通过是自动审批的典型特征，意味着"人在环上"已崩塌。</li>
+ *     <li>{@link #NAME_DISPATCHED_WITHOUT_CONTENT_FETCH}：渠道从未取过审批内容却拿到了 APPROVED，
+ *     说明审批人看到的不是作业平台生成的内容；</li>
+ *     <li>{@link #NAME_FAST_APPROVED}：近乎瞬时通过，自动审批的典型特征。</li>
  * </ul>
  * <b>期望值是持续为 0</b>，一旦非零就要人工核查对应渠道的接入配置。
- * <p>
- * 埋点位置固定在放行成功路径（markDispatched 之后），不能挪到校验链前段 —— 挪了就会把未放行的
- * 请求也统计进来，指标从"接入违约信号"退化成噪声。同时<b>任何打点异常都不得影响放行</b>。
+ * 埋点必须固定在放行成功路径上，且<b>任何打点异常都不得影响放行</b>。
  */
 @Slf4j
 @Component
 public class ApprovalMetrics {
 
-    public static final String NAME_DISPATCHED_WITHOUT_TICKET_FETCH =
-        "job.analysis.approval.dispatched.without.ticket.fetch";
+    public static final String NAME_DISPATCHED_WITHOUT_CONTENT_FETCH =
+        "job.analysis.approval.dispatched.without.content.fetch";
 
     public static final String NAME_FAST_APPROVED = "job.analysis.approval.fast.approved";
 
@@ -80,10 +76,10 @@ public class ApprovalMetrics {
         try {
             Tags tags = buildTags(task);
             if (task.getTicketFetchedAt() == null) {
-                log.warn("Approval task {} dispatched without ticket fetched, channel: {}, appCode: {}",
+                log.warn("Approval task {} dispatched without approval content fetched, channel: {}, appCode: {}",
                     task.getApprovalTaskId(), task.getApprovalChannel(), task.getAppCode());
-                increment(NAME_DISPATCHED_WITHOUT_TICKET_FETCH, tags,
-                    "Approval tasks dispatched without the ticket ever fetched by the approval channel");
+                increment(NAME_DISPATCHED_WITHOUT_CONTENT_FETCH, tags,
+                    "Approval tasks dispatched without the approval content ever fetched by the channel");
             }
             if (isFastApproved(task)) {
                 log.warn("Approval task {} approved within {}ms, suspected auto approval, channel: {}",

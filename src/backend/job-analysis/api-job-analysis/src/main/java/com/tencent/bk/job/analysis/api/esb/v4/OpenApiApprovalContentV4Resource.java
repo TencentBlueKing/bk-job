@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.api.esb.v4;
 
-import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalTicketDTO;
+import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalContentDTO;
 import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
@@ -38,27 +38,26 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.constraints.NotBlank;
 
 /**
- * 审批渠道取单（应用态接口）。
+ * 审批渠道拉取审批内容。
  * <p>
  * <b>服务端路径不含 {@code system} 段</b>：网关谓词 {@code /api/job/v4/job-analysis/{api_name}} 的
- * {@code api_name} 是单段变量、不跨 {@code /}，且 {@code SetPath} 也会把多出来的段丢掉；
- * 仓库里全部 {@code /api/v4/system/*} 资源的后端路径同样不含该段，用户态与应用态共用一个 Spring 端点、
- * 靠 {@code X-Bk-Job-Api-Type} 请求头区分。网关侧本资源登记为
- * {@code /api/v4/system/get_approval_ticket}，且<b>不登记同名的用户态资源</b>。
- * <p>
- * <b>不得依赖 USERNAME 请求头存在</b>：应用态调用没有用户身份。租户只能由渠道通过
- * {@code X-Bk-Tenant-Id} 显式传入，服务端会与任务的 tenant_id 严格比对。
+ * {@code api_name} 是单段变量、不跨 {@code /}。网关侧本资源登记为
+ * {@code /api/v4/system/get_approval_content}，且不登记同名的用户态资源。
  */
 @RequestMapping("/esb/api/v4")
 @EsbV4API
 @RestController
 @Validated
-public interface OpenApiApprovalTicketV4Resource {
+public interface OpenApiApprovalContentV4Resource {
 
-    @GetMapping("/get_approval_ticket")
-    EsbV4Response<V4ApprovalTicketDTO> getApprovalTicket(
+    /**
+     * 取审批内容：调用方必须是该任务指派渠道的应用，且 username 必须是任务发起人本人。
+     * 内容里含脚本明文，任一不符都按"任务不存在"返回
+     */
+    @GetMapping("/get_approval_content")
+    EsbV4Response<V4ApprovalContentDTO> getApprovalContent(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID) String tenantId,
         @RequestParam("approval_task_id")
         @NotBlank(message = "{validation.constraints.ApprovalTask_approvalTaskIdEmpty.message}")
         String approvalTaskId

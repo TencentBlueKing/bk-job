@@ -26,8 +26,8 @@ package com.tencent.bk.job.analysis.api.esb.v4.impl;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.job.analysis.api.esb.v4.OpenApiApprovalContentV4Resource;
 import com.tencent.bk.job.analysis.api.esb.v4.OpenApiApprovalTaskV4Resource;
-import com.tencent.bk.job.analysis.api.esb.v4.OpenApiApprovalTicketV4Resource;
 import com.tencent.bk.job.analysis.api.esb.v4.OpenApiCreateJobPlanWithApprovalV4Resource;
 import com.tencent.bk.job.analysis.api.esb.v4.OpenApiExecuteJobPlanWithApprovalV4Resource;
 import com.tencent.bk.job.analysis.api.esb.v4.OpenApiFastExecuteScriptWithApprovalV4Resource;
@@ -66,9 +66,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * 单元测试 - 审批相关 v4 接口的安全契约。
  * <p>
- * 这些断言守的都是"改错了不会编译失败、但会让整套审批机制失效"的地方：放行接口一旦多出审批结论字段，
- * 服务层的放行校验链就形同虚设；流转接口一旦写死 actionId，其余 5 种操作类型的审计事件会被 SDK 丢弃；
- * 应用态取单路径一旦带上 system 段，联调必然 404。用反射把它们钉住，比靠 Review 记住更可靠。
+ * 这些断言守的都是"改错了不会编译失败、但会让整套审批机制失效"的地方：放行接口多出审批结论字段、
+ * 流转接口写死 actionId、取内容路径带上 system 段。用反射把它们钉住，比靠 Review 记住更可靠。
  */
 class ApprovalV4ApiContractTest {
 
@@ -118,35 +117,26 @@ class ApprovalV4ApiContractTest {
     }
 
     @Test
-    @DisplayName("应用态取单的后端路径不含system段，且不读取用户身份")
-    void ticketResourceUsesSingleSegmentPath() {
-        RequestMapping classMapping = OpenApiApprovalTicketV4Resource.class.getAnnotation(RequestMapping.class);
+    @DisplayName("取审批内容的后端路径不含system段")
+    void approvalContentResourceUsesSingleSegmentPath() {
+        RequestMapping classMapping = OpenApiApprovalContentV4Resource.class.getAnnotation(RequestMapping.class);
         assertThat(classMapping.value()).containsExactly("/esb/api/v4");
 
-        Method method = findMethod(OpenApiApprovalTicketV4Resource.class, "getApprovalTicket");
+        Method method = findMethod(OpenApiApprovalContentV4Resource.class, "getApprovalContent");
         GetMapping getMapping = method.getAnnotation(GetMapping.class);
-        assertThat(getMapping.value()).containsExactly("/get_approval_ticket");
+        assertThat(getMapping.value()).containsExactly("/get_approval_content");
         assertThat(classMapping.value()[0] + getMapping.value()[0]).doesNotContain("system");
-
-        // 应用态调用没有 USERNAME 头，接口签名里出现它就意味着实现会去读不存在的用户身份
-        assertThat(requestHeaderNames(method))
-            .contains(JobCommonHeaders.APP_CODE, JobCommonHeaders.BK_TENANT_ID)
-            .doesNotContain(JobCommonHeaders.USERNAME);
     }
 
     @Test
-    @DisplayName("应用态取单强制要求租户头：多租户环境下缺失该头网关会直接401")
-    void ticketResourceRequiresTenantHeader() {
-        Method method = findMethod(OpenApiApprovalTicketV4Resource.class, "getApprovalTicket");
-        RequestHeader tenantHeader = Arrays.stream(method.getParameterAnnotations())
-            .flatMap(Arrays::stream)
-            .filter(annotation -> annotation instanceof RequestHeader)
-            .map(annotation -> (RequestHeader) annotation)
-            .filter(header -> JobCommonHeaders.BK_TENANT_ID.equals(header.value()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("tenant header not declared"));
+    @DisplayName("取审批内容与其余v4接口一样用USERNAME+APP_CODE，租户从用户上下文取")
+    void approvalContentResourceDeclaresUserHeader() {
+        Method method = findMethod(OpenApiApprovalContentV4Resource.class, "getApprovalContent");
 
-        assertThat(tenantHeader.required()).isTrue();
+        assertThat(requestHeaderNames(method))
+            .contains(JobCommonHeaders.USERNAME, JobCommonHeaders.APP_CODE)
+            .doesNotContain(JobCommonHeaders.BK_TENANT_ID);
+        assertThat(requestHeaders(method)).allSatisfy(header -> assertThat(header.required()).isTrue());
     }
 
     @ParameterizedTest
@@ -212,10 +202,16 @@ class ApprovalV4ApiContractTest {
     }
 
     private List<String> requestHeaderNames(Method method) {
+        return requestHeaders(method).stream()
+            .map(RequestHeader::value)
+            .collect(Collectors.toList());
+    }
+
+    private List<RequestHeader> requestHeaders(Method method) {
         return Arrays.stream(method.getParameterAnnotations())
             .flatMap(Arrays::stream)
             .filter(annotation -> annotation instanceof RequestHeader)
-            .map(annotation -> ((RequestHeader) annotation).value())
+            .map(annotation -> (RequestHeader) annotation)
             .collect(Collectors.toList());
     }
 

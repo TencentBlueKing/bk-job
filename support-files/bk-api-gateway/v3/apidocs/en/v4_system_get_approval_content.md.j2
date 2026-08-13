@@ -1,0 +1,62 @@
+### Description
+
+Fetch the approval content of an approval task, so that the **approval channel** can create a ticket and present it to the approver.
+
+Caller restrictions (any mismatch is reported as "approval task does not exist", without distinguishing "does not exist" from "no permission"):
+
+- The caller must be **the application of the approval channel assigned to the task** (the channel appCode must strictly equal the one recorded on the task);
+- The calling user must be **the creator of the approval task**;
+- The tenant of the calling user must match the tenant of the approval task.
+
+The restriction down to the creator is needed because the approval content contains plaintext script content, and application-level authorization alone cannot prevent other people from reading it.
+
+The approval content `approval_content` is **Markdown already rendered by the Job platform**, so the channel can present it directly without assembling anything. The body contains, in order, a level-one title, a summary table, a detail table for every execution step, the script content code block and the raw parameters JSON code block. The title, the creator and the risk level are all rendered into it, so the response no longer carries separate structured fields. The summary lists the **resolved actual impact** (the real target host list, the execution account, the defaults that took effect, and so on), so that the approver can see exactly "what will be executed on which machines". The value of a sensitive field is only a placeholder and never carries the real value. **Script content is the single exception and is shown as is**, otherwise the approver has no way to assess the risk.
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### Request Parameters
+
+#### Query Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| approval_task_id | string | Yes | Approval task ID returned by the initiating API and handed over to the approval channel by the caller |
+
+### Request Parameters Example
+
+- GET
+
+```
+/api/v4/system/get_approval_content?approval_task_id=5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "expire_at": 1786694400000,
+        "approval_content": "# Fast execute script - BlueKing - 37 execute objects\n\n## Summary\n\n| Item | Content |\n| --- | --- |\n| Operation type | Fast execute script |\n| Resource scope | BlueKing(biz:2) |\n| Creator | admin |\n| **Risk level** | **High** |\n| Execute object count | 37 |\n| **Dangerous statement matched** | **A dangerous statement rule was matched, please check carefully** |\n| **Target contains dynamic group** | **The target contains dynamic groups or topology nodes. The machines actually executed on are resolved again at release time and may differ from the list here** |\n| Default applied Timeout | 7200 |\n\n## Step 1\n\n| Item | Content |\n| --- | --- |\n| Step name | Execute script |\n| **Account** | **root** |\n| Script name | check_disk.sh |\n| Execute object count | 37 |\n| Execute objects | 127.0.0.1, 127.0.0.2 and 35 more |\n\n## Script content\n\n`script_content`\n\n```\n#!/bin/bash\nrm -rf /tmp/cache\n```\n\n## Raw parameters\n\n```json\n{\n  \"script_content\" : \"See the [Script content] section\",\n  \"script_param\" : \"******\"\n}\n```\n"
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Description |
+|-------|------|-------------|
+| approval_task_id | string | Approval task ID |
+| expire_at | long | Expiry moment of the approval task, Unix timestamp in milliseconds. After expiry the task can no longer be released |
+| approval_content | string | Approval content in Markdown, already rendered by the Job platform, which the channel can present directly. It contains, in order, a level-one title (such as "Fast execute script - BlueKing - 37 execute objects"), the summary table (operation type, resource scope, creator, risk level, execute object list, defaults that took effect, and so on), a detail table for every execution step, the script content code block and the raw parameters JSON code block. High-risk items that must stand out (high-risk accounts such as root, matched dangerous statement rules, dynamic group targets) are rendered in Markdown bold. The values of password-like sensitive fields are placeholders only and carry no real value, **script content being the single exception shown as is**. When the target contains dynamic groups or topology nodes, the body states that the machines actually executed on are resolved again at release time |

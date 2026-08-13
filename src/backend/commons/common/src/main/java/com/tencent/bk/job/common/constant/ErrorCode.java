@@ -590,8 +590,8 @@ public class ErrorCode {
     public static final int APPROVAL_CHANNEL_NOT_SUPPORTED = 1264012;
     // 审批状态暂不可确认，请稍后重试（不会自动放行）
     public static final int APPROVAL_CHANNEL_QUERY_FAIL = 1264013;
-    // 无权获取该审批任务的单据内容
-    public static final int APPROVAL_TICKET_ACCESS_DENIED = 1264014;
+    // 无权获取该审批任务的审批内容
+    public static final int APPROVAL_CONTENT_ACCESS_DENIED = 1264014;
     // 审批放行后执行失败：{0}
     public static final int APPROVAL_OPERATION_EXECUTE_FAIL = 1264015;
     // 统计分析服务job-analysis错误码 end

@@ -71,7 +71,7 @@ import static org.mockito.Mockito.when;
  * <p>
  * Hibernate 的 {@code @GroupSequenceProvider} 没有 {@code @Inherited}，"子类会不会丢掉父类的分组校验"
  * 不是看一眼代码就能确定的事。资源范围的必填校验全都挂在 {@code UseScopeParam} / {@code UseBkBizIdParam}
- * 分组上，分组序列一丢这些校验就静默失效，空 scope 会一路走到审批单据里。
+ * 分组上，分组序列一丢这些校验就静默失效，空 scope 会一路走到审批内容里。
  * <p>
  * 这里跑真实的 Validator，逐个断言子类与原请求体在资源范围字段上产生<b>完全相同的违反项</b>。
  * 只校验单个属性而非整个对象：部分请求体上的约束校验器（如回调地址校验）需要 Spring 注入，

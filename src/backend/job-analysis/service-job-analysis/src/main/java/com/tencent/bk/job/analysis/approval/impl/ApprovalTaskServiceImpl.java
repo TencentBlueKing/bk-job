@@ -25,14 +25,14 @@
 package com.tencent.bk.job.analysis.approval.impl;
 
 import com.tencent.bk.job.analysis.approval.ApprovalAuditor;
+import com.tencent.bk.job.analysis.approval.ApprovalContentRenderer;
 import com.tencent.bk.job.analysis.approval.ApprovalMetrics;
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
 import com.tencent.bk.job.analysis.approval.ApprovalTaskService;
-import com.tencent.bk.job.analysis.approval.ApprovalTicketRenderer;
 import com.tencent.bk.job.analysis.approval.channel.ApprovalChannel;
 import com.tencent.bk.job.analysis.approval.channel.ApprovalChannelRegistry;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalResult;
-import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalResultStatusEnum;
@@ -65,17 +65,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * 审批任务核心编排。
  * <p>
- * <b>本类里最重要的东西是 {@link #refresh} 里那条校验链的顺序，以及"CAS 之前不写终态"这条不变式。</b>
- * 每一步都对应一种已识别的绕过手法，删掉任何一步都能让整套机制失效：
- * <ul>
- *     <li>不回查渠道 → 调用方自己说批了就算批了；</li>
- *     <li>不校验 approver == creator → 找个同事随手批一下即可；</li>
- *     <li>不校验回查响应回带的 approval_task_id → 拿另一个任务真实批过的单据即可放行任意任务；</li>
- *     <li>ticket 绑定后允许更换 → pending 期间可用不同单号反复试探；</li>
- *     <li>参数接受外部覆盖 → 批的是 A，执行的是 B；</li>
- *     <li>回查异常时兜底放行 → 把渠道抖动变成免审通道。</li>
- * </ul>
- * 修改本类前请先读 {@code develop_plan} §5 与 §5.2 的落态自查表。
+ * <b>{@link #refresh} 里那条校验链的顺序、以及"CAS 之前不写终态"这条不变式，删改任何一处都会让整套
+ * 审批机制失效</b>，每一步的意图见各步注释。
  */
 @Slf4j
 @Service
@@ -86,7 +77,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     private final OperationExecutorRegistry executorRegistry;
     private final ApprovalParamsCryptoService paramsCryptoService;
     private final ApprovalProperties approvalProperties;
-    private final ApprovalTicketRenderer ticketRenderer;
+    private final ApprovalContentRenderer contentRenderer;
     private final ApprovalMetrics approvalMetrics;
     private final ApprovalAuditor approvalAuditor;
 
@@ -95,7 +86,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
                                    OperationExecutorRegistry executorRegistry,
                                    ApprovalParamsCryptoService paramsCryptoService,
                                    ApprovalProperties approvalProperties,
-                                   ApprovalTicketRenderer ticketRenderer,
+                                   ApprovalContentRenderer contentRenderer,
                                    ApprovalMetrics approvalMetrics,
                                    ApprovalAuditor approvalAuditor) {
         this.approvalTaskDAO = approvalTaskDAO;
@@ -103,7 +94,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         this.executorRegistry = executorRegistry;
         this.paramsCryptoService = paramsCryptoService;
         this.approvalProperties = approvalProperties;
-        this.ticketRenderer = ticketRenderer;
+        this.contentRenderer = contentRenderer;
         this.approvalMetrics = approvalMetrics;
         this.approvalAuditor = approvalAuditor;
     }
@@ -218,8 +209,8 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
             throw new FailedPreconditionException(ErrorCode.APPROVAL_APPROVER_NOT_CREATOR);
         }
 
-        // 【7】绑定证明：回查响应回带的 approval_task_id 必须与请求一致。
-        // 缺了这一步，拿另一个任务真实批过的单据就能放行本任务
+        // 【7】绑定证明：回查响应回带的 approval_task_id 必须与请求一致，
+        // 否则拿另一个任务真实批过的单据就能放行本任务
         if (!approvalTaskId.equals(approvalResult.getApprovalTaskId())) {
             log.warn("Approval task {} rejected: channel returned approvalTaskId {}",
                 approvalTaskId, approvalResult.getApprovalTaskId());
@@ -259,37 +250,40 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     }
 
     @Override
-    public ApprovalTicket getTicket(String approvalTaskId, String tenantId, String appCode) {
+    public ApprovalContent getApprovalContent(String approvalTaskId, ApprovalCallerContext caller) {
         ApprovalTaskDTO task = approvalTaskDAO.getByApprovalTaskId(approvalTaskId);
-        if (task == null || !isAssignedChannelCaller(task, tenantId, appCode)) {
+        if (task == null || !isAssignedChannelCaller(task, caller)) {
             throw new NotFoundException(ErrorCode.APPROVAL_TASK_NOT_EXIST, new Object[]{approvalTaskId});
         }
-        ApprovalTicket ticket = ticketRenderer.render(task);
+        ApprovalContent content = contentRenderer.render(task);
         try {
-            // 仅观测：写失败不影响取单，也不影响放行（放行不校验 ticket_fetched_at，
-            // 其观测价值由 ApprovalMetrics 的两个代理指标兑现）
+            // 仅观测：写失败不影响本次取内容，也不影响放行（放行不校验 ticket_fetched_at）
             approvalTaskDAO.updateTicketFetchedAt(approvalTaskId, System.currentTimeMillis());
         } catch (Exception e) {
             log.warn("Update ticketFetchedAt failed, approvalTaskId: {}", approvalTaskId, e);
         }
-        return ticket;
+        return content;
     }
 
     /**
-     * 取单方必须是该任务指派的渠道本身。
+     * 取内容方必须同时是该任务的租户、发起人本人、以及任务指派渠道对应的应用。
      * <p>
-     * 租户与渠道 appCode 都必须严格相等，任一不符按"任务不存在"处理：
-     * 单据里有脚本明文，若只校验网关权限，任何被授予取单接口权限的应用都能枚举他人的单据内容。
+     * 内容里有脚本明文，任一不符都按"任务不存在"处理，不区分"不存在"与"无权访问"。
      */
-    private boolean isAssignedChannelCaller(ApprovalTaskDTO task, String tenantId, String appCode) {
-        if (!Objects.equals(task.getTenantId(), tenantId)) {
-            log.warn("Get approval ticket rejected: tenant mismatch, approvalTaskId: {}", task.getApprovalTaskId());
+    private boolean isAssignedChannelCaller(ApprovalTaskDTO task, ApprovalCallerContext caller) {
+        if (!Objects.equals(task.getTenantId(), caller.getTenantId())) {
+            log.warn("Get approval content rejected: tenant mismatch, approvalTaskId: {}", task.getApprovalTaskId());
+            return false;
+        }
+        if (!Objects.equals(task.getCreator(), caller.getUsername())) {
+            log.warn("Get approval content rejected: username is not the creator of task {}",
+                task.getApprovalTaskId());
             return false;
         }
         String channelAppCode = channelRegistry.getChannelAppCode(task.getApprovalChannel());
-        if (StringUtils.isBlank(channelAppCode) || !channelAppCode.equals(appCode)) {
-            log.warn("Get approval ticket rejected: appCode {} is not the assigned channel {} of task {}",
-                appCode, task.getApprovalChannel(), task.getApprovalTaskId());
+        if (StringUtils.isBlank(channelAppCode) || !channelAppCode.equals(caller.getAppCode())) {
+            log.warn("Get approval content rejected: appCode {} is not the assigned channel {} of task {}",
+                caller.getAppCode(), task.getApprovalChannel(), task.getApprovalTaskId());
             return false;
         }
         return true;
@@ -298,21 +292,16 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     /**
      * 【11】打点后下发，【12】按下游结果落态。
      * <p>
-     * <b>三种落法只有两种会写状态</b>：明确的业务失败落 FAILED；结果未知（超时、连接中断、5xx）
-     * 一律停在 EXECUTING 且 execute_result 为空，<b>不重试</b>。因为 CAS 之后
-     * "下游其实执行成功了但响应丢了"与"下游确实没执行"在这里无法区分，重试就等于赌一次重复执行。
-     * <p>
-     * 正因为不重试，下游<b>不需要</b>以 approval_task_id 做幂等去重。
-     * <b>将来若放开重试，必须同时在下游引入以 approval_task_id 为幂等键的去重</b>，
-     * 否则重复执行的口子立刻就开了。
+     * 明确的业务失败落 FAILED；结果未知（超时、连接中断、5xx）一律停在 EXECUTING 且
+     * execute_result 为空，<b>绝不重试</b> —— 无法区分"执行成功但响应丢了"与"确实没执行"。
+     * 将来若放开重试，必须同时在下游引入以 approval_task_id 为幂等键的去重。
      */
     private ApprovalTaskDTO executeAfterConsume(ApprovalTaskDTO task, Object params, ApprovalCallerContext caller) {
         String approvalTaskId = task.getApprovalTaskId();
         ApprovalOperationTypeEnum operationType = ApprovalOperationTypeEnum.valOf(task.getOperationType());
         OperationExecutor<?> executor = executorRegistry.getExecutor(operationType);
         approvalTaskDAO.markDispatched(approvalTaskId, System.currentTimeMillis());
-        // 埋在放行成功路径上、且在下发之前：下发结果如何都不影响"这一单已被放行"这个事实，
-        // 漏计会让"从未取单就放行""秒批"两类异常彻底不可见
+        // 必须埋在下发之前：下发结果如何都不影响"这一单已被放行"这个事实
         approvalMetrics.recordDispatched(task);
 
         DryRunResult<?> result;
@@ -342,10 +331,8 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     }
 
     /**
-     * 【0】读取并校验归属。
-     * <p>
-     * tenantId / appId / creator / appCode 四者都必须与调用上下文一致，任一不符都返回"任务不存在"
-     * —— <b>不区分"不存在"与"无权访问"</b>，否则 approval_task_id 就成了探测他人任务的工具。
+     * 【0】读取并校验归属。任一不符都返回"任务不存在"，
+     * <b>不区分"不存在"与"无权访问"</b>，否则 approval_task_id 就成了探测他人任务的工具。
      */
     private ApprovalTaskDTO loadOwnTask(String approvalTaskId, ApprovalCallerContext caller) {
         ApprovalTaskDTO task = approvalTaskDAO.getByApprovalTaskId(approvalTaskId);
@@ -359,9 +346,8 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     }
 
     private boolean isSameOwner(ApprovalTaskDTO task, ApprovalCallerContext caller) {
-        // appId 只在调用上下文里有值时才比对：流转接口的请求体不带资源范围（app_id 只以 DB 为准），
-        // 这时无条件比对 appId 会让所有流转请求都被判成"任务不存在"。
-        // 归属仍由 tenant_id / creator / app_code 三者共同保证，creator 已经锚定到具体的人
+        // appId 只在调用上下文里有值时才比对：流转接口的请求体不带资源范围，
+        // 无条件比对会让所有流转请求都被判成"任务不存在"
         boolean appIdMatched = caller.getAppId() == null
             || Objects.equals(task.getAppId(), caller.getAppId());
         return Objects.equals(task.getTenantId(), caller.getTenantId())
@@ -388,9 +374,8 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     }
 
     /**
-     * 【5】回查审批结论。<b>任何异常都 fail-closed</b>：保持 PENDING、拒绝放行。
-     * <p>
-     * 这里绝不能有"查不到就当通过"或"渠道抖动就放行"的兜底 —— 那等于把渠道故障变成免审通道。
+     * 【5】回查审批结论。<b>任何异常都 fail-closed</b>：保持 PENDING、拒绝放行，
+     * 绝不能有"查不到就当通过"的兜底。
      */
     private ApprovalResult queryApprovalResult(ApprovalTaskDTO task, String approvalTicketId) {
         ApprovalChannel channel = channelRegistry.getChannelByName(task.getApprovalChannel());
@@ -426,11 +411,10 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     }
 
     /**
-     * 【9】从 DB 参数快照还原请求体。
+     * 【9】从 DB 参数快照还原请求体，<b>参数只有这一个来源</b>。
      * <p>
-     * <b>参数只有这一个来源</b>：解密、反序列化，然后用任务的 app_id 覆盖资源范围。覆盖是必需的 ——
-     * appId 是 {@code @JsonIgnore} 字段、快照里根本没有，而 scope 到 appId 的映射在 8 小时内可能变化，
-     * 以 DB 的 app_id 为准才能保证不会落到别的业务上。
+     * appId 必须用任务的 app_id 覆盖：它是 {@code @JsonIgnore} 字段、快照里没有，
+     * 而 scope 到 appId 的映射在任务有效期内可能变化。
      */
     private Object resolveParamsFromSnapshot(ApprovalTaskDTO task) {
         ApprovalOperationTypeEnum operationType = ApprovalOperationTypeEnum.valOf(task.getOperationType());
@@ -444,8 +428,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     }
 
     /**
-     * 用 {@link OperationExecutor#getParamsClass()} 完成类型收窄：类型不符说明分发表与快照对不上，
-     * 属于编码错误，直接失败而不是强转出 ClassCastException
+     * 用 {@link OperationExecutor#getParamsClass()} 完成类型收窄，类型不符属编码错误，直接失败
      */
     private <T> DryRunResult<?> invokeExecutor(OperationExecutor<T> executor,
                                                Object params,

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.approval;
 
-import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.model.ApprovalCallerContext;
@@ -40,8 +40,8 @@ public interface ApprovalTaskService {
     /**
      * 创建审批任务。
      * <p>
-     * 先以 dryRun=true 走一遍下游的真实校验路径（脚本、账号、主机权限、高危规则、配额都在业务层，
-     * Bean Validation 挡不住），校验通过才冻结参数快照落库 —— 否则用户会在审批通过之后才拿到失败。
+     * 先以 dryRun=true 走一遍下游的业务校验，通过后才冻结参数快照落库，
+     * 避免用户在审批通过之后才拿到失败。
      *
      * @param operationType 操作类型
      * @param params        已 fillAppResourceScope 的原始 v4 请求体
@@ -62,9 +62,7 @@ public interface ApprovalTaskService {
     /**
      * 放行：回查审批结论，通过全部校验后 CAS 消费并以 dryRun=false 执行。
      * <p>
-     * <b>入参只有两个 ID，不接受任何审批结论字段</b> —— 审批结论只能由作业平台自己回查渠道得出，
-     * 绝不能由调用方声明。这是整套机制的立命之本：一旦允许调用方传"已通过"，
-     * 整条链路就退化成"调用方自己说批了就算批了"。
+     * <b>入参只有两个 ID，绝不接受任何审批结论字段</b>：审批结论只能由作业平台自己回查渠道得出。
      *
      * @param approvalTaskId   审批任务ID
      * @param approvalTicketId 审批渠道单据ID
@@ -79,18 +77,16 @@ public interface ApprovalTaskService {
     ApprovalTaskDTO cancel(String approvalTaskId, ApprovalCallerContext caller);
 
     /**
-     * 应用态取单：审批渠道拉取单据内容用于建单。
+     * 取审批内容：审批渠道拉取内容用于建单。
      * <p>
-     * <b>调用方必须是该任务指派的那个渠道</b>，否则不同渠道之间可以互相枚举单据内容 ——
-     * 单据里有脚本明文。租户与渠道 appCode 任一不符都按"任务不存在"返回，不区分"不存在"与"无权访问"。
+     * <b>租户、发起人本人、任务指派渠道的 appCode 三者都必须匹配</b>，任一不符按"任务不存在"返回 ——
+     * 内容里有脚本明文，放宽任何一条都会让他人的内容可被枚举。
      * <p>
-     * 单据内容<b>只从 DB 读</b>（resolved_summary 与 operation_params），不做实时 dryRun：
-     * 每次取单都重新解析既慢，又会让"用户看到的"与"当初批准的"产生新的差异。
+     * 内容<b>只从 DB 读</b>（resolved_summary 与 operation_params），不做实时 dryRun。
      *
      * @param approvalTaskId 审批任务ID
-     * @param tenantId       请求头中的租户ID，必须与任务所属租户严格相等
-     * @param appCode        调用方应用编码，必须等于该任务 approval_channel 配置的 appCode
-     * @return 已脱敏的审批单据
+     * @param caller         调用上下文，仅用于归属校验
+     * @return 已脱敏的审批内容
      */
-    ApprovalTicket getTicket(String approvalTaskId, String tenantId, String appCode);
+    ApprovalContent getApprovalContent(String approvalTaskId, ApprovalCallerContext caller);
 }

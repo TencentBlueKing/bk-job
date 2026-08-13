@@ -34,17 +34,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 参数快照中的敏感字段登记表。
+ * 参数快照中的敏感字段登记表，同时给出 JSON 路径与在审批内容中的呈现方式。
  * <p>
- * <b>加密落库与单据脱敏共用这一份登记</b>：两处各自维护一张表早晚会漂移成"库里加密了、单据里明文展示"
- * 或"单据里打了码、库里存的是明文"，而这两种漂移都不会有编译或运行期报错。因此本类同时给出
- * JSON 路径与单据呈现方式，{@link ApprovalParamsCryptoService} 与单据渲染都从这里取。
- * <p>
- * <b>新增任何密码/密钥/脚本类字段时必须同步登记</b>，评审时按 6 个 v4 Request DTO 的字段清单逐条核对。
- * <p>
- * 几处与方案 §8.1 字段表的出入，以实际 DTO 为准：{@code host_password_list} 只存在于
- * FAST_EXECUTE_SCRIPT 的 v4 请求体上；FAST_TRANSFER_FILE 与 UPDATE_CRON_STATUS 的 v4 请求体
- * 不含任何密码类字段（账号只以 account_id / account_alias 引用，密码不随请求传输）。
+ * <b>加密落库与审批内容脱敏共用这一份登记</b>：拆成两张表会漂移成"库里加密了、内容里明文展示"，
+ * 且不会有任何编译或运行期报错。<b>新增密码/密钥/脚本类字段时必须同步登记。</b>
  */
 public final class ApprovalSensitiveFields {
 
@@ -58,7 +51,7 @@ public final class ApprovalSensitiveFields {
 
     static {
         FIELDS.put(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, Arrays.asList(
-            // 脚本内容是审批人要审的对象本身，不展示等于盲签，因此加密落库但单据里原样展示
+            // 脚本内容是审批人要审的对象本身，加密落库但审批内容里原样展示
             SensitiveField.base64PlainText("script_content"),
             // 脚本参数只在用户声明为敏感参数时才打码，否则同样是判断风险的必要信息
             SensitiveField.base64MaskedIf("script_param", "param_sensitive"),
@@ -91,9 +84,9 @@ public final class ApprovalSensitiveFields {
     }
 
     /**
-     * 敏感字段在审批单据中的呈现方式
+     * 敏感字段在审批内容中的呈现方式
      */
-    public enum TicketDisplay {
+    public enum ContentDisplay {
         /**
          * 原样展示。仅用于"不展示就无法判断风险"的字段，目前只有脚本内容
          */
@@ -119,7 +112,7 @@ public final class ApprovalSensitiveFields {
          */
         private final List<String> path;
 
-        private final TicketDisplay ticketDisplay;
+        private final ContentDisplay contentDisplay;
 
         /**
          * 值是否为 BASE64 编码。原样展示时需先解码，否则审批人看到的是一串看不出风险的乱码
@@ -127,35 +120,35 @@ public final class ApprovalSensitiveFields {
         private final boolean base64Encoded;
 
         /**
-         * 脱敏条件字段的路径（与本字段同级）。为空表示无条件按 {@link #ticketDisplay} 呈现；
+         * 脱敏条件字段的路径（与本字段同级）。为空表示无条件按 {@link #contentDisplay} 呈现；
          * 非空时仅当该布尔字段为 true 才脱敏，否则原样展示
          */
         private final List<String> maskConditionPath;
 
         private SensitiveField(List<String> path,
-                               TicketDisplay ticketDisplay,
+                               ContentDisplay contentDisplay,
                                boolean base64Encoded,
                                List<String> maskConditionPath) {
             this.path = path;
-            this.ticketDisplay = ticketDisplay;
+            this.contentDisplay = contentDisplay;
             this.base64Encoded = base64Encoded;
             this.maskConditionPath = maskConditionPath;
         }
 
         private static SensitiveField masked(String... path) {
-            return new SensitiveField(Arrays.asList(path), TicketDisplay.MASKED, false, null);
+            return new SensitiveField(Arrays.asList(path), ContentDisplay.MASKED, false, null);
         }
 
         private static SensitiveField passwordProvided(String... path) {
-            return new SensitiveField(Arrays.asList(path), TicketDisplay.PASSWORD_PROVIDED, false, null);
+            return new SensitiveField(Arrays.asList(path), ContentDisplay.PASSWORD_PROVIDED, false, null);
         }
 
         private static SensitiveField base64PlainText(String... path) {
-            return new SensitiveField(Arrays.asList(path), TicketDisplay.PLAIN_TEXT, true, null);
+            return new SensitiveField(Arrays.asList(path), ContentDisplay.PLAIN_TEXT, true, null);
         }
 
         private static SensitiveField base64MaskedIf(String path, String conditionPath) {
-            return new SensitiveField(Collections.singletonList(path), TicketDisplay.MASKED, true,
+            return new SensitiveField(Collections.singletonList(path), ContentDisplay.MASKED, true,
                 Collections.singletonList(conditionPath));
         }
     }

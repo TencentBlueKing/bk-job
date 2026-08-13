@@ -25,20 +25,19 @@
 package com.tencent.bk.job.analysis.api.esb.v4.impl;
 
 import com.tencent.bk.job.analysis.approval.ApprovalTaskService;
-import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalStatusEnum;
 import com.tencent.bk.job.analysis.approval.model.ApprovalCallerContext;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.analysis.model.esb.v4.req.V4WithApprovalRequest;
+import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalContentDTO;
 import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalTaskCreatedDTO;
 import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalTaskDTO;
-import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalTicketDTO;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -47,10 +46,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
- * 审批相关 v4 接口的公共装配逻辑。
- * <p>
- * 6 个发起接口 + 3 个流转接口只在"操作类型"和"请求体类型"上不同，调用上下文构造、DTO 转换、
- * 状态文案这些东西没有第二份实现的理由 —— 各 Impl 因此只是薄薄一层。
+ * 审批相关 v4 接口的公共装配逻辑：调用上下文构造、DTO 转换与状态文案只有这一份实现，
+ * 各 Impl 因此只是薄薄一层。
  */
 @Slf4j
 @Component
@@ -71,10 +68,7 @@ public class ApprovalV4ApiSupport {
     }
 
     /**
-     * 发起审批。
-     * <p>
-     * 显式调用 {@code fillAppResourceScope}，不假定 {@code EsbAppResourceScopeReqAspect} 一定生效；
-     * 渠道只接受枚举值，地址与密钥一律来自服务端配置。
+     * 发起审批。渠道只接受枚举值，地址与密钥一律来自服务端配置。
      *
      * @param operationType 操作类型
      * @param request       原操作的 v4 请求体（带审批渠道）
@@ -110,11 +104,10 @@ public class ApprovalV4ApiSupport {
     }
 
     /**
-     * 流转接口的调用上下文。
+     * 流转与取内容接口的调用上下文。
      * <p>
-     * <b>appId 只能为空</b>：流转接口的请求体不继承 {@code EsbAppScopeReq}（审批任务的 app_id 只以 DB
-     * 为准、不接受入参覆盖），因此本次请求根本没有资源范围可解析。归属由 tenant_id / creator / app_code
-     * 三者比对，其中 creator 已经锚定到具体的人，appId 再比也不会更严格。
+     * <b>appId 只能为空</b>：这些请求不带资源范围，没有 appId 可解析。
+     * 归属由 tenant_id / creator / app_code 三者比对。
      */
     public ApprovalCallerContext workflowCaller(String appCode) {
         return ApprovalCallerContext.builder()
@@ -127,7 +120,6 @@ public class ApprovalV4ApiSupport {
     public V4ApprovalTaskCreatedDTO toCreatedDTO(ApprovalTaskDTO task) {
         V4ApprovalTaskCreatedDTO createdDTO = new V4ApprovalTaskCreatedDTO();
         createdDTO.setApprovalTaskId(task.getApprovalTaskId());
-        // 渠道取单必须带上租户，否则多租户环境下会在网关层直接 401
         createdDTO.setTenantId(task.getTenantId());
         createdDTO.setStatus(task.getStatus());
         createdDTO.setApprovalChannel(task.getApprovalChannel());
@@ -136,9 +128,7 @@ public class ApprovalV4ApiSupport {
     }
 
     /**
-     * 流转接口的返回体装配。
-     * <p>
-     * {@code result_unknown} 与 {@code message} 是这里唯一的"计算"：状态本身已由 Service 给出呈现值
+     * 流转接口的返回体装配。状态已由 Service 给出呈现值，这里只额外算 result_unknown 与 message
      */
     public V4ApprovalTaskDTO toTaskDTO(ApprovalTaskDTO task) {
         V4ApprovalTaskDTO taskDTO = new V4ApprovalTaskDTO();
@@ -160,10 +150,8 @@ public class ApprovalV4ApiSupport {
     }
 
     /**
-     * 已下发但没拿到下游响应。
-     * <p>
-     * 必须同时满足"已下发"（dispatched_at 不为空）：CAS 成功后崩在下发之前的任务同样停在 EXECUTING，
-     * 但那种情况下作业确定没产生，让用户去翻执行历史是白费功夫
+     * 已下发但没拿到下游响应。必须同时满足 dispatched_at 不为空：
+     * 未下发就停在 EXECUTING 的任务确定没产生作业，不该让用户去翻执行历史
      */
     private boolean isResultUnknown(ApprovalTaskDTO task) {
         return ApprovalStatusEnum.EXECUTING == ApprovalStatusEnum.valOf(task.getStatus())
@@ -184,8 +172,7 @@ public class ApprovalV4ApiSupport {
     }
 
     /**
-     * 面向用户的可读说明。EXECUTING 分两种说法：已下发结果未知让用户去执行历史确认，
-     * 未下发则只让用户联系管理员排查
+     * 面向用户的可读说明。EXECUTING 按是否已下发给两种说法
      */
     private String resolveMessage(ApprovalTaskDTO task, boolean resultUnknown) {
         ApprovalStatusEnum status = ApprovalStatusEnum.valOf(task.getStatus());
@@ -221,21 +208,12 @@ public class ApprovalV4ApiSupport {
         return i18nService.getI18n(I18N_MESSAGE_PREFIX + key);
     }
 
-    public V4ApprovalTicketDTO toTicketDTO(ApprovalTicket ticket) {
-        V4ApprovalTicketDTO ticketDTO = new V4ApprovalTicketDTO();
-        ticketDTO.setApprovalTaskId(ticket.getApprovalTaskId());
-        ticketDTO.setTitle(ticket.getTitle());
-        ticketDTO.setRiskLevel(ticket.getRiskLevel());
-        ticketDTO.setOperationType(ticket.getOperationType());
-        ResourceScope scope = ticket.getScope();
-        if (scope != null) {
-            ticketDTO.setScopeType(scope.getType() == null ? null : scope.getType().getValue());
-            ticketDTO.setScopeId(scope.getId());
-        }
-        ticketDTO.setCreator(ticket.getCreator());
-        ticketDTO.setExpireAt(ticket.getExpireAt());
-        // 单据正文在渲染阶段就已完成脱敏，这里原样透传，不做任何还原
-        ticketDTO.setApprovalContent(ticket.getApprovalContent());
-        return ticketDTO;
+    public V4ApprovalContentDTO toContentDTO(ApprovalContent content) {
+        V4ApprovalContentDTO contentDTO = new V4ApprovalContentDTO();
+        contentDTO.setApprovalTaskId(content.getApprovalTaskId());
+        contentDTO.setExpireAt(content.getExpireAt());
+        // 正文在渲染阶段就已完成脱敏，这里原样透传，不做任何还原
+        contentDTO.setApprovalContent(content.getApprovalContent());
+        return contentDTO;
     }
 }

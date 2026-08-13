@@ -47,8 +47,8 @@ import java.util.List;
 /**
  * 按操作类型逐字段加解密参数快照。
  * <p>
- * 敏感字段路径取自 {@link ApprovalSensitiveFields}，与审批单据的脱敏共用同一份登记，
- * 避免"库里加密了、单据里明文展示"这类不会报错的漂移。
+ * 敏感字段路径取自 {@link ApprovalSensitiveFields}，与审批内容的脱敏共用同一份登记，
+ * 避免"库里加密了、审批内容里明文展示"这类不会报错的漂移。
  */
 @Slf4j
 @Service

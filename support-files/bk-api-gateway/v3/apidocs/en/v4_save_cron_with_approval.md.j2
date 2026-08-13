@@ -29,14 +29,14 @@ Before calling: the job plan to be scheduled must exist and the caller must have
 |-------|------|----------|-------------|
 | id | long | No | Global variable ID. Provide either `id` or `name`; this one wins if both are given |
 | name | string | No | Global variable name. Provide either `id` or `name` |
-| value | string | No | Global variable value. Use `execute_target` for an execution-target variable and this field for the other types (string, namespace, ciphertext, associative array, indexed array). A ciphertext variable is shown as a placeholder in the approval ticket |
+| value | string | No | Global variable value. Use `execute_target` for an execution-target variable and this field for the other types (string, namespace, ciphertext, associative array, indexed array). A ciphertext variable is shown as a placeholder in the approval content |
 | execute_target | object | No | Value of an execution-target global variable |
 
 ##### execute_target
 
 {% include '_generic_v4_execute_target.md.j2' %}
 
-**Note:** When the value contains dynamic groups or topology nodes, the cron job resolves the actual execution targets on every trigger, which may differ from the moment the approval was initiated; the approval ticket highlights this explicitly.
+**Note:** When the value contains dynamic groups or topology nodes, the cron job resolves the actual execution targets on every trigger, which may differ from the moment the approval was initiated; the approval content highlights this explicitly.
 
 ### Request Parameters Example
 

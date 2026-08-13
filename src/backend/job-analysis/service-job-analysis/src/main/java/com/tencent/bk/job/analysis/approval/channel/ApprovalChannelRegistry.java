@@ -121,10 +121,10 @@ public class ApprovalChannelRegistry {
     }
 
     /**
-     * 取该渠道取单时使用的内置 appCode，未配置时返回空串。
+     * 取该渠道调用作业平台时使用的内置 appCode，未配置时返回空串。
      * <p>
-     * 取单接口据此判断"调用方正是该任务指派的渠道"。<b>未配置一律视为不匹配</b>：
-     * 配置缺失时若放开校验，任何有网关权限的应用都能读到别人的单据内容（含脚本明文）。
+     * 取内容接口据此判断"调用方正是该任务指派的渠道"。<b>未配置一律视为不匹配</b>，
+     * 放开校验会让任何有网关权限的应用读到别人的审批内容（含脚本明文）。
      */
     public String getChannelAppCode(String channelName) {
         ApprovalChannelEnum channelEnum = ApprovalChannelEnum.valOf(channelName);

@@ -25,21 +25,20 @@
 package com.tencent.bk.job.analysis.api.esb.v4.impl;
 
 import com.tencent.bk.job.analysis.approval.ApprovalTaskService;
-import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalStatusEnum;
 import com.tencent.bk.job.analysis.approval.model.ApprovalCallerContext;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.analysis.model.esb.v4.req.V4FastExecuteScriptWithApprovalRequest;
+import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalContentDTO;
 import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalTaskCreatedDTO;
 import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalTaskDTO;
-import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalTicketDTO;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import org.junit.jupiter.api.AfterEach;
@@ -48,7 +47,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -126,7 +129,6 @@ class ApprovalV4ApiSupportTest {
         assertThat(caller.getAppCode()).isEqualTo(APP_CODE);
 
         V4ApprovalTaskCreatedDTO data = response.getData();
-        // 渠道取单要带租户头，发起返回体必须给出 tenant_id
         assertThat(data.getTenantId()).isEqualTo(TENANT_ID);
         assertThat(data.getApprovalTaskId()).isEqualTo("task-1");
         assertThat(data.getStatus()).isEqualTo(ApprovalStatusEnum.PENDING.name());
@@ -200,25 +202,27 @@ class ApprovalV4ApiSupportTest {
     }
 
     @Test
-    @DisplayName("取单返回体把 Markdown 正文与元信息原样带出，scope 拆成 scopeType/scopeId")
-    void ticketKeepsMarkdownContentAndScope() {
-        ApprovalTicket ticket = new ApprovalTicket();
-        ticket.setApprovalTaskId("task-1");
-        ticket.setTitle("快速执行脚本");
-        ticket.setRiskLevel("HIGH");
-        ticket.setOperationType(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT.name());
-        ticket.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, "2"));
-        ticket.setCreator(USERNAME);
-        ticket.setExpireAt(1000L);
-        ticket.setApprovalContent("# 快速执行脚本\n\n| 项目 | 内容 |\n| --- | --- |\n| 账号 | **root** |\n");
+    @DisplayName("取内容返回体只有三个字段，Markdown 正文原样带出")
+    void approvalContentKeepsMarkdownOnly() {
+        ApprovalContent content = new ApprovalContent();
+        content.setApprovalTaskId("task-1");
+        content.setExpireAt(1000L);
+        content.setApprovalContent("# 快速执行脚本\n\n| 项目 | 内容 |\n| --- | --- |\n| 账号 | **root** |\n");
 
-        V4ApprovalTicketDTO ticketDTO = support.toTicketDTO(ticket);
+        V4ApprovalContentDTO contentDTO = support.toContentDTO(content);
 
-        assertThat(ticketDTO.getApprovalTaskId()).isEqualTo("task-1");
-        assertThat(ticketDTO.getScopeType()).isEqualTo(ResourceScopeTypeEnum.BIZ.getValue());
-        assertThat(ticketDTO.getScopeId()).isEqualTo("2");
-        assertThat(ticketDTO.getRiskLevel()).isEqualTo("HIGH");
-        assertThat(ticketDTO.getApprovalContent()).isEqualTo(ticket.getApprovalContent());
+        assertThat(contentDTO.getApprovalTaskId()).isEqualTo("task-1");
+        assertThat(contentDTO.getExpireAt()).isEqualTo(1000L);
+        assertThat(contentDTO.getApprovalContent()).isEqualTo(content.getApprovalContent());
+        assertThat(declaredFieldNames(V4ApprovalContentDTO.class))
+            .containsExactlyInAnyOrder("approvalTaskId", "expireAt", "approvalContent");
+    }
+
+    private List<String> declaredFieldNames(Class<?> clazz) {
+        return Arrays.stream(clazz.getDeclaredFields())
+            .filter(field -> !field.isSynthetic())
+            .map(Field::getName)
+            .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")

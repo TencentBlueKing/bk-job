@@ -37,7 +37,7 @@ public enum ApprovalOperationTypeEnum {
     UPDATE_CRON_STATUS("task.approval.operation.updateCronStatus");
 
     /**
-     * 操作名称的国际化 key，用于渲染单据标题
+     * 操作名称的国际化 key，用于渲染审批内容标题
      */
     private final String nameI18nKey;
 

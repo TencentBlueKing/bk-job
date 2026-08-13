@@ -28,7 +28,7 @@ BEGIN
             `app_code`              varchar(128)        NOT NULL DEFAULT '' COMMENT '发起方appCode',
             `approval_channel`      varchar(32)         NOT NULL COMMENT '审批渠道枚举: IMATE/...',
             `approval_ticket_id`    varchar(256)        NULL COMMENT '审批渠道单据ID，首次回查确认绑定后写入，此后不可更换',
-            `ticket_fetched_at`     bigint(20) UNSIGNED NULL COMMENT '审批渠道拉取单据的时间(毫秒)，仅作观测，不参与放行校验',
+            `ticket_fetched_at`     bigint(20) UNSIGNED NULL COMMENT '审批渠道拉取审批内容的时间(毫秒)，仅作观测，不参与放行校验',
             `status`                varchar(32)         NOT NULL COMMENT '状态: PENDING/EXECUTING/EXECUTED/REJECTED/CANCELED/FAILED',
             `approver`              varchar(128)        NULL COMMENT '审批人(来自回查响应)',
             `approved_at`           bigint(20) UNSIGNED NULL COMMENT '审批通过时间(毫秒，来自回查响应)',

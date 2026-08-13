@@ -24,42 +24,40 @@
 
 package com.tencent.bk.job.analysis.api.esb.v4.impl;
 
-import com.tencent.bk.job.analysis.api.esb.v4.OpenApiApprovalTicketV4Resource;
+import com.tencent.bk.job.analysis.api.esb.v4.OpenApiApprovalContentV4Resource;
 import com.tencent.bk.job.analysis.approval.ApprovalTaskService;
-import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
-import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalTicketDTO;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
+import com.tencent.bk.job.analysis.model.esb.v4.resp.V4ApprovalContentDTO;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 审批渠道取单（应用态）。
+ * 取审批内容。
  * <p>
- * <b>整个实现不碰用户身份</b>：应用态调用没有 USERNAME 头，取 {@code JobContextUtil.getUser()} 会直接抛异常。
- * 归属校验由 Service 用"请求头租户 == 任务 tenant_id"与"调用方 appCode == 任务指派渠道的 appCode"两条完成，
- * 任一不符按"任务不存在"返回，不区分"不存在"与"无权访问"。
- * <p>
- * 取单不产出审计事件：这是渠道的读取动作，审批链路只在审批通过并放行时产出一条审计事件。
+ * 归属校验全部在 Service 侧完成，本类只负责组装调用上下文与返回体。
+ * 取内容不产出审计事件：审批链路只在审批通过并放行时产出一条审计事件。
  */
 @RestController
-public class OpenApiApprovalTicketV4ResourceImpl implements OpenApiApprovalTicketV4Resource {
+public class OpenApiApprovalContentV4ResourceImpl implements OpenApiApprovalContentV4Resource {
 
     private final ApprovalTaskService approvalTaskService;
     private final ApprovalV4ApiSupport approvalV4ApiSupport;
 
-    public OpenApiApprovalTicketV4ResourceImpl(ApprovalTaskService approvalTaskService,
-                                               ApprovalV4ApiSupport approvalV4ApiSupport) {
+    public OpenApiApprovalContentV4ResourceImpl(ApprovalTaskService approvalTaskService,
+                                                ApprovalV4ApiSupport approvalV4ApiSupport) {
         this.approvalTaskService = approvalTaskService;
         this.approvalV4ApiSupport = approvalV4ApiSupport;
     }
 
     @Override
-    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v4_system_get_approval_ticket"})
-    public EsbV4Response<V4ApprovalTicketDTO> getApprovalTicket(String appCode,
-                                                                String tenantId,
-                                                                String approvalTaskId) {
-        ApprovalTicket ticket = approvalTaskService.getTicket(approvalTaskId, tenantId, appCode);
-        return EsbV4Response.success(approvalV4ApiSupport.toTicketDTO(ticket));
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v4_system_get_approval_content"})
+    public EsbV4Response<V4ApprovalContentDTO> getApprovalContent(String username,
+                                                                 String appCode,
+                                                                 String approvalTaskId) {
+        ApprovalContent content = approvalTaskService.getApprovalContent(
+            approvalTaskId, approvalV4ApiSupport.workflowCaller(appCode));
+        return EsbV4Response.success(approvalV4ApiSupport.toContentDTO(content));
     }
 }

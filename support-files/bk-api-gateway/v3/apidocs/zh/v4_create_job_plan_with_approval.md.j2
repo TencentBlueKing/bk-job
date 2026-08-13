@@ -25,7 +25,7 @@
 | 字段 | 类型 | 必选 | 描述 |
 |------|------|------|------|
 | name | string | 是 | 模板中的全局变量名称，按名称匹配（不支持按变量 ID）；不可为空 |
-| value | string | 否 | 变量默认值。适用于模板中变量类型为字符串、命名空间、密文、关联数组、索引数组时；`follow_template` 为 `true` 时不生效。密文类型变量在审批单据中只显示占位符 |
+| value | string | 否 | 变量默认值。适用于模板中变量类型为字符串、命名空间、密文、关联数组、索引数组时；`follow_template` 为 `true` 时不生效。密文类型变量在审批内容中只显示占位符 |
 | execute_target | object | 否 | 执行目标。仅当模板中该变量为执行目标列表类型且 `follow_template` 为 `false` 时填写；填写时不可再填 `value` |
 | follow_template | boolean | 否 | 是否沿用模板中该变量的默认值。可选值：`true`（沿用模板默认值）、`false`（使用本请求中的 `value` 或 `execute_target`，默认 `false`）。为 `true` 时不可填写 `execute_target` |
 

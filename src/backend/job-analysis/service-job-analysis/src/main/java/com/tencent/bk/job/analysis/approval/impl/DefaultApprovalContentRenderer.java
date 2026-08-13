@@ -27,11 +27,11 @@ package com.tencent.bk.job.analysis.approval.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.tencent.bk.job.analysis.approval.ApprovalContentRenderer;
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
 import com.tencent.bk.job.analysis.approval.ApprovalSensitiveFields;
 import com.tencent.bk.job.analysis.approval.ApprovalSensitiveFields.SensitiveField;
-import com.tencent.bk.job.analysis.approval.ApprovalTicketRenderer;
-import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalRiskLevelEnum;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
@@ -53,19 +53,15 @@ import java.util.List;
 import java.util.StringJoiner;
 
 /**
- * 默认单据渲染实现：把审批任务渲染成一份 Markdown。
- * <p>
- * <b>概要表格承担"让审批人看清要在哪些机器上执行什么"的全部责任</b>：它把 resolved_summary 里解析后的
- * 实际影响面（目标机、账号、脚本、高危命中、生效的默认值）逐行摊开，高危项加粗。脚本内容单独成章、
- * 用代码块原样呈现 —— 塞进表格单元格会因换行被压成一行，等于让审批人看不清要执行的东西。
- * 原始参数放在最后的 JSON 代码块里：完整参数必须可查，但摊在最前面只会淹没关键信息、加重盲签。
+ * 默认实现：把审批任务渲染成一份 Markdown，依次为标题、操作概要表格、各执行步骤表格、
+ * 脚本内容代码块、原始参数 JSON 代码块。
  * <p>
  * <b>敏感字段的呈现方式由 {@link ApprovalSensitiveFields} 统一登记</b>，本类不自行判断哪个字段敏感。
  * 脚本内容是唯一原样展示的敏感字段：不展示则审批人无从判断风险。
  */
 @Slf4j
 @Service
-public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
+public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
 
     /**
      * 掩码占位符。长度固定，连原值长度都不泄露
@@ -73,17 +69,16 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
     private static final String MASK = "******";
 
     /**
-     * 原始参数 JSON 最多展示的字符数。参数体理论上可以很大（如上千台主机的 host_id 列表），
-     * 全量摊开会把单据撑到没人看得完，反而不利于审批
+     * 原始参数 JSON 最多展示的字符数，超出截断：参数体可能很大（如上千台主机的 host_id 列表）
      */
     private static final int MAX_RAW_PARAMS_LENGTH = 20000;
 
     /**
-     * 执行对象列表在单据中最多逐个列出的条数，超出只给总数
+     * 执行对象最多逐个列出的条数，超出只给总数
      */
     private static final int MAX_LISTED_EXECUTE_OBJECTS = 20;
 
-    private static final String I18N_PREFIX = "task.approval.ticket.";
+    private static final String I18N_PREFIX = "task.approval.content.";
 
     private static final String LINE_SEPARATOR = "\n";
 
@@ -91,32 +86,27 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
     private final CommonAppService appService;
     private final ApprovalParamsCryptoService paramsCryptoService;
 
-    public DefaultApprovalTicketRenderer(MessageI18nService i18nService,
-                                         CommonAppService appService,
-                                         ApprovalParamsCryptoService paramsCryptoService) {
+    public DefaultApprovalContentRenderer(MessageI18nService i18nService,
+                                          CommonAppService appService,
+                                          ApprovalParamsCryptoService paramsCryptoService) {
         this.i18nService = i18nService;
         this.appService = appService;
         this.paramsCryptoService = paramsCryptoService;
     }
 
     @Override
-    public ApprovalTicket render(ApprovalTaskDTO task) {
+    public ApprovalContent render(ApprovalTaskDTO task) {
         ApprovalOperationTypeEnum operationType = ApprovalOperationTypeEnum.valOf(task.getOperationType());
         ResolvedSummary summary = parseSummary(task);
         BasicApp app = loadApp(task.getAppId());
         ApprovalRiskLevelEnum riskLevel = resolveRiskLevel(summary);
         String title = buildTitle(operationType, app, summary);
 
-        ApprovalTicket ticket = new ApprovalTicket();
-        ticket.setApprovalTaskId(task.getApprovalTaskId());
-        ticket.setOperationType(task.getOperationType());
-        ticket.setCreator(task.getCreator());
-        ticket.setExpireAt(task.getExpireAt());
-        ticket.setScope(app == null ? null : app.getScope());
-        ticket.setRiskLevel(riskLevel.name());
-        ticket.setTitle(title);
-        ticket.setApprovalContent(buildContent(task, operationType, app, summary, riskLevel, title));
-        return ticket;
+        ApprovalContent content = new ApprovalContent();
+        content.setApprovalTaskId(task.getApprovalTaskId());
+        content.setExpireAt(task.getExpireAt());
+        content.setApprovalContent(buildContent(task, operationType, app, summary, riskLevel, title));
+        return content;
     }
 
     private String buildContent(ApprovalTaskDTO task,
@@ -168,7 +158,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
             putRow(rows, label("containsDynamicTarget"), label("value.dynamicTargetHint"), true);
         }
         if (CollectionUtils.isNotEmpty(summary.getDefaultsApplied())) {
-            // 默认生效的参数是用户没写、系统替他决定的部分，后果与显式指定完全一样，必须逐项披露
+            // 默认生效的参数后果与显式指定一样，必须逐项披露
             putResolvedFields(rows, summary.getDefaultsApplied(), label("defaultPrefix"));
         }
 
@@ -230,7 +220,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
             return;
         }
         if (rawParamsJson.isEmpty()) {
-            // 没有参数快照可展示时连标题都不出：空章节只会让人以为单据渲染缺了东西
+            // 没有参数快照时连标题都不出，避免出现空章节
             return;
         }
         appendHeading(content, 2, label("section.rawParams"));
@@ -254,7 +244,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
             root = JsonUtils.toJsonNode(paramsCryptoService.decryptSensitiveFields(
                 operationType, task.getOperationParams()));
         } catch (Exception e) {
-            // 参数区渲染失败不能让整张单据出不来：概要与步骤仍然可用，审批人至少不是完全瞎的
+            // 参数区渲染失败不能让整份内容出不来，概要与步骤仍然可用
             log.error("Render raw params failed, approvalTaskId: {}", task.getApprovalTaskId(), e);
             return null;
         }
@@ -262,9 +252,9 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
             return null;
         }
         for (SensitiveField field : ApprovalSensitiveFields.of(operationType)) {
-            applyTicketDisplay(root, field, 0, StringUtils.EMPTY, scriptBlocks);
+            applyContentDisplay(root, field, 0, StringUtils.EMPTY, scriptBlocks);
         }
-        // 统一换行符：Jackson 的缩进输出跟随运行平台，不统一会让同一份单据在不同节点上长得不一样
+        // 统一换行符：Jackson 的缩进输出跟随运行平台，不统一会让同一份内容在不同节点上长得不一样
         String json = root.toPrettyString().replace("\r\n", LINE_SEPARATOR);
         if (json.length() > MAX_RAW_PARAMS_LENGTH) {
             return json.substring(0, MAX_RAW_PARAMS_LENGTH) + LINE_SEPARATOR
@@ -276,14 +266,13 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
     /**
      * 按登记的呈现方式改写敏感字段的值。
      * <p>
-     * <b>改写发生在输出之前</b>：先把树里的敏感值换成占位符，再整棵树序列化输出，
-     * 这样即便敏感字段藏在数组元素里，输出的 JSON 里也不会有任何一处携带原值。
+     * <b>必须先改写整棵树再序列化输出</b>，否则藏在数组元素里的敏感值会被原样带出。
      */
-    private void applyTicketDisplay(JsonNode node,
-                                    SensitiveField field,
-                                    int depth,
-                                    String pathPrefix,
-                                    List<PlainTextBlock> scriptBlocks) {
+    private void applyContentDisplay(JsonNode node,
+                                     SensitiveField field,
+                                     int depth,
+                                     String pathPrefix,
+                                     List<PlainTextBlock> scriptBlocks) {
         if (node == null || node.isNull()) {
             return;
         }
@@ -295,7 +284,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
                 return;
             }
             for (int i = 0; i < node.size(); i++) {
-                applyTicketDisplay(node.get(i), field, depth + 1,
+                applyContentDisplay(node.get(i), field, depth + 1,
                     pathPrefix + "[" + i + "]", scriptBlocks);
             }
             return;
@@ -306,7 +295,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
         ObjectNode objectNode = (ObjectNode) node;
         String childPath = joinPath(pathPrefix, segment);
         if (!lastSegment) {
-            applyTicketDisplay(objectNode.get(segment), field, depth + 1, childPath, scriptBlocks);
+            applyContentDisplay(objectNode.get(segment), field, depth + 1, childPath, scriptBlocks);
             return;
         }
         JsonNode leaf = objectNode.get(segment);
@@ -320,9 +309,9 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
             }
             return;
         }
-        switch (field.getTicketDisplay()) {
+        switch (field.getContentDisplay()) {
             case PLAIN_TEXT:
-                // 脚本内容：审批人要审的对象本身，摘出来单独用代码块展示，不展示等于盲签
+                // 脚本内容摘出来单独用代码块展示，树里只留占位符
                 scriptBlocks.add(new PlainTextBlock(childPath,
                     field.isBase64Encoded() ? decodeBase64(leaf.asText()) : leaf.asText()));
                 objectNode.put(segment, label("value.scriptInSection"));
@@ -440,8 +429,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
     }
 
     /**
-     * 值为空的行直接不出现：空行只会占满审批人的视线。{@code highlight} 的行加粗，
-     * 这是 Markdown 里唯一稳定可用的"显著标注"手段
+     * 值为空的行直接不出现；{@code highlight} 的行加粗，作为高危项的显著标注
      */
     private void putRow(List<TableRow> rows, String label, String value, boolean highlight) {
         if (StringUtils.isBlank(value)) {
@@ -506,8 +494,7 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
     }
 
     /**
-     * 下游回传的 label 是稳定的字段名（如 file_target_path），能翻译就翻译，翻不了就原样展示 —— 缺文案
-     * 不该让单据取不出来
+     * 下游回传的 label 是稳定的字段名（如 file_target_path），能翻译就翻译，缺文案时原样展示
      */
     private String resolvedFieldLabel(String rawLabel) {
         if (StringUtils.isBlank(rawLabel)) {
@@ -560,8 +547,8 @@ public class DefaultApprovalTicketRenderer implements ApprovalTicketRenderer {
         try {
             return appService.getApp(appId);
         } catch (Exception e) {
-            // 业务信息查不到只影响标题好看程度，不该让整张单据出不来
-            log.warn("Get app failed while rendering approval ticket, appId: {}", appId, e);
+            // 业务信息查不到只影响标题，不该让整份内容出不来
+            log.warn("Get app failed while rendering approval content, appId: {}", appId, e);
             return null;
         }
     }

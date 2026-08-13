@@ -40,8 +40,7 @@ public class V4ApprovalTaskCreatedDTO {
     private String approvalTaskId;
 
     /**
-     * 任务所属租户。审批渠道调用取单接口时必须以此值作为 X-Bk-Tenant-Id 请求头，
-     * 否则多租户环境下会在网关层直接 401
+     * 任务所属租户，便于调用方识别任务归属
      */
     @JsonProperty("tenant_id")
     private String tenantId;

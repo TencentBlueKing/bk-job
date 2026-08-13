@@ -25,12 +25,12 @@
 package com.tencent.bk.job.analysis.approval.impl;
 
 import com.tencent.bk.job.analysis.approval.ApprovalAuditor;
+import com.tencent.bk.job.analysis.approval.ApprovalContentRenderer;
 import com.tencent.bk.job.analysis.approval.ApprovalMetrics;
-import com.tencent.bk.job.analysis.approval.ApprovalTicketRenderer;
 import com.tencent.bk.job.analysis.approval.channel.ApprovalChannel;
 import com.tencent.bk.job.analysis.approval.channel.ApprovalChannelRegistry;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalResult;
-import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalResultStatusEnum;
@@ -107,7 +107,7 @@ class ApprovalTaskServiceImplTest {
     private ApprovalChannel approvalChannel;
     private RecordingOperationExecutor executor;
     private ApprovalProperties approvalProperties;
-    private ApprovalTicketRenderer ticketRenderer;
+    private ApprovalContentRenderer contentRenderer;
     private MeterRegistry meterRegistry;
     private ApprovalAuditor approvalAuditor;
     private ApprovalTaskServiceImpl approvalTaskService;
@@ -121,7 +121,7 @@ class ApprovalTaskServiceImplTest {
         paramsCryptoService = new ApprovalParamsCryptoServiceStub();
         executor = new RecordingOperationExecutor();
         approvalProperties = new ApprovalProperties();
-        ticketRenderer = mock(ApprovalTicketRenderer.class);
+        contentRenderer = mock(ApprovalContentRenderer.class);
         meterRegistry = new SimpleMeterRegistry();
         approvalAuditor = mock(ApprovalAuditor.class);
 
@@ -133,7 +133,7 @@ class ApprovalTaskServiceImplTest {
 
         approvalTaskService = new ApprovalTaskServiceImpl(
             approvalTaskDAO, channelRegistry, executorRegistry, paramsCryptoService, approvalProperties,
-            ticketRenderer, new ApprovalMetrics(meterRegistry, approvalProperties), approvalAuditor);
+            contentRenderer, new ApprovalMetrics(meterRegistry, approvalProperties), approvalAuditor);
     }
 
     @Nested
@@ -539,45 +539,61 @@ class ApprovalTaskServiceImplTest {
     }
 
     @Nested
-    @DisplayName("应用态取单")
-    class GetTicketTest {
+    @DisplayName("取审批内容")
+    class GetApprovalContentTest {
 
         @Test
-        @DisplayName("调用方正是该任务指派的渠道时返回单据，并记录取单时间")
-        void givenAssignedChannelThenReturnTicket() {
+        @DisplayName("调用方是该任务指派的渠道且为发起人本人时返回内容，并记录拉取时间")
+        void givenAssignedChannelThenReturnContent() {
             ApprovalTaskDTO task = buildPendingTask();
             when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(task);
-            ApprovalTicket rendered = new ApprovalTicket();
+            ApprovalContent rendered = new ApprovalContent();
             rendered.setApprovalTaskId(TASK_ID);
-            when(ticketRenderer.render(task)).thenReturn(rendered);
+            when(contentRenderer.render(task)).thenReturn(rendered);
 
-            ApprovalTicket ticket = approvalTaskService.getTicket(TASK_ID, TENANT_ID, CHANNEL_APP_CODE);
+            ApprovalContent content = approvalTaskService.getApprovalContent(TASK_ID, channelCaller(CREATOR));
 
-            assertThat(ticket).isSameAs(rendered);
+            assertThat(content).isSameAs(rendered);
             verify(approvalTaskDAO).updateTicketFetchedAt(eq(TASK_ID), anyLong());
         }
 
         @Test
-        @DisplayName("调用方不是该任务指派的渠道时按任务不存在处理，且不渲染单据")
+        @DisplayName("调用方不是该任务指派的渠道时按任务不存在处理，且不渲染内容")
         void givenOtherAppCodeThenNotFound() {
             when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(buildPendingTask());
+            ApprovalCallerContext caller = ApprovalCallerContext.builder()
+                .tenantId(TENANT_ID).username(CREATOR).appCode("bk_other").build();
 
-            assertThatThrownBy(() -> approvalTaskService.getTicket(TASK_ID, TENANT_ID, "bk_other"))
+            assertThatThrownBy(() -> approvalTaskService.getApprovalContent(TASK_ID, caller))
                 .isInstanceOf(NotFoundException.class)
                 .satisfies(e -> assertThat(((ServiceException) e).getErrorCode())
                     .isEqualTo(ErrorCode.APPROVAL_TASK_NOT_EXIST));
-            verify(ticketRenderer, never()).render(any());
+            verify(contentRenderer, never()).render(any());
             verify(approvalTaskDAO, never()).updateTicketFetchedAt(anyString(), anyLong());
         }
 
         @Test
-        @DisplayName("跨租户取单按任务不存在处理")
-        void givenOtherTenantThenNotFound() {
+        @DisplayName("非发起人本人取内容按任务不存在处理：内容里有脚本明文")
+        void givenOtherUsernameThenNotFound() {
             when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(buildPendingTask());
 
-            assertThatThrownBy(() -> approvalTaskService.getTicket(TASK_ID, "other_tenant", CHANNEL_APP_CODE))
+            assertThatThrownBy(() -> approvalTaskService.getApprovalContent(TASK_ID, channelCaller("other_user")))
+                .isInstanceOf(NotFoundException.class)
+                .satisfies(e -> assertThat(((ServiceException) e).getErrorCode())
+                    .isEqualTo(ErrorCode.APPROVAL_TASK_NOT_EXIST));
+            verify(contentRenderer, never()).render(any());
+        }
+
+        @Test
+        @DisplayName("跨租户取内容按任务不存在处理")
+        void givenOtherTenantThenNotFound() {
+            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(buildPendingTask());
+            ApprovalCallerContext caller = ApprovalCallerContext.builder()
+                .tenantId("other_tenant").username(CREATOR).appCode(CHANNEL_APP_CODE).build();
+
+            assertThatThrownBy(() -> approvalTaskService.getApprovalContent(TASK_ID, caller))
                 .isInstanceOf(NotFoundException.class);
-            verify(ticketRenderer, never()).render(any());
+            verify(contentRenderer, never()).render(any());
         }
 
         @Test
@@ -585,22 +601,24 @@ class ApprovalTaskServiceImplTest {
         void givenChannelAppCodeNotConfiguredThenNotFound() {
             when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(buildPendingTask());
             when(channelRegistry.getChannelAppCode(anyString())).thenReturn("");
+            ApprovalCallerContext caller = ApprovalCallerContext.builder()
+                .tenantId(TENANT_ID).username(CREATOR).appCode("").build();
 
-            assertThatThrownBy(() -> approvalTaskService.getTicket(TASK_ID, TENANT_ID, ""))
+            assertThatThrownBy(() -> approvalTaskService.getApprovalContent(TASK_ID, caller))
                 .isInstanceOf(NotFoundException.class);
-            verify(ticketRenderer, never()).render(any());
+            verify(contentRenderer, never()).render(any());
         }
 
         @Test
-        @DisplayName("记录取单时间失败不影响取单结果")
-        void givenUpdateFetchedAtFailThenStillReturnTicket() {
+        @DisplayName("记录拉取时间失败不影响取内容结果")
+        void givenUpdateFetchedAtFailThenStillReturnContent() {
             ApprovalTaskDTO task = buildPendingTask();
             when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(task);
-            when(ticketRenderer.render(task)).thenReturn(new ApprovalTicket());
+            when(contentRenderer.render(task)).thenReturn(new ApprovalContent());
             when(approvalTaskDAO.updateTicketFetchedAt(anyString(), anyLong()))
                 .thenThrow(new InternalException("db error", ErrorCode.INTERNAL_ERROR));
 
-            assertThat(approvalTaskService.getTicket(TASK_ID, TENANT_ID, CHANNEL_APP_CODE)).isNotNull();
+            assertThat(approvalTaskService.getApprovalContent(TASK_ID, channelCaller(CREATOR))).isNotNull();
         }
     }
 
@@ -609,14 +627,14 @@ class ApprovalTaskServiceImplTest {
     class MetricsTest {
 
         @Test
-        @DisplayName("渠道从未取单就放行时计数：这是发现单据未经作业平台生成的唯一手段")
+        @DisplayName("渠道从未取过审批内容就放行时计数：这是发现单据未经作业平台生成的唯一手段")
         void givenNoTicketFetchThenCountDispatchedWithoutTicketFetch() {
             long createTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10);
             givenDispatchedTask(createTime, createTime + TimeUnit.MINUTES.toMillis(9), null);
 
             approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
 
-            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_TICKET_FETCH)).isEqualTo(1.0);
+            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_CONTENT_FETCH)).isEqualTo(1.0);
             assertThat(counterCount(ApprovalMetrics.NAME_FAST_APPROVED)).isZero();
         }
 
@@ -629,7 +647,7 @@ class ApprovalTaskServiceImplTest {
             approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
 
             assertThat(counterCount(ApprovalMetrics.NAME_FAST_APPROVED)).isEqualTo(1.0);
-            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_TICKET_FETCH)).isZero();
+            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_CONTENT_FETCH)).isZero();
         }
 
         @Test
@@ -658,7 +676,7 @@ class ApprovalTaskServiceImplTest {
             approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
 
             assertThat(counterCount(ApprovalMetrics.NAME_FAST_APPROVED)).isZero();
-            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_TICKET_FETCH)).isZero();
+            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_CONTENT_FETCH)).isZero();
         }
 
         @Test
@@ -670,7 +688,7 @@ class ApprovalTaskServiceImplTest {
 
             approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
 
-            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_TICKET_FETCH)).isEqualTo(1.0);
+            assertThat(counterCount(ApprovalMetrics.NAME_DISPATCHED_WITHOUT_CONTENT_FETCH)).isEqualTo(1.0);
             assertThat(counterCount(ApprovalMetrics.NAME_FAST_APPROVED)).isEqualTo(1.0);
         }
 
@@ -763,6 +781,17 @@ class ApprovalTaskServiceImplTest {
             .appId(APP_ID)
             .username(CREATOR)
             .appCode(APP_CODE)
+            .build();
+    }
+
+    /**
+     * 取内容接口的调用上下文：appCode 是渠道自身的，username 由用例指定
+     */
+    private static ApprovalCallerContext channelCaller(String username) {
+        return ApprovalCallerContext.builder()
+            .tenantId(TENANT_ID)
+            .username(username)
+            .appCode(CHANNEL_APP_CODE)
             .build();
     }
 

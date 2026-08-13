@@ -25,7 +25,7 @@
 package com.tencent.bk.job.analysis.approval.impl;
 
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
-import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalRiskLevelEnum;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
@@ -55,22 +55,22 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * 单元测试 - 审批单据渲染与脱敏。
+ * 单元测试 - 审批内容渲染与脱敏。
  * <p>
  * 本类盯死两件"破了就等于没做"的事：
  * <ul>
- *     <li><b>单据正文必须看清"在哪些机器上执行什么"</b>，否则等于逼审批人盲签；</li>
+ *     <li><b>正文必须看清"在哪些机器上执行什么"</b>，否则等于逼审批人盲签；</li>
  *     <li><b>密码类字段的明文与密文都不得出现在正文的任何位置</b>，脚本内容是唯一例外。</li>
  * </ul>
  * 断言一律落在 {@code approvalContent} 这一份 Markdown 正文上：它是审批人唯一看得到的东西。
  */
-class DefaultApprovalTicketRendererTest {
+class DefaultApprovalContentRendererTest {
 
-    private static final String SECTION_SUMMARY = "## task.approval.ticket.section.summary";
-    private static final String SECTION_SCRIPT = "## task.approval.ticket.section.scriptContent";
-    private static final String SECTION_RAW_PARAMS = "## task.approval.ticket.section.rawParams";
+    private static final String SECTION_SUMMARY = "## task.approval.content.section.summary";
+    private static final String SECTION_SCRIPT = "## task.approval.content.section.scriptContent";
+    private static final String SECTION_RAW_PARAMS = "## task.approval.content.section.rawParams";
     private static final String TABLE_HEADER =
-        "| task.approval.ticket.table.item | task.approval.ticket.table.value |";
+        "| task.approval.content.table.item | task.approval.content.table.value |";
 
     private static final String TASK_ID = "e2a1c0d4111122223333444455556666";
     private static final String CREATOR = "admin";
@@ -82,7 +82,7 @@ class DefaultApprovalTicketRendererTest {
 
     private CommonAppService appService;
     private MessageI18nService i18nService;
-    private DefaultApprovalTicketRenderer renderer;
+    private DefaultApprovalContentRenderer renderer;
 
     @BeforeEach
     void setUp() {
@@ -98,16 +98,18 @@ class DefaultApprovalTicketRendererTest {
         when(i18nService.getI18n(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         when(i18nService.getI18nWithArgs(anyString(), any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        renderer = new DefaultApprovalTicketRenderer(i18nService, appService, new NoopParamsCryptoService());
+        renderer = new DefaultApprovalContentRenderer(i18nService, appService, new NoopParamsCryptoService());
     }
 
     @Test
     @DisplayName("正文是一份 Markdown：一级标题 + 概要表格 + 脚本章节 + 原始参数代码块，顺序固定")
     void givenTaskThenRenderMarkdownWithFixedSectionOrder() {
-        ApprovalTicket ticket = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
 
-        String content = ticket.getApprovalContent();
-        assertThat(content).startsWith("# " + ticket.getTitle());
+        String content = rendered.getApprovalContent();
+        assertThat(content)
+            .as("标题只在正文里给，返回体不再有结构化的 title 字段")
+            .startsWith("# " + ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT.getNameI18nKey());
         assertThat(content).contains(SECTION_SUMMARY);
         assertThat(content)
             .as("概要必须以表格呈现，逐项对照才看得清")
@@ -122,14 +124,14 @@ class DefaultApprovalTicketRendererTest {
     @Test
     @DisplayName("正文看得清在哪些机器上执行什么：执行对象、台数、账号、脚本名都在")
     void givenSummaryThenShowExecuteObjectsAndScript() {
-        ApprovalTicket ticket = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
 
-        assertThat(ticket.getApprovalContent())
+        assertThat(rendered.getApprovalContent())
             .contains("0:127.0.0.1")
             .contains("37")
             .contains("root")
             .contains("check_disk.sh");
-        assertThat(ticket.getTitle())
+        assertThat(firstLine(rendered.getApprovalContent()))
             .as("标题须带上操作名与业务名")
             .contains(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT.getNameI18nKey())
             .contains("运维测试业务");
@@ -138,39 +140,40 @@ class DefaultApprovalTicketRendererTest {
     @Test
     @DisplayName("高危账号与高危规则命中都加粗，风险等级为 HIGH")
     void givenHighRiskThenBoldAndHighRiskLevel() {
-        ApprovalTicket ticket = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
 
-        assertThat(ticket.getRiskLevel()).isEqualTo(ApprovalRiskLevelEnum.HIGH.name());
-        assertThat(ticket.getApprovalContent())
+        assertThat(tableRow(rendered.getApprovalContent(), "riskLevel"))
+            .contains(ApprovalRiskLevelEnum.HIGH.getNameI18nKey());
+        assertThat(rendered.getApprovalContent())
             .as("高危账号所在行须加粗，否则容易被扫过去")
             .contains("**root**");
-        assertThat(tableRow(ticket.getApprovalContent(), "dangerousRuleMatched"))
-            .contains("**task.approval.ticket.dangerousRuleMatched**");
+        assertThat(tableRow(rendered.getApprovalContent(), "dangerousRuleMatched"))
+            .contains("**task.approval.content.dangerousRuleMatched**");
     }
 
     @Test
-    @DisplayName("动态分组目标在单据上可见且加粗：这是对「放行时重新解析」这一已知限制的如实披露")
+    @DisplayName("动态分组目标在正文中可见且加粗：这是对「放行时重新解析」这一已知限制的如实披露")
     void givenDynamicTargetThenBoldHintVisible() {
-        ApprovalTicket ticket = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
 
-        String row = tableRow(ticket.getApprovalContent(), "containsDynamicTarget");
+        String row = tableRow(rendered.getApprovalContent(), "containsDynamicTarget");
         assertThat(row)
-            .contains("**task.approval.ticket.containsDynamicTarget**")
+            .contains("**task.approval.content.containsDynamicTarget**")
             .contains("dynamicTargetHint");
     }
 
     @Test
     @DisplayName("脚本内容单独成章、代码块原样展示并已解码：不展示则审批人无从判断风险")
     void givenScriptContentThenShowDecodedPlainTextInOwnSection() {
-        ApprovalTicket ticket = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
 
-        String scriptSection = sectionOf(ticket.getApprovalContent(), SECTION_SCRIPT);
+        String scriptSection = sectionOf(rendered.getApprovalContent(), SECTION_SCRIPT);
         assertThat(scriptSection)
             .contains("`script_content`")
             .contains("```\n" + SCRIPT_CONTENT + "\n```");
-        assertThat(sectionOf(ticket.getApprovalContent(), SECTION_RAW_PARAMS))
+        assertThat(sectionOf(rendered.getApprovalContent(), SECTION_RAW_PARAMS))
             .as("参数树里只留指向脚本章节的占位符，避免同一段脚本出现两遍")
-            .contains("task.approval.ticket.value.scriptInSection")
+            .contains("task.approval.content.value.scriptInSection")
             .doesNotContain(SCRIPT_CONTENT);
     }
 
@@ -180,36 +183,36 @@ class DefaultApprovalTicketRendererTest {
         String script = "echo '```'";
         String params = "{\"name\":\"quick-script\",\"script_content\":\"" + base64(script) + "\"}";
 
-        ApprovalTicket ticket = renderer.render(buildTask(buildFullSummary(), params));
+        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), params));
 
-        assertThat(sectionOf(ticket.getApprovalContent(), SECTION_SCRIPT))
+        assertThat(sectionOf(rendered.getApprovalContent(), SECTION_SCRIPT))
             .contains("````\n" + script + "\n````");
     }
 
     @Test
     @DisplayName("主机账号密码只披露「提供了自定义密码」，明文与密文都不出现")
     void givenHostPasswordThenOnlyDiscloseProvided() {
-        ApprovalTicket ticket = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
 
-        assertThat(ticket.getApprovalContent()).contains("task.approval.ticket.value.passwordProvided");
-        assertContentFreeOfSecrets(ticket);
+        assertThat(rendered.getApprovalContent()).contains("task.approval.content.value.passwordProvided");
+        assertContentFreeOfSecrets(rendered);
     }
 
     @Test
     @DisplayName("用户声明为敏感的脚本参数打固定掩码，连长度都不泄露")
     void givenSensitiveScriptParamThenMasked() {
-        ApprovalTicket ticket = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
 
-        assertThat(sectionOf(ticket.getApprovalContent(), SECTION_RAW_PARAMS)).contains("******");
-        assertContentFreeOfSecrets(ticket);
+        assertThat(sectionOf(rendered.getApprovalContent(), SECTION_RAW_PARAMS)).contains("******");
+        assertContentFreeOfSecrets(rendered);
     }
 
     @Test
     @DisplayName("未声明为敏感的脚本参数原样解码展示：它同样是判断风险的必要信息")
     void givenNonSensitiveScriptParamThenShowDecoded() {
-        ApprovalTicket ticket = renderer.render(buildTask(buildFullSummary(), buildScriptParams(false)));
+        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(false)));
 
-        assertThat(sectionOf(ticket.getApprovalContent(), SECTION_RAW_PARAMS))
+        assertThat(sectionOf(rendered.getApprovalContent(), SECTION_RAW_PARAMS))
             .contains(SENSITIVE_SCRIPT_PARAM);
     }
 
@@ -222,40 +225,41 @@ class DefaultApprovalTicketRendererTest {
         ApprovalTaskDTO task = buildTask(new ResolvedSummary(), params);
         task.setOperationType(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN.name());
 
-        ApprovalTicket ticket = renderer.render(task);
+        ApprovalContent rendered = renderer.render(task);
 
-        assertThat(ticket.getApprovalContent())
+        assertThat(rendered.getApprovalContent())
             .contains("******")
             .doesNotContain("8080");
-        assertContentFreeOfSecrets(ticket);
+        assertContentFreeOfSecrets(rendered);
     }
 
     @Test
     @DisplayName("参数渲染失败时概要仍然可用，只在参数章节给出提示")
     void givenParamsDecryptFailThenKeepSummaryUsable() {
-        DefaultApprovalTicketRenderer failingRenderer = new DefaultApprovalTicketRenderer(
+        DefaultApprovalContentRenderer failingRenderer = new DefaultApprovalContentRenderer(
             i18nService, appService, new FailingParamsCryptoService());
 
-        ApprovalTicket ticket = failingRenderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = failingRenderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
 
-        String content = ticket.getApprovalContent();
+        String content = rendered.getApprovalContent();
         assertThat(content).contains(SECTION_SUMMARY).contains("check_disk.sh");
         assertThat(sectionOf(content, SECTION_RAW_PARAMS)).contains("rawParamsRenderFail");
-        assertContentFreeOfSecrets(ticket);
+        assertContentFreeOfSecrets(rendered);
     }
 
     @Test
-    @DisplayName("概要为空也能出单据，不因缺字段抛异常")
+    @DisplayName("概要为空也能出内容，不因缺字段抛异常")
     void givenEmptySummaryThenStillRender() {
         ApprovalTaskDTO task = buildTask(new ResolvedSummary(), null);
         task.setResolvedSummary(null);
 
-        ApprovalTicket ticket = renderer.render(task);
+        ApprovalContent rendered = renderer.render(task);
 
-        assertThat(ticket.getApprovalTaskId()).isEqualTo(TASK_ID);
-        assertThat(ticket.getRiskLevel()).isEqualTo(ApprovalRiskLevelEnum.LOW.name());
-        assertThat(ticket.getApprovalContent()).contains(SECTION_SUMMARY).contains(TABLE_HEADER);
-        assertThat(ticket.getApprovalContent())
+        assertThat(rendered.getApprovalTaskId()).isEqualTo(TASK_ID);
+        assertThat(tableRow(rendered.getApprovalContent(), "riskLevel"))
+            .contains(ApprovalRiskLevelEnum.LOW.getNameI18nKey());
+        assertThat(rendered.getApprovalContent()).contains(SECTION_SUMMARY).contains(TABLE_HEADER);
+        assertThat(rendered.getApprovalContent())
             .as("没有参数快照时不该留下一个空的参数章节")
             .doesNotContain(SECTION_RAW_PARAMS);
     }
@@ -263,8 +267,8 @@ class DefaultApprovalTicketRendererTest {
     /**
      * 正文任何一处都不得出现密码明文或密文
      */
-    private void assertContentFreeOfSecrets(ApprovalTicket ticket) {
-        assertThat(StringUtils.defaultString(ticket.getApprovalContent()))
+    private void assertContentFreeOfSecrets(ApprovalContent rendered) {
+        assertThat(StringUtils.defaultString(rendered.getApprovalContent()))
             .doesNotContain(PLAIN_PASSWORD)
             .doesNotContain(ENCRYPTED_PASSWORD)
             .doesNotContain(SENSITIVE_SCRIPT_PARAM);
@@ -287,6 +291,10 @@ class DefaultApprovalTicketRendererTest {
             .filter(line -> line.startsWith("|") && line.contains(labelKeyword))
             .findFirst()
             .orElseThrow(() -> new AssertionError("未找到包含 " + labelKeyword + " 的表格行"));
+    }
+
+    private String firstLine(String content) {
+        return content.split("\n")[0];
     }
 
     private int indexOf(String content, String text) {

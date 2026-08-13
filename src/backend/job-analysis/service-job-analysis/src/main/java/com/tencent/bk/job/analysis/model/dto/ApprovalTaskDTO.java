@@ -77,7 +77,7 @@ public class ApprovalTaskDTO {
     private String approvalTicketId;
 
     /**
-     * 审批渠道拉取单据的时间（毫秒），仅作观测，不参与放行校验
+     * 审批渠道拉取审批内容的时间（毫秒），仅作观测，不参与放行校验
      */
     private Long ticketFetchedAt;
 

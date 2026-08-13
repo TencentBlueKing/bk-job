@@ -42,21 +42,13 @@ import java.util.List;
 /**
  * IMate 渠道的 Mock 实现，用于 IMate 回查接口就绪之前的自测。
  * <p>
- * 结论只看一件事：<b>审批任务 ID 或审批单据 ID 是否命中配置里登记的"视为审批通过"列表</b>，命中即 APPROVED，
- * 其余一律 PENDING。之所以两个 ID 都认，是因为单据 ID 由调用方在放行时自由指定，配一个约定值就能反复自测，
- * 而任务 ID 要发起之后才知道、适合精确放行某一单。
+ * 审批任务 ID 或渠道单据 ID 命中配置里登记的"视为审批通过"列表即 APPROVED，其余一律 PENDING。
  * <p>
- * <b>放宽只到这里为止，两条底线不能动</b>：
- * <ol>
- *     <li><b>默认一律返回 PENDING，绝不返回 APPROVED</b>：配置里不存在任何能把默认结论改成 APPROVED 的开关；</li>
- *     <li>开关默认 false，生产 values 模板中不出现 mock 节点；一旦在生产 profile 下被开启，
- *     <b>直接启动失败</b>，把误配置从"线上静默降级"变成"部署期暴露"；开启时打显著 WARN 日志便于巡检发现。</li>
- * </ol>
+ * <b>两条底线不能动</b>：未命中一律返回 PENDING，绝不兜底成 APPROVED；开关默认 false，
+ * 在生产 profile 下被开启时直接启动失败。
  * <p>
- * <b>注意：Mock 期间"绑定证明"与"approver == creator"这两项校验会自动满足</b> —— 本类回带的
- * approvalTaskId 就取自任务本身、approver 就取自任务的 creator。这是为自测便利付出的代价：
- * <b>Mock 下跑通不等于放行校验链有效</b>，那两项校验只有对接真实渠道后才真正被检验。
- * 反过来，本类的放宽<b>只发生在渠道实现内部</b>，放行校验链一行都没改，切换到真实实现时也不需要改。
+ * Mock 期间"绑定证明"与"approver == creator"两项校验会自动满足，
+ * <b>Mock 下跑通不等于放行校验链有效</b>。
  */
 @Slf4j
 @Component

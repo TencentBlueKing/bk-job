@@ -22,64 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.esb.v4.resp;
+package com.tencent.bk.job.analysis.approval.channel.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
- * 应用态取单接口的返回体。审批渠道据此建单。
+ * 由作业平台渲染、交给审批渠道展示给审批人的审批内容。
  * <p>
- * 单据正文是一份由作业平台渲染好的 Markdown（{@link #approvalContent}），渠道直接展示即可；
- * 其中敏感字段的值<b>只会是占位符</b>，不含真实敏感值，脚本内容例外、原样展示。
+ * 这是审批人做判断的唯一信息来源，必须自包含：标题、发起人、风险等级等都已渲染进
+ * {@link #approvalContent}，不再单独给结构化字段。
  */
 @Data
-public class V4ApprovalTicketDTO {
+public class ApprovalContent {
 
-    @JsonProperty("approval_task_id")
     private String approvalTaskId;
 
     /**
-     * 单据标题，形如「快速执行脚本 - 某业务 - 37个执行对象」
+     * 过期时刻（毫秒）。过期后不可再放行，渠道应据此提示审批人
      */
-    @JsonProperty("title")
-    private String title;
-
-    /**
-     * 风险等级，可选值：HIGH / MEDIUM / LOW
-     */
-    @JsonProperty("risk_level")
-    private String riskLevel;
-
-    @JsonProperty("operation_type")
-    private String operationType;
-
-    /**
-     * 资源范围类型，可选值：biz / biz_set
-     */
-    @JsonProperty("bk_scope_type")
-    private String scopeType;
-
-    @JsonProperty("bk_scope_id")
-    private String scopeId;
-
-    /**
-     * 发起人。审批人必须为发起人本人，渠道据此校验
-     */
-    @JsonProperty("creator")
-    private String creator;
-
-    /**
-     * 过期时刻，Unix 时间戳，单位毫秒；过期后不可再放行
-     */
-    @JsonProperty("expire_at")
     private Long expireAt;
 
     /**
-     * 单据内容，Markdown 格式，含操作概要表格、执行步骤、脚本内容与原始参数。
+     * 审批内容，Markdown 格式。
      * <p>
-     * 敏感字段只出现占位符，脚本内容例外、原样展示
+     * <b>敏感字段一律只出现占位符</b>，明文与密文都不在其中；脚本内容是唯一例外，原样展示 ——
+     * 不展示则审批人无从判断风险。
      */
-    @JsonProperty("approval_content")
     private String approvalContent;
 }

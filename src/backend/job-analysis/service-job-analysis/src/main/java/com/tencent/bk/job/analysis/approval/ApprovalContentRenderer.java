@@ -24,22 +24,22 @@
 
 package com.tencent.bk.job.analysis.approval;
 
-import com.tencent.bk.job.analysis.approval.channel.model.ApprovalTicket;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 
 /**
- * 把审批任务渲染成交给审批渠道展示的单据。
+ * 把审批任务渲染成交给审批渠道展示的审批内容。
  * <p>
- * <b>渲染只读库，不重跑 dryRun</b>：单据内容取自落库的 resolved_summary 与 operation_params。
- * 每次取单都重新解析执行对象，既慢又会让"用户看到的"与"当初批准的"产生新的差异。
+ * <b>只读库，不重跑 dryRun</b>：内容取自落库的 resolved_summary 与 operation_params，
+ * 每次重新解析会让"用户看到的"与"当初批准的"产生新的差异。
  */
-public interface ApprovalTicketRenderer {
+public interface ApprovalContentRenderer {
 
     /**
-     * 渲染单据。
+     * 渲染审批内容。
      * <p>
      * <b>敏感字段一律只输出占位符</b>（脚本内容例外，见 {@link ApprovalSensitiveFields}），
      * 明文与密文都不得出现在返回值里。
      */
-    ApprovalTicket render(ApprovalTaskDTO task);
+    ApprovalContent render(ApprovalTaskDTO task);
 }

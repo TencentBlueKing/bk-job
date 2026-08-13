@@ -75,7 +75,7 @@ CREATE TABLE `approval_task`  (
   `app_code`              varchar(128)        NOT NULL DEFAULT '' COMMENT '发起方appCode',
   `approval_channel`      varchar(32)         NOT NULL COMMENT '审批渠道枚举',
   `approval_ticket_id`    varchar(256)        NULL COMMENT '审批渠道单据ID',
-  `ticket_fetched_at`     bigint(20) UNSIGNED NULL COMMENT '审批渠道拉取单据的时间(毫秒)',
+  `ticket_fetched_at`     bigint(20) UNSIGNED NULL COMMENT '审批渠道拉取审批内容的时间(毫秒)',
   `status`                varchar(32)         NOT NULL COMMENT '状态',
   `approver`              varchar(128)        NULL COMMENT '审批人',
   `approved_at`           bigint(20) UNSIGNED NULL COMMENT '审批通过时间(毫秒)',
