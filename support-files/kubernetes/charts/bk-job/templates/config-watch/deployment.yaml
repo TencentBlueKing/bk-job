@@ -64,6 +64,10 @@ spec:
               value: bus-amqp
             - name: logging.level.org.springframework.cloud.kubernetes
               value: INFO
+            - name: spring.cloud.kubernetes.secrets.enabled
+              value: "false"
+            - name: spring.config.import
+              value: "kubernetes:,optional:configtree:/etc/secrets/rabbitmq/"
             - name: spring.rabbitmq.host
               value: {{ include "job.rabbitmq.host" . }}
             - name: spring.rabbitmq.port
