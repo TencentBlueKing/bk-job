@@ -80,8 +80,6 @@ spec:
               value: {{ include "job.rabbitmq.vhost" . }}
             - name: spring_cloud_kubernetes_secrets_paths
               value: /etc/secrets
-            - name: spring.cloud.kubernetes.configuration.watcher.refreshDelay
-              value: "1000"
             {{- include "job.configWatcher.rabbitmq.sslEnv" . | nindent 12 }}
           {{- include "job.service.probes" ( dict "port" "http" "context" . ) | nindent 10 }}
           resources:
