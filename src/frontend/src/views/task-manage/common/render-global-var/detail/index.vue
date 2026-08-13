@@ -39,7 +39,7 @@
           <jb-edit-textarea
             :field="item.filed"
             readonly
-            :value="data[item.filed]" />
+            :value="data.isAccount && item.filed === 'valueText' ? accName(data.valueText) : data[item.filed]" />
         </td>
       </tr>
     </table>
@@ -72,6 +72,7 @@
     [GlobalVariableModel.TYPE_PASSWORD]: [type(), name(), defaultValue(defaultField), description(), required()],
     [GlobalVariableModel.TYPE_RELATE_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
     [GlobalVariableModel.TYPE_INDEX_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
+    [GlobalVariableModel.TYPE_ACCOUNT]: [type(), name(), defaultValue(defaultField), description(), required()],
   });
 
   export default {
@@ -90,10 +91,25 @@
         type: String,
         default: I18n.t('template.初始值'),
       },
+      // 账号列表
+      accountList: {
+        type: Array,
+        default: () => [],
+      },
     },
     computed: {
       describeMap() {
         return generateVariableDescribeMap(this.defaultField)[this.data.type];
+      },
+    },
+    methods: {
+      /**
+       * @desc 将账号ID转为账号别名
+       * @param { String } val 账号ID
+       */
+      accName(val) {
+        const filters = this.accountList.filter(item => item.id === Number(val));
+        return filters?.[0]?.alias || val;
       },
     },
   };

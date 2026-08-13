@@ -135,7 +135,15 @@
                       :title="$t('template.服务器文件-服务器列表')" />
                   </td>
                 </template>
-                <td>{{ findAccountAlias(row.account) }}</td>
+                <td>
+                  <render-execute-account
+                    :account-id="row.account"
+                    :account-list="account"
+                    :account-var="row.accountVar"
+                    :all-variables="allVariables"
+                    theme="blue"
+                    :variables="variable" />
+                </td>
               </tr>
             </tbody>
           </table>
@@ -150,6 +158,7 @@
   import ExecuteTargetModel from '@model/execute-target';
 
   import JbCollapseItem from '@components/jb-collapse-item';
+  import RenderExecuteAccount from '@components/render-execute-account';
   import RenderServerAgent from '@components/render-server-agent';
 
   import SourceFileVO from '@domain/variable-object/source-file';
@@ -165,6 +174,7 @@
       RenderServerAgent,
       RenderFilePath,
       RenderGlobalVariable,
+      RenderExecuteAccount,
       RenderFileServer,
     },
     props: {
@@ -180,6 +190,10 @@
         type: Array,
         default: () => [],
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     data() {
       return {
@@ -253,13 +267,6 @@
           return executeObjectsInfo;
         }
         return curVariable.defaultTargetValue.executeObjectsInfo;
-      },
-      findAccountAlias(payload) {
-        const accountData = this.account.find(item => item.id === payload);
-        if (accountData) {
-          return accountData.alias;
-        }
-        return '';
       },
       handleGoSource(payload, index) {
         const { fileSourceId } = payload;
@@ -376,5 +383,7 @@
         border-radius: 50%;
       }
     }
+
+
   }
 </style>

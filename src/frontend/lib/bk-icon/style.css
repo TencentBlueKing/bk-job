@@ -686,3 +686,6 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .job-icon-yonghu:before {
 	content: "\e22b";
 }
+.job-icon-zhixingzhanghao:before {
+	content: "\e22c";
+}

@@ -26,40 +26,54 @@
 -->
 
 <template>
-  <execute-account
-    account-type="system"
-    :field="field"
-    :form-data="formData"
-    :support-account-variable="supportAccountVariable"
-    :variable="variable"
-    v-on="$listeners" />
+  <div>
+    <div class="name">
+      <span>{{ data.name }}</span>
+      <span
+        class="remove-flag"
+        @click="handleRemove">
+        <icon type="reduce-fill" />
+      </span>
+    </div>
+    <account-select
+      v-bk-tooltips="descPopover"
+      :value="value"
+      @change="handleChange" />
+  </div>
 </template>
-<script>
-  import ExecuteAccount from '@components/task-step/common/execute-account';
+<script setup>
+  import DOMPurify from 'dompurify';
+  import { computed } from 'vue';
 
-  export default {
-    name: 'FileExecuteAccount',
-    components: {
-      ExecuteAccount,
+  import AccountSelect from '@components/account-select';
+
+  const props = defineProps({
+    data: {
+      type: Object,
+      required: true,
     },
-    props: {
-      field: {
-        type: String,
-        required: true,
-      },
-      formData: {
-        type: Object,
-        required: true,
-      },
-      variable: {
-        type: Array,
-        default: () => [],
-      },
-      // 是否需要【执行账号】全局变量
-      supportAccountVariable: {
-        type: Boolean,
-        default: false,
-      },
+    value: {
+      type: [
+        Number, String,
+      ],
     },
+  });
+  const emits = defineEmits(['on-remove', 'on-change']);
+
+  const descPopover = computed(() => ({
+    theme: 'light',
+    extCls: 'variable-desc-tippy',
+    trigger: 'click mouseenter',
+    placement: 'left',
+    hideOnClick: false,
+    content: `<div style="max-width: 340px">${DOMPurify.sanitize(props.data.description)}</div>`,
+    disabled: !props.data.description,
+  }));
+
+  const handleRemove = () => {
+    emits('on-remove');
+  };
+  const handleChange = (value) => {
+    emits('on-change', value);
   };
 </script>

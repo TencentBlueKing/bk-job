@@ -86,7 +86,14 @@
                     :pre-host="preServerList[index].host" />
                 </td>
                 <td :class="checkDiffClass(row, 'account')">
-                  {{ generatorAccountAlias(row.account) }}
+                  <render-execute-account
+                    :account-id="row.account"
+                    :account-list="account"
+                    :account-var="row.accountVar"
+                    :all-variables="allVariables"
+                    empty-text=""
+                    :highlight="checkDiffClass(row, 'account') === 'changed'"
+                    theme="gray" />
                 </td>
               </tr>
             </tbody>
@@ -104,6 +111,7 @@
   } from '@utils/vdom';
 
   import JbCollapseItem from '@components/jb-collapse-item';
+  import RenderExecuteAccount from '@components/render-execute-account';
 
   import SourceFileVO from '@domain/variable-object/source-file';
 
@@ -117,6 +125,7 @@
     name: '',
     components: {
       JbCollapseItem,
+      RenderExecuteAccount,
       FileSourceServer,
     },
     props: {
@@ -132,6 +141,10 @@
         type: Array,
         default: () => [],
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     data() {
       return {
@@ -161,13 +174,6 @@
       this.checkDiff();
     },
     methods: {
-      generatorAccountAlias(accountId) {
-        const account = this.account.find(_ => _.id === accountId);
-        if (!account) {
-          return '';
-        }
-        return account.alias;
-      },
       checkDiff() {
         const dataSourceParent = findParent(this, 'SyncPlanStep2');
 
@@ -436,6 +442,8 @@
 <style lang='postcss'>
 .sync-step-server-file {
   flex: 1;
+
+
 
   .bk-collapse-item-header {
     display: flex;
