@@ -58,6 +58,57 @@ export const checkPublicScript = (route) => {
 };
 
 /**
+ * @desc 稳定序列化（递归排序对象 key 与数组，保证顺序无关的深度对比）
+ * @param { * } value
+ * @returns { String }
+ */
+const stableStringify = (value) => {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).sort().join(',')}]`;
+  }
+  if (value !== null && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+};
+
+/**
+ * @desc 对比容器过滤条件列表（顺序无关）
+ * @param { Array } preContainerFilterList
+ * @param { Array } nextContainerFilterList
+ * @returns { Boolean }
+ *
+ * containerFilterList 结构：
+ * {
+ *   kubeTopoList: {
+ *     cluster: { id },
+ *     namespace: { id } | null,
+ *     workloads: { kind, id }[],
+ *   }[],
+ *   propConditions: { field, operator, value }[] | null,
+ * }[]
+ */
+const compareContainerFilterList = (preContainerFilterList = [], nextContainerFilterList = []) => {
+  if (preContainerFilterList.length !== nextContainerFilterList.length) {
+    return false;
+  }
+  const preFilterMap = preContainerFilterList.reduce((result, containerFilter) => {
+    result[stableStringify(containerFilter)] = true;
+    return result;
+  }, {});
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < nextContainerFilterList.length; i++) {
+    if (!preFilterMap[stableStringify(nextContainerFilterList[i])]) {
+      return false;
+    }
+  }
+  return true;
+};
+
+/**
  * @desc 比较主机节点
  * @param { Object } preHost
  * @param { Object } nextHost
@@ -79,12 +130,14 @@ export const compareHost = (preHost, nextHost) => {
     nodeList: preNodeList = [],
     dynamicGroupList: preDynamicGroupList = [],
     containerList: preContainerList = [],
+    containerFilterList: preContainerFilterList = [],
   } = preHost.executeObjectsInfo;
   const {
     hostList: nextIPList = [],
     nodeList: nextNodeList = [],
     dynamicGroupList: nextDynamicGroupList = [],
     containerList: nextContainerList = [],
+    containerFilterList: nextContainerFilterList = [],
   } = nextHost.executeObjectsInfo;
     // 对比主机
   if (preIPList.length !== nextIPList.length) {
@@ -141,6 +194,10 @@ export const compareHost = (preHost, nextHost) => {
     if (!preContainerMap[nextContainerList[i].id]) {
       return false;
     }
+  }
+  // 对比容器过滤条件
+  if (!compareContainerFilterList(preContainerFilterList, nextContainerFilterList)) {
+    return false;
   }
   return true;
 };

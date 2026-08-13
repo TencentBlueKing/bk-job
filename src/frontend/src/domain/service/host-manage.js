@@ -144,4 +144,16 @@ export default {
     return  HostManageSource.getInputParseContainerList(params)
       .then(({ data }) => IpSelectrAdapter.containerCheck(data));
   },
+  fetchDynamicContainerPreview(params) {
+    return  HostManageSource.getDynamicContainerPreview(params)
+      .then(({ data }) => IpSelectrAdapter.containerDynamicPreview(data));
+  },
+  fetchDynamicContainerFieldMetadata(params) {
+    return  HostManageSource.getDynamicContainerFieldMetadata(params)
+      .then(({ data }) => IpSelectrAdapter.dynamicContainersFieldMetadata(data));
+  },
+  fetchContainerNodesNames(params){
+    return  HostManageSource.getContainerNodesNames(params)
+      .then(({ data }) => data);
+  }
 };

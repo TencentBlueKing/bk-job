@@ -25,6 +25,7 @@
 
 import I18n from '@/i18n';
 
+
 export default class ExecuteObjectsInfo {
   static isExecuteObjectsInfoEmpty(executeObjectsInfo) {
     const {
@@ -32,12 +33,14 @@ export default class ExecuteObjectsInfo {
       hostList = [],
       nodeList = [],
       containerList = [],
+      containerFilterList = [],
     } = executeObjectsInfo;
 
     return dynamicGroupList.length < 1
             && hostList.length < 1
             && nodeList.length < 1
-            && containerList.length < 1;
+            && containerList.length < 1
+            && containerFilterList.length < 1;
   }
 
   static cloneExecuteObjectsInfo(executeObjectsInfo) {
@@ -46,6 +49,7 @@ export default class ExecuteObjectsInfo {
       hostList = [],
       nodeList = [],
       containerList = [],
+      containerFilterList = [],
     } = executeObjectsInfo;
 
     return {
@@ -53,6 +57,7 @@ export default class ExecuteObjectsInfo {
       hostList: [...hostList],
       nodeList: [...nodeList],
       containerList: [...containerList],
+      containerFilterList: [...containerFilterList],
     };
   }
 
@@ -71,6 +76,7 @@ export default class ExecuteObjectsInfo {
       hostList = [],
       nodeList = [],
       containerList = [],
+      containerFilterList = [],
     } = this.executeObjectsInfo;
     const strs = [];
     if (hostList.length > 0) {
@@ -85,6 +91,9 @@ export default class ExecuteObjectsInfo {
     if (containerList.length > 0) {
       strs.push(`${containerList.length} ${I18n.t('个容器_result')}`);
     }
+    if (containerFilterList.length > 0) {
+      strs.push(`${containerFilterList.length} ${I18n.t('个容器过滤条件_result')}`);
+    }
     return strs.length > 0 ? strs.join('，') : '--';
   }
 
@@ -94,6 +103,7 @@ export default class ExecuteObjectsInfo {
       dynamicGroupList,
       nodeList,
       containerList,
+      containerFilterList,
     } = payload;
 
     return Object.freeze({
@@ -101,6 +111,7 @@ export default class ExecuteObjectsInfo {
       dynamicGroupList: dynamicGroupList || [],
       nodeList: nodeList || [],
       containerList: containerList || [],
+      containerFilterList: containerFilterList || [],
     });
   }
 }
