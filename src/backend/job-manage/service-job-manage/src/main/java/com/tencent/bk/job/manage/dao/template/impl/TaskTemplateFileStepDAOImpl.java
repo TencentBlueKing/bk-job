@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Record11;
+import org.jooq.Record12;
 import org.jooq.Result;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
@@ -74,10 +74,10 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
     public Map<Long, TaskFileStepDTO> listFileStepsByIds(List<Long> stepIdList) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.in(stepIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
-        Result<Record11<ULong, ULong, String, ULong, String, ULong, ULong, ULong, UByte, UByte, UByte>> result =
+        Result<Record12<ULong, ULong, String, ULong, String, String, ULong, ULong, ULong, UByte, UByte, UByte>> result =
             context
                 .select(TABLE.ID, TABLE.STEP_ID, TABLE.DESTINATION_FILE_LOCATION, TABLE.EXECUTE_ACCOUNT,
-                    TABLE.DESTINATION_HOST_LIST, TABLE.TIMEOUT, TABLE.ORIGIN_SPEED_LIMIT,
+                    TABLE.EXECUTE_ACCOUNT_VAR, TABLE.DESTINATION_HOST_LIST, TABLE.TIMEOUT, TABLE.ORIGIN_SPEED_LIMIT,
                     TABLE.TARGET_SPEED_LIMIT, TABLE.IGNORE_ERROR, TABLE.DUPLICATE_HANDLER, TABLE.NOT_EXIST_PATH_HANDLER)
                 .from(TABLE).where(conditions).fetch();
         Map<Long, TaskFileStepDTO> taskFileStepMap = new HashMap<>(stepIdList.size());
@@ -92,10 +92,11 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
     public TaskFileStepDTO getFileStepById(long stepId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
-        Record11<ULong, ULong, String, ULong, String, ULong, ULong, ULong, UByte, UByte, UByte> record =
+        Record12<ULong, ULong, String, ULong, String, String, ULong, ULong, ULong, UByte, UByte, UByte> record =
             context.select(TABLE.ID, TABLE.STEP_ID, TABLE.DESTINATION_FILE_LOCATION, TABLE.EXECUTE_ACCOUNT,
-                TABLE.DESTINATION_HOST_LIST, TABLE.TIMEOUT, TABLE.ORIGIN_SPEED_LIMIT, TABLE.TARGET_SPEED_LIMIT,
-                TABLE.IGNORE_ERROR, TABLE.DUPLICATE_HANDLER, TABLE.NOT_EXIST_PATH_HANDLER).from(TABLE).where(conditions).fetchOne();
+                TABLE.EXECUTE_ACCOUNT_VAR, TABLE.DESTINATION_HOST_LIST, TABLE.TIMEOUT, TABLE.ORIGIN_SPEED_LIMIT,
+                TABLE.TARGET_SPEED_LIMIT, TABLE.IGNORE_ERROR, TABLE.DUPLICATE_HANDLER, TABLE.NOT_EXIST_PATH_HANDLER)
+                .from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             return DbRecordMapper.convertRecordToTaskFileStep(record);
         } else {
@@ -115,11 +116,13 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
         }
         fixTargerLocation(fileStep);
         TaskTemplateStepFileRecord record = context.insertInto(TABLE)
-            .columns(TABLE.STEP_ID, TABLE.DESTINATION_FILE_LOCATION, TABLE.EXECUTE_ACCOUNT, TABLE.DESTINATION_HOST_LIST,
+            .columns(TABLE.STEP_ID, TABLE.DESTINATION_FILE_LOCATION, TABLE.EXECUTE_ACCOUNT, TABLE.EXECUTE_ACCOUNT_VAR,
+                TABLE.DESTINATION_HOST_LIST,
                 TABLE.TIMEOUT, TABLE.ORIGIN_SPEED_LIMIT, TABLE.TARGET_SPEED_LIMIT, TABLE.IGNORE_ERROR,
                 TABLE.DUPLICATE_HANDLER, TABLE.NOT_EXIST_PATH_HANDLER)
             .values(ULong.valueOf(fileStep.getStepId()), fileStep.getDestinationFileLocation(),
-                ULong.valueOf(fileStep.getExecuteAccount()),
+                DbRecordMapper.getJooqLongValue(fileStep.getExecuteAccount()),
+                fileStep.getExecuteAccountVar(),
                 fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toJsonString(),
                 fileStep.getTimeout() == null ? ULong.valueOf(0) : ULong.valueOf(fileStep.getTimeout()),
                 fileStep.getOriginSpeedLimit() == null ? null : ULong.valueOf(fileStep.getOriginSpeedLimit()),
@@ -146,7 +149,8 @@ public class TaskTemplateFileStepDAOImpl implements TaskFileStepDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(fileStep.getStepId())));
         return 1 == context.update(TABLE).set(TABLE.DESTINATION_FILE_LOCATION, fileStep.getDestinationFileLocation())
-            .set(TABLE.EXECUTE_ACCOUNT, ULong.valueOf(fileStep.getExecuteAccount()))
+            .set(TABLE.EXECUTE_ACCOUNT, DbRecordMapper.getJooqLongValue(fileStep.getExecuteAccount()))
+            .set(TABLE.EXECUTE_ACCOUNT_VAR, fileStep.getExecuteAccountVar())
             .set(TABLE.DESTINATION_HOST_LIST,
                 fileStep.getDestinationHostList() == null ? null : fileStep.getDestinationHostList().toJsonString())
             .set(TABLE.TIMEOUT, fileStep.getTimeout() == null ? ULong.valueOf(0) : ULong.valueOf(fileStep.getTimeout()))

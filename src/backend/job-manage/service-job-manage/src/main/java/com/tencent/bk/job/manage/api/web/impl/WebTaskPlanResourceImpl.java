@@ -398,7 +398,6 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
         // 检查执行方案名称
         checkPlanName(taskPlanCreateUpdateReq);
-
         TaskPlanInfoDTO savedPlan;
         if (planService.isDebugPlan(appResourceScope.getAppId(), templateId, planId)) {
             savedPlan = updateDebugTaskPlan(username, appResourceScope, taskPlanCreateUpdateReq);
@@ -449,7 +448,6 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         taskPlanCreateUpdateReq.setTemplateId(templateId);
         // 检查执行方案名称
         checkPlanName(taskPlanCreateUpdateReq);
-
         User user = JobContextUtil.getUser();
         TaskPlanInfoDTO savedPlan = planService.createTaskPlan(user, TaskPlanInfoDTO.fromReq(username,
             appResourceScope.getAppId(), taskPlanCreateUpdateReq));

@@ -37,13 +37,13 @@ public class ServiceCronJobVariableDTO {
     @Schema(description = "ID")
     private Long id;
 
-    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码")
+    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组 7-执行账号")
     private TaskVariableTypeEnum type;
 
     @Schema(description = "变量名称")
     private String name;
 
-    @Schema(description = "字符变量值，命名空间，字符串，密码从该字段获取值")
+    @Schema(description = "字符、命名空间、密码、数组、执行账号变量值；执行账号变量值为账号 ID 字符串")
     private String value;
 
     @Schema(description = "主机列表值,单变量类型为主机列表时，从该字段取值")

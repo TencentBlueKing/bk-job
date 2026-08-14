@@ -94,6 +94,7 @@ import java.util.List;
 
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.ASSOCIATIVE_ARRAY;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.CIPHER;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.EXECUTE_ACCOUNT;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.EXECUTE_OBJECT_LIST;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.INDEX_ARRAY;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.NAMESPACE;
@@ -194,12 +195,16 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
     private List<TaskVariableDTO> buildExecuteVariables(List<ExecuteVariableVO> webTaskVariables) {
         List<TaskVariableDTO> executeVariableValues = new ArrayList<>();
+        if (CollectionUtils.isEmpty(webTaskVariables)) {
+            return executeVariableValues;
+        }
         for (ExecuteVariableVO webTaskVariable : webTaskVariables) {
             TaskVariableDTO taskVariableDTO = new TaskVariableDTO();
             taskVariableDTO.setId(webTaskVariable.getId());
             if (webTaskVariable.getType() == STRING.getType()
                 || webTaskVariable.getType() == INDEX_ARRAY.getType()
-                || webTaskVariable.getType() == ASSOCIATIVE_ARRAY.getType()) {
+                || webTaskVariable.getType() == ASSOCIATIVE_ARRAY.getType()
+                || webTaskVariable.getType() == EXECUTE_ACCOUNT.getType()) {
                 taskVariableDTO.setValue(webTaskVariable.getValue());
             } else if (webTaskVariable.getType() == CIPHER.getType()) {
                 // 如果密码类型的变量传入为空或者“******”，那么密码使用系统中保存的

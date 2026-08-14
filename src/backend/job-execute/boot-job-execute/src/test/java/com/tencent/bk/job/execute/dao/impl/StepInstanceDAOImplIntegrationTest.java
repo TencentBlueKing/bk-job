@@ -307,6 +307,7 @@ public class StepInstanceDAOImplIntegrationTest {
         scriptStepInstance.setTaskInstanceId(100L);
         scriptStepInstance.setAccount("root");
         scriptStepInstance.setAccountId(100L);
+        scriptStepInstance.setAccountVar("account");
         scriptStepInstance.setAccountAlias("root");
         scriptStepInstance.setDbPass("password");
         scriptStepInstance.setDbPort(3306);
@@ -326,6 +327,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(savedStepInstance.getStepInstanceId()).isEqualTo(100L);
         assertThat(savedStepInstance.getAccount()).isEqualTo("root");
         assertThat(savedStepInstance.getAccountId()).isEqualTo(100L);
+        assertThat(savedStepInstance.getAccountVar()).isEqualTo("account");
         assertThat(savedStepInstance.getDbPass()).isEqualTo("password");
         assertThat(savedStepInstance.getDbPort()).isEqualTo(3306);
         assertThat(savedStepInstance.getDbAccount()).isEqualTo("root");
@@ -345,6 +347,7 @@ public class StepInstanceDAOImplIntegrationTest {
         fileStepInstance.setTaskInstanceId(101L);
         fileStepInstance.setAccount("root");
         fileStepInstance.setAccountId(1L);
+        fileStepInstance.setAccountVar("account");
         fileStepInstance.setAccountAlias("root");
         fileStepInstance.setFileDownloadSpeedLimit(100);
         fileStepInstance.setFileUploadSpeedLimit(200);
@@ -358,6 +361,7 @@ public class StepInstanceDAOImplIntegrationTest {
         FileSourceDTO fileSource = new FileSourceDTO();
         fileSource.setAccount("root");
         fileSource.setAccountId(1L);
+        fileSource.setAccountVar("source_account");
         fileSource.setLocalUpload(false);
         fileSource.setFileType(TaskFileTypeEnum.SERVER.getType());
         ExecuteTargetDTO fileSourceExecuteTarget = new ExecuteTargetDTO();
@@ -378,6 +382,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(savedStepInstance.getStepInstanceId()).isEqualTo(101L);
         assertThat(savedStepInstance.getAccount()).isEqualTo("root");
         assertThat(savedStepInstance.getAccountId()).isEqualTo(1L);
+        assertThat(savedStepInstance.getAccountVar()).isEqualTo("account");
         assertThat(savedStepInstance.getFileUploadSpeedLimit()).isEqualTo(200);
         assertThat(savedStepInstance.getFileDownloadSpeedLimit()).isEqualTo(100);
         assertThat(savedStepInstance.getFileDuplicateHandle()).isEqualTo(1);
@@ -389,6 +394,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(savedStepInstance.getFileSourceList().get(0)).isNotNull();
         assertThat(savedStepInstance.getFileSourceList().get(0).getAccountId()).isEqualTo(1L);
         assertThat(savedStepInstance.getFileSourceList().get(0).getAccount()).isEqualTo("root");
+        assertThat(savedStepInstance.getFileSourceList().get(0).getAccountVar()).isEqualTo("source_account");
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers()).isNotNull();
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers().getIpList()).isNotEmpty();
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers().getIpList())

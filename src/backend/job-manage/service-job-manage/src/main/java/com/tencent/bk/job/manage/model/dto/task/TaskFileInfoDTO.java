@@ -63,6 +63,8 @@ public class TaskFileInfoDTO {
 
     private Long hostAccount;
 
+    private String hostAccountVar;
+
     private Integer fileSourceId;
 
     public static TaskFileSourceInfoVO toVO(TaskFileInfoDTO fileInfo) {
@@ -76,6 +78,7 @@ public class TaskFileInfoDTO {
         fileInfoVO.setFileHash(fileInfo.getFileHash());
         fileInfoVO.setHost(TaskTargetDTO.toVO(fileInfo.getHost()));
         fileInfoVO.setAccount(fileInfo.getHostAccount());
+        fileInfoVO.setAccountVar(fileInfo.getHostAccountVar());
         if (fileInfo.getFileSize() != null) {
             fileInfoVO.setFileSize(String.valueOf(fileInfo.getFileSize()));
         } else {
@@ -99,6 +102,7 @@ public class TaskFileInfoDTO {
         fileInfo.setFileHash(fileInfoVO.getFileHash());
         fileInfo.setHost(TaskTargetDTO.fromVO(fileInfoVO.getHost()));
         fileInfo.setHostAccount(fileInfoVO.getAccount());
+        fileInfo.setHostAccountVar(fileInfoVO.getAccountVar());
         if (StringUtils.isNotBlank(fileInfoVO.getFileSize())) {
             fileInfo.setFileSize(Long.valueOf(fileInfoVO.getFileSize()));
         } else {
@@ -131,9 +135,12 @@ public class TaskFileInfoDTO {
         serviceFileInfo.setFileLocation(taskFileInfo.getFileLocation());
         serviceFileInfo.setFileHash(taskFileInfo.getFileHash());
         serviceFileInfo.setFileSize(taskFileInfo.getFileSize());
-        serviceFileInfo.setExecuteTarget(taskFileInfo.getHost().toServiceTaskTargetDTO());
-        serviceFileInfo.setAccount(new ServiceAccountDTO());
-        serviceFileInfo.getAccount().setId(taskFileInfo.getHostAccount());
+        if (taskFileInfo.getFileType() == TaskFileTypeEnum.SERVER) {
+            serviceFileInfo.setExecuteTarget(taskFileInfo.getHost().toServiceTaskTargetDTO());
+            serviceFileInfo.setAccount(new ServiceAccountDTO());
+            serviceFileInfo.getAccount().setId(taskFileInfo.getHostAccount());
+            serviceFileInfo.getAccount().setAccountVar(taskFileInfo.getHostAccountVar());
+        }
         return serviceFileInfo;
     }
 
