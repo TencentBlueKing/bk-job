@@ -39,8 +39,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.InsertValuesStep8;
-import org.jooq.Record9;
+import org.jooq.InsertValuesStep9;
+import org.jooq.Record10;
 import org.jooq.Result;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
@@ -75,7 +75,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
     public Map<Long, List<TaskFileInfoDTO>> listFileInfosByStepIds(List<Long> stepIdList) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.in(stepIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
-        Result<Record9<ULong, ULong, UByte, String, ULong, String, String, ULong, Integer>> result =
+        Result<Record10<ULong, ULong, UByte, String, ULong, String, String, ULong, String, Integer>> result =
             context.select(
                 TABLE.ID,
                 TABLE.STEP_ID,
@@ -85,6 +85,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
                 TABLE.FILE_HASH,
                 TABLE.HOST,
                 TABLE.HOST_ACCOUNT,
+                TABLE.HOST_ACCOUNT_VAR,
                 TABLE.FILE_SOURCE_ID)
                 .from(TABLE).where(conditions).fetch();
         Map<Long, List<TaskFileInfoDTO>> taskFileInfoMap = new HashMap<>(stepIdList.size());
@@ -103,7 +104,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
     public List<TaskFileInfoDTO> listFileInfoByStepId(long stepId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
-        Result<Record9<ULong, ULong, UByte, String, ULong, String, String, ULong, Integer>> result =
+        Result<Record10<ULong, ULong, UByte, String, ULong, String, String, ULong, String, Integer>> result =
             context.select(
                 TABLE.ID,
                 TABLE.STEP_ID,
@@ -113,6 +114,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
                 TABLE.FILE_HASH,
                 TABLE.HOST,
                 TABLE.HOST_ACCOUNT,
+                TABLE.HOST_ACCOUNT_VAR,
                 TABLE.FILE_SOURCE_ID)
                 .from(TABLE).where(conditions).fetch();
         List<TaskFileInfoDTO> taskFileInfoList = new ArrayList<>();
@@ -127,7 +129,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
         conditions.add(TABLE.ID.eq(ULong.valueOf(fileId)));
-        Record9<ULong, ULong, UByte, String, ULong, String, String, ULong, Integer> record =
+        Record10<ULong, ULong, UByte, String, ULong, String, String, ULong, String, Integer> record =
             context.select(
                 TABLE.ID,
                 TABLE.STEP_ID,
@@ -137,6 +139,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
                 TABLE.FILE_HASH,
                 TABLE.HOST,
                 TABLE.HOST_ACCOUNT,
+                TABLE.HOST_ACCOUNT_VAR,
                 TABLE.FILE_SOURCE_ID)
                 .from(TABLE).where(conditions).fetchOne();
         if (record != null) {
@@ -158,6 +161,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
                 TABLE.FILE_HASH,
                 TABLE.HOST,
                 TABLE.HOST_ACCOUNT,
+                TABLE.HOST_ACCOUNT_VAR,
                 TABLE.FILE_SOURCE_ID)
             .values(
                 ULong.valueOf(fileInfo.getStepId()),
@@ -167,6 +171,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
                 fileInfo.getFileHash(),
                 fileInfo.getHost() == null ? null : fileInfo.getHost().toJsonString(),
                 DbRecordMapper.getJooqLongValue(fileInfo.getHostAccount()),
+                fileInfo.getHostAccountVar(),
                 fileInfo.getFileSourceId()
             )
             .returning(TABLE.ID).fetchOne();
@@ -178,8 +183,8 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
         if (CollectionUtils.isEmpty(fileInfoList)) {
             return Collections.emptyList();
         }
-        InsertValuesStep8<TaskTemplateStepFileListRecord, ULong, UByte, String, ULong, String, String, ULong,
-            Integer> insertStep = context.insertInto(TABLE)
+        InsertValuesStep9<TaskTemplateStepFileListRecord, ULong, UByte, String, ULong, String, String, ULong,
+            String, Integer> insertStep = context.insertInto(TABLE)
             .columns(
                 TABLE.STEP_ID,
                 TABLE.FILE_TYPE,
@@ -188,6 +193,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
                 TABLE.FILE_HASH,
                 TABLE.HOST,
                 TABLE.HOST_ACCOUNT,
+                TABLE.HOST_ACCOUNT_VAR,
                 TABLE.FILE_SOURCE_ID);
 
         fileInfoList.forEach(fileInfo -> insertStep.values(
@@ -198,6 +204,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
             fileInfo.getFileHash(),
             fileInfo.getHost() == null ? null : fileInfo.getHost().toJsonString(),
             DbRecordMapper.getJooqLongValue(fileInfo.getHostAccount()),
+            fileInfo.getHostAccountVar(),
             fileInfo.getFileSourceId()
         ));
 
@@ -231,6 +238,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
             .set(TABLE.FILE_HASH, fileInfo.getFileHash())
             .set(TABLE.HOST, fileInfo.getHost() == null ? null : fileInfo.getHost().toJsonString())
             .set(TABLE.HOST_ACCOUNT, DbRecordMapper.getJooqLongValue(fileInfo.getHostAccount()))
+            .set(TABLE.HOST_ACCOUNT_VAR, fileInfo.getHostAccountVar())
             .set(TABLE.FILE_SOURCE_ID, fileInfo.getFileSourceId())
             .where(conditions)
             .limit(1).execute();

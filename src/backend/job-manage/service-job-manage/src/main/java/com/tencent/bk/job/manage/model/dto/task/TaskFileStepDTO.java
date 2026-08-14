@@ -65,6 +65,8 @@ public class TaskFileStepDTO {
 
     private Long executeAccount;
 
+    private String executeAccountVar;
+
     private TaskTargetDTO destinationHostList;
 
     private Long timeout;
@@ -91,6 +93,7 @@ public class TaskFileStepDTO {
         TaskFileDestinationInfoVO destinationInfo = new TaskFileDestinationInfoVO();
         destinationInfo.setPath(fileStep.getDestinationFileLocation());
         destinationInfo.setAccount(fileStep.getExecuteAccount());
+        destinationInfo.setAccountVar(fileStep.getExecuteAccountVar());
         destinationInfo.setServer(TaskTargetDTO.toVO(fileStep.getDestinationHostList()));
         fileStepVO.setFileDestination(destinationInfo);
         fileStepVO.setTimeout(fileStep.getTimeout());
@@ -115,6 +118,7 @@ public class TaskFileStepDTO {
         if (fileStepVO.getFileDestination() != null) {
             fileStep.setDestinationFileLocation(fileStepVO.getFileDestination().getPath());
             fileStep.setExecuteAccount(fileStepVO.getFileDestination().getAccount());
+            fileStep.setExecuteAccountVar(fileStepVO.getFileDestination().getAccountVar());
             fileStep.setDestinationHostList(TaskTargetDTO.fromVO(fileStepVO.getFileDestination().getServer()));
         }
         fileStep.setTimeout(fileStepVO.getTimeout() == null ?
@@ -167,6 +171,7 @@ public class TaskFileStepDTO {
         serviceFileStep.setDestinationFileLocation(fileStepInfo.getDestinationFileLocation());
         serviceFileStep.setAccount(new ServiceAccountDTO());
         serviceFileStep.getAccount().setId(fileStepInfo.getExecuteAccount());
+        serviceFileStep.getAccount().setAccountVar(fileStepInfo.getExecuteAccountVar());
         if (fileStepInfo.getDestinationHostList() != null) {
             serviceFileStep.setExecuteTarget(fileStepInfo.getDestinationHostList().toServiceTaskTargetDTO());
         }

@@ -268,6 +268,26 @@ class OpenApiJobPlanV4ResourceImplTest {
     }
 
     @Test
+    @DisplayName("映射执行账号全局变量值")
+    void execAccountVar_mapsValue() {
+        TaskVariableDTO var = buildTemplateVar(30L, "ACCOUNT_VAR", TaskVariableTypeEnum.EXECUTE_ACCOUNT, "1");
+        stubTemplateAndCreate(Collections.singletonList(101L), Collections.singletonList(var));
+
+        V4JobPlanVariableItem item = new V4JobPlanVariableItem();
+        item.setName("ACCOUNT_VAR");
+        item.setValue("20001");
+
+        V4CreateJobPlanRequest request = buildBaseRequest();
+        request.setVariables(Collections.singletonList(item));
+
+        resource.createJobPlan(USERNAME, APP_CODE, request);
+
+        ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
+        verify(planService).createTaskPlan(any(User.class), captor.capture());
+        assertThat(captor.getValue().getVariableList().get(0).getDefaultValue()).isEqualTo("20001");
+    }
+
+    @Test
     @DisplayName("变量名不在模板中或请求内重复时抛 ILLEGAL_PARAM")
     void variables_unknown_or_duplicate_name_throws() {
         TaskVariableDTO var = buildTemplateVar(10L, "TARGET_DIR", TaskVariableTypeEnum.STRING, "/tmp");

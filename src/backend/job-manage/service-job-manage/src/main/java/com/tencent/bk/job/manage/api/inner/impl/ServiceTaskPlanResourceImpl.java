@@ -368,7 +368,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         scriptStepDTO.setScriptTimeout(scriptStep.getTimeout());
         scriptStepDTO.setSecureParam(scriptStep.getSecureParam());
 
-        scriptStepDTO.setAccount(buildAccount(scriptStep.getAccount(), cacheAccountMap));
+        scriptStepDTO.setAccount(buildAccount(scriptStep.getAccount(), scriptStep.getAccountVar(), cacheAccountMap));
 
         TaskTargetDTO targetServer = scriptStep.getExecuteTarget();
         scriptStepDTO.setExecuteTarget(targetServer.toServiceTaskTargetDTO());
@@ -389,7 +389,26 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         return scriptVersion;
     }
 
+    private ServiceAccountDTO buildAccount(
+        Long accountId,
+        String accountVar,
+        Map<Long, ServiceAccountDTO> cacheAccountMap
+    ) {
+        if (accountId == null || accountId <= 0) {
+            if (StringUtils.isBlank(accountVar)) {
+                return null;
+            }
+            ServiceAccountDTO account = new ServiceAccountDTO();
+            account.setAccountVar(accountVar.trim());
+            return account;
+        }
+        return buildAccount(accountId, cacheAccountMap);
+    }
+
     private ServiceAccountDTO buildAccount(Long accountId, Map<Long, ServiceAccountDTO> cacheAccountMap) {
+        if (accountId == null || accountId <= 0) {
+            return null;
+        }
         ServiceAccountDTO cacheAccount = cacheAccountMap.get(accountId);
         if (cacheAccount != null) {
             return cacheAccount;
@@ -438,15 +457,17 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
                 originFileDTO.setExecuteTarget(null);
                 originFileDTO.setAccount(null);
             } else {
-                originFileDTO.setAccount(buildAccount(originFile.getHostAccount(), cacheAccountMap));
+                originFileDTO.setAccount(buildAccount(originFile.getHostAccount(), originFile.getHostAccountVar(),
+                    cacheAccountMap));
                 TaskTargetDTO targetServer = originFile.getHost();
-                originFileDTO.setExecuteTarget(targetServer.toServiceTaskTargetDTO());
+                originFileDTO.setExecuteTarget(targetServer == null ? null : targetServer.toServiceTaskTargetDTO());
             }
             originFileDTOS.add(originFileDTO);
         });
         fileStepDTO.setOriginFileList(originFileDTOS);
 
-        fileStepDTO.setAccount(buildAccount(fileStep.getExecuteAccount(), cacheAccountMap));
+        fileStepDTO.setAccount(buildAccount(fileStep.getExecuteAccount(), fileStep.getExecuteAccountVar(),
+            cacheAccountMap));
         fileStepDTO.setFileDuplicateHandle(fileStep.getDuplicateHandler().getId());
         fileStepDTO.setNotExistPathHandler(fileStep.getNotExistPathHandler().getValue());
 

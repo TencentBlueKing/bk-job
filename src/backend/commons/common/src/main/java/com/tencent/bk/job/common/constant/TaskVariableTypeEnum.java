@@ -60,7 +60,12 @@ public enum TaskVariableTypeEnum {
     /**
      * 索引数组
      */
-    INDEX_ARRAY(6, true, false, null);
+    INDEX_ARRAY(6, true, false, null),
+
+    /**
+     * 执行账号
+     */
+    EXECUTE_ACCOUNT(7, false, false, null);
 
     @JsonValue
     private int type;
