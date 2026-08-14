@@ -64,10 +64,16 @@
       <span class="value">{{ data.ignoreErrorText }}</span>
     </div>
     <div
-      class="row"
-      :class="diff.executeAccount">
+      class="row">
       <span class="label">{{ $t('template.执行账号：') }}</span>
-      <span class="value">{{ findName(data.executeAccount) || '-' }}</span>
+      <render-execute-account
+        :account-id="data.account"
+        :account-list="account"
+        :account-var="data.accountVar"
+        :all-variables="allVariables"
+        empty-text="-"
+        :highlight="diff.accountVar === 'changed' || diff.account === 'changed'"
+        theme="gray" />
     </div>
     <div
       class="row"
@@ -78,6 +84,8 @@
   </div>
 </template>
 <script>
+  import RenderExecuteAccount from '@components/render-execute-account';
+
   import ScriptContent from './components/script-content';
   import ScriptExecuteTarget from './components/script-execute-target';
 
@@ -86,6 +94,7 @@
     components: {
       ScriptContent,
       ScriptExecuteTarget,
+      RenderExecuteAccount,
     },
     props: {
       data: {
@@ -100,15 +109,11 @@
         type: Array,
         default: () => [],
       },
-    },
-    methods: {
-      findName(accountId) {
-        const account = this.account.find(_ => _.id === accountId);
-        if (!account) {
-          return '';
-        }
-        return account.alias;
-      },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
   };
 </script>
+

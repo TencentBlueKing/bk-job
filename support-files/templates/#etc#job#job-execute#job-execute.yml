@@ -25,7 +25,7 @@ spring:
                 username: __BK_JOB_RABBITMQ_USERNAME__
                 password: __BK_JOB_RABBITMQ_PASSWORD__
                 virtual-host: __BK_JOB_RABBITMQ_VHOST__
-      source: task;step;gseTask;resultHandleResume;notifyMsg;callback      
+      source: task;step;gseTask;resultHandleResume;rollingBatchDispatchResume;notifyMsg;callback;scatterBatchCancelFanout
       bindings:
         handleJobEvent-in-0:
           destination: task
@@ -75,6 +75,18 @@ spring:
           binder: jobExecute
           consumer:
             concurrency: 5
+        handleRollingBatchDispatchResumeEvent-in-0:
+          destination: rolling.batch.dispatch.resume
+          group: service.job.execute
+          binder: jobExecute
+          consumer:
+            concurrency: 5
+        rollingBatchDispatchResume-out-0:
+          destination: rolling.batch.dispatch.resume
+          group: service.job.execute
+          binder: jobExecute
+          consumer:
+            concurrency: 5
         handleNotifyMsg-in-0:
           destination: notify.msg
           group: service.job.execute
@@ -96,6 +108,16 @@ spring:
         callback-out-0:
           destination: task.callback
           group: service.job.execute
+          binder: jobExecute
+          consumer:
+            concurrency: 5
+        handleScatterBatchCancelFanoutEvent-in-0:
+          destination: execute.scatter.cancel.fanout
+          binder: jobExecute
+          consumer:
+            concurrency: 5
+        scatterBatchCancelFanout-out-0:
+          destination: execute.scatter.cancel.fanout
           binder: jobExecute
           consumer:
             concurrency: 5
@@ -125,6 +147,12 @@ spring:
           taskResultHandleResume-out-0:
             consumer:
               maxConcurrency: 10
+          handleRollingBatchDispatchResumeEvent-in-0:
+            consumer:
+              maxConcurrency: 10
+          rollingBatchDispatchResume-out-0:
+            consumer:
+              maxConcurrency: 10
           handleNotifyMsg-in-0:
             consumer:
               maxConcurrency: 10
@@ -137,8 +165,18 @@ spring:
           callback-out-0:
             consumer:
               maxConcurrency: 10
+          handleScatterBatchCancelFanoutEvent-in-0:
+            consumer:
+              maxConcurrency: 5
+              exchangeType: fanout
+          scatterBatchCancelFanout-out-0:
+            producer:
+              exchangeType: fanout
+            consumer:
+              maxConcurrency: 5
+              exchangeType: fanout
     function:
-      definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
+      definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleRollingBatchDispatchResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer;handleScatterBatchCancelFanoutEvent
   datasource:
     job-execute:
       driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
@@ -214,3 +252,14 @@ job:
       # 存储要分发的文件的根目录，二进制环境下与存储临时文件的根目录一致
       distribute:
         root-path: __BK_HOME__/public/job
+    # 运行中作业配额系统级加权计数的周期性对账（每5分钟，多副本下分布式唯一执行），默认开启
+    runningJobQuota:
+      reconcile:
+        enabled: true
+    # 滚动执行并行错峰模式配置
+    rolling:
+      scatter:
+        # 并行错峰模式下允许的最大批次总数，超出则校验拒绝，防止并行 GSE 任务规模失控，默认200
+        max-batch: 200
+        # 并行错峰批次下发调度器的消费者线程数，默认3
+        worker-num: 3

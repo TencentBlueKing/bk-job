@@ -251,6 +251,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
         this.targetExecuteObjectTasks = targetExecuteObjectTasks;
         this.gseTask = gseTask;
+        // 并行错峰模式下 step_instance.batch 恒为初始批次，不随各并发批次推进；而每个 GSE 任务对应确定的批次。
+        // 结果处理(含优雅停机后在其它实例的续跑重建)按当前 GSE 任务所属批次校正 stepInstance，
+        // 使结果日志写入(addFileTaskLog 依据 stepInstance.getBatch())按各自 batch 隔离，避免其他批日志被写到 batch=1。
+        // 串行/非滚动场景 gseTask.getBatch() 与 stepInstance.getBatch() 本就一致，此处为无副作用的对齐。
+        stepInstance.setBatch(gseTask.getBatch());
         this.executeObjectTasks = executeObjectTasks;
         this.gseTaskInfo = buildGseTaskInfo(stepInstance.getTaskInstanceId(), gseTask);
         this.taskContext = new TaskContext(taskInstanceId);
@@ -389,7 +394,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             if (watch.isRunning()) {
                 watch.stop();
             }
-            if (watch.getTotalTimeMillis() > 1000L) {
+            if (watch.getTotalTimeMillis() > 3000L) {
                 log.warn("AbstractResultHandleTask-> handle task result is slow, run statistics:{}",
                     watch.prettyPrint());
             }
@@ -633,7 +638,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!this.isRunning) {
             log.info("ResultHandleTask-onStop start, task: {}", gseTaskInfo);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
-            runningJobKeepaliveManager.stopKeepaliveTask(taskInstanceId);
+            // 每任务幂等：与正常完成路径(ScheduledContinuousResultHandleTask)竞争时，保证同一任务只释放一次心跳引用
+            if (taskContext.markKeepaliveStopped()) {
+                runningJobKeepaliveManager.stopKeepaliveTask(taskInstanceId);
+            }
 
             taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
                 ResultHandleTaskResumeEvent.resume(stepInstance.getTaskInstanceId(), gseTask.getStepInstanceId(),
@@ -654,7 +662,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     @Override
     public String getTaskId() {
-        return "gse_task:" + this.stepInstance.getId() + ":" + this.stepInstance.getExecuteCount();
+        // 纳入 batch，避免并行错峰模式下同一步骤多批次结果处理任务的 keepalive 标识冲突
+        return "gse_task:" + this.stepInstance.getId() + ":" + this.stepInstance.getExecuteCount()
+            + ":" + this.gseTask.getBatch();
     }
 
     @Override

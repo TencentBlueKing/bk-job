@@ -98,6 +98,34 @@ public class TaskExecuteMQEventDispatcher {
     }
 
     /**
+     * 分发滚动批次并行错峰下发恢复事件
+     *
+     * @param event 滚动批次下发恢复事件
+     */
+    public void dispatchRollingBatchDispatchResumeEvent(RollingBatchDispatchResumeEvent event) {
+        log.info("Begin to dispatch rolling batch dispatch resume event, event: {}", event);
+        String output = "rollingBatchDispatchResume-out-0";
+        streamBridge.send(output, event);
+        log.info("Dispatch rolling batch dispatch resume event successfully, event: {}", event);
+    }
+
+    /**
+     * 广播并行错峰批次取消事件到所有 job-execute 副本（fanout，含自身）。
+     * <p>
+     * 用于并行错峰整步终止时，让每个副本对本地延迟队列执行取消并收敛未下发批次，缩短终止即时性；
+     * 最终正确性由 {@link com.tencent.bk.job.execute.engine.rolling.scatter.ScatterBatchDispatcher}
+     * 到点兜底保证，故本广播可容忍丢失。
+     *
+     * @param event 并行错峰批次取消事件
+     */
+    public void broadcastScatterBatchCancelEvent(ScatterBatchCancelEvent event) {
+        log.info("Begin to broadcast scatter batch cancel event, event: {}", event);
+        String output = "scatterBatchCancelFanout-out-0";
+        streamBridge.send(output, event);
+        log.info("Broadcast scatter batch cancel event successfully, event: {}", event);
+    }
+
+    /**
      * 异步发送消息通知事件
      *
      * @param notification 消息内容

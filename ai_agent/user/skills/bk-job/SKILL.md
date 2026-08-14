@@ -1,72 +1,63 @@
 ---
 name: bk-job
-description: 经 APIGW 调用蓝鲸作业平台（BK-Job）开放接口，支持检索定时任务与最近定时执行的状态/日志、作业模板搜索与详情查询、执行方案搜索/创建/带参启动、定时任务新建与启停、按实例 ID 查询任务状态与执行日志。列举类查询默认先最近 20 条；大列表在本地用 jq 或短脚本过滤后再摘要。含 plan-execute/plan-create/cron-save 操作确认门禁（G1–G4 及创建后启用询问）、对用户输出规范与可选业务记忆 memory/businesses。技能包以含 SKILL.md 的目录为根，可部署在 Cursor、CodeBuddy、OpenClaw 等任意技能加载路径下，脚本与文档路径均相对该根目录。当用户提及作业平台、蓝鲸作业、定时任务、cron、执行方案、作业模板、job_template、job_plan、job_instance、APIGW 调用作业接口、执行作业方案、创建执行方案、保存定时任务时使用。不适用于：作业平台 Web 界面/前端交互操作、非 APIGW（如直连微服务或其它接入方式）调用、以及作业平台之外的蓝鲸产品（CMDB、监控、节点管理等）。
-compatibility: 依赖 Python 3（标准库即可）与环境变量 BK_JOB_ACCESS_TOKEN；API 网关与作业平台页面根 URL 在技能根目录 config.yaml 中配置，部署时修改该文件即可。
+description: 经 APIGW 调用蓝鲸作业平台（BK-Job）开放接口：查搜定时任务、作业模板、执行方案与作业执行历史、实例状态日志，创建执行方案、新建与启停定时任务，到指定机器快速执行脚本，分发文件到目标机器（仅服务器/本地文件），查主机拓扑与执行账号。含写操作确认门禁、先选业务范围、先查主机与账号等规范。当用户提及作业平台、业务、业务集、蓝鲸作业、定时任务、cron、执行方案、作业模板、job_plan、job_instance、执行历史、快速执行脚本、fast_execute_script、文件分发、fast_transfer_file、主机、搜索主机、执行账号、bk_scope、APIGW 调用作业接口时使用。不适用于 Web 界面操作、非 APIGW 调用及 CMDB、监控等其它蓝鲸产品。
+compatibility: 依赖 Python 3（标准库即可）；访问令牌优先经 imate 的 ai-hub 命令获取，回退环境变量 BK_JOB_ACCESS_TOKEN；API 网关与页面根 URL 在技能根目录 config.yaml 中配置，部署时修改该文件即可。
 metadata: {"version":"1.0.0","bk_skill_code":"bk-job","openclaw":{"displayName":"蓝鲸作业平台","requires":{"env":["BK_JOB_ACCESS_TOKEN"]},"primaryEnv":"BK_JOB_ACCESS_TOKEN"}}
 ---
 
 # 蓝鲸作业平台运维操作
 
-通过技能包内捆绑的 **Python 3 标准库** 脚本 [`scripts/job_apigw_client.py`](scripts/job_apigw_client.py) 调用蓝鲸 **API 网关** 上的作业平台接口，完成查询、搜索、创建、启动、定时任务编排与状态/日志查看。
+通过技能包内脚本 [`scripts/job_apigw_client.py`](scripts/job_apigw_client.py) 调用蓝鲸 **API 网关** 上的作业平台接口完成运维操作。
 
-**技能根目录** = 与本 `SKILL.md` 同级的目录（名为 `bk-job`），下文相对路径均相对它解析；整包可同步到任意宿主（`.cursor/skills/`、`.codebuddy/skills/`、OpenClaw 技能目录等），不要求固定在 `.cursor` 下。
+## 核心概念
 
-### 目录结构（顶层项用途）
+- **资源范围**：一切操作的前提，由 `bk_scope_type`（`biz` 业务 / `biz_set` 业务集）与 `bk_scope_id` 组成。
+- **作业对象关系**：模板派生执行方案；方案可直接启动，也可由定时任务周期触发；每次执行产生作业实例，状态与日志按实例 ID 查。
+- **渐进式披露**：本文件常驻上下文，细节按任务再读手册；包结构与手册索引见 [手册 README](references/manuals/README.md)。
 
-| 路径 | 用途 |
-|------|------|
-| `scripts/job_apigw_client.py` | 唯一可执行脚本：API 调用与参数校验 |
-| `config.yaml` | 部署配置：网关与页面根 URL（仅占位示例，部署时替换） |
-| `reference/manuals/` | 渐进式披露手册（按任务按需加载） |
-| `reference/apidocs/` | 网关字段级 API 文档 |
-| `memory/businesses/` | 可选业务记忆（脚本自动附加 `_business_memory`） |
+## 前置检查
 
-## 何时加载
+1. **URL 配置**：脚本从 [`config.yaml`](config.yaml) 读 `apigw_base_url` 与 `job_base_url`，**不读环境变量**。
+2. **访问令牌**：脚本按 `--access-token` → `ai-hub`（imate）→ `BK_JOB_ACCESS_TOKEN` 自动获取，**智能体勿自行取令牌或回显**。见 [鉴权手册](references/manuals/environment-and-auth.md)。
+3. **资源范围**：无 `bk_scope` 上下文且无业务记忆时，先用 `list-authorized-scopes` 列出有权限的业务/业务集供选择，**勿擅自猜 `bk_scope_id`**；选定后可沉淀业务记忆（写入须确认）。
 
-通过 **APIGW** 查/搜/建/启 定时任务、执行方案、作业模板、作业实例状态或日志，或用户提到 **job_template / job_instance / cron / 执行方案 / bk_scope / access_token** 等开放 API 操作。
+## 核心规则（必读）
 
-## 1. 核心规则（必读）
+- **写操作须过 G1–G4 门禁**：`plan-execute`、`fast-execute-script`、`fast-transfer-file`、`plan-create`、`cron-save`、`cron-update-status`（非 `--dry-run`）须先展示确认摘要，**再等用户下一条独立回复**才执行；「立即执行」只表达意图，**不算**确认。**一次确认只授权一次执行**，重复执行（含「相同参数再执行一次」）须重新走门禁，不得跳过。**摘要须列全部生效参数**：以 `--dry-run` 的 `request_body` 加 `defaults_applied` 为准，未指定项标 `[默认]` 并说明后果（如强制模式覆盖同名文件），不得省略。格式与反例见 [确认门禁](references/manuals/confirmation-and-output-protocol.md)。
+- **填主机先查再填**：需要目标机（含分发源机）而用户未给 `bk_host_id` 或 `bk_cloud_id:ip` 时，先用 `host-topo-tree`、`host-search` 定位，列候选经用户确认，**不要凭空猜主机 ID**。
+- **填账号先查再填**：需要执行账号而用户未指定时，先用 `account-list` 列出该范围可用账号供选择，**不要凭空猜账号别名**。
+- **文件分发仅两种源**：只支持「服务器文件」与「本地文件」；第三方文件源（如 COS）未提供接口，**不要**给该选项，脚本会拒绝。
+- **列表先查一页**：默认 `--length 20` 并用 `--keyword` 缩小，`total > length` 时先说明「本页 N 条，共 M 条」再问翻页；大列表用 jq 过滤，**勿把整页 JSON 贴进对话**。见 [列举与分析](references/manuals/listing-and-token-efficient-analysis.md)。
+- **对用户输出**：不叙述调脚本/调 API 过程，表格化交付结论；同一轮内不得既给摘要又真实执行。
+- **临时文件只放技能 `tmp/`**：内联 JSON 在 PowerShell 易转义失败，改用 `--*-file` 入参；这类中间文件一律写 `tmp/`，**操作触发后即清**（本地文件上传成功即清，避免占满磁盘），且**只许清 `tmp/` 内容**，严禁删其它路径。见 [临时文件](references/manuals/temp-files.md)。
+- **让用户选择优先用选项卡**：`ai-hub-ask-user-input` 可用且候选 ≤8 时用它发结构化选项（确认门禁用 `confirm` 类型），否则表格呈现；候选过多先收敛再选。见 [交互选择](references/manuals/interactive-choice.md)。
+- **主机变量结构因接口而异**：`plan-create` 与 `plan-execute`/`cron-save` 字段名不同，组装前先查手册差异表。
+- **切换业务后重查资源**：切换业务后必须重新查询拓扑、主机、账号、方案、定时任务，禁止复用上一业务的资源。
+- **必给结果链接**：无论成败，触发后须以可点击链接交付 `job_instance_url`（执行类）或 `job_plan_url`（建方案）。
 
-- **列表「有哪些」**：未要求全量/导出/统计时**先只查一页**（默认 `--length 20`）并用 `--keyword` 缩小；`total > length` 时说明「本页 N 条，共 M 条」再问翻页。大列表用 **jq / `python -c`** 本地过滤，**勿把整页 JSON 贴进对话**（见 [listing-and-token-efficient-analysis.md](reference/manuals/listing-and-token-efficient-analysis.md)）。
-- **写操作**（`plan-execute` / `plan-create` / `cron-save` / `cron-update-status`，非 `--dry-run`）：须过 [confirmation-and-output-protocol.md](reference/manuals/confirmation-and-output-protocol.md) **第 1 节** 的 **G1–G4 门禁**，尤其 **G2**——先展示确认摘要，**再等用户下一条独立回复**才执行；「立即启动/启用」只是意图，**不算**确认。`cron-save` 创建后**必须询问是否启用**，未确认前**禁止** `cron-update-status --status 1`。
-- **对用户输出**：不叙述调脚本/调 API 过程；表格化交付结论；启动链路不在同一轮内既「摘要」又「真实执行」。
-- **关键词歧义**：多匹配时脚本退出并列候选，需 `--cron-id` / `--job-plan-id`，或知情下 `--pick-first`。
-- **PowerShell**：传 JSON 参数易转义失败，统一改用 `--variables-file` / `--global-vars-file`。
-- **主机变量字段名因接口而异**：`plan-create` 用 `execute_target.host_list`；`plan-execute` / `cron-save` 用 `server.ip_list`/`host_id_list`；均须同时给 `bk_cloud_id` 与 `ip`。完整差异表见 [job-plans-create-and-cron.md](reference/manuals/job-plans-create-and-cron.md)。
-- **其它**：`cron-last-run` 回溯**硬上限 31 天**（超出截断并提示）；脚本启动将 stdout/stderr 设为 **UTF-8**。
+## 支持的原子能力
 
-## 2. 渐进式披露（默认只读本文件，按任务再开手册）
+| 能力 | 子命令 | 手册 |
+|------|--------|------|
+| 范围选择 | `list-authorized-scopes` | [手册](references/manuals/scope-selection-and-onboarding.md) |
+| 主机查询 | `host-topo-tree`、`host-search` | [手册](references/manuals/host-query-and-selection.md) |
+| 账号查询 | `account-list` | [手册](references/manuals/account-query-and-selection.md) |
+| 定时任务 | `cron-search`、`cron-last-run` | [手册](references/manuals/cron-tasks-and-last-execution.md) |
+| 模板与创建 | `template-search`、`template-detail`、`plan-create`、`cron-save`、`cron-update-status` | [手册](references/manuals/job-plans-create-and-cron.md) |
+| 方案与启动 | `plan-search`、`plan-detail`、`plan-execute` | [手册](references/manuals/job-plans-search-and-execute.md) |
+| 快速执行脚本 | `fast-execute-script` | [手册](references/manuals/fast-execute-script.md) |
+| 文件分发 | `fast-transfer-file`、`gen-local-upload-url`、`upload-local-file` | [手册](references/manuals/file-transfer.md) |
+| 执行历史与日志 | `instance-list`、`instance-status`、`get-instance-log` | [手册](references/manuals/job-instance-status.md) |
+| 业务记忆 | `memory-load` | [手册](references/manuals/business-memory.md) |
 
-| 能力 / 子命令 | 手册 |
-|------|------|
-| 网关地址、令牌、`bk_scope`（任何调用前） | [environment-and-auth.md](reference/manuals/environment-and-auth.md) |
-| `cron-search` / `cron-last-run` | [cron-tasks-and-last-execution.md](reference/manuals/cron-tasks-and-last-execution.md) |
-| `template-search` / `template-detail` / `plan-create` / `cron-save` / `cron-update-status` | [job-plans-create-and-cron.md](reference/manuals/job-plans-create-and-cron.md) |
-| `plan-search` / `plan-detail` / `plan-execute` | [job-plans-search-and-execute.md](reference/manuals/job-plans-search-and-execute.md) |
-| `instance-status` | [job-instance-status.md](reference/manuals/job-instance-status.md) |
-| `memory-load`、业务记忆预填与沉淀 | [business-memory.md](reference/manuals/business-memory.md) |
-| 确认门禁、对用户输出格式 | [confirmation-and-output-protocol.md](reference/manuals/confirmation-and-output-protocol.md) |
-| 列举默认条数、jq/脚本分析 | [listing-and-token-efficient-analysis.md](reference/manuals/listing-and-token-efficient-analysis.md) |
-| 鉴权失败、无历史、状态码 | [troubleshooting-and-status-codes.md](reference/manuals/troubleshooting-and-status-codes.md) |
-| 字段级 API 参数/响应 | [`reference/apidocs/`](reference/apidocs/) |
+字段级参数见 [`references/apidocs/`](references/apidocs/)，全部参数用 `--help` 查看。
 
-**索引**：[reference/manuals/README.md](reference/manuals/README.md)
+## 常用组合工作流程
 
-## 3. 配置、鉴权与结果链接（摘要）
+**只是常见示例，非能力边界**：可按需用上表原子能力自由组装，但写操作一律走 G1–G4 门禁。各链路步骤见 [工作流程手册](references/manuals/workflows.md)：快速执行脚本、分发本地/服务器文件、搜方案并启动、查模板建方案、建定时任务并启用、查定时任务与执行历史、查执行历史并下钻。
 
-- **URL 配置**：脚本从技能根目录 [`config.yaml`](config.yaml) 读取 `apigw_base_url`、`job_base_url`（**不读环境变量**）；代码库内 URL **仅为占位**，部署时替换为真实地址。
-- **访问令牌**：`BK_JOB_ACCESS_TOKEN`（环境变量）或 `--access-token`，**不落盘**。详见 [environment-and-auth.md](reference/manuals/environment-and-auth.md)。
-- **成功结果链接**（脚本自动补充，须以可点击链接交付用户）：`plan-execute` → `job_instance_url` = `{job_base_url}/api_execute/{job_instance_id}`；`plan-create` → `job_plan_url` = `{job_base_url}/api_plan/{job_plan_id}`。
-- **业务记忆**：带 `--bk-scope-id` 的子命令自动在 JSON 附加 `_business_memory`（取自 `memory/businesses/`，无则 `loaded:false`）；可用 `memory-load` 单独加载或 `--no-business-memory` 关闭。写入须用户确认。详见 [business-memory.md](reference/manuals/business-memory.md)。
+## 异常处理
 
-## 4. 脚本与校验
-
-Python 3 标准库（无 pip 依赖），脚本仅做 API 调用与参数校验。常用与校验命令：
-
-```bash
-python scripts/job_apigw_client.py --help
-python scripts/job_apigw_client.py cron-search --bk-scope-id 2 --length 20
-# 打包/上传前在 bk-skill-creator 仓库内校验（参数为本机 bk-job 根目录绝对路径）
-python -m scripts.quick_validate "/path/to/bk-job"
-```
-
+- **关键词歧义**：多条匹配时脚本列候选并退出，需补 `--cron-id`/`--job-plan-id`，或知情下用 `--pick-first`。
+- **鉴权失败、无历史、状态码含义**：见 [排障手册](references/manuals/troubleshooting-and-status-codes.md)。
+- **回溯上限**：`cron-last-run`、`instance-list` 最多回溯 **31 天**，超出会截断并提示。

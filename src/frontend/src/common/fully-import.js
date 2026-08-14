@@ -79,7 +79,7 @@ import('@blueking/login-userinfo/vue2/vue2.css');
 
 const IpSelector = createIpSelector({
   version: '8',
-  panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput', 'containerStaticTopo', 'containerManualInput'],
+  panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput', 'containerStaticTopo', 'containerFilterList', 'containerManualInput'],
   unqiuePanelValue: false,
   nameStyle: 'camelCase',
   hostTableDefaultSelectAllMode: true,
@@ -98,6 +98,9 @@ const IpSelector = createIpSelector({
   fetchTopologyContainerContainer: HostManageService.fetchTopologyContainerContainer,
   fetchContainerTopologyContainerIdList: HostManageService.fetchTopologyContainerContainerIdList,
   fetchContainerDetail: HostManageService.fetchContainerInfoById,
+  fetchDynamicContainerPreview: HostManageService.fetchDynamicContainerPreview,
+  fetchDynamicContainerFieldMetadata: HostManageService.fetchDynamicContainerFieldMetadata,
+  fetchContainerNodesNames: HostManageService.fetchContainerNodesNames,
   fetchContainerCheck: HostManageService.fetchInputParseContainerList,
   fetchCustomSettings: CustomSettingsService.fetchAll,
   updateCustomSettings: CustomSettingsService.update,

@@ -32,7 +32,9 @@
       :key="item.field"
       :ref="item.field"
       :label="$t(item.label)"
-      required>
+      :property="item.field"
+      required
+      :rules="item.rules">
       <div class="form-item-content">
         <bk-input
           :max="3600000"
@@ -46,18 +48,15 @@
 </template>
 
 <script setup>
+  import I18n from '@/i18n';
+
   const props = defineProps({
-    batchStartWaitFixedMsField: {
+    batchStartWaitMinMsField: {
       type: String,
       required: true,
     },
 
-    batchStartWaitRandomMinMsField: {
-      type: String,
-      required: true,
-    },
-
-    batchStartWaitRandomMaxMsField: {
+    batchStartWaitMaxMsField: {
       type: String,
       required: true,
     },
@@ -70,22 +69,43 @@
 
   const emit = defineEmits(['on-change']);
 
+  /**
+   * 创建校验规则
+   */
+  const createRule = (message) => {
+    return [
+      {
+        validator: value => {
+          return value === 0 || (value && Number(value) > 0 ) 
+        },
+        message: I18n.t(message),
+        trigger: 'blur',
+      },
+    ];
+  };
+
   const fields = [
     {
-      field: props.batchStartWaitFixedMsField,
-      label: '批次间固定延迟（ms）',
+      field: props.batchStartWaitMinMsField,
+      label: '批次间最小延时（ms）',
+      rules: createRule('批次间最小延时必填'),
     },
     {
-      field: props.batchStartWaitRandomMinMsField,
-      label: '批次间随机延迟下限（ms）',
-    },
-    {
-      field: props.batchStartWaitRandomMaxMsField,
-      label: '批次间随机延迟上限（ms）',
+      field: props.batchStartWaitMaxMsField,
+      label: '批次间最大延时（ms）',
+      rules: [
+        ...createRule('批次间最大延时必填'),
+        {
+          validator: value => Number(value) >= Number(props.formData[props.batchStartWaitMinMsField]),
+          message: I18n.t('批次间最大延时不能小于最小延时'),
+          trigger: 'blur',
+        },
+      ],
     },
   ];
 
   const handleChange = (field, value) => {
-    emit('on-change', field, +value);
+    if(Number.isNaN(+value)) return;
+    emit('on-change', field, value === '' ? '' : +value);
   };
 </script>

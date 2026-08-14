@@ -87,15 +87,15 @@
       <!-- 源文件时显示源文件滚动配置 -->
       <rolling-file-config
         v-else
-        :enabled-field="enabledField"
         :form-data="formData"
         :max-execute-object-num-field="maxExecuteObjectNumField"
         :max-file-num-field="maxFileNumField"
-        :type-field="typeField"
         @on-change="handleFieldChange" />
       <!-- 滚动机制 - 并行执行时不显示 -->
+      <!-- key防止与【滚动策略实例】被错误复用 -->
       <jb-form-item
         v-if="!isFileMode|| formData[executionModeField] === 1"
+        :key="modeField"
         ref="rollingMode"
         :label="$t('滚动机制')"
         required>
@@ -119,9 +119,8 @@
       <rolling-batch-delay
         v-else
         ref="batchStartWait"
-        :batch-start-wait-fixed-ms-field="batchStartWaitFixedMsField"
-        :batch-start-wait-random-max-ms-field="batchStartWaitRandomMaxMsField"
-        :batch-start-wait-random-min-ms-field="batchStartWaitRandomMinMsField"
+        :batch-start-wait-max-ms-field="batchStartWaitMaxMsField"
+        :batch-start-wait-min-ms-field="batchStartWaitMinMsField"
         :form-data="formData"
         @on-change="handleFieldChange" />
     </div>
@@ -212,15 +211,11 @@
         type: String,
         required: false,
       },
-      batchStartWaitFixedMsField: {
+      batchStartWaitMinMsField: {
         type: String,
         required: false,
       },
-      batchStartWaitRandomMinMsField: {
-        type: String,
-        required: false,
-      },
-      batchStartWaitRandomMaxMsField: {
+      batchStartWaitMaxMsField: {
         type: String,
         required: false,
       },
@@ -282,6 +277,7 @@
       formData: {
         handler(formData) {
           if (!this.isFileMode || formData[this.typeField] === 1) {
+            this.$refs.expr && this.$refs.expr.clearValidator();
             this.validatorExpr(formData[this.exprField]);
           }
           setTimeout(() => {
@@ -408,9 +404,8 @@
               [this.executionModeField]: 1,
               [this.maxExecuteObjectNumField]: null,
               [this.maxFileNumField]: null,
-              [this.batchStartWaitFixedMsField]: null,
-              [this.batchStartWaitRandomMinMsField]: null,
-              [this.batchStartWaitRandomMaxMsField]: null,
+              [this.batchStartWaitMinMsField]: null,
+              [this.batchStartWaitMaxMsField]: null,
             } : {}),
           });
         }
@@ -457,9 +452,6 @@
        */
       handleFieldChange(field, value) {
         if (field === this.typeField) {
-          value === 1 && this.$emit('on-reset', {
-            [this.exprField]: '10%',
-          });
           // 源文件不支持并行执行，自动重置为串行执行
           value === 2 && this.formData[this.executionModeField] === 2 && this.$emit('on-change', this.executionModeField, 1);
         }
@@ -473,12 +465,6 @@
       handleExecutionModeChange(field, executionMode) {
         this.handleFieldChange(field, executionMode)
         if (executionMode === 2) {
-          // 切换到并行模式时，默认设置延迟值
-          this.$emit('on-reset', {
-            [this.batchStartWaitFixedMsField]: 5000,
-            [this.batchStartWaitRandomMinMsField]: 0,
-            [this.batchStartWaitRandomMaxMsField]: 0,
-          });
           this.$nextTick(() => {
             if (this.isFileMode) {
               this.$refs.batchStartWait?.$el?.scrollIntoView();

@@ -105,6 +105,17 @@ public class RollingConfigDTO {
     }
 
     /**
+     * 是否为并行错峰执行模式（仅目标执行对象滚动支持）
+     *
+     * @return 布尔值
+     */
+    public boolean isParallelExecution() {
+        return !isFileSourceRolling()
+            && executeObjectRollingConfig != null
+            && executeObjectRollingConfig.isParallelExecution();
+    }
+
+    /**
      * 获取序列化后的配置详情
      *
      * @return 序列化后的配置详情

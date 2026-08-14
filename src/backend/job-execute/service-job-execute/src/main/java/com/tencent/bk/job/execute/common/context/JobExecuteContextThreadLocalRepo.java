@@ -36,7 +36,7 @@ public class JobExecuteContextThreadLocalRepo {
 
     public static void set(JobExecuteContext context) {
         if (log.isDebugEnabled()) {
-            log.info("SetJobExecuteContextThreadLocalRepo, context: {}", context);
+            log.debug("SetJobExecuteContextThreadLocalRepo, context: {}", context);
         }
         HOLDER.set(context);
     }

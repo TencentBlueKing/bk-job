@@ -8,6 +8,9 @@
 - 作业模板检索与详情查询（用于支撑「创建执行方案」前的步骤与变量探查）
 - 执行方案检索、详情、创建与启动执行
 - 作业实例状态查询与步骤执行日志获取
+- 业务主机拓扑树查询与资源范围下主机搜索（执行类操作填写主机时定位目标主机）
+- 业务下执行账号列表查询（执行类操作填写账号时引导选择可用账号）
+- 快速分发文件到目标机器（服务器文件/本地文件；本地文件先生成上传URL并上传）
 
 PowerShell 用户注意：传递 JSON 参数时，推荐用文件方式避免转义问题：
   --variables-file <文件路径>  代替  --variables <JSON>
@@ -19,7 +22,8 @@ PowerShell 用户注意：传递 JSON 参数时，推荐用文件方式避免转
     python job_apigw_client.py <command> [options]
 
 认证:
-    --access-token 或环境变量 BK_JOB_ACCESS_TOKEN
+    按 --access-token → ai-hub 命令 → 环境变量 BK_JOB_ACCESS_TOKEN 的顺序获取访问令牌。
+    在 imate 数字分身上存在 ai-hub 命令时，脚本自动执行 `ai-hub access-token get` 并取其 access_token 字段。
 
 网关与页面 URL:
     从技能根目录 config.yaml 读取 apigw_base_url、job_base_url（部署技能包时修改 config.yaml，不读环境变量）
@@ -33,8 +37,12 @@ PowerShell 用户注意：传递 JSON 参数时，推荐用文件方式避免转
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
+import re
+import shutil
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -48,11 +56,65 @@ import urllib.request
 # 常量
 # -----------------------------------------------------------------------------
 
+# imate 数字分身提供的令牌获取命令：`ai-hub access-token get` 输出 {"access_token":"xxx", ...}
+AI_HUB_COMMAND = "ai-hub"
+AI_HUB_TOKEN_ARGS = ["access-token", "get"]
+AI_HUB_TIMEOUT_SECONDS = 10
+
 # 查询作业执行历史（v4 get_job_instance_list）时，回溯天数硬上限（含）
 MAX_JOB_HISTORY_LOOKBACK_DAYS = 31
 
 # 列表类接口（定时任务、执行方案）默认每页条数：与技能「先给最近 20 条」约定一致
 LIST_PAGE_DEFAULT = 20
+
+# 快速执行脚本超时时间（秒）取值范围，与后端 JobConstants 一致（默认 7200）
+FAST_EXEC_TIMEOUT_MIN = 1
+FAST_EXEC_TIMEOUT_MAX = 259200
+
+# 快速执行脚本 script_language 取值：与后端 ScriptTypeEnum（fast_execute_script 文档 1-5）一致
+# 注意：SQL(6) 属于 fast_execute_sql 接口，本子命令不涉及
+SCRIPT_LANGUAGE_NAME_TO_CODE = {
+    "shell": 1,
+    "bat": 2,
+    "perl": 3,
+    "python": 4,
+    "powershell": 5,
+}
+SCRIPT_LANGUAGE_CODE_TO_NAME = {v: k for k, v in SCRIPT_LANGUAGE_NAME_TO_CODE.items()}
+
+
+def resolve_script_language(raw: Optional[str]) -> Optional[int]:
+    """将 --script-language 的取值（名称或数字）解析为后端脚本语言编码 1-5。
+
+    未提供时返回 None（由脚本侧决定是否补默认值）。
+    """
+    if raw is None:
+        return None
+    value = str(raw).strip().lower()
+    if value in SCRIPT_LANGUAGE_NAME_TO_CODE:
+        return SCRIPT_LANGUAGE_NAME_TO_CODE[value]
+    try:
+        code = int(value)
+    except (TypeError, ValueError):
+        print(
+            f"错误：--script-language 取值无效: {raw}。"
+            f"支持名称 {sorted(SCRIPT_LANGUAGE_NAME_TO_CODE)} 或对应编码 1-5。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    if code not in SCRIPT_LANGUAGE_CODE_TO_NAME:
+        print(
+            f"错误：--script-language 编码无效: {code}。"
+            "快速执行脚本仅支持 1-shell、2-bat、3-perl、4-python、5-powershell。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return code
+
+
+def _b64_encode_text(text: str) -> str:
+    """将明文（UTF-8）Base64 编码，供 script_content / script_param 使用。"""
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
 
 # 网关文档 get_cron_list：1 已启动、2 已暂停、0 已暂停；其它取值以控制台为准
 CRON_RUN_STATUS_TEXT = {
@@ -79,6 +141,19 @@ TASK_STATUS_LABEL = {
 }
 
 
+LAUNCH_MODE_LABEL = {
+    1: "页面执行",
+    2: "API调用",
+    3: "定时执行",
+}
+
+TASK_TYPE_LABEL = {
+    0: "作业执行",
+    1: "脚本执行",
+    2: "文件分发",
+}
+
+
 def _task_status_label(code: Any) -> str:
     if code is None:
         return "未知"
@@ -86,6 +161,44 @@ def _task_status_label(code: Any) -> str:
         return TASK_STATUS_LABEL.get(int(code), str(code))
     except (TypeError, ValueError):
         return str(code)
+
+
+def _enum_label(code: Any, mapping: Dict[int, str]) -> str:
+    if code is None:
+        return "未知"
+    try:
+        return mapping.get(int(code), str(code))
+    except (TypeError, ValueError):
+        return str(code)
+
+
+def _ms_to_text(ms: Any) -> Optional[str]:
+    """毫秒时间戳转本地可读时间；非法值原样返回。"""
+    if ms in (None, 0, ""):
+        return None
+    try:
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(ms) / 1000))
+    except (TypeError, ValueError, OSError):
+        return str(ms)
+
+
+def enrich_job_instance_for_display(row: Dict[str, Any]) -> Dict[str, Any]:
+    """为执行历史记录补充可读的状态、类型、执行方式与时间，不修改原始数值字段。
+
+    接口对状态/类型字段存在 task_status/status、task_type/type 两种命名，均做兼容。
+    """
+    out = dict(row)
+    out["任务状态"] = _task_status_label(row.get("task_status", row.get("status")))
+    out["任务类型"] = _enum_label(row.get("task_type", row.get("type")), TASK_TYPE_LABEL)
+    out["执行方式"] = _enum_label(row.get("launch_mode"), LAUNCH_MODE_LABEL)
+    for src, label in (("create_time", "创建时间"), ("start_time", "启动时间"), ("end_time", "结束时间")):
+        text = _ms_to_text(row.get(src))
+        if text:
+            out[label] = text
+    total = row.get("total_time")
+    if isinstance(total, (int, float)) and total > 0:
+        out["耗时秒"] = round(total / 1000, 1)
+    return out
 
 
 def _cron_run_status_text(status: Any) -> str:
@@ -160,15 +273,145 @@ def print_json(data: Any) -> None:
     print(json.dumps(data, ensure_ascii=False, indent=2))
 
 
-def get_access_token(cli_token: Optional[str]) -> str:
-    token = cli_token or os.environ.get("BK_JOB_ACCESS_TOKEN")
+# 写操作中「不传即由后端按默认值生效」的参数。--dry-run 时据此列出未显式指定的项，
+# 供确认摘要向用户完整披露实际生效值，避免出现用户意料之外的参数。
+# 默认值来源：references/apidocs/ 下对应接口文档的字段说明。
+FAST_EXEC_SCRIPT_DEFAULTS: Dict[str, Tuple[str, str]] = {
+    "timeout": ("7200 秒", "脚本执行超时时间，实际上限可能受资源范围级配置限制"),
+    "param_sensitive": ("false", "脚本参数值在执行详情页可见"),
+    "start_task": ("true", "创建后立即启动任务"),
+    "windows_interpreter": ("由目标机系统决定", "Windows 目标机的脚本解释器"),
+    "task_name": ("由作业平台生成", "任务名称"),
+    "callback_url": ("不回调", "任务结束后的回调地址"),
+}
+
+FAST_TRANSFER_FILE_DEFAULTS: Dict[str, Tuple[str, str]] = {
+    "timeout": ("7200 秒", "任务超时时间"),
+    "transfer_mode": ("2（强制模式）", "目标路径已存在同名文件时直接覆盖"),
+    "download_speed_limit": ("不限速", "下载限速，单位 MB"),
+    "upload_speed_limit": ("不限速", "上传限速，单位 MB"),
+    "start_task": ("true", "创建后立即启动任务"),
+    "file_target_name": ("保持源文件名", "分发到目标机后的文件名"),
+    "task_name": ("由作业平台生成", "任务名称"),
+    "callback_url": ("不回调", "任务结束后的回调地址"),
+}
+
+
+def defaults_applied(body: Dict[str, Any], spec: Dict[str, Tuple[str, str]]) -> Dict[str, Dict[str, str]]:
+    """列出请求体中未显式指定、将按默认值生效的参数，用于确认摘要完整披露。"""
+    return {
+        key: {"默认值": value, "说明": desc}
+        for key, (value, desc) in spec.items()
+        if key not in body
+    }
+
+
+def print_dry_run(
+    args: argparse.Namespace,
+    body: Dict[str, Any],
+    spec: Dict[str, Tuple[str, str]],
+) -> None:
+    """输出 --dry-run 预览：显式参数 + 未显式指定但会生效的默认值。"""
+    _scope_print(
+        args,
+        {
+            "dry_run": True,
+            "request_body": body,
+            "defaults_applied": defaults_applied(body, spec),
+            "_note": (
+                "defaults_applied 为未显式指定、将按默认值生效的参数。"
+                "确认摘要须把 request_body 与 defaults_applied 一并完整展示给用户，"
+                "默认值项需标注「默认」，不得省略。"
+            ),
+        },
+    )
+
+
+def _ai_hub_executable() -> Optional[str]:
+    """在 PATH 中查找 ai-hub 命令；返回 None 表示当前不在 imate 数字分身环境。"""
+    return shutil.which(AI_HUB_COMMAND)
+
+
+def _extract_access_token(raw: str) -> Optional[str]:
+    """从 ai-hub 输出中提取 access_token。
+
+    正常输出为 {"access_token":"xxxx", ...}；若混入了日志行导致整体 JSON 解析失败，
+    退化为按字段名正则提取，避免因无关输出丢失可用令牌。
+    """
+    text = raw.strip()
+    if not text:
+        return None
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        payload = None
+    if isinstance(payload, dict):
+        token = payload.get("access_token")
+        if isinstance(token, str) and token.strip():
+            return token.strip()
+        return None
+    m = re.search(r'"access_token"\s*:\s*"([^"]+)"', text)
+    return m.group(1).strip() if m else None
+
+
+def _token_from_ai_hub(exe: str) -> Tuple[Optional[str], Optional[str]]:
+    """执行 `ai-hub access-token get` 取令牌。
+
+    返回 (令牌, 失败原因)；失败原因仅描述失败环节，不回显命令输出，避免令牌等敏感内容进入日志。
+    """
+    try:
+        proc = subprocess.run(
+            [exe, *AI_HUB_TOKEN_ARGS],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=AI_HUB_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        return None, f"ai-hub 命令执行超时（超过 {AI_HUB_TIMEOUT_SECONDS} 秒）"
+    except (OSError, subprocess.SubprocessError) as e:
+        return None, f"ai-hub 命令无法执行（{type(e).__name__}）"
+
+    if proc.returncode != 0:
+        return None, f"ai-hub 命令返回非零退出码（{proc.returncode}）"
+
+    token = _extract_access_token((proc.stdout or b"").decode("utf-8", "replace"))
     if not token:
+        return None, "ai-hub 命令输出中未找到 access_token 字段"
+    return token, None
+
+
+def get_access_token(cli_token: Optional[str]) -> str:
+    """按 --access-token → ai-hub 命令 → 环境变量的顺序获取用户态 access_token。"""
+    if cli_token:
+        return cli_token
+
+    ai_hub_exe = _ai_hub_executable()
+    ai_hub_error: Optional[str] = None
+    if ai_hub_exe:
+        token, ai_hub_error = _token_from_ai_hub(ai_hub_exe)
+        if token:
+            return token
+
+    env_token = os.environ.get("BK_JOB_ACCESS_TOKEN")
+    if env_token and env_token.strip():
+        return env_token.strip()
+
+    if ai_hub_exe:
+        # 存在 ai-hub 说明运行在 imate 数字分身上，优先引导排查 ai-hub 服务
         print(
-            "错误：未提供访问令牌。请使用 --access-token 或设置环境变量 BK_JOB_ACCESS_TOKEN。",
+            f"错误：未获取到访问令牌。已检测到 ai-hub 命令但取令牌失败（{ai_hub_error}）。\n"
+            "请检查 imate 数字分身上的 ai-hub 服务是否正常"
+            f"（可手动执行 `{AI_HUB_COMMAND} {' '.join(AI_HUB_TOKEN_ARGS)}` 验证），"
+            "或手动设置环境变量 BK_JOB_ACCESS_TOKEN（也可用 --access-token 传入）。",
             file=sys.stderr,
         )
-        sys.exit(1)
-    return token
+    else:
+        print(
+            "错误：未获取到访问令牌。请设置环境变量 BK_JOB_ACCESS_TOKEN"
+            "（也可用 --access-token 传入）。",
+            file=sys.stderr,
+        )
+    sys.exit(1)
 
 
 _SKILL_CONFIG_CACHE: Optional[Dict[str, str]] = None
@@ -412,6 +655,35 @@ def http_request(
         sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"JSON 解析失败: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def http_upload_file(url: str, filepath: str, timeout: int = 600) -> Tuple[int, str]:
+    """将本地文件以 HTTP PUT 上传到指定 URL（用于本地文件分发时上传到制品库临时地址）。
+
+    等价于：curl -X PUT -H "Content-Type: application/octet-stream"
+             --data-binary @<file> "<upload_url>"
+    即以 PUT 方法将文件原始字节作为请求体上传；URL 自带鉴权 token
+    （来自 generate_local_file_upload_url 的 upload_url），不再附加 APIGW 鉴权头。
+    返回 (HTTP 状态码, 响应文本)。
+    """
+    path_obj = Path(filepath)
+    if not path_obj.is_file():
+        print(f"错误：待上传文件不存在: {filepath}", file=sys.stderr)
+        sys.exit(1)
+    data_bytes = path_obj.read_bytes()
+    req = urllib.request.Request(url, data=data_bytes, method="PUT")
+    req.add_header("Content-Type", "application/octet-stream")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            raw = resp.read().decode("utf-8", errors="replace")
+            return resp.getcode(), raw
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode("utf-8", errors="replace")
+        print(f"上传失败 HTTP {e.code}: {err_body}", file=sys.stderr)
+        sys.exit(1)
+    except urllib.error.URLError as e:
+        print(f"上传请求失败: {e.reason}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -787,9 +1059,12 @@ def _parse_json_arg(raw: Optional[str], label: str) -> Any:
 
 
 def _read_json_file(filepath: str, label: str) -> Any:
-    """从文件读取 JSON（避免命令行转义问题）。"""
+    """从文件读取 JSON（避免命令行转义问题）。
+
+    使用 utf-8-sig 解码以兼容 Windows/PowerShell 常见的 UTF-8 BOM。
+    """
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, "r", encoding="utf-8-sig") as f:
             return json.load(f)
     except FileNotFoundError:
         print(f"{label}: 文件不存在: {filepath}", file=sys.stderr)
@@ -962,6 +1237,72 @@ def cmd_plan_execute(args: argparse.Namespace) -> None:
     _scope_print(args, enrich_plan_execute_result(data, get_job_base_url()))
 
 
+def cmd_instance_list(args: argparse.Namespace) -> None:
+    """查询任务执行历史（GET /api/v4/get_job_instance_list）。
+
+    按时间窗口列出资源范围下的作业实例，可按任务名、执行人、执行方式、任务类型、状态、
+    目标 IP、定时任务 ID 过滤。时间窗口必填，脚本按 --lookback-days 自动换算为毫秒时间戳，
+    回溯天数硬上限 31 天，与 cron-last-run 一致。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+
+    lookback_days, lookback_capped = effective_lookback_days(args.lookback_days)
+    if lookback_capped:
+        print(
+            f"提示：执行历史查询回溯已限制为最多 {MAX_JOB_HISTORY_LOOKBACK_DAYS} 天"
+            f"（请求 {args.lookback_days} 天已截断）。",
+            file=sys.stderr,
+        )
+
+    now_ms = int(time.time() * 1000)
+    start_ms = now_ms - int(lookback_days * 24 * 3600 * 1000)
+
+    p: Dict[str, Any] = {
+        **scope_params(args.bk_scope_type, args.bk_scope_id),
+        "create_time_start": start_ms,
+        "create_time_end": now_ms,
+        "offset": args.offset,
+        "length": args.length,
+    }
+    # 传入 job_instance_id 时接口会忽略其余过滤条件
+    for key, value in (
+        ("job_instance_id", args.job_instance_id),
+        ("job_cron_id", args.cron_id),
+        ("operator", args.operator),
+        ("name", args.keyword),
+        ("launch_mode", args.launch_mode),
+        ("type", args.type),
+        ("status", args.status),
+        ("ip", args.ip),
+    ):
+        if value is not None:
+            p[key] = value
+
+    data = v4_get(base, "/api/v4/get_job_instance_list", p, token)
+    rows = data.get("job_instance_list") or []
+    _scope_print(
+        args,
+        {
+            "query": {
+                "lookback_days_requested": args.lookback_days,
+                "lookback_days_effective": lookback_days,
+                "lookback_days_max": MAX_JOB_HISTORY_LOOKBACK_DAYS,
+                "create_time_start": start_ms,
+                "create_time_end": now_ms,
+                "offset": args.offset,
+                "length": args.length,
+            },
+            "returned": len(rows),
+            "job_instance_list": [enrich_job_instance_for_display(r) for r in rows],
+            "_note": (
+                "本页按创建时间从新到老返回；接口不返回总数，若本页条数等于 length，"
+                "可能还有更早记录，可增大 --offset 继续翻页或缩小时间窗口。"
+            ),
+        },
+    )
+
+
 def cmd_instance_status(args: argparse.Namespace) -> None:
     token = get_access_token(args.access_token)
     base = get_base_url()
@@ -1017,6 +1358,554 @@ def cmd_get_instance_log(args: argparse.Namespace) -> None:
     _scope_print(args, data)
 
 
+def _build_fast_exec_target(args: argparse.Namespace) -> Dict[str, Any]:
+    """根据 CLI 参数组装 execute_target（快速执行脚本）。
+
+    支持三种目标来源（可组合，但至少提供一种）：
+    - --host-id-list：逗号分隔的 bk_host_id → host_list[{bk_host_id}]
+    - --ip-list：逗号分隔的 bk_cloud_id:ip → host_list[{bk_cloud_id, ip}]
+    - --execute-target-file：直接读取完整 execute_target JSON（支持动态分组/拓扑/容器等复杂结构）
+    """
+    if args.execute_target_file:
+        target = _read_json_file(args.execute_target_file, "--execute-target-file")
+        if not isinstance(target, dict):
+            print("--execute-target-file 内容须为 JSON 对象（execute_target 结构）", file=sys.stderr)
+            sys.exit(1)
+        return target
+
+    target: Dict[str, Any] = {}
+    host_list: List[Dict[str, Any]] = []
+    if args.host_id_list:
+        try:
+            host_list.extend({"bk_host_id": int(h)} for h in args.host_id_list.split(",") if h.strip())
+        except ValueError:
+            print("错误：--host-id-list 须为逗号分隔的整数列表", file=sys.stderr)
+            sys.exit(1)
+    if args.ip_list:
+        for item in args.ip_list.split(","):
+            item = item.strip()
+            if not item:
+                continue
+            parts = item.split(":")
+            if len(parts) != 2:
+                print(f"错误：--ip-list 格式无效: {item}，须为 bk_cloud_id:ip", file=sys.stderr)
+                sys.exit(1)
+            try:
+                host_list.append({"bk_cloud_id": int(parts[0]), "ip": parts[1]})
+            except ValueError:
+                print(f"错误：--ip-list 中 bk_cloud_id 须为整数: {item}", file=sys.stderr)
+                sys.exit(1)
+    if host_list:
+        target["host_list"] = host_list
+
+    if not target:
+        print(
+            "错误：未指定执行目标。请提供 --host-id-list、--ip-list 或 --execute-target-file 之一"
+            "（动态分组/拓扑节点/容器等复杂目标请用 --execute-target-file）。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return target
+
+
+def cmd_fast_execute_script(args: argparse.Namespace) -> None:
+    """快速执行脚本（POST /api/v4/fast_execute_script）。
+
+    变更类/生产执行操作：真实调用前须遵守确认门禁（G1–G4），支持 --dry-run 预览请求体。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+
+    body: Dict[str, Any] = {
+        **scope_params(args.bk_scope_type, args.bk_scope_id),
+    }
+
+    # 脚本来源优先级：script_version_id > script_id > script_content
+    has_ref = args.script_id is not None or args.script_version_id is not None
+    script_content: Optional[str] = None
+    if args.script_content_file:
+        script_content = Path(args.script_content_file).read_text(encoding="utf-8")
+    elif args.script_content is not None:
+        script_content = args.script_content
+    if not has_ref and (script_content is None or script_content == ""):
+        print(
+            "错误：请提供脚本内容（--script-content / --script-content-file）"
+            "或引用已有脚本（--script-id / --script-version-id）。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    # 账号：account_id 与 account_alias 至少一个（同时存在时 account_id 优先）
+    if args.account_id is None and not args.account_alias:
+        print("错误：请提供 --account-alias 或 --account-id（执行账号）。", file=sys.stderr)
+        sys.exit(1)
+    if args.account_id is not None:
+        body["account_id"] = int(args.account_id)
+    if args.account_alias:
+        body["account_alias"] = args.account_alias
+
+    if args.script_version_id is not None:
+        body["script_version_id"] = int(args.script_version_id)
+    if args.script_id is not None:
+        body["script_id"] = args.script_id
+    if script_content:
+        body["script_content"] = _b64_encode_text(script_content)
+        lang = resolve_script_language(args.script_language)
+        if lang is None:
+            lang = SCRIPT_LANGUAGE_NAME_TO_CODE["shell"]
+        body["script_language"] = lang
+    elif args.script_language is not None:
+        # 引用脚本时脚本语言以脚本自身为准，忽略该参数
+        pass
+
+    if args.script_param is not None:
+        body["script_param"] = _b64_encode_text(args.script_param)
+    if args.param_sensitive:
+        body["param_sensitive"] = True
+    if args.name:
+        body["task_name"] = args.name
+    if args.windows_interpreter:
+        body["windows_interpreter"] = args.windows_interpreter
+    if args.timeout is not None:
+        timeout = int(args.timeout)
+        if timeout < FAST_EXEC_TIMEOUT_MIN or timeout > FAST_EXEC_TIMEOUT_MAX:
+            print(
+                f"错误：--timeout 取值须在 {FAST_EXEC_TIMEOUT_MIN}-{FAST_EXEC_TIMEOUT_MAX} 秒之间。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        body["timeout"] = timeout
+    if args.callback_url:
+        body["callback_url"] = args.callback_url
+    if args.no_start_task:
+        body["start_task"] = False
+
+    body["execute_target"] = _build_fast_exec_target(args)
+
+    if args.dry_run:
+        print_dry_run(args, body, FAST_EXEC_SCRIPT_DEFAULTS)
+        return
+
+    data = v4_post_json(base, "/api/v4/fast_execute_script", body, token)
+    _scope_print(args, enrich_plan_execute_result(data, get_job_base_url()))
+
+
+def cmd_list_authorized_scopes(args: argparse.Namespace) -> None:
+    """查询当前用户有权限的资源范围列表（GET /api/v4/get_user_authorized_scopes）。
+
+    用于首次使用、尚无 bk_scope 上下文时列出可选业务(biz)/业务集(biz_set)并引导用户选择。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+    p = {
+        "offset": args.offset,
+        "length": args.length,
+    }
+    data = v4_get(base, "/api/v4/get_user_authorized_scopes", p, token)
+    print_json(data)
+
+
+def _split_comma_keywords(raw: Optional[str]) -> Optional[List[str]]:
+    """将逗号分隔的关键字字符串拆为列表（去空白与空项）；无有效项返回 None。"""
+    if not raw:
+        return None
+    items = [seg.strip() for seg in raw.split(",")]
+    items = [seg for seg in items if seg]
+    return items or None
+
+
+def cmd_host_topo_tree(args: argparse.Namespace) -> None:
+    """查询业务主机拓扑树（POST /api/v4/get_biz_host_topo_tree）。
+
+    仅支持业务(biz)：默认全部展开，返回 业务→集群(set)→模块(module) 的层级与各节点主机数量，
+    供用户按拓扑节点圈定执行目标（配合 host-search 的 --topo-nodes 精确取主机）。
+    业务集(biz_set)/租户集(tenant_set) 不受支持，接口会返回参数错误。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+    if args.bk_scope_type != "biz":
+        print(
+            "错误：host-topo-tree 仅支持业务(biz)，业务集/租户集请改用 host-search"
+            "（可传关键字过滤，无拓扑树）。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    body = {**scope_params(args.bk_scope_type, args.bk_scope_id)}
+    data = v4_post_json(base, "/api/v4/get_biz_host_topo_tree", body, token)
+    _scope_print(args, data)
+
+
+def cmd_host_search(args: argparse.Namespace) -> None:
+    """按条件搜索资源范围下的主机（POST /api/v4/search_scope_host）。
+
+    用于执行类操作填写主机时，帮用户根据 IP/主机名/操作系统/Agent 状态/拓扑节点定位目标主机，
+    返回 bk_host_id、ip、bk_cloud_id 等，可直接用于 fast-execute-script / plan-execute 的主机参数。
+    支持业务(biz)、业务集(biz_set)、租户集(tenant_set)；拓扑节点(topo_node_list)仅业务(biz)生效。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+    body: Dict[str, Any] = {
+        **scope_params(args.bk_scope_type, args.bk_scope_id),
+        "offset": args.offset,
+        "length": args.length,
+    }
+
+    ipv4 = _split_comma_keywords(args.ipv4)
+    if ipv4:
+        body["ipv4_key_list"] = ipv4
+    ipv6 = _split_comma_keywords(args.ipv6)
+    if ipv6:
+        body["ipv6_key_list"] = ipv6
+    host_name = _split_comma_keywords(args.host_name)
+    if host_name:
+        body["host_name_key_list"] = host_name
+    os_name = _split_comma_keywords(args.os_name)
+    if os_name:
+        body["os_name_key_list"] = os_name
+
+    if args.alive is not None:
+        if int(args.alive) not in (0, 1):
+            print("错误：--alive 仅支持 0（异常）或 1（正常）。", file=sys.stderr)
+            sys.exit(1)
+        body["alive"] = int(args.alive)
+
+    topo_nodes = None
+    if args.topo_nodes_file:
+        topo_nodes = _read_json_file(args.topo_nodes_file, "--topo-nodes-file")
+    elif args.topo_nodes:
+        topo_nodes = _parse_json_arg(args.topo_nodes, "--topo-nodes")
+    if topo_nodes is not None:
+        if not isinstance(topo_nodes, list):
+            print("--topo-nodes/--topo-nodes-file 须为 JSON 数组，元素含 object_id 与 instance_id", file=sys.stderr)
+            sys.exit(1)
+        if topo_nodes and args.bk_scope_type != "biz":
+            print(
+                "提示：拓扑节点仅在业务(biz)下生效，业务集/租户集会被忽略并按整个资源范围搜索。",
+                file=sys.stderr,
+            )
+        body["topo_node_list"] = topo_nodes
+
+    data = v4_post_json(base, "/api/v4/search_scope_host", body, token)
+    _scope_print(args, data)
+
+
+# 账号用途（category）：与后端 AccountCategoryEnum 一致
+ACCOUNT_CATEGORY_NAME_TO_CODE = {
+    "system": 1,
+    "db": 2,
+}
+ACCOUNT_CATEGORY_CODE_TO_NAME = {v: k for k, v in ACCOUNT_CATEGORY_NAME_TO_CODE.items()}
+
+
+def resolve_account_category(raw: Optional[str]) -> Optional[int]:
+    """将 --category 的取值（名称 system/db 或编码 1/2）解析为后端账号用途编码。"""
+    if raw is None:
+        return None
+    value = str(raw).strip().lower()
+    if value in ACCOUNT_CATEGORY_NAME_TO_CODE:
+        return ACCOUNT_CATEGORY_NAME_TO_CODE[value]
+    try:
+        code = int(value)
+    except (TypeError, ValueError):
+        print(
+            f"错误：--category 取值无效: {raw}。支持名称 system/db 或编码 1（系统账号）、2（DB账号）。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    if code not in ACCOUNT_CATEGORY_CODE_TO_NAME:
+        print("错误：--category 编码无效，仅支持 1（系统账号）或 2（DB账号）。", file=sys.stderr)
+        sys.exit(1)
+    return code
+
+
+def cmd_account_list(args: argparse.Namespace) -> None:
+    """查询业务下的执行账号列表（GET /api/v3/get_account_list）。
+
+    用于执行类操作（如 fast-execute-script）需要用户填写执行账号、但用户未指定时，
+    列出该资源范围下可用账号供选择：返回账号 id（用于 --account-id）与 alias（用于 --account-alias）。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+    p = {
+        **scope_params(args.bk_scope_type, args.bk_scope_id),
+        "category": resolve_account_category(args.category),
+        "account": args.account,
+        "alias": args.alias,
+        "start": args.start,
+        "length": args.length,
+    }
+    data = v3_get(base, "/api/v3/get_account_list", p, token)
+    _scope_print(args, data)
+
+
+# 文件分发传输模式：与后端一致（1 严谨模式、2 强制模式）
+TRANSFER_MODE_TEXT = {1: "严谨模式", 2: "强制模式"}
+
+
+def _parse_host_id_list(raw: Optional[str], label: str) -> List[int]:
+    """将逗号分隔的主机 ID 字符串解析为整数列表。"""
+    if not raw:
+        return []
+    try:
+        return [int(h.strip()) for h in raw.split(",") if h.strip()]
+    except ValueError:
+        print(f"错误：{label} 须为逗号分隔的整数列表", file=sys.stderr)
+        sys.exit(1)
+
+
+def _parse_ip_list(raw: Optional[str], label: str) -> List[Dict[str, Any]]:
+    """将逗号分隔的 bk_cloud_id:ip 字符串解析为 [{bk_cloud_id, ip}] 列表。"""
+    if not raw:
+        return []
+    result: List[Dict[str, Any]] = []
+    for item in raw.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        parts = item.split(":")
+        if len(parts) != 2:
+            print(f"错误：{label} 格式无效: {item}，须为 bk_cloud_id:ip", file=sys.stderr)
+            sys.exit(1)
+        try:
+            result.append({"bk_cloud_id": int(parts[0]), "ip": parts[1]})
+        except ValueError:
+            print(f"错误：{label} 中 bk_cloud_id 须为整数: {item}", file=sys.stderr)
+            sys.exit(1)
+    return result
+
+
+def _build_transfer_server(
+    host_id_list: Optional[str],
+    ip_list: Optional[str],
+    server_file: Optional[str],
+    label: str,
+) -> Optional[Dict[str, Any]]:
+    """组装文件分发的 server 结构（目标服务器或服务器文件源的源服务器）。
+
+    优先使用 server_file（完整 JSON，支持动态分组/拓扑节点等复杂结构）；
+    否则用 host_id_list / ip_list 组装 host_id_list / ip_list[{bk_cloud_id, ip}]。
+    无任何目标时返回 None。
+    """
+    if server_file:
+        srv = _read_json_file(server_file, label)
+        if not isinstance(srv, dict):
+            print(f"{label} 内容须为 JSON 对象（server 结构）", file=sys.stderr)
+            sys.exit(1)
+        return srv
+    srv: Dict[str, Any] = {}
+    hosts = _parse_host_id_list(host_id_list, label + " 的 host-id-list")
+    if hosts:
+        srv["host_id_list"] = hosts
+    ips = _parse_ip_list(ip_list, label + " 的 ip-list")
+    if ips:
+        srv["ip_list"] = ips
+    return srv or None
+
+
+def cmd_gen_local_upload_url(args: argparse.Namespace) -> None:
+    """生成本地文件上传 URL（POST /api/v3/generate_local_file_upload_url）。
+
+    本地文件分发第一步：传入文件名列表，返回 url_map[文件名]={upload_url, path}。
+    upload_url 用于 upload-local-file 上传文件字节；path 用于 fast-transfer-file 的本地文件源(file_type=2)。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+    file_names = _split_comma_keywords(args.file_names)
+    if not file_names:
+        print("错误：请用 --file-names 指定要上传的文件名（逗号分隔）。", file=sys.stderr)
+        sys.exit(1)
+    body = {
+        **scope_params(args.bk_scope_type, args.bk_scope_id),
+        "file_name_list": file_names,
+    }
+    data = v3_post_json(base, "/api/v3/generate_local_file_upload_url", body, token)
+    _scope_print(args, data)
+
+
+def cmd_upload_local_file(args: argparse.Namespace) -> None:
+    """上传本地文件到制品库临时地址（HTTP PUT，非 APIGW）。
+
+    本地文件分发第二步：将 --file-path 指向的本地文件 PUT 到 gen-local-upload-url 返回的 upload_url。
+    """
+    status, resp_text = http_upload_file(args.upload_url, args.file_path)
+    result: Dict[str, Any] = {
+        "uploaded": True,
+        "http_status": status,
+        "file_path": args.file_path,
+    }
+    try:
+        result["response"] = json.loads(resp_text) if resp_text else None
+    except json.JSONDecodeError:
+        result["response_raw"] = resp_text
+    result["_note"] = (
+        "上传成功后，用 gen-local-upload-url 返回的对应 path 作为 fast-transfer-file 本地文件源"
+        "（file_type=2）的 file_list 传入。"
+    )
+    print_json(result)
+
+
+def _reject_unsupported_file_sources(sources: List[Any]) -> None:
+    """校验文件源仅为服务器文件(file_type=1)或本地文件(file_type=2)。
+
+    第三方文件源(file_type=3)相关接口暂未提供，技能暂不支持；检测到即报错退出。
+    """
+    for fs in sources:
+        if not isinstance(fs, dict):
+            continue
+        file_type = fs.get("file_type")
+        if file_type is not None and int(file_type) not in (1, 2):
+            print(
+                "错误：当前技能仅支持服务器文件(file_type=1)与本地文件(file_type=2)分发；"
+                "第三方文件源(file_type=3)相关接口暂未提供，暂不支持。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        if fs.get("file_source_id") is not None or fs.get("file_source_code"):
+            print(
+                "错误：检测到第三方文件源字段(file_source_id/file_source_code)，"
+                "当前技能暂不支持第三方文件源分发，请改用服务器文件或本地文件。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+
+def _build_transfer_file_sources(args: argparse.Namespace) -> List[Dict[str, Any]]:
+    """组装文件分发的 file_source_list。
+
+    仅支持服务器文件源(file_type=1)与本地文件源(file_type=2)。
+    优先使用 --file-source-file（完整 JSON 数组，用于服务器/本地文件的滚动等复杂结构）；
+    否则用便捷参数组装本地文件源与服务器文件源。第三方文件源(file_type=3)暂不支持。
+    """
+    if args.file_source_file:
+        sources = _read_json_file(args.file_source_file, "--file-source-file")
+        if not isinstance(sources, list):
+            print("--file-source-file 内容须为 JSON 数组（file_source 列表）", file=sys.stderr)
+            sys.exit(1)
+        _reject_unsupported_file_sources(sources)
+        return sources
+
+    sources: List[Dict[str, Any]] = []
+
+    local_files = _split_comma_keywords(args.local_file_list)
+    if local_files:
+        sources.append({"file_type": 2, "file_list": local_files})
+
+    server_files = _split_comma_keywords(args.server_file_list)
+    if server_files:
+        source_server = _build_transfer_server(
+            args.source_host_id_list, args.source_ip_list, None, "--source 服务器"
+        )
+        if not source_server:
+            print(
+                "错误：使用 --server-file-list 时须指定源服务器 --source-host-id-list 或 --source-ip-list。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        account: Dict[str, Any] = {}
+        if args.source_account_id is not None:
+            account["id"] = int(args.source_account_id)
+        if args.source_account_alias:
+            account["alias"] = args.source_account_alias
+        if not account:
+            print(
+                "错误：使用 --server-file-list 时须指定源账号 --source-account-alias 或 --source-account-id。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        sources.append(
+            {
+                "file_type": 1,
+                "file_list": server_files,
+                "account": account,
+                "server": source_server,
+            }
+        )
+
+    if not sources:
+        print(
+            "错误：未指定任何源文件。请提供 --local-file-list（本地文件，路径取自 gen-local-upload-url）、"
+            "--server-file-list（服务器文件）或 --file-source-file（完整 JSON，用于服务器/本地文件的滚动等复杂结构）。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return sources
+
+
+def cmd_fast_transfer_file(args: argparse.Namespace) -> None:
+    """快速分发文件（POST /api/v3/fast_transfer_file）。
+
+    变更类/生产执行操作：真实调用前须遵守确认门禁（G1–G4），支持 --dry-run 预览请求体。
+    源文件仅支持：服务器文件(file_type=1)、本地文件(file_type=2，需先 gen-local-upload-url + upload-local-file)。
+    第三方文件源(file_type=3)相关接口暂未提供，暂不支持。
+    """
+    token = get_access_token(args.access_token)
+    base = get_base_url()
+
+    if not args.file_target_path:
+        print("错误：请用 --file-target-path 指定目标路径。", file=sys.stderr)
+        sys.exit(1)
+    if args.account_id is None and not args.account_alias:
+        print("错误：请提供目标执行账号 --account-alias 或 --account-id。", file=sys.stderr)
+        sys.exit(1)
+
+    body: Dict[str, Any] = {
+        **scope_params(args.bk_scope_type, args.bk_scope_id),
+        "file_target_path": args.file_target_path,
+    }
+    if args.name:
+        body["task_name"] = args.name
+    if args.file_target_name:
+        body["file_target_name"] = args.file_target_name
+    if args.account_id is not None:
+        body["account_id"] = int(args.account_id)
+    if args.account_alias:
+        body["account_alias"] = args.account_alias
+
+    target_server = _build_transfer_server(
+        args.target_host_id_list, args.target_ip_list, args.target_server_file, "--target 服务器"
+    )
+    if not target_server:
+        print(
+            "错误：未指定目标服务器。请提供 --target-host-id-list、--target-ip-list 或 --target-server-file 之一。",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    body["target_server"] = target_server
+
+    body["file_source_list"] = _build_transfer_file_sources(args)
+
+    if args.transfer_mode is not None:
+        mode = int(args.transfer_mode)
+        if mode not in TRANSFER_MODE_TEXT:
+            print("错误：--transfer-mode 仅支持 1（严谨模式）或 2（强制模式）。", file=sys.stderr)
+            sys.exit(1)
+        body["transfer_mode"] = mode
+    if args.timeout is not None:
+        timeout = int(args.timeout)
+        if timeout < FAST_EXEC_TIMEOUT_MIN or timeout > FAST_EXEC_TIMEOUT_MAX:
+            print(
+                f"错误：--timeout 取值须在 {FAST_EXEC_TIMEOUT_MIN}-{FAST_EXEC_TIMEOUT_MAX} 秒之间。",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        body["timeout"] = timeout
+    if args.download_speed_limit is not None:
+        body["download_speed_limit"] = int(args.download_speed_limit)
+    if args.upload_speed_limit is not None:
+        body["upload_speed_limit"] = int(args.upload_speed_limit)
+    if args.callback_url:
+        body["callback_url"] = args.callback_url
+    if args.no_start_task:
+        body["start_task"] = False
+
+    if args.dry_run:
+        print_dry_run(args, body, FAST_TRANSFER_FILE_DEFAULTS)
+        return
+
+    data = v3_post_json(base, "/api/v3/fast_transfer_file", body, token)
+    _scope_print(args, enrich_plan_execute_result(data, get_job_base_url()))
+
+
 def main() -> None:
     configure_stdio_utf8()
 
@@ -1024,7 +1913,10 @@ def main() -> None:
         description="蓝鲸作业平台 API 网关客户端",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--access-token", help="蓝鲸用户态 access_token（或环境变量 BK_JOB_ACCESS_TOKEN）")
+    parser.add_argument(
+        "--access-token",
+        help="蓝鲸用户态 access_token；不传时依次尝试 ai-hub 命令（imate）与环境变量 BK_JOB_ACCESS_TOKEN",
+    )
     parser.add_argument(
         "--no-business-memory",
         action="store_true",
@@ -1217,6 +2109,53 @@ def main() -> None:
     )
     p_cus.set_defaults(func=cmd_cron_update_status)
 
+    p_il = sub.add_parser(
+        "instance-list",
+        help="查询任务执行历史（GET /api/v4/get_job_instance_list），按时间窗口列出作业实例，可多条件过滤",
+    )
+    p_il.add_argument("--bk-scope-type", default="biz", help="biz 或 biz_set，默认 biz")
+    p_il.add_argument("--bk-scope-id", required=True, help="资源范围 ID，如业务 ID")
+    p_il.add_argument(
+        "--lookback-days",
+        type=int,
+        default=7,
+        help=f"回溯天数，默认 7；硬上限 {MAX_JOB_HISTORY_LOOKBACK_DAYS} 天（超出自动截断）",
+    )
+    p_il.add_argument("--keyword", help="任务名称模糊匹配")
+    p_il.add_argument("--operator", help="执行人，精准匹配")
+    p_il.add_argument(
+        "--launch-mode",
+        type=int,
+        choices=[1, 2, 3],
+        help="执行方式：1 页面执行、2 API调用、3 定时执行",
+    )
+    p_il.add_argument(
+        "--type",
+        type=int,
+        choices=[0, 1, 2],
+        help="任务类型：0 作业执行、1 脚本执行、2 文件分发",
+    )
+    p_il.add_argument(
+        "--status",
+        type=int,
+        help="任务状态，如 3 执行成功、4 执行失败（取值见 troubleshooting 手册状态码表）",
+    )
+    p_il.add_argument("--ip", help="执行目标服务器 IP，精准匹配")
+    p_il.add_argument("--cron-id", type=int, help="按定时任务 ID 过滤")
+    p_il.add_argument(
+        "--job-instance-id",
+        type=int,
+        help="按实例 ID 精确查询；传入后接口将忽略其余过滤条件",
+    )
+    p_il.add_argument("--offset", type=int, default=0, help="从第几条开始，最大 10000，默认 0")
+    p_il.add_argument(
+        "--length",
+        type=int,
+        default=LIST_PAGE_DEFAULT,
+        help=f"本页返回条数，默认 {LIST_PAGE_DEFAULT}，接口最大 200",
+    )
+    p_il.set_defaults(func=cmd_instance_list)
+
     p_st = sub.add_parser("instance-status", help="查询作业实例状态（GET /api/v4/get_job_instance_status）")
     p_st.add_argument("--bk-scope-type", default="biz")
     p_st.add_argument("--bk-scope-id", required=True)
@@ -1246,6 +2185,223 @@ def main() -> None:
         help="容器 ID 列表，逗号分隔（最多 50 个）",
     )
     p_gl.set_defaults(func=cmd_get_instance_log)
+
+    p_fe = sub.add_parser(
+        "fast-execute-script",
+        help="快速执行脚本：到指定机器执行脚本（POST /api/v4/fast_execute_script，写操作，须过确认门禁）",
+    )
+    p_fe.add_argument("--bk-scope-type", default="biz", help="biz 或 biz_set，默认 biz")
+    p_fe.add_argument("--bk-scope-id", required=True, help="资源范围 ID，如业务 ID")
+    p_fe.add_argument("--name", help="自定义作业名称，长度不超过 512 字符")
+    p_fe.add_argument(
+        "--script-content",
+        help="脚本内容明文（脚本会自动 Base64 编码）；PowerShell 等环境推荐用 --script-content-file",
+    )
+    p_fe.add_argument(
+        "--script-content-file",
+        help="从文件读取脚本内容明文（避免命令行转义问题，脚本自动 Base64 编码）",
+    )
+    p_fe.add_argument("--script-id", help="引用已有脚本 ID（与 --script-version-id/--script-content 三选一）")
+    p_fe.add_argument("--script-version-id", type=int, help="引用已有脚本版本 ID（优先级最高）")
+    p_fe.add_argument(
+        "--script-language",
+        help="脚本语言：名称（shell/bat/perl/python/powershell）或编码 1-5，默认 shell；引用脚本时忽略",
+    )
+    p_fe.add_argument("--script-param", help="脚本参数明文（脚本会自动 Base64 编码）")
+    p_fe.add_argument(
+        "--param-sensitive",
+        action="store_true",
+        help="标记脚本参数为敏感参数（执行详情页隐藏），默认否",
+    )
+    p_fe.add_argument("--account-alias", help="执行账号别名，如 root；与 --account-id 至少提供一个")
+    p_fe.add_argument("--account-id", type=int, help="执行账号 ID；与 --account-alias 同时存在时优先")
+    p_fe.add_argument(
+        "--host-id-list",
+        help="目标主机 bk_host_id 列表，逗号分隔",
+    )
+    p_fe.add_argument(
+        "--ip-list",
+        help="目标主机 IP 列表，逗号分隔，格式为 bk_cloud_id:ip",
+    )
+    p_fe.add_argument(
+        "--execute-target-file",
+        help="从文件读取完整 execute_target JSON（支持动态分组/拓扑节点/容器等复杂目标）",
+    )
+    p_fe.add_argument("--windows-interpreter", help="自定义 Windows 解释器路径，须以 .exe 结尾")
+    p_fe.add_argument(
+        "--timeout",
+        type=int,
+        help=f"脚本执行超时时间（秒），取值 {FAST_EXEC_TIMEOUT_MIN}-{FAST_EXEC_TIMEOUT_MAX}，不传则用接口默认 7200",
+    )
+    p_fe.add_argument("--callback-url", help="任务执行完成后的回调 URL")
+    p_fe.add_argument(
+        "--no-start-task",
+        action="store_true",
+        help="仅创建任务不自动启动（start_task=false），默认自动启动",
+    )
+    p_fe.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="只打印将提交的请求体（含 Base64 后的脚本），不调用执行接口",
+    )
+    p_fe.set_defaults(func=cmd_fast_execute_script)
+
+    p_las = sub.add_parser(
+        "list-authorized-scopes",
+        help="查询当前用户有权限的业务/业务集（GET /api/v4/get_user_authorized_scopes），用于首次引导选择范围",
+    )
+    p_las.add_argument("--offset", type=int, default=0, help="分页起始偏移，从 0 开始，默认 0")
+    p_las.add_argument(
+        "--length",
+        type=int,
+        default=LIST_PAGE_DEFAULT,
+        help=f"单页返回条数，默认 {LIST_PAGE_DEFAULT}，取值范围 1-200",
+    )
+    p_las.set_defaults(func=cmd_list_authorized_scopes)
+
+    p_htt = sub.add_parser(
+        "host-topo-tree",
+        help="查询业务主机拓扑树（POST /api/v4/get_biz_host_topo_tree，仅业务 biz，默认全展开）",
+    )
+    p_htt.add_argument("--bk-scope-type", default="biz", help="仅支持 biz；业务集/租户集请用 host-search")
+    p_htt.add_argument("--bk-scope-id", required=True, help="业务 ID")
+    p_htt.set_defaults(func=cmd_host_topo_tree)
+
+    p_hs = sub.add_parser(
+        "host-search",
+        help="按条件搜索资源范围下主机（POST /api/v4/search_scope_host），用于执行类操作填写主机",
+    )
+    p_hs.add_argument("--bk-scope-type", default="biz", help="biz 业务 / biz_set 业务集 / tenant_set 租户集，默认 biz")
+    p_hs.add_argument("--bk-scope-id", required=True, help="资源范围 ID")
+    p_hs.add_argument("--ipv4", help="IPv4 关键字列表，逗号分隔，模糊匹配，如 127.0.0.1,10.0")
+    p_hs.add_argument("--ipv6", help="IPv6 关键字列表，逗号分隔，模糊匹配")
+    p_hs.add_argument("--host-name", help="主机名称关键字列表，逗号分隔，模糊匹配")
+    p_hs.add_argument("--os-name", help="操作系统名称关键字列表，逗号分隔，模糊匹配，如 linux,centos")
+    p_hs.add_argument(
+        "--alive",
+        type=int,
+        help="Agent 状态过滤：0 异常、1 正常；不传则不按 Agent 状态过滤",
+    )
+    p_hs.add_argument(
+        "--topo-nodes",
+        help='拓扑节点 JSON 数组（仅业务生效），如 \'[{"object_id":"module","instance_id":2001}]\'；PowerShell 推荐用 --topo-nodes-file',
+    )
+    p_hs.add_argument(
+        "--topo-nodes-file",
+        help="从文件读取拓扑节点 JSON 数组（避免命令行转义问题）；节点 object_id 取 biz/set/module，instance_id 取拓扑树 instance_id",
+    )
+    p_hs.add_argument("--offset", type=int, default=0, help="分页起始偏移，从 0 开始，默认 0")
+    p_hs.add_argument(
+        "--length",
+        type=int,
+        default=LIST_PAGE_DEFAULT,
+        help=f"单页返回条数，默认 {LIST_PAGE_DEFAULT}，取值范围 1-200",
+    )
+    p_hs.set_defaults(func=cmd_host_search)
+
+    p_al = sub.add_parser(
+        "account-list",
+        help="查询业务下执行账号列表（GET /api/v3/get_account_list），用于执行类操作填写账号时引导选择",
+    )
+    p_al.add_argument("--bk-scope-type", default="biz", help="biz 业务 / biz_set 业务集，默认 biz")
+    p_al.add_argument("--bk-scope-id", required=True, help="资源范围 ID，如业务 ID")
+    p_al.add_argument(
+        "--category",
+        help="账号用途过滤：名称 system/db 或编码 1（系统账号）、2（DB账号）；不传则不区分",
+    )
+    p_al.add_argument("--account", help="账号名称，精确/模糊匹配（按接口实现）")
+    p_al.add_argument("--alias", help="账号别名过滤")
+    p_al.add_argument("--start", type=int, default=0, help="分页起始位置，从 0 开始，默认 0")
+    p_al.add_argument(
+        "--length",
+        type=int,
+        default=LIST_PAGE_DEFAULT,
+        help=f"单页返回条数，默认 {LIST_PAGE_DEFAULT}（接口最大 1000）",
+    )
+    p_al.set_defaults(func=cmd_account_list)
+
+    p_gu = sub.add_parser(
+        "gen-local-upload-url",
+        help="生成本地文件上传 URL（POST /api/v3/generate_local_file_upload_url），本地文件分发第一步",
+    )
+    p_gu.add_argument("--bk-scope-type", default="biz", help="biz 业务 / biz_set 业务集，默认 biz")
+    p_gu.add_argument("--bk-scope-id", required=True, help="资源范围 ID，如业务 ID")
+    p_gu.add_argument(
+        "--file-names",
+        required=True,
+        help="要上传的文件名列表，逗号分隔，如 a.sh,b.tar.gz（仅文件名，用于生成上传地址与分发路径）",
+    )
+    p_gu.set_defaults(func=cmd_gen_local_upload_url)
+
+    p_ulf = sub.add_parser(
+        "upload-local-file",
+        help="上传本地文件到制品库临时地址（HTTP PUT，非 APIGW），本地文件分发第二步",
+    )
+    p_ulf.add_argument(
+        "--upload-url",
+        required=True,
+        help="gen-local-upload-url 返回的 upload_url（自带鉴权 token）",
+    )
+    p_ulf.add_argument("--file-path", required=True, help="待上传的本地文件绝对/相对路径")
+    p_ulf.set_defaults(func=cmd_upload_local_file)
+
+    p_ft = sub.add_parser(
+        "fast-transfer-file",
+        help="快速分发文件：分发文件到目标机器（POST /api/v3/fast_transfer_file，写操作，须过确认门禁）",
+    )
+    p_ft.add_argument("--bk-scope-type", default="biz", help="biz 业务 / biz_set 业务集，默认 biz")
+    p_ft.add_argument("--bk-scope-id", required=True, help="资源范围 ID，如业务 ID")
+    p_ft.add_argument("--name", help="自定义作业名称，长度不超过 512 字符")
+    p_ft.add_argument("--file-target-path", help="文件分发目标路径（必填），如 /tmp/")
+    p_ft.add_argument("--file-target-name", help="目标文件名（可选），不传保持源文件名")
+    p_ft.add_argument("--account-alias", help="目标机器执行账号别名；与 --account-id 至少提供一个")
+    p_ft.add_argument("--account-id", type=int, help="目标机器执行账号 ID；与 --account-alias 同时存在时优先")
+    p_ft.add_argument("--target-host-id-list", help="目标主机 bk_host_id 列表，逗号分隔")
+    p_ft.add_argument("--target-ip-list", help="目标主机 IP 列表，逗号分隔，格式为 bk_cloud_id:ip")
+    p_ft.add_argument(
+        "--target-server-file",
+        help="从文件读取完整 target_server JSON（支持动态分组/拓扑节点等复杂目标）",
+    )
+    p_ft.add_argument(
+        "--local-file-list",
+        help="本地文件源路径列表（file_type=2），逗号分隔；路径取自 gen-local-upload-url 返回的 path，须先 upload-local-file 上传",
+    )
+    p_ft.add_argument(
+        "--server-file-list",
+        help="服务器文件源路径列表（file_type=1），逗号分隔，源文件绝对路径；须配合 --source-account-* 与 --source-host-id-list/--source-ip-list",
+    )
+    p_ft.add_argument("--source-account-alias", help="服务器文件源账号别名（--server-file-list 时用）")
+    p_ft.add_argument("--source-account-id", type=int, help="服务器文件源账号 ID（--server-file-list 时用）")
+    p_ft.add_argument("--source-host-id-list", help="服务器文件源主机 bk_host_id 列表，逗号分隔")
+    p_ft.add_argument("--source-ip-list", help="服务器文件源主机 IP 列表，逗号分隔，格式为 bk_cloud_id:ip")
+    p_ft.add_argument(
+        "--file-source-file",
+        help="从文件读取完整 file_source_list JSON 数组（仅服务器文件 file_type=1 / 本地文件 file_type=2，用于滚动等复杂结构；第三方文件源暂不支持）",
+    )
+    p_ft.add_argument(
+        "--transfer-mode",
+        type=int,
+        help="传输模式：1 严谨模式、2 强制模式；不传用接口默认（强制模式）",
+    )
+    p_ft.add_argument(
+        "--timeout",
+        type=int,
+        help=f"任务超时时间（秒），取值 {FAST_EXEC_TIMEOUT_MIN}-{FAST_EXEC_TIMEOUT_MAX}，不传用接口默认 7200",
+    )
+    p_ft.add_argument("--download-speed-limit", type=int, help="下载限速，单位 MB；不传不限速")
+    p_ft.add_argument("--upload-speed-limit", type=int, help="上传限速，单位 MB；不传不限速")
+    p_ft.add_argument("--callback-url", help="任务执行完成后的回调 URL")
+    p_ft.add_argument(
+        "--no-start-task",
+        action="store_true",
+        help="仅创建任务不自动启动（start_task=false），默认自动启动",
+    )
+    p_ft.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="只打印将提交的请求体，不调用分发接口",
+    )
+    p_ft.set_defaults(func=cmd_fast_transfer_file)
 
     p_ml = sub.add_parser(
         "memory-load",

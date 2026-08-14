@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.common.ha;
 public interface DestroyOrder {
     // 全局处理
     int GLOBAL_HANDLER = 1000;
+    // 滚动批次并行错峰下发调度器（需在 GSE 任务下发之前停止，把未下发批次转移出去）
+    int ROLLING_SCATTER_DISPATCHER = 101;
     // GSE 任务下发
     int GSE_TASK_HANDLER = 100;
     // GSE 任务结果处理（含任务转移）

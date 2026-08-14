@@ -61,6 +61,8 @@ export default class SourceFile {
     this.host = new ExecuteTargetModel(payload.host || {});
     // 服务器账号——服务器文件
     this.account = payload.account;
+    // 服务器账号全局变量——服务器文件
+    this.accountVar = payload.accountVar || '';
     // 文件源ID——文件源文件
     this.fileSourceId = payload.fileSourceId;
     // 文件大小——本地文件
@@ -147,7 +149,7 @@ export default class SourceFile {
      */
   get realId() {
     if (this.fileType === FILE_TYPE_SERVER) {
-      return `${this.fileLocation}____${this.account}`;
+      return `${this.fileLocation}____${this.accountVar || this.account}`;
     }
     return this.fileLocationText;
   }
@@ -176,7 +178,7 @@ export default class SourceFile {
       return true;
     }
     // 账号为空
-    if (!this.account) {
+    if (!this.account && !this.accountVar) {
       return true;
     }
     // 服务器列表为空
@@ -206,7 +208,13 @@ export default class SourceFile {
       return this.host.variable;
     }
     const textArr = [];
-    const { dynamicGroupList = [], hostList = [], nodeList = [], containerList = [] } = this.host.executeObjectsInfo;
+    const {
+      dynamicGroupList = [],
+      hostList = [],
+      nodeList = [],
+      containerList = [],
+      containerFilterList = [],
+    } = this.host.executeObjectsInfo;
 
     // eslint-disable-next-line max-len
     const getHtml = (len, text) => `<span><span class="strong number">${len}</span>${text}</span>`;
@@ -221,6 +229,9 @@ export default class SourceFile {
     }
     if (containerList.length > 0) {
       textArr.push(getHtml(containerList.length, I18n.t('个容器_result')));
+    }
+    if (containerFilterList.length > 0) {
+      textArr.push(getHtml(containerFilterList.length, I18n.t('个容器过滤条件_result')));
     }
     return `${textArr.join('<span class="sep-location"></span>\n')}`;
   }

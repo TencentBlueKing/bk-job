@@ -89,6 +89,8 @@
   "确定全部重试？": "Are you sure to retry all?",
   "确定失败IP重试？": "Are you sure?",
   "仅作用于本次执行失败的 IP": "Step will continue running with retry failed-host.",
+  "并发滚动场景，将作用于所有批次执行失败的IP": "In concurrent rolling scenario, it will apply to the failed IPs of all batches.",
+  "并发滚动场景，将作用于所有批次所有IP": "In concurrent rolling scenario, it will apply to all IPs of all batches.",
   "确定进入下一步？": "Are you sure?",
   "跳过当前步骤进入下一步": "Ignore the error of current step, and continues to run",
   "确定终止执行任务？": "Are you sure to terminate the task?",
@@ -203,8 +205,7 @@
   "「不限制」": "「No limit」",
   "串行执行": "Serial Execution",
   "并行执行": "Parallel Execution",
-  "批次间固定延迟（ms）：": "Fixed Delay Between Batches (ms)：",
-  "批次间随机延迟下限（ms）：": "Min Random Delay Between Batches (ms)：",
-  "批次间随机延迟上限（ms）：": "Max Random Delay Between Batches (ms)：",
+  "批次间最小延时（ms）：": "Min Delay Between Batches (ms)：",
+  "批次间最大延时（ms）：": "Max Delay Between Batches (ms)：",
   "滚动批次间执行模式：": "Rolling Batch Execution Mode："
 }

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.constant.RollingExecutionModeEnum;
 import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
@@ -48,6 +49,20 @@ public class StepRollingConfigDTO {
      */
     private Integer mode;
     /**
+     * 滚动批次执行模式：1-串行(默认)、2-并行
+     *
+     * @see com.tencent.bk.job.common.constant.RollingExecutionModeEnum
+     */
+    private Integer executionMode;
+    /**
+     * 批次间最小延迟，单位毫秒，仅并行模式使用
+     */
+    private Long batchStartWaitMinMs;
+    /**
+     * 批次间最大延迟，单位毫秒，仅并行模式使用
+     */
+    private Long batchStartWaitMaxMs;
+    /**
      * 目标执行对象滚动表达式，当前不支持与源文件滚动同时配置，同时配置时，以目标执行对象滚动为准
      */
     private String expr;
@@ -62,6 +77,9 @@ public class StepRollingConfigDTO {
             rollingConfigVO.getName());
         stepRollingConfigDTO.setType(rollingConfigVO.getType());
         stepRollingConfigDTO.setMode(rollingConfigVO.getMode());
+        stepRollingConfigDTO.setExecutionMode(rollingConfigVO.getExecutionMode());
+        stepRollingConfigDTO.setBatchStartWaitMinMs(rollingConfigVO.getBatchStartWaitMinMs());
+        stepRollingConfigDTO.setBatchStartWaitMaxMs(rollingConfigVO.getBatchStartWaitMaxMs());
         stepRollingConfigDTO.setExpr(rollingConfigVO.getExpr());
         stepRollingConfigDTO.setFileSource(
             FileSourceRollingConfigDTO.fromVO(rollingConfigVO.getFileSource())
@@ -74,6 +92,9 @@ public class StepRollingConfigDTO {
         stepRollingConfigDTO.setName("default");
         stepRollingConfigDTO.setType(rollingConfig.getType());
         stepRollingConfigDTO.setMode(rollingConfig.getMode());
+        stepRollingConfigDTO.setExecutionMode(rollingConfig.getExecutionMode());
+        stepRollingConfigDTO.setBatchStartWaitMinMs(rollingConfig.getBatchStartWaitMinMs());
+        stepRollingConfigDTO.setBatchStartWaitMaxMs(rollingConfig.getBatchStartWaitMaxMs());
         stepRollingConfigDTO.setExpr(rollingConfig.getExpression());
         stepRollingConfigDTO.setFileSource(
             FileSourceRollingConfigDTO.fromEsbFileSourceRollingConfig(rollingConfig.getFileSource())
@@ -97,5 +118,14 @@ public class StepRollingConfigDTO {
      */
     public boolean isFileSourceRolling() {
         return RollingTypeEnum.FILE_SOURCE.getValue().equals(type) && fileSource != null;
+    }
+
+    /**
+     * 是否为并行错峰执行模式
+     *
+     * @return 布尔值
+     */
+    public boolean isParallelExecution() {
+        return RollingExecutionModeEnum.isParallel(executionMode);
     }
 }

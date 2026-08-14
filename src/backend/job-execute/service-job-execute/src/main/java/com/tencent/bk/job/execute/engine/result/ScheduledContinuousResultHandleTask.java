@@ -178,7 +178,10 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
                     resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(fileTask.getTaskId());
                     sampler.decrementFileTask(fileTask.getAppId());
                 }
-                runningJobKeepaliveManager.stopKeepaliveTask(task.getTaskContext().getJobInstanceId());
+                // 每任务幂等：与优雅停机转移路径(tryStopImmediately)竞争时，保证同一任务只释放一次心跳引用
+                if (task.getTaskContext().markKeepaliveStopped()) {
+                    runningJobKeepaliveManager.stopKeepaliveTask(task.getTaskContext().getJobInstanceId());
+                }
                 resultHandleManager.getScheduledTasks().remove(task.getTaskId());
             }
             if (isExecutable) {

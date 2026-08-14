@@ -52,6 +52,10 @@ import java.util.Map;
 @Slf4j
 public class DateUtils {
     public static final String FILE_TASK_LOG_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    /**
+     * 精确到毫秒的日期时间格式
+     */
+    public static final String DATETIME_PATTERN_WITH_MILLIS = "yyyy-MM-dd HH:mm:ss.SSS";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter DATE_FORMATTER_WITH_ZONE =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss XXX");
@@ -98,6 +102,21 @@ public class DateUtils {
 
     public static String formatUnixTimestampWithZone(Long unixTimestamp, ChronoUnit unit) {
         return parseUnixTimestamp(unixTimestamp, unit, null).format(DATE_FORMATTER_WITH_ZONE);
+    }
+
+    /**
+     * 使用 {@link #DATETIME_PATTERN_WITH_MILLIS}（yyyy-MM-dd HH:mm:ss.SSS）与系统时区，
+     * 格式化毫秒级 UNIX 时间戳，常用于日志输出提升可读性。
+     *
+     * @param unixTimestampMillis 毫秒级 UNIX 时间戳，为 null 时返回 null
+     * @return 格式化后的时间字符串，形如 2026-07-15 10:42:47.421
+     */
+    public static String formatUnixTimestampMillis(Long unixTimestampMillis) {
+        if (unixTimestampMillis == null) {
+            return null;
+        }
+        return formatUnixTimestamp(unixTimestampMillis, ChronoUnit.MILLIS, DATETIME_PATTERN_WITH_MILLIS,
+            ZoneId.systemDefault());
     }
 
     private static ZonedDateTime parseUnixTimestamp(Long unixTimestamp, ChronoUnit unit, ZoneId zone) {

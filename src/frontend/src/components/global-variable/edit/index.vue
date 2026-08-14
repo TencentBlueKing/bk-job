@@ -51,6 +51,7 @@
 <script>
   import VariableModel from '@model/task/global-variable';
 
+  import TypeAccount from './account';
   import TypeArray from './array';
   import TypeHost from './host';
   import TypeNamespace from './namespace';
@@ -87,6 +88,7 @@
           4: TypePassword,
           5: TypeArray,
           6: TypeArray,
+          7: TypeAccount,
         };
         if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
           return 'div';

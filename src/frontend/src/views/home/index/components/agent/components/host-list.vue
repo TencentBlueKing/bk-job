@@ -40,6 +40,14 @@
         class-name="ip-item"
         label="IP"
         prop="ip" />
+      <bk-table-column
+        class-name="ip-item"
+        label="IPV6"
+        prop="ipv6">
+        <template slot-scope="{ row }">
+          {{ row.ipv6 || '--' }}
+        </template>
+      </bk-table-column>
       <bk-table-column :label="$t('home.管控区域')">
         <template slot-scope="{ row }">
           {{ row.cloudArea.name || '--' }}
@@ -123,7 +131,6 @@
     height: 100%;
 
     .host-table {
-      height: 100%;
       overflow: auto;
       border: none;
     }

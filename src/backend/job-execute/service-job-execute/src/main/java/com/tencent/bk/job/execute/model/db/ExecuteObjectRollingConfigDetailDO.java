@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.constant.RollingExecutionModeEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -70,6 +71,26 @@ public class ExecuteObjectRollingConfigDetailDO {
     private Integer mode;
 
     /**
+     * 滚动批次执行模式：1-串行(默认)、2-并行
+     *
+     * @see com.tencent.bk.job.common.constant.RollingExecutionModeEnum
+     */
+    @JsonProperty("executionMode")
+    private Integer executionMode;
+
+    /**
+     * 批次间最小延迟，单位毫秒，仅并行模式使用
+     */
+    @JsonProperty("batchStartWaitMinMs")
+    private Long batchStartWaitMinMs;
+
+    /**
+     * 批次间最大延迟，单位毫秒，仅并行模式使用
+     */
+    @JsonProperty("batchStartWaitMaxMs")
+    private Long batchStartWaitMaxMs;
+
+    /**
      * 目标服务器滚动分批表达式
      */
     @JsonProperty("expr")
@@ -86,6 +107,14 @@ public class ExecuteObjectRollingConfigDetailDO {
      */
     @JsonProperty("totalBatch")
     private int totalBatch;
+
+    /**
+     * 是否为并行错峰执行模式
+     */
+    @JsonIgnore
+    public boolean isParallelExecution() {
+        return RollingExecutionModeEnum.isParallel(executionMode);
+    }
 
     /**
      * 是否是滚动区间的第一个步骤

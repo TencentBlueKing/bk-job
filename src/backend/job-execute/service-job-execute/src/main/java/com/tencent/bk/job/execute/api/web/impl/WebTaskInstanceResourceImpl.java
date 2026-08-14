@@ -167,6 +167,9 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             if (rollingConfigDTO.isTargetExecuteObjectRolling()) {
                 ExecuteObjectRollingConfigDetailDO rollingConfig = rollingConfigDTO.getExecuteObjectRollingConfig();
                 rollingConfigVO.setMode(rollingConfig.getMode());
+                rollingConfigVO.setExecutionMode(rollingConfig.getExecutionMode());
+                rollingConfigVO.setBatchStartWaitMinMs(rollingConfig.getBatchStartWaitMinMs());
+                rollingConfigVO.setBatchStartWaitMaxMs(rollingConfig.getBatchStartWaitMaxMs());
                 if (rollingConfigDTO.isExecuteObjectBatchRollingStep(stepInstance.getId())) {
                     rollingConfigVO.setExpr(rollingConfig.getExpr());
                 }

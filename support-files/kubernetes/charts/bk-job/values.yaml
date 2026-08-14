@@ -1327,6 +1327,18 @@ executeConfig:
     query:
       # 脚本任务执行，从 GSE 查询结果的 API 单次返回的脚本执行输出内容最大长度。该参数需要合理设置，避免因为输出日志太多导致拉取 GSE 执行结果 API 超时。该参数支持使用不同的单位(KB/MB/GB)
       contentSizeLimit: 512MB
+  runningJobQuota:
+    # 运行中作业配额系统级加权计数的周期性对账
+    reconcile:
+      # 是否启用周期性对账（每5分钟，多副本下分布式唯一执行），默认开启
+      enabled: true
+  # 滚动执行并行错峰模式配置
+  rolling:
+    scatter:
+      # 并行错峰模式下允许的最大批次总数，超出则校验拒绝，防止并行 GSE 任务规模失控，默认200
+      maxBatch: 200
+      # 并行错峰批次下发调度器的消费者线程数，默认3
+      workerNum: 3
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute

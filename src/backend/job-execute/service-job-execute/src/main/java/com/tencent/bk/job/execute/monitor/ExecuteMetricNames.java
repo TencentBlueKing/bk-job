@@ -68,4 +68,12 @@ public class ExecuteMetricNames {
      * 等待被结果处理引擎处理的任务
      */
     public static final String RESULT_HANDLE_WAITING_SCHEDULE_TASKS = "job.result.handle.waiting.schedule.tasks";
+    /**
+     * 并行错峰批次实际下发相对计划下发时刻的延迟(ms)
+     */
+    public static final String ROLLING_SCATTER_DISPATCH_DELAY = "job.rolling.scatter.dispatch.delay";
+    /**
+     * 并行错峰批次下发延迟队列积压数量
+     */
+    public static final String ROLLING_SCATTER_DISPATCH_QUEUE_SIZE = "job.rolling.scatter.dispatch.queue.size";
 }

@@ -72,6 +72,7 @@
             :list="taskStepList"
             mode="select"
             :select-value="formData.enableSteps"
+            :variable="variableList"
             @on-select="handleSelectStep" />
         </detail-item>
       </detail-layout>

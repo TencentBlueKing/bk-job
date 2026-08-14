@@ -22,6 +22,7 @@ out/
 ### application ###
 **/*.log
 support-files/dependJarLists/
+tmp/
 # build.sh --skip-docker-build 模式下生成的各服务 build context 目录
 build-context/
 **/*.DS_Store

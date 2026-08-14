@@ -37,4 +37,14 @@ public class RollingConfigVOGroupSequenceProvider extends AbstractRollingConfigG
     Integer getRollingType(RollingConfigVO rollingConfigVO) {
         return rollingConfigVO.getType();
     }
+
+    @Override
+    Integer getExecutionMode(RollingConfigVO rollingConfigVO) {
+        return rollingConfigVO.getExecutionMode();
+    }
+
+    @Override
+    Class<?> getBeanClass() {
+        return RollingConfigVO.class;
+    }
 }

@@ -73,6 +73,12 @@
           field="defaultTargetValue"
           :value="formData.defaultTargetValue" />
       </template>
+      <template v-else-if="isAccountVariable">
+        <account-select
+          class="offset-left"
+          :value="formData.defaultValue"
+          @change="value => handleChange('defaultValue', value)" />
+      </template>
       <template v-else>
         <bk-input
           class="offset-left"
@@ -126,6 +132,7 @@
 
   import { globalVariableNameRule } from '@utils/validator';
 
+  import AccountSelect from '@components/account-select';
   import JbEditHost from '@components/jb-edit/host';
 
   import I18n from '@/i18n';
@@ -135,6 +142,7 @@
   export default {
     name: '',
     components: {
+      AccountSelect,
       JbEditHost,
     },
     props: {
@@ -176,6 +184,13 @@
         ].includes(this.formData.type);
       },
       /**
+       * @desc 执行账号变量
+       * @returns { Boolean }
+       */
+      isAccountVariable() {
+        return this.formData.type === GlobalVariableModel.TYPE_ACCOUNT;
+      },
+      /**
        * @desc 变量名验证失败
        * @returns { Boolean }
        */
@@ -210,6 +225,10 @@
         {
           id: GlobalVariableModel.TYPE_INDEX_ARRAY,
           name: I18n.t('template.索引数组'),
+        },
+        {
+          id: GlobalVariableModel.TYPE_ACCOUNT,
+          name: I18n.t('template.执行账号'),
         },
       ];
     },

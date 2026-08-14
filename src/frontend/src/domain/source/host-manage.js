@@ -21,7 +21,7 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
 import Request from '@utils/request';
 
@@ -190,6 +190,21 @@ class HostManage extends ModuleBase {
 
   getInputParseContainerList(params = {}) {
     return Request.post(`${this.path}/container/check`, {
+      params,
+    });
+  }
+  getDynamicContainerPreview(params = {}) {
+    return Request.post(`${this.path}/dynamic/container/preview`, {
+      params,
+    });
+  }
+  getDynamicContainerFieldMetadata(params = {}) {
+    return Request.get(`${this.path}/dynamic/container/field/metadata`, {
+      params,
+    });
+  }
+  getContainerNodesNames(params = {}) {
+    return Request.post(`${this.path}/topology/container/nodes/names`, {
       params,
     });
   }

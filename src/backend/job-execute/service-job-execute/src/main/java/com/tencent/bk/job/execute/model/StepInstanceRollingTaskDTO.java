@@ -72,5 +72,15 @@ public class StepInstanceRollingTaskDTO {
      * 总耗时，单位：毫秒秒
      */
     protected Long totalTime;
+
+    /**
+     * 计划下发时刻（毫秒时间戳），仅并行错峰模式使用
+     */
+    protected Long dispatchTime;
+
+    /**
+     * 是否已下发（并行错峰模式使用），默认 false
+     */
+    protected Boolean dispatched;
 }
 

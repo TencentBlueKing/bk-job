@@ -35,4 +35,8 @@ public class RollingExprParseException extends FailedPreconditionException {
     public RollingExprParseException() {
         super(ErrorCode.INVALID_ROLLING_EXPR);
     }
+
+    public RollingExprParseException(Throwable cause) {
+        super(cause, ErrorCode.INVALID_ROLLING_EXPR);
+    }
 }

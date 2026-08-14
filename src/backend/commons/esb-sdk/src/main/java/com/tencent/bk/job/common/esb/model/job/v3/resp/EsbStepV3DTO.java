@@ -42,6 +42,9 @@ public class EsbStepV3DTO {
     @JsonPropertyDescription("Step type")
     private Integer type;
 
+    @JsonPropertyDescription("Whether the step is enabled. 0-disabled, 1-enabled")
+    private Integer enabled;
+
     @JsonProperty("script_info")
     @JsonPropertyDescription("Script step info")
     private EsbScriptStepV3DTO scriptInfo;

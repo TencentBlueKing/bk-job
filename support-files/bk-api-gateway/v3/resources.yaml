@@ -1017,6 +1017,82 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Fast transfer file
+  /api/v3/generate_local_file_upload_url:
+    post:
+      operationId: generate_local_file_upload_url
+      description: 生成本地文件上传URL
+      tags:
+        - open
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: object
+                    properties:
+                      url_map:
+                        type: object
+                        description: 文件上传与分发信息。key为请求中传入的文件名；value为对象，含upload_url（带凭据token的文件上传地址，须用HTTP
+                          PUT方法将文件内容上传到该地址，请求头Content-Type为application/octet-stream）与path（分发该文件时传给快速分发文件接口fast_transfer_file源文件路径列表的路径）
+                    description: 数据
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - file_name_list
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                file_name_list:
+                  type: array
+                  description: 要上传的文件名列表，只填文件名，不含目录
+                  items:
+                    type: string
+                    description: 待上传的文件名
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v3/job-manage/generate_local_file_upload_url
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Generate local file upload url
   /api/v3/get_account_list:
     get:
       operationId: get_account_list
@@ -1525,6 +1601,9 @@ paths:
                               name:
                                 type: string
                                 description: 作业步骤名称
+                              enabled:
+                                type: integer
+                                description: '步骤是否启用。可选值: 0 - 未启用，1 - 启用'
                             description: 单个步骤信息
                         description: 步骤列表
                       bk_scope_id:
@@ -3500,11 +3579,52 @@ paths:
       tags:
         - system
       responses:
-        default:
+        '200':
           content:
             application/json:
-              schema: {}
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: object
+                    properties:
+                      url_map:
+                        type: object
+                        description: 文件上传与分发信息。key为请求中传入的文件名；value为对象，含upload_url（带凭据token的文件上传地址，须用HTTP
+                          PUT方法将文件内容上传到该地址，请求头Content-Type为application/octet-stream）与path（分发该文件时传给快速分发文件接口fast_transfer_file源文件路径列表的路径）
+                    description: 数据
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
           description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - file_name_list
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                file_name_list:
+                  type: array
+                  description: 要上传的文件名列表，只填文件名，不含目录
+                  items:
+                    type: string
+                    description: 待上传的文件名
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -5989,6 +6109,418 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Get job template detail
+  /api/v4/get_user_authorized_scopes:
+    get:
+      operationId: v4_get_user_authorized_scopes
+      description: 查询当前用户有权限的资源范围列表（分页）
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: number
+                        description: 当前用户有权限的资源范围总数（分页前）
+                      offset:
+                        type: number
+                        description: 本次查询的分页起始偏移，从0开始
+                      length:
+                        type: number
+                        description: 本次查询的单页条数
+                      scope_list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_scope_type:
+                              type: string
+                              description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集，tenant_set - 租户集'
+                            bk_scope_id:
+                              type: string
+                              description: 资源范围ID，与bk_scope_type对应，表示业务ID、业务集ID或租户集ID
+                            name:
+                              type: string
+                              description: 资源范围名称
+                            favor:
+                              type: boolean
+                              description: '是否收藏。可选值: true - 已收藏，false - 未收藏'
+                            favor_time:
+                              type: string
+                              description: 收藏时间，格式 yyyy-MM-dd HH:mm:ss.SSS，按当前用户时区（Header 缺失时默认 Asia/Shanghai）格式化；未收藏时不返回该字段
+                            time_zone:
+                              type: string
+                              description: 资源范围（业务）时区，例如 Asia/Shanghai；与 favor_time 采用的用户时区相互独立，不代表 favor_time 的时区
+                          description: 有权限的资源范围
+                        description: 有权限的资源范围列表；按有权限优先、已收藏优先、收藏时间倒序排序后分页返回；无数据时为空数组
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 0
+        description: 分页起始偏移，从0开始；不传默认为0；须大于等于0
+      - name: length
+        in: query
+        required: false
+        schema:
+          type: number
+          default: 10
+        description: 单页返回条数；不传默认为10；取值范围为1到200
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: get
+          path: /{env.api_path_prefix}api/job/v4/job-manage/get_user_authorized_scopes
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get the current user's authorized resource scopes
+  /api/v4/get_biz_host_topo_tree:
+    post:
+      operationId: v4_get_biz_host_topo_tree
+      description: 查询业务主机拓扑树（仅支持业务，默认全部展开）
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      object_id:
+                        type: string
+                        description: '节点类型ID。可选值: biz - 业务，set - 集群，module - 模块'
+                      object_name:
+                        type: string
+                        description: 节点类型名称
+                      instance_id:
+                        type: number
+                        description: 节点实例ID
+                      instance_name:
+                        type: string
+                        description: 节点实例名称
+                      host_count:
+                        type: number
+                        description: 该节点（含所有子节点去重后）的主机数量
+                      child:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            object_id:
+                              type: string
+                              description: '节点类型ID。可选值: biz - 业务，set - 集群，module - 模块'
+                            object_name:
+                              type: string
+                              description: 节点类型名称
+                            instance_id:
+                              type: number
+                              description: 节点实例ID
+                            instance_name:
+                              type: string
+                              description: 节点实例名称
+                            host_count:
+                              type: number
+                              description: 该节点（含所有子节点去重后）的主机数量
+                            child:
+                              type: array
+                              items:
+                                type: object
+                                description: 子节点，结构与父节点一致，逐层递归直至叶子节点
+                              description: 子节点列表，元素结构与本节点相同，逐层递归直至叶子节点；叶子节点不返回该字段
+                          description: 子节点，结构与本节点相同
+                        description: 子节点列表，元素结构与本节点相同；叶子节点不返回该字段
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。本接口仅支持 biz - 业务；传 biz_set - 业务集、tenant_set - 租户集将返回参数错误'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID，与bk_scope_type对应，表示业务ID
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-manage/get_biz_host_topo_tree
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Query the host topology tree of a business (business only, fully expanded by default)
+  /api/v4/search_scope_host:
+    post:
+      operationId: v4_search_scope_host
+      description: 在资源范围下按条件搜索主机
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: number
+                        description: 命中的主机总数（分页前）
+                      offset:
+                        type: number
+                        description: 本次查询的分页起始偏移，从0开始
+                      length:
+                        type: number
+                        description: 本次查询的单页条数
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_host_id:
+                              type: number
+                              description: 主机ID
+                            ip:
+                              type: string
+                              description: 主机IPv4地址
+                            ipv6:
+                              type: string
+                              description: 主机IPv6地址
+                            bk_cloud_id:
+                              type: number
+                              description: 管控区域ID
+                            bk_cloud_name:
+                              type: string
+                              description: 管控区域名称
+                            host_name:
+                              type: string
+                              description: 主机名称
+                            os_name:
+                              type: string
+                              description: 操作系统名称
+                            os_type:
+                              type: string
+                              description: 操作系统类型标识（由CMDB同步）
+                            alive:
+                              type: number
+                              description: 'Agent状态。可选值: 0 - 异常，1 - 正常；为作业平台持久化的Agent状态，可能非实时'
+                          description: 主机信息
+                        description: 主机列表；无数据时为空数组
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集，tenant_set - 租户集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID，与bk_scope_type对应，表示业务ID、业务集ID或租户集ID
+                topo_node_list:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - object_id
+                    - instance_id
+                    properties:
+                      object_id:
+                        type: string
+                        description: '节点类型ID。可选值: biz - 业务，set - 集群，module - 模块'
+                      instance_id:
+                        type: number
+                        description: 节点实例ID
+                    description: 拓扑节点
+                  description: 拓扑节点列表，用于圈定搜索范围。三种语义（对所有资源范围一致）：不传或为null时，拓扑节点不作为过滤条件，返回该资源范围下全部主机；传空数组[]时，视为无满足条件的节点（通常为上层交集计算后为空），直接返回空列表（total=0、data=[]）不再查询；传入非空节点列表时按节点过滤，节点过滤仅在bk_scope_type为biz - 业务时生效，业务集/租户集下非空节点会被忽略（即按整个资源范围搜索）
+                ipv4_key_list:
+                  type: array
+                  items:
+                    type: string
+                    description: IPv4关键字
+                  description: IPv4关键字列表，模糊匹配；主机IPv4与列表中任意一个关键字相似即命中
+                ipv6_key_list:
+                  type: array
+                  items:
+                    type: string
+                    description: IPv6关键字
+                  description: IPv6关键字列表，模糊匹配；支持压缩写法；主机IPv6与列表中任意一个关键字相似即命中
+                host_name_key_list:
+                  type: array
+                  items:
+                    type: string
+                    description: 主机名称关键字
+                  description: 主机名称关键字列表，模糊匹配；主机名称与列表中任意一个关键字相似即命中
+                os_name_key_list:
+                  type: array
+                  items:
+                    type: string
+                    description: 操作系统名称关键字
+                  description: 操作系统名称关键字列表，模糊匹配；操作系统名称与列表中任意一个关键字相似即命中
+                alive:
+                  type: number
+                  description: 'Agent状态过滤。可选值: 0 - 异常，1 - 正常；不传则不按Agent状态过滤。该状态为作业平台持久化的Agent状态，可能非实时'
+                offset:
+                  type: number
+                  default: 0
+                  description: 分页起始偏移，从0开始；不传默认为0；须大于等于0
+                length:
+                  type: number
+                  default: 10
+                  description: 单页返回条数；不传默认为10；取值范围为1到200
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-manage/search_scope_host
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Search hosts under a resource scope by conditions
   /api/v4/get_job_instance_list:
     get:
       operationId: v4_get_job_instance_list

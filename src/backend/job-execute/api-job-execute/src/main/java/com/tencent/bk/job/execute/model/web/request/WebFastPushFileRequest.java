@@ -30,6 +30,7 @@ import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
+import com.tencent.bk.job.execute.validation.ValidRollingConfig;
 import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -42,6 +43,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "分发文件请求报文")
+@ValidRollingConfig
 public class WebFastPushFileRequest {
     /**
      * 文件分发任务名称

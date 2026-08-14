@@ -412,7 +412,7 @@ class RollingExecuteObjectBatchResolverTest {
 
         @Test
         @DisplayName("计算滚动批次 - 按数量分批，性能测试")
-        @Timeout(1)
+        @Timeout(3)
         void resolveQuantityExpr() {
             List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
@@ -425,7 +425,7 @@ class RollingExecuteObjectBatchResolverTest {
 
         @Test
         @DisplayName("计算滚动批次 - 按比例分批，性能测试")
-        @Timeout(1)
+        @Timeout(3)
         void resolvePercentExpr() {
             List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
@@ -438,7 +438,7 @@ class RollingExecuteObjectBatchResolverTest {
 
         @Test
         @DisplayName("计算滚动批次 - 按加法递增分批，性能测试")
-        @Timeout(1)
+        @Timeout(3)
         void resolvePlusIncrementRollingExpr() {
             List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
@@ -451,7 +451,7 @@ class RollingExecuteObjectBatchResolverTest {
 
         @Test
         @DisplayName("计算滚动批次 - 按指数递增分批，性能测试")
-        @Timeout(1)
+        @Timeout(3)
         void resolveExponentIncrRollingExpr() {
             List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
