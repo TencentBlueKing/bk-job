@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
@@ -37,6 +38,8 @@ import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
+import com.tencent.bk.job.common.util.converter.WebContainerConditionFilterConverter;
 import com.tencent.bk.job.execute.model.inner.ServiceExecuteTargetContainerDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -84,6 +87,13 @@ public class ServerDTO implements Cloneable {
     @Schema(description = "容器列表（静态）")
     private List<CronJobContainerDTO> containers;
 
+    /**
+     * 动态条件过滤器列表（保存定时任务时按 JSON 写入 LONGTEXT；
+     * 旧数据无此字段时反序列化为 null，行为与现状一致）
+     */
+    @Schema(description = "动态条件过滤器列表")
+    private List<KubeContainerFilter> containerFilters;
+
     public static TaskTargetVO toTargetVO(ServerDTO server) {
         if (server == null) {
             return null;
@@ -122,6 +132,11 @@ public class ServerDTO implements Cloneable {
                     .map(CronJobContainerDTO::toContainerVO)
                     .collect(Collectors.toList()));
         }
+        // 动态条件过滤器
+        if (CollectionUtils.isNotEmpty(server.getContainerFilters())) {
+            taskExecuteObjectsInfoVO.setContainerFilterList(
+                WebContainerConditionFilterConverter.fromKubeContainerFilters(server.getContainerFilters()));
+        }
         return taskTarget;
     }
 
@@ -151,6 +166,12 @@ public class ServerDTO implements Cloneable {
                     taskExecuteObjectsInfoVO.getContainerList().stream()
                         .map(CronJobContainerDTO::fromContainerVO)
                         .collect(Collectors.toList()));
+            }
+            // 动态条件过滤器
+            if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getContainerFilterList())) {
+                List<WebContainerConditionFilter> webFilters = taskExecuteObjectsInfoVO.getContainerFilterList();
+                server.setContainerFilters(
+                    WebContainerConditionFilterConverter.toKubeContainerFilters(webFilters));
             }
         }
         return server;
@@ -236,6 +257,13 @@ public class ServerDTO implements Cloneable {
                     })
                     .collect(Collectors.toList()));
         }
+        // 动态条件过滤器透传给 job-execute
+        if (CollectionUtils.isNotEmpty(server.getContainerFilters())) {
+            serviceServer.setContainerFilters(
+                server.getContainerFilters().stream()
+                    .map(KubeContainerFilter::clone)
+                    .collect(Collectors.toList()));
+        }
         return serviceServer;
     }
 
@@ -294,6 +322,13 @@ public class ServerDTO implements Cloneable {
             serverDTO.setContainers(
                 containers.stream()
                     .map(container -> container != null ? container.clone() : null)
+                    .collect(Collectors.toList()));
+        }
+        // 克隆动态条件过滤器
+        if (null != containerFilters) {
+            serverDTO.setContainerFilters(
+                containerFilters.stream()
+                    .map(filter -> filter != null ? filter.clone() : null)
                     .collect(Collectors.toList()));
         }
         return serverDTO;

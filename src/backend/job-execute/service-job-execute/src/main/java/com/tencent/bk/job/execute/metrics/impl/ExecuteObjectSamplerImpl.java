@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.metrics.impl;
 
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.metrics.ExecuteObjectSampler;
@@ -36,8 +38,11 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
 
 /**
  * 记录任务执行对象相关指标
@@ -61,6 +66,55 @@ public class ExecuteObjectSamplerImpl implements ExecuteObjectSampler {
         } catch (Exception e) {
             log.warn("tryToRecordExecuteObjectMetrics error", e);
         }
+    }
+
+    /**
+     * 记录执行时 使用动态条件筛选出的 容器的数量
+     * @param taskInstance         任务实例对象
+     * @param resolvedContainerNum 该过滤条件渲染出的容器数量
+     */
+    @Override
+    public void tryToRecordContainerFilterResolvedNum(TaskInstanceDTO taskInstance,
+                                                      KubeContainerFilter filter,
+                                                      int resolvedContainerNum) {
+        try {
+            Tags tags = buildCommonTags(taskInstance)
+                .and(ExecuteMetricsConstants.TAG_KEY_CONTAINER_FILTER_TOPO_DEPTH, computeTopoDepth(filter))
+                .and(ExecuteMetricsConstants.TAG_KEY_CONTAINER_FILTER_HAS_PROP_CONDITIONS,
+                    String.valueOf(filter != null && filter.hasPropConditions()));
+            DistributionSummary.builder(ExecuteMetricsConstants.NAME_JOB_CONTAINER_FILTER_RESOLVED_NUM)
+                .tags(tags)
+                .register(meterRegistry)
+                .record(resolvedContainerNum);
+        } catch (Exception e) {
+            log.warn("tryToRecordContainerFilterResolvedNum error", e);
+        }
+    }
+
+    /**
+     * 计算容器过滤条件的拓扑筛选深度：取用户下钻到的最细层级（workload > namespace > cluster > none）。
+     * 同时兼容 Web 入口（kubeTopoList）与 OpenAPI 入口（cluster/namespace/workloadFilter）。
+     */
+    private String computeTopoDepth(KubeContainerFilter filter) {
+        if (filter == null) {
+            return ExecuteMetricsConstants.TAG_VALUE_TOPO_DEPTH_NONE;
+        }
+        // 取最细粒度：从最深的 workload 依次向上判断，命中即返回。
+        // 需兼容两种入口：OpenAPI 的 xxxFilter 与 Web 的 kubeTopoList，故对二者取并集。
+        Collection<KubeTopoDTO> topoList = CollectionUtils.emptyIfNull(filter.getKubeTopoList());
+        if (filter.getWorkloadFilter() != null
+            || topoList.stream().anyMatch(topo -> CollectionUtils.isNotEmpty(topo.getWorkloads()))) {
+            return ExecuteMetricsConstants.TAG_VALUE_TOPO_DEPTH_WORKLOAD;
+        }
+        if (filter.getNamespaceFilter() != null
+            || topoList.stream().anyMatch(topo -> topo.getNamespace() != null)) {
+            return ExecuteMetricsConstants.TAG_VALUE_TOPO_DEPTH_NAMESPACE;
+        }
+        if (filter.getClusterFilter() != null
+            || topoList.stream().anyMatch(topo -> topo.getCluster() != null)) {
+            return ExecuteMetricsConstants.TAG_VALUE_TOPO_DEPTH_CLUSTER;
+        }
+        return ExecuteMetricsConstants.TAG_VALUE_TOPO_DEPTH_NONE;
     }
 
     /**
@@ -110,6 +164,13 @@ public class ExecuteObjectSamplerImpl implements ExecuteObjectSampler {
      */
     private Iterable<Tag> buildTags(TaskInstanceDTO taskInstance,
                                     TaskInstanceExecuteObjects executeObjects) {
+        return buildCommonTags(taskInstance).and(buildExecuteObjectCompositionTag(executeObjects));
+    }
+
+    /**
+     * 构造任务维度的公共标签（资源范围 / 定时任务 ID / AppCode），供各执行对象指标复用。
+     */
+    private Tags buildCommonTags(TaskInstanceDTO taskInstance) {
         ResourceScope resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId());
         Tag resourceScopeTag = Tag.of(CommonMetricTags.KEY_RESOURCE_SCOPE, buildResourceScopeTagValue(resourceScope));
         Tag cronTaskIdTag = Tag.of(
@@ -117,8 +178,7 @@ public class ExecuteObjectSamplerImpl implements ExecuteObjectSampler {
             String.valueOf(taskInstance.getCronTaskId())
         );
         Tag appCodeTag = Tag.of(ExecuteMetricsConstants.TAG_KEY_APP_CODE, String.valueOf(taskInstance.getAppCode()));
-        Tag compositionTag = buildExecuteObjectCompositionTag(executeObjects);
-        return Tags.of(resourceScopeTag, cronTaskIdTag, appCodeTag, compositionTag);
+        return Tags.of(resourceScopeTag, cronTaskIdTag, appCodeTag);
     }
 
     /**

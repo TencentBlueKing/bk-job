@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model.inner;
 
 import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -48,4 +49,7 @@ public class ServiceTargetServers {
 
     @Schema(description = "容器列表（静态）", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private List<ServiceExecuteTargetContainerDTO> containers;
+
+    @Schema(description = "动态条件过滤器列表（透传给 job-execute）", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private List<KubeContainerFilter> containerFilters;
 }

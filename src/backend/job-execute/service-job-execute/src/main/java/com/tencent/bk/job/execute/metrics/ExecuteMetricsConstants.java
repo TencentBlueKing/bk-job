@@ -42,6 +42,10 @@ public class ExecuteMetricsConstants {
      * 任务执行对象数量分布指标
      */
     public static final String NAME_JOB_TASK_EXECUTE_OBJECT_NUM = "job.task.executeObjectNum";
+    /**
+     * 单个容器过滤条件渲染出的容器数量分布指标
+     */
+    public static final String NAME_JOB_CONTAINER_FILTER_RESOLVED_NUM = "job.container.filter.resolvedNum";
 
     // tag
     /**
@@ -146,4 +150,28 @@ public class ExecuteMetricsConstants {
      * 执行对象组成：混合
      */
     public static final String TAG_VALUE_EXECUTE_OBJECT_COMPOSITION_MIXED = "mixed";
+    /**
+     * 容器过滤条件-拓扑筛选深度（用户在 k8s 拓扑里下钻到的最细层级）
+     */
+    public static final String TAG_KEY_CONTAINER_FILTER_TOPO_DEPTH = "container_filter_topo_depth";
+    /**
+     * 拓扑筛选深度：未指定拓扑
+     */
+    public static final String TAG_VALUE_TOPO_DEPTH_NONE = "none";
+    /**
+     * 拓扑筛选深度：到集群
+     */
+    public static final String TAG_VALUE_TOPO_DEPTH_CLUSTER = "cluster";
+    /**
+     * 拓扑筛选深度：到命名空间
+     */
+    public static final String TAG_VALUE_TOPO_DEPTH_NAMESPACE = "namespace";
+    /**
+     * 拓扑筛选深度：到 workload
+     */
+    public static final String TAG_VALUE_TOPO_DEPTH_WORKLOAD = "workload";
+    /**
+     * 容器过滤条件-是否叠加了字段级动态条件（propConditions）
+     */
+    public static final String TAG_KEY_CONTAINER_FILTER_HAS_PROP_CONDITIONS = "container_filter_has_prop_conditions";
 }

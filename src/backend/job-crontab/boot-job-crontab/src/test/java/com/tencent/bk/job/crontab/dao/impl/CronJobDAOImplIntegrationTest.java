@@ -27,14 +27,21 @@ package com.tencent.bk.job.crontab.dao.impl;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubeNamespaceObjectDTO;
+import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
+import com.tencent.bk.job.crontab.model.inner.ServerDTO;
 import com.tencent.bk.job.crontab.util.CronExpressionUtil;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.quartz.CronExpression;
@@ -471,6 +478,90 @@ public class CronJobDAOImplIntegrationTest {
         new CronExpression(CronExpressionUtil.fixExpressionForQuartz("* * * * *"));
         new CronExpression(CronExpressionUtil.fixExpressionForQuartz("* * * * 2"));
         new CronExpression(CronExpressionUtil.fixExpressionForQuartz("* * 2 * *"));
+    }
+
+    /**
+     * 定时任务变量「新字段端到端写入读取」回归：variable_value 持久化的 CronJobVariableDTO 列表中，
+     * EXECUTE_OBJECT_LIST 类型变量的 server 字段携带 containerFilters + propConditions。
+     * 经 cron variable 加解密链路（{@code EncryptEnableVariables.decryptAndSetVariableValue}）写入 H2 LONGTEXT
+     * 再读回，所有 containerFilters 字段需保真。
+     */
+    @Test
+    @DisplayName("variable_value 持久化 ServerDTO.containerFilters + propConditions 完整保真")
+    void givenCronJobWithContainerFiltersReturnRoundTripPreserved() {
+        CronJobVariableDTO executeObjectVar = new CronJobVariableDTO();
+        executeObjectVar.setName("backend-containers");
+        executeObjectVar.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST);
+        executeObjectVar.setServer(buildServerWithContainerFilters());
+
+        CronJobInfoDTO cronJob = new CronJobInfoDTO();
+        cronJob.setAppId(CRON_JOB_1.getAppId());
+        cronJob.setName(UUID.randomUUID().toString());
+        cronJob.setCreator("userC");
+        cronJob.setTaskTemplateId(getRandomPositiveLong());
+        cronJob.setTaskPlanId(getRandomPositiveLong());
+        cronJob.setCronExpression("* * * * *");
+        cronJob.setExecuteTimeZone("Asia/Shanghai");
+        cronJob.setVariableValue(Collections.singletonList(executeObjectVar));
+        cronJob.setLastExecuteStatus(0);
+        cronJob.setEnable(true);
+        cronJob.setDelete(false);
+        cronJob.setCreateTime(DateUtils.currentTimeSeconds());
+        cronJob.setLastModifyUser("userC");
+        cronJob.setLastModifyTime(DateUtils.currentTimeSeconds());
+        cronJob.setEndTime(0L);
+        cronJob.setNotifyOffset(0L);
+        cronJob.setNotifyUser(new UserRoleInfoDTO());
+        cronJob.setNotifyChannel(Collections.emptyList());
+
+        long newId = cronJobDAO.insertCronJob(cronJob);
+        cronJob.setId(newId);
+
+        CronJobInfoDTO reloaded = cronJobDAO.getCronJobById(cronJob.getAppId(), newId);
+        assertThat(reloaded).isNotNull();
+        assertThat(reloaded.getVariableValue()).hasSize(1);
+
+        CronJobVariableDTO reloadedVar = reloaded.getVariableValue().get(0);
+        assertThat(reloadedVar.getType()).isEqualTo(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST);
+        assertThat(reloadedVar.getServer()).isNotNull();
+        assertThat(reloadedVar.getServer().getContainerFilters()).hasSize(1);
+
+        KubeContainerFilter filter = reloadedVar.getServer().getContainerFilters().get(0);
+        assertThat(filter.getKubeTopoList()).hasSize(1);
+        assertThat(filter.getKubeTopoList().get(0).getCluster().getId()).isEqualTo(100L);
+        assertThat(filter.getKubeTopoList().get(0).getNamespace().getId()).isEqualTo(1000L);
+        assertThat(filter.getPropConditions()).hasSize(2);
+        assertThat(filter.getPropConditions().get(0).getField()).isEqualTo("container_container_uid");
+        assertThat(filter.getPropConditions().get(0).getValue()).isInstanceOf(List.class);
+        assertThat(filter.getPropConditions().get(1).getField()).isEqualTo("pod_name");
+        assertThat(filter.getPropConditions().get(1).getValue()).isEqualTo("pod-a");
+    }
+
+    /**
+     * 老数据兼容：现有 init_cron_job_data.sql 中的 variable_value 行不含 server 字段（{@code "server":null}），
+     * 反序列化后所有 CronJobVariableDTO.server 必须为 null，containerFilters 字段不能被误造空集合。
+     */
+    @Test
+    @DisplayName("variable_value 老 JSON（server=null）读回后 server 为 null，不污染老数据分支")
+    void givenLegacyCronJobReturnServerAndContainerFiltersNull() {
+        CronJobInfoDTO legacy = cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId());
+        assertThat(legacy).isNotNull();
+        assertThat(legacy.getVariableValue()).isNotEmpty();
+        legacy.getVariableValue().forEach(var -> assertThat(var.getServer()).isNull());
+    }
+
+    private ServerDTO buildServerWithContainerFilters() {
+        KubeContainerFilter filter = new KubeContainerFilter();
+        filter.setKubeTopoList(Collections.singletonList(
+            new KubeTopoDTO(new KubeClusterObjectDTO(100L), new KubeNamespaceObjectDTO(1000L), null)));
+        filter.setPropConditions(Arrays.asList(
+            new KubePropCondition("container_container_uid", "in", Arrays.asList("nginx:1.24", "redis:7.2")),
+            new KubePropCondition("pod_name", "equal", "pod-a")
+        ));
+
+        ServerDTO server = new ServerDTO();
+        server.setContainerFilters(Collections.singletonList(filter));
+        return server;
     }
 
     //    @Test

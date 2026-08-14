@@ -201,6 +201,7 @@ public class ErrorCode {
     // 尚未支持的功能
     public static final int NOT_SUPPORT_FEATURE = 1241011;
 
+    // 请求参数不合法，原因：{0}
     public static final int ILLEGAL_PARAM_WITH_REASON = 1241012;
     // 该功能暂不支持，支持的资源范围：{0}，当前资源范围：{1}
     public static final int NOT_SUPPORT_FEATURE_FOR_RESOURCE_SCOPE = 1241013;

@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.tenant.TenantService;
@@ -93,6 +94,11 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 @Slf4j
 @Service
 public class TaskInstanceExecuteObjectProcessor {
+
+    /**
+     * 单个容器过滤条件渲染出的容器数量告警阈值：超过则打 WARN 日志提示潜在内存/GC 风险
+     */
+    private static final int CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD = 2000;
 
     private final TenantService tenantService;
     private final HostService hostService;
@@ -578,29 +584,45 @@ public class TaskInstanceExecuteObjectProcessor {
                                          TaskInstanceDTO taskInstance,
                                          List<StepInstanceDTO> stepInstances,
                                          Collection<TaskVariableDTO> variables) {
+        // 与 acquireAndSetHosts 对称：独立 StopWatch 分段监控各阶段耗时，整体偏慢时打 WARN
+        StopWatch watch = new StopWatch("AcquireAndSetContainers");
+        try {
+            // 根据静态容器列表方式获取并设置容器执行对象
+            watch.start("acquireByStaticContainerList");
+            acquireAndSetContainersByStaticContainerList(
+                taskInstanceExecuteObjects,
+                taskInstance,
+                stepInstances,
+                variables
+            );
+            watch.stop();
 
-        // 根据静态容器列表方式获取并设置容器执行对象
-        acquireAndSetContainersByStaticContainerList(
-            taskInstanceExecuteObjects,
-            taskInstance,
-            stepInstances,
-            variables
-        );
+            // 根据 ContainerFilter 方式获取并设置容器执行对象（每个 filter 一次 CMDB 查询，单独计时）
+            watch.start("acquireByContainerFilters");
+            acquireAndSetContainersByContainerFilters(taskInstanceExecuteObjects,
+                taskInstance, stepInstances, variables);
+            watch.stop();
 
-        // 根据 ContainerFilter 方式获取并设置容器执行对象
-        acquireAndSetContainersByContainerFilters(taskInstanceExecuteObjects,
-            taskInstance, stepInstances);
+            taskInstanceExecuteObjects.setContainsAnyContainer(
+                CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
 
-        taskInstanceExecuteObjects.setContainsAnyContainer(
-            CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
-
-        // 增加容器 topo 信息（集群 UID，集群名称、命名空间名称等)
-        fillContainerTopoInfo(
-            taskInstance.getAppId(),
-            taskInstanceExecuteObjects.getValidContainers(),
-            stepInstances,
-            variables
-        );
+            // 增加容器 topo 信息（集群 UID，集群名称、命名空间名称等)
+            watch.start("fillContainerTopoInfo");
+            fillContainerTopoInfo(
+                taskInstance.getAppId(),
+                taskInstanceExecuteObjects.getValidContainers(),
+                stepInstances,
+                variables
+            );
+            watch.stop();
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 1000) {
+                log.warn("AcquireAndSetContainers slow, watch: {}", watch.prettyPrint());
+            }
+        }
     }
 
     private void fillContainerTopoInfo(long appId,
@@ -711,20 +733,61 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private void acquireAndSetContainersByContainerFilters(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
                                                            TaskInstanceDTO taskInstance,
-                                                           List<StepInstanceDTO> stepInstances) {
+                                                           List<StepInstanceDTO> stepInstances,
+                                                           Collection<TaskVariableDTO> variables) {
         for (StepInstanceDTO stepInstance : stepInstances) {
-            stepInstance.forEachExecuteObjects(executeObjects -> {
-                if (CollectionUtils.isNotEmpty(executeObjects.getContainerFilters())) {
-                    executeObjects.getContainerFilters().forEach(containerFilter -> {
-                        List<Container> filteredContainers =
-                            containerService.listContainerByContainerFilter(taskInstance.getAppId(), containerFilter);
-                        if (CollectionUtils.isNotEmpty(filteredContainers)) {
-                            taskInstanceExecuteObjects.addContainers(filteredContainers);
-                            containerFilter.setContainers(filteredContainers);
-                        }
-                    });
+            stepInstance.forEachExecuteObjects(executeObjects ->
+                resolveContainerFilters(taskInstanceExecuteObjects, taskInstance, stepInstance, executeObjects));
+        }
+
+        if (CollectionUtils.isNotEmpty(variables)) {
+            for (TaskVariableDTO variable : variables) {
+                if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
+                    && variable.getExecuteTarget() != null) {
+                    resolveContainerFilters(taskInstanceExecuteObjects, taskInstance, null, variable.getExecuteTarget());
                 }
-            });
+            }
+        }
+    }
+
+    private void resolveContainerFilters(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
+                                         TaskInstanceDTO taskInstance,
+                                         StepInstanceDTO stepInstance,
+                                         ExecuteTargetDTO executeTarget) {
+        if (CollectionUtils.isEmpty(executeTarget.getContainerFilters())) {
+            return;
+        }
+        executeTarget.getContainerFilters().forEach(containerFilter -> {
+            List<Container> filteredContainers =
+                containerService.listContainerByContainerFilter(taskInstance.getAppId(), containerFilter);
+            recordContainerFilterResolvedNum(
+                taskInstance, stepInstance, containerFilter, CollectionUtils.size(filteredContainers));
+            if (CollectionUtils.isNotEmpty(filteredContainers)) {
+                taskInstanceExecuteObjects.addContainers(filteredContainers);
+                containerFilter.setContainers(filteredContainers);
+            }
+        });
+    }
+
+    /**
+     * 记录单个容器过滤条件最终渲染出的容器数量：上报指标 + 打日志。
+     * 数量超过 {@link #CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD} 时打 WARN，提示可能的内存/GC 风险。
+     */
+    private void recordContainerFilterResolvedNum(TaskInstanceDTO taskInstance,
+                                                  StepInstanceDTO stepInstance,
+                                                  KubeContainerFilter containerFilter,
+                                                  int containerNum) {
+        executeObjectSampler.tryToRecordContainerFilterResolvedNum(taskInstance, containerFilter, containerNum);
+        Long stepInstanceId = stepInstance == null ? null : stepInstance.getId();
+        if (containerNum > CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD) {
+            log.warn("Container filter resolved too many containers, taskInstanceId={}, stepInstanceId={}, "
+                    + "filterName={}, containerNum={}, threshold={}",
+                taskInstance.getId(), stepInstanceId, containerFilter.getName(), containerNum,
+                CONTAINER_FILTER_WARN_CONTAINER_NUM_THRESHOLD);
+        } else {
+            log.info("Container filter resolved containers, taskInstanceId={}, stepInstanceId={}, "
+                    + "filterName={}, containerNum={}",
+                taskInstance.getId(), stepInstanceId, containerFilter.getName(), containerNum);
         }
     }
 

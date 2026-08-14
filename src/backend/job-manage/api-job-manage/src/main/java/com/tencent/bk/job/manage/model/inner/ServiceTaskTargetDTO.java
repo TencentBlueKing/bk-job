@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.inner;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -44,6 +45,9 @@ public class ServiceTaskTargetDTO {
 
     @Schema(description = "目标容器列表")
     private List<ServiceTargetContainerDTO> containerList;
+
+    @Schema(description = "动态条件过滤器列表（透传给 job-execute；旧版本服务读到忽略此字段）")
+    private List<KubeContainerFilter> containerFilters;
 
     @Override
     public String toString() {

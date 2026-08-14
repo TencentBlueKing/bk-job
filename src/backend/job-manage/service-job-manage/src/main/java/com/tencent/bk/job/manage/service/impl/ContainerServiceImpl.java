@@ -24,11 +24,15 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.cc.model.req.KubeContainerQueryReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
 import com.tencent.bk.job.manage.service.ContainerService;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -43,15 +48,26 @@ public class ContainerServiceImpl implements ContainerService {
 
     private final IBizCmdbClient bizCmdbClient;
 
+    /**
+     * 业务 kube 拓扑的本地缓存。CMDB 侧返回的是其内部聚合结果，短时间内不会剧烈变化，
+     * 这里做一层本地缓存，避免每次列表页/回显都打 CMDB。
+     */
+    private final LoadingCache<Long, KubeTopologyDTO> bizKubeTopoCache;
+
     @Autowired
     public ContainerServiceImpl(IBizCmdbClient bizCmdbClient) {
         this.bizCmdbClient = bizCmdbClient;
+        this.bizKubeTopoCache = Caffeine.newBuilder()
+            .maximumSize(1024)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .recordStats()
+            .build(bizCmdbClient::getBizKubeCacheTopo);
     }
 
 
     @Override
     public KubeTopologyDTO getBizKubeCacheTopo(long bizId) {
-        return bizCmdbClient.getBizKubeCacheTopo(bizId);
+        return bizKubeTopoCache.get(bizId);
     }
 
     @Override
@@ -73,5 +89,18 @@ public class ContainerServiceImpl implements ContainerService {
     @Override
     public List<ContainerDetailDTO> listKubeContainerByUIds(Long bizId, List<String> containerUIds) {
         return bizCmdbClient.listKubeContainerByUIds(bizId, containerUIds);
+    }
+
+    @Override
+    public PageData<ContainerDetailDTO> listKubeContainerByCondition(Long bizId,
+                                                                     KubeContainerFilter filter,
+                                                                     Integer start,
+                                                                     Integer pageSize) {
+        KubeContainerQueryReq req = new KubeContainerQueryReq();
+        req.setBizId(bizId);
+        req.setFilter(filter);
+        req.setStart(start);
+        req.setPageSize(pageSize);
+        return bizCmdbClient.listKubeContainerByCondition(req);
     }
 }

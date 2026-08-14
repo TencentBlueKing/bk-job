@@ -287,6 +287,7 @@ CREATE TABLE `task_plan_step_script`
     `is_latest_version`     TINYINT(1) UNSIGNED NOT NULL DEFAULT '1',
     `ignore_error`          TINYINT(1) UNSIGNED NOT NULL,
     `windows_interpreter`   VARCHAR(260)            NULL DEFAULT NULL,
+    `status`                TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     KEY (`step_id`) USING BTREE,
     KEY (`script_id`) USING BTREE,
