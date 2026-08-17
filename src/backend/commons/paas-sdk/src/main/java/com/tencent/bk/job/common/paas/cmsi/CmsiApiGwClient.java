@@ -29,7 +29,9 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.esb.exception.BkOpenApiException;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
+import com.tencent.bk.job.common.esb.model.OpenApiError;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.OpenApiResponse;
 import com.tencent.bk.job.common.esb.sdk.BkApiV2Client;
@@ -37,6 +39,7 @@ import com.tencent.bk.job.common.exception.InternalCmsiException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.paas.exception.CmsiInvalidReceiverException;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.NotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.NotifyChannelEnum;
@@ -104,6 +107,12 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
             .collect(Collectors.toList());
     }
 
+    /**
+     * 发送消息
+     * @param msgType 通知渠道
+     * @param notifyMessageDTO 消息内容
+     * @param tenantId 租户ID
+     */
     @Override
     public void sendMsg(String msgType, NotifyMessageDTO notifyMessageDTO, String tenantId) {
         CmsiSendMsgV1BasicReq req;
@@ -147,6 +156,11 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
             );
 
             if (resp.getError() != null) {
+                CmsiInvalidReceiverException invalidReceiverException =
+                    tryBuildInvalidReceiverException(resp.getError(), msgType);
+                if (invalidReceiverException != null) {
+                    throw invalidReceiverException;
+                }
                 throw new PaasException(
                     ErrorType.INTERNAL,
                     ErrorCode.CMSI_FAIL_TO_SEND_MSG,
@@ -158,6 +172,10 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
         } catch (PaasException e) {
             throw e;
         } catch (Exception e) {
+            CmsiInvalidReceiverException invalidReceiverException = tryConvertToInvalidReceiverException(e, msgType);
+            if (invalidReceiverException != null) {
+                throw invalidReceiverException;
+            }
             String msg = MessageFormatter.format(
                 "Fail to request {}",
                 uri
@@ -167,6 +185,24 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
+    }
+
+    private CmsiInvalidReceiverException tryConvertToInvalidReceiverException(Exception e, String msgType) {
+        if (!(e instanceof BkOpenApiException)) {
+            return null;
+        }
+        return tryBuildInvalidReceiverException(((BkOpenApiException) e).getError(), msgType);
+    }
+
+    /**
+     * 接收人无效（如已离职，但用户管理中仍存在这个人）属于预期内的业务结果，转换为专门的异常交由上层处理；
+     * 其余错误返回 null，仍按PaaS异常处理
+     */
+    private CmsiInvalidReceiverException tryBuildInvalidReceiverException(OpenApiError error, String msgType) {
+        if (!CmsiSendMsgErrorParser.isInvalidReceiverError(error)) {
+            return null;
+        }
+        return new CmsiInvalidReceiverException(msgType, CmsiSendMsgErrorParser.extractFailedReceivers(error));
     }
 
     private List<ApiGwCmsiChannelResp> fetchAndGetChannelList(String tenantId) {

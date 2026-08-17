@@ -85,6 +85,8 @@ public class ErrorCode {
     public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
     // 未知的CMSI渠道: {0}
     public static final int CMSI_UNKNOWN_CHANNEL = 1213005;
+    // 通知渠道中不存在有效的消息接收人：{0}
+    public static final int CMSI_NO_VALID_RECEIVER = 1213006;
 
     // 制品库异常
     // Artifactory接口返回数据结构异常
