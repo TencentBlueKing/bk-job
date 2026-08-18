@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.api.inner.impl;
 
 import com.tencent.bk.job.common.api.model.DryRunResult;
-import com.tencent.bk.job.common.api.model.ResolvedSummary;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.api.util.DryRunResultUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;

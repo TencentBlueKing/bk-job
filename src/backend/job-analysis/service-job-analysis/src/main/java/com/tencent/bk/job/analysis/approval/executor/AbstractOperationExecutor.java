@@ -26,6 +26,7 @@ package com.tencent.bk.job.analysis.approval.executor;
 
 import com.tencent.bk.job.common.api.model.DryRunResult;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 
@@ -43,6 +44,25 @@ import com.tencent.bk.job.common.model.InternalResponse;
  * 用户会据此重新发起，于是同一个操作可能被执行两次。
  */
 public abstract class AbstractOperationExecutor<T> implements OperationExecutor<T> {
+
+    /**
+     * 下游 OpenAPI 响应的拆包。
+     * <p>
+     * 与 inner 路径不同，这里<b>不需要</b>判别业务失败：OpenAPI 的失败一律以异常形态到达
+     * —— 微服务下由 FeignErrorDecoder 还原成 OpenApiPropagatedException，
+     * 轻量化部署下是被调服务原样抛出的异常。因此能走到这里就意味着下游已经成功。
+     *
+     * @param dryRun 预检响应没有执行结果，只有操作概要；正式执行反之
+     */
+    protected DryRunResult<?> unwrap(EsbV4Response<?> response, boolean dryRun) {
+        if (response == null) {
+            throw new InternalException("Empty response from downstream service", ErrorCode.INTERNAL_ERROR);
+        }
+        if (dryRun) {
+            return DryRunResult.valid(response.getDryRunSummary(), null);
+        }
+        return DryRunResult.valid(null, response.getData());
+    }
 
     protected DryRunResult<?> unwrap(InternalResponse<? extends DryRunResult<?>> response) {
         if (response == null) {

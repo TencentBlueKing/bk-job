@@ -207,7 +207,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest allStepsRequest = buildBaseRequest();
         allStepsRequest.setEnableSteps(null);
-        resource.createJobPlan(USERNAME, APP_CODE, allStepsRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, allStepsRequest);
 
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
         verify(planService).createTaskPlan(any(User.class), captor.capture());
@@ -215,7 +215,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest subsetRequest = buildBaseRequest();
         subsetRequest.setEnableSteps(Arrays.asList(101L, 103L));
-        resource.createJobPlan(USERNAME, APP_CODE, subsetRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, subsetRequest);
 
         verify(planService, times(2)).createTaskPlan(any(User.class), captor.capture());
         assertThat(captor.getValue().getEnableStepList()).containsExactly(101L, 103L);
@@ -230,7 +230,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         V4CreateJobPlanRequest request = buildBaseRequest();
         request.setEnableSteps(Arrays.asList(101L, 999L));
 
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, request))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, request))
             .isInstanceOfSatisfying(InvalidParamException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON)
             );
@@ -242,7 +242,7 @@ class OpenApiJobPlanV4ResourceImplTest {
     void template_not_exist_throws() {
         when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID)).thenReturn(null);
 
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest()))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, buildBaseRequest()))
             .isInstanceOfSatisfying(NotFoundException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.TEMPLATE_NOT_EXIST)
             );
@@ -261,7 +261,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         V4CreateJobPlanRequest request = buildBaseRequest();
         request.setVariables(Collections.singletonList(item));
 
-        resource.createJobPlan(USERNAME, APP_CODE, request);
+        resource.createJobPlan(USERNAME, APP_CODE, false, request);
 
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
         verify(planService).createTaskPlan(any(User.class), captor.capture());
@@ -283,7 +283,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         unknown.setValue("x");
         V4CreateJobPlanRequest unknownRequest = buildBaseRequest();
         unknownRequest.setVariables(Collections.singletonList(unknown));
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, unknownRequest))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, unknownRequest))
             .isInstanceOf(InvalidParamException.class);
 
         V4JobPlanVariableItem dup1 = new V4JobPlanVariableItem();
@@ -294,7 +294,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         dup2.setValue("b");
         V4CreateJobPlanRequest dupRequest = buildBaseRequest();
         dupRequest.setVariables(Arrays.asList(dup1, dup2));
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, dupRequest))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, dupRequest))
             .isInstanceOf(InvalidParamException.class);
 
         verify(planService, times(0)).createTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
@@ -317,7 +317,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest followRequest = buildBaseRequest();
         followRequest.setVariables(Collections.singletonList(followItem));
-        resource.createJobPlan(USERNAME, APP_CODE, followRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, followRequest);
 
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
         verify(planService).createTaskPlan(any(User.class), captor.capture());
@@ -333,7 +333,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest conflictRequest = buildBaseRequest();
         conflictRequest.setVariables(Collections.singletonList(conflictItem));
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, conflictRequest))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, conflictRequest))
             .isInstanceOf(InvalidParamException.class);
     }
 
@@ -433,7 +433,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         item.setExecuteTarget(executeTarget);
         V4CreateJobPlanRequest request = buildBaseRequest();
         request.setVariables(Collections.singletonList(item));
-        resource.createJobPlan(USERNAME, APP_CODE, request);
+        resource.createJobPlan(USERNAME, APP_CODE, false, request);
     }
 
     private static OpenApiV4HostDTO hostWithId(long hostId) {
@@ -448,7 +448,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         stubTemplateAndCreate(Collections.singletonList(101L), null);
         when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(0L), any())).thenReturn(false);
 
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest()))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, buildBaseRequest()))
             .isInstanceOfSatisfying(AlreadyExistsException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.PLAN_NAME_EXIST)
             );
@@ -462,7 +462,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         TaskPlanInfoDTO savedPlan = buildSavedPlan(true);
         when(planService.createTaskPlan(any(User.class), any(TaskPlanInfoDTO.class))).thenReturn(savedPlan);
 
-        EsbV4Response<OpenApiV4JobPlanDTO> response = resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest());
+        EsbV4Response<OpenApiV4JobPlanDTO> response = resource.createJobPlan(USERNAME, APP_CODE, false, buildBaseRequest());
 
         OpenApiV4JobPlanDTO data = response.getData();
         assertThat(data.getJobPlanId()).isEqualTo(50001L);
@@ -477,7 +477,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         when(templateAuthService.authViewJobTemplate(any(User.class), any(AppResourceScope.class), eq(TEMPLATE_ID)))
             .thenReturn(AuthResult.fail(testUser));
 
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest()));
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, buildBaseRequest()));
         verify(templateService, times(0)).getTaskTemplateById(anyLong(), anyLong());
         verify(planService, times(0)).createTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
     }
@@ -492,7 +492,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest emptyStepsRequest = buildBaseRequest();
         emptyStepsRequest.setEnableSteps(null);
-        resource.createJobPlan(USERNAME, APP_CODE, emptyStepsRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, emptyStepsRequest);
 
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
         verify(planService).createTaskPlan(any(User.class), captor.capture());
@@ -501,7 +501,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         stubTemplateAndCreate(Collections.singletonList(101L), null);
         V4CreateJobPlanRequest trimRequest = buildBaseRequest();
         trimRequest.setName("  trimmed  ");
-        resource.createJobPlan(USERNAME, APP_CODE, trimRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, trimRequest);
 
         verify(planService, times(2)).createTaskPlan(any(User.class), captor.capture());
         assertThat(captor.getValue().getName()).isEqualTo("trimmed");

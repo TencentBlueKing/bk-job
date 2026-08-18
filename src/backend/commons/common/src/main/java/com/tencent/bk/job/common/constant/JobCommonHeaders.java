@@ -62,6 +62,11 @@ public interface JobCommonHeaders {
     String BK_USER_TIMEZONE = "X-Bk-Job-User-Timezone";
 
     /**
+     * 预检标识。为 true 时只做完整校验与解析并返回操作概要，不产生任何写操作
+     */
+    String BK_JOB_DRY_RUN = "X-Bk-Job-Dry-Run";
+
+    /**
      * 应用态接口传递的用户名Header Key
      */
     String KEY_BK_USERNAME = "X-Bk-Username";

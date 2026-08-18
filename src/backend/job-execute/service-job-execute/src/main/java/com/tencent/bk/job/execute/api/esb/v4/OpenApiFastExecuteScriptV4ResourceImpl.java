@@ -26,15 +26,19 @@ package com.tencent.bk.job.execute.api.esb.v4;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
+import com.tencent.bk.job.execute.service.ResolvedSummaryBuilder;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.execute.service.V4FastExecuteScriptRequestConverter;
 import lombok.extern.slf4j.Slf4j;
@@ -63,11 +67,21 @@ public class OpenApiFastExecuteScriptV4ResourceImpl implements OpenApiFastExecut
     @AuditEntry
     public EsbV4Response<V4JobExecuteDTO> fastExecuteScript(String username,
                                                             String appCode,
+                                                            Boolean dryRun,
                                                             @AuditRequestBody V4FastExecuteScriptRequest request) {
 
+        boolean isDryRun = Boolean.TRUE.equals(dryRun);
         FastTaskDTO fastTask = V4FastExecuteScriptRequestConverter.convert(
-            request, JobContextUtil.getUser(), appCode, false);
-        taskExecuteService.executeFastTask(fastTask);
+            request, JobContextUtil.getUser(), appCode, isDryRun);
+        TaskInstanceDTO taskInstance = taskExecuteService.executeFastTask(fastTask);
+
+        if (isDryRun) {
+            ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
+            if (request.getTimeout() == null) {
+                summary.addDefaultApplied("timeout", JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS + "s");
+            }
+            return EsbV4Response.dryRunSuccess(summary);
+        }
 
         V4JobExecuteDTO jobExecuteDTO = new V4JobExecuteDTO();
         jobExecuteDTO.setTaskInstanceId(fastTask.getTaskInstance().getId());

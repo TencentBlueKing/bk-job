@@ -28,21 +28,22 @@ import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.executor.AbstractOperationExecutor;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.common.api.model.DryRunResult;
-import com.tencent.bk.job.execute.api.inner.ServiceApprovalExecuteResource;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import com.tencent.bk.job.execute.api.esb.v4.OpenApiFastExecuteScriptV4Resource;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
-import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastExecuteScriptRequest;
+import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
 import org.springframework.stereotype.Component;
 
 /**
- * 快速执行脚本的出站分发
+ * 快速执行脚本的出站分发。预检与放行都直接复用对外的 OpenAPI，不再另立一套内部执行接口
  */
 @Component
 public class FastExecuteScriptOperationExecutor extends AbstractOperationExecutor<V4FastExecuteScriptRequest> {
 
-    private final ServiceApprovalExecuteResource approvalExecuteResource;
+    private final OpenApiFastExecuteScriptV4Resource fastExecuteScriptResource;
 
-    public FastExecuteScriptOperationExecutor(ServiceApprovalExecuteResource approvalExecuteResource) {
-        this.approvalExecuteResource = approvalExecuteResource;
+    public FastExecuteScriptOperationExecutor(OpenApiFastExecuteScriptV4Resource fastExecuteScriptResource) {
+        this.fastExecuteScriptResource = fastExecuteScriptResource;
     }
 
     @Override
@@ -55,14 +56,17 @@ public class FastExecuteScriptOperationExecutor extends AbstractOperationExecuto
         return V4FastExecuteScriptRequest.class;
     }
 
+    /**
+     * 操作人只能取任务的 creator，且该值只能来自 DB。
+     * <p>
+     * 轻量化部署下 Feign 调用会退化成本地方法调用，请求头不再经过拦截器，下游取到的是<b>本次请求线程上
+     * 已有的操作人</b>；该值等于 creator 由 refresh 的归属校验保证（调用方必须就是任务发起人本人），
+     * 放宽那处校验会同时破坏这里的身份正确性。
+     */
     @Override
     public DryRunResult<?> invoke(V4FastExecuteScriptRequest params, ApprovalTaskDTO task, boolean dryRun) {
-        ServiceApprovalFastExecuteScriptRequest request = new ServiceApprovalFastExecuteScriptRequest();
-        request.setRequest(params);
-        // operator 只能取任务的 creator，且该值只能来自 DB
-        request.setOperator(task.getCreator());
-        request.setAppCode(task.getAppCode());
-        request.setDryRun(dryRun);
-        return unwrap(approvalExecuteResource.fastExecuteScript(request));
+        EsbV4Response<V4JobExecuteDTO> response = fastExecuteScriptResource.fastExecuteScript(
+            task.getCreator(), task.getAppCode(), dryRun, params);
+        return unwrap(response, dryRun);
     }
 }

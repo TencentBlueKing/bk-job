@@ -36,21 +36,22 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureManager;
+import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteTargetDTO;
-import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4FastTransferFileRequest;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
-import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastExecuteScriptRequest;
+import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastTransferFileRequest;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.execute.service.V4FastTransferFileRequestConverter;
 import com.tencent.bk.job.execute.validate.ValidCallbackUrlValidator;
-import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import org.hibernate.validator.HibernateValidator;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.BeforeAll;
@@ -69,6 +70,7 @@ import java.util.Collections;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -96,6 +98,8 @@ class ServiceApprovalExecuteResourceImplTest {
 
     private AppScopeMappingService appScopeMappingService;
 
+    private V4FastTransferFileRequestConverter fastTransferFileRequestConverter;
+
     private ServiceApprovalExecuteResourceImpl resource;
 
     /**
@@ -105,6 +109,10 @@ class ServiceApprovalExecuteResourceImplTest {
     static void registerApplicationContext() {
         ApplicationContext applicationContext = mock(ApplicationContext.class);
         when(applicationContext.getBean(MessageI18nService.class)).thenReturn(mock(MessageI18nService.class));
+        // EsbAppScopeReq 的分组校验要查特性开关；关闭 bk_biz_id 兼容即走 bk_scope_type + bk_scope_id 这套校验
+        FeatureManager featureManager = mock(FeatureManager.class);
+        when(featureManager.checkFeature(anyString(), any())).thenReturn(false);
+        when(applicationContext.getBean(FeatureManager.class)).thenReturn(featureManager);
         new ApplicationContextRegister().setApplicationContext(applicationContext);
     }
 
@@ -112,12 +120,15 @@ class ServiceApprovalExecuteResourceImplTest {
     void setUp() {
         taskExecuteService = mock(TaskExecuteService.class);
         appScopeMappingService = mock(AppScopeMappingService.class);
+        fastTransferFileRequestConverter = mock(V4FastTransferFileRequestConverter.class);
         TenantService tenantService = mock(TenantService.class);
         when(appScopeMappingService.getAppIdByScope(anyString(), anyString())).thenReturn(APP_ID);
         when(tenantService.getTenantIdByAppId(APP_ID)).thenReturn("tenant_a");
+        when(fastTransferFileRequestConverter.convert(any(), any(), anyString(), anyBoolean()))
+            .thenAnswer(invocation -> buildFastTask());
         resource = new ServiceApprovalExecuteResourceImpl(
             taskExecuteService,
-            mock(V4FastTransferFileRequestConverter.class),
+            fastTransferFileRequestConverter,
             appScopeMappingService,
             tenantService,
             buildValidator()
@@ -125,42 +136,9 @@ class ServiceApprovalExecuteResourceImplTest {
     }
 
     @Test
-    @DisplayName("inner 路径显式跑 Bean Validation：账号缺失时预检拦住，不进入执行链路")
-    void givenMissingAccountThenReturnInvalid() {
-        V4FastExecuteScriptRequest v4Request = baseRequest();
-        // 账号别名与账号 ID 由 V4ExecScriptReqGroupSequenceProvider 动态挑选校验分组后才生效，
-        // 是最容易在不经网关的 inner 路径漏掉的一类校验
-        v4Request.setAccountAlias(null);
-
-        DryRunResult<V4JobExecuteDTO> result = callFastExecuteScript(v4Request, OPERATOR, true);
-
-        assertThat(result.isValid()).isFalse();
-        assertThat(result.getErrorCode()).isEqualTo(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON);
-        assertThat(result.getErrorType()).isEqualTo(ErrorType.INVALID_PARAM.getType());
-        assertThat((String) result.getErrorParams()[0]).contains("accountId");
-        // 校验没通过就绝不能碰执行链路，否则预检会穿透成真实执行
-        verifyNoInteractions(taskExecuteService);
-    }
-
-    @Test
-    @DisplayName("inner 路径显式跑 Bean Validation：脚本内容与脚本 ID 都没传时预检拦住")
-    void givenMissingScriptThenReturnInvalid() {
-        V4FastExecuteScriptRequest v4Request = baseRequest();
-        // 不给 scriptVersionId / scriptId 时脚本内容才是必填，同样是分组校验的产物
-        v4Request.setContent(null);
-
-        DryRunResult<V4JobExecuteDTO> result = callFastExecuteScript(v4Request, OPERATOR, true);
-
-        assertThat(result.isValid()).isFalse();
-        assertThat(result.getErrorCode()).isEqualTo(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON);
-        assertThat((String) result.getErrorParams()[0]).contains("content");
-        verifyNoInteractions(taskExecuteService);
-    }
-
-    @Test
     @DisplayName("operator 缺失时预检拦住，不以调用方身份兜底")
     void givenBlankOperatorThenReturnInvalid() {
-        DryRunResult<V4JobExecuteDTO> result = callFastExecuteScript(baseRequest(), " ", true);
+        DryRunResult<V4JobExecuteDTO> result = callFastTransferFile(baseRequest(), " ", true);
 
         assertThat(result.isValid()).isFalse();
         assertThat(result.getErrorCode()).isEqualTo(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME);
@@ -171,7 +149,7 @@ class ServiceApprovalExecuteResourceImplTest {
     @Test
     @DisplayName("v4 请求体缺失时预检拦住")
     void givenNullRequestThenReturnInvalid() {
-        DryRunResult<V4JobExecuteDTO> result = callFastExecuteScript(null, OPERATOR, true);
+        DryRunResult<V4JobExecuteDTO> result = callFastTransferFile(null, OPERATOR, true);
 
         assertThat(result.isValid()).isFalse();
         assertThat(result.getErrorCode()).isEqualTo(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME);
@@ -182,14 +160,16 @@ class ServiceApprovalExecuteResourceImplTest {
     @Test
     @DisplayName("资源范围缺失时由 @ValidBkScope 拦住，并以 HTTP 200 + DryRunResult 返回")
     void givenMissingScopeThenReturnInvalidWithoutException() {
-        V4FastExecuteScriptRequest v4Request = baseRequest();
+        V4FastTransferFileRequest v4Request = baseRequest();
         v4Request.setScopeType(null);
         v4Request.setScopeId(null);
 
-        DryRunResult<V4JobExecuteDTO> result = callFastExecuteScript(v4Request, OPERATOR, true);
+        DryRunResult<V4JobExecuteDTO> result = callFastTransferFile(v4Request, OPERATOR, true);
 
         assertThat(result.isValid()).isFalse();
         assertThat(result.getErrorCode()).isEqualTo(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON);
+        assertThat(result.getErrorType()).isEqualTo(ErrorType.INVALID_PARAM.getType());
+        // 校验没通过就绝不能碰执行链路，否则预检会穿透成真实执行
         verifyNoInteractions(taskExecuteService);
     }
 
@@ -199,7 +179,7 @@ class ServiceApprovalExecuteResourceImplTest {
         when(taskExecuteService.executeFastTask(any())).thenThrow(
             new InvalidParamException(ErrorCode.ACCOUNT_NOT_EXIST, new Object[]{"root"}));
 
-        DryRunResult<V4JobExecuteDTO> result = callFastExecuteScript(baseRequest(), OPERATOR, true);
+        DryRunResult<V4JobExecuteDTO> result = callFastTransferFile(baseRequest(), OPERATOR, true);
 
         assertThat(result.isValid()).isFalse();
         assertThat(result.getErrorCode()).isEqualTo(ErrorCode.ACCOUNT_NOT_EXIST);
@@ -211,25 +191,27 @@ class ServiceApprovalExecuteResourceImplTest {
     void givenInternalErrorThenPropagate() {
         when(taskExecuteService.executeFastTask(any())).thenThrow(new InternalException(ErrorCode.INTERNAL_ERROR));
 
-        ServiceApprovalFastExecuteScriptRequest request = buildWrapper(baseRequest(), OPERATOR, true);
-        assertThatThrownBy(() -> resource.fastExecuteScript(request))
+        ServiceApprovalFastTransferFileRequest request = buildWrapper(baseRequest(), OPERATOR, true);
+        assertThatThrownBy(() -> resource.fastTransferFile(request))
             .isInstanceOf(InternalException.class);
     }
 
     @Test
-    @DisplayName("预检通过时返回概要，并标出按默认生效的超时时间")
+    @DisplayName("预检通过时返回概要，并标出按默认生效的超时时间与分发模式")
     void givenValidDryRunThenReturnSummary() {
         when(taskExecuteService.executeFastTask(any())).thenReturn(buildResolvedTaskInstance());
 
-        DryRunResult<V4JobExecuteDTO> result = callFastExecuteScript(baseRequest(), OPERATOR, true);
+        DryRunResult<V4JobExecuteDTO> result = callFastTransferFile(baseRequest(), OPERATOR, true);
 
         assertThat(result.isValid()).isTrue();
         assertThat(result.getResolvedSummary()).isNotNull();
         assertThat(result.getResolvedSummary().getTotalExecuteObjectCount()).isEqualTo(1);
-        // 用户没传超时时间，实际会按默认值执行，单据必须显式说明
-        assertThat(result.getResolvedSummary().getDefaultsApplied()).hasSize(1);
+        // 超时时间与分发模式都没传，实际会按默认值执行，单据必须逐项显式说明
+        assertThat(result.getResolvedSummary().getDefaultsApplied()).hasSize(2);
         assertThat(result.getResolvedSummary().getDefaultsApplied().get(0).getValue())
             .isEqualTo(JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS + "s");
+        assertThat(result.getResolvedSummary().getDefaultsApplied().get(1).getValue())
+            .isEqualTo(FileTransferModeEnum.FORCE.name());
         assertThat(result.getExecuteResult()).isNull();
         verify(taskExecuteService).executeFastTask(any());
     }
@@ -239,32 +221,31 @@ class ServiceApprovalExecuteResourceImplTest {
     void givenNotDryRunThenReturnTaskInstance() {
         when(taskExecuteService.executeFastTask(any())).thenAnswer(invocation -> {
             // 真实执行链路会把作业实例 ID 回填到入参上
-            invocation.getArgument(0, com.tencent.bk.job.execute.model.FastTaskDTO.class)
-                .getTaskInstance().setId(1000L);
+            invocation.getArgument(0, FastTaskDTO.class).getTaskInstance().setId(1000L);
             return null;
         });
 
-        DryRunResult<V4JobExecuteDTO> result = callFastExecuteScript(baseRequest(), OPERATOR, false);
+        DryRunResult<V4JobExecuteDTO> result = callFastTransferFile(baseRequest(), OPERATOR, false);
 
         assertThat(result.isValid()).isTrue();
         assertThat(result.getResolvedSummary()).isNull();
         assertThat(result.getExecuteResult().getTaskInstanceId()).isEqualTo(1000L);
     }
 
-    private DryRunResult<V4JobExecuteDTO> callFastExecuteScript(V4FastExecuteScriptRequest v4Request,
-                                                                String operator,
-                                                                boolean dryRun) {
+    private DryRunResult<V4JobExecuteDTO> callFastTransferFile(V4FastTransferFileRequest v4Request,
+                                                               String operator,
+                                                               boolean dryRun) {
         InternalResponse<DryRunResult<V4JobExecuteDTO>> response =
-            resource.fastExecuteScript(buildWrapper(v4Request, operator, dryRun));
+            resource.fastTransferFile(buildWrapper(v4Request, operator, dryRun));
         // inner 接口一律返回成功响应：校验结果放在 DryRunResult 里，不走异常通道
         assertThat(response.isSuccess()).isTrue();
         return response.getData();
     }
 
-    private ServiceApprovalFastExecuteScriptRequest buildWrapper(V4FastExecuteScriptRequest v4Request,
-                                                                 String operator,
-                                                                 boolean dryRun) {
-        ServiceApprovalFastExecuteScriptRequest request = new ServiceApprovalFastExecuteScriptRequest();
+    private ServiceApprovalFastTransferFileRequest buildWrapper(V4FastTransferFileRequest v4Request,
+                                                                String operator,
+                                                                boolean dryRun) {
+        ServiceApprovalFastTransferFileRequest request = new ServiceApprovalFastTransferFileRequest();
         request.setRequest(v4Request);
         request.setOperator(operator);
         request.setAppCode("bk_ai");
@@ -272,16 +253,30 @@ class ServiceApprovalExecuteResourceImplTest {
         return request;
     }
 
-    private V4FastExecuteScriptRequest baseRequest() {
-        V4FastExecuteScriptRequest request = new V4FastExecuteScriptRequest();
+    private V4FastTransferFileRequest baseRequest() {
+        V4FastTransferFileRequest request = new V4FastTransferFileRequest();
         request.setScopeType("biz");
         request.setScopeId("2");
         request.setName("test_task");
-        request.setContent(Base64Util.encodeContentToStr("echo 1"));
-        request.setScriptLanguage(ScriptTypeEnum.SHELL.getValue());
+        request.setTargetPath("/tmp/");
         request.setAccountAlias("root");
         request.setExecuteTarget(buildV4ExecuteTarget());
         return request;
+    }
+
+    /**
+     * 转换器在单测里被 mock，需自行提供一个结构完整的执行任务，供放行分支回填作业实例 ID
+     */
+    private FastTaskDTO buildFastTask() {
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setName("test_task");
+        StepInstanceDTO stepInstance = new StepInstanceDTO();
+        stepInstance.setName("test_task");
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
+        return FastTaskDTO.builder()
+            .taskInstance(taskInstance)
+            .stepInstance(stepInstance)
+            .build();
     }
 
     private V4ExecuteTargetDTO buildV4ExecuteTarget() {
@@ -305,7 +300,7 @@ class ServiceApprovalExecuteResourceImplTest {
 
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setName("test_task");
-        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
         stepInstance.setAccountAlias("root");
         stepInstance.setTargetExecuteObjects(target);
 

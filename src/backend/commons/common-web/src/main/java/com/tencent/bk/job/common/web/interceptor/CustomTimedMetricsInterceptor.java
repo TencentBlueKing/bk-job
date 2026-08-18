@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.web.interceptor;
 
 import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.common.web.metrics.CustomTimedTagsProvider;
@@ -73,6 +74,10 @@ public class CustomTimedMetricsInterceptor implements HandlerInterceptor {
         if (customTimedAnnotation == null) {
             return;
         }
+        if (isDryRun(request)) {
+            // 这些指标统计的是任务启动量，而预检只做校验与解析、并不会启动任务，计入会直接夸大启动量
+            return;
+        }
         try {
             recordCustomTimedMetrics(customTimedAnnotation, request, response, handlerMethod, ex);
         } catch (Exception e) {
@@ -90,6 +95,10 @@ public class CustomTimedMetricsInterceptor implements HandlerInterceptor {
         Iterable<Tag> tags = customTimedTagsProvider.getTags(metricName, request, response, handlerMethod, ex);
         // 记录指标数据
         record(customTimedAnnotation, metricName, tags);
+    }
+
+    private boolean isDryRun(HttpServletRequest request) {
+        return Boolean.parseBoolean(request.getHeader(JobCommonHeaders.BK_JOB_DRY_RUN));
     }
 
     private long getRequestDurationMillis() {

@@ -44,19 +44,25 @@ import com.tencent.bk.job.analysis.config.ApprovalProperties;
 import com.tencent.bk.job.analysis.dao.ApprovalTaskDAO;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.common.api.model.DryRunResult;
-import com.tencent.bk.job.common.api.model.ResolvedSummary;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.api.util.DryRunResultUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.exception.OpenApiPropagatedException;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4RespError;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -72,6 +78,22 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class ApprovalTaskServiceImpl implements ApprovalTaskService {
+
+    /**
+     * 表示"下游已明确拒绝、且拒绝发生在产生任何副作用之前"的错误语义。
+     * <p>
+     * 有意不含 ABORTED / TIMEOUT / UNAVAILABLE / INTERNAL：这几类都无法判断操作是否已经生效
+     */
+    private static final Set<ErrorType> REJECTED_BEFORE_EXECUTE_ERROR_TYPES = EnumSet.of(
+        ErrorType.INVALID_PARAM,
+        ErrorType.FAILED_PRECONDITION,
+        ErrorType.UNAUTHENTICATED,
+        ErrorType.PERMISSION_DENIED,
+        ErrorType.NOT_FOUND,
+        ErrorType.ALREADY_EXISTS,
+        ErrorType.RESOURCE_EXHAUSTED,
+        ErrorType.UNIMPLEMENTED
+    );
 
     private final ApprovalTaskDAO approvalTaskDAO;
     private final ApprovalChannelRegistry channelRegistry;
@@ -316,6 +338,12 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
             // dryRun=false 正式执行；operator 取 DB 中的 creator，且不得 skipAuth
             result = invokeExecutor(executor, params, task, false);
         } catch (Exception e) {
+            if (isRejectedBeforeExecute(e)) {
+                // 下游明确的业务失败：确定未执行，落 FAILED 终态，用户需重新发起审批
+                log.warn("Approval task {} rejected by downstream, mark FAILED", approvalTaskId, e);
+                approvalTaskDAO.markFailed(approvalTaskId, buildErrorJson(e));
+                throw e;
+            }
             // 结果未知：保持 EXECUTING、execute_result 为空，转人工排查
             log.error("Approval task {} dispatched but result is unknown, keep EXECUTING and DO NOT retry",
                 approvalTaskId, e);
@@ -462,10 +490,47 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         return task;
     }
 
+    /**
+     * 下游是否在产生任何副作用之前就明确拒绝了本次执行。
+     * <p>
+     * <b>只有"确定未执行"才允许落 FAILED 终态</b>：落了终态用户就会据此重新发起，
+     * 把"结果未知"误判成"确定未执行"，同一个操作就可能被执行两次。因此这里只认下游给出的明确拒绝语义，
+     * 其余一律当作未知。微服务下拒绝以 4xx 形态到达，轻量化部署下是被调服务原样抛出的异常
+     */
+    private boolean isRejectedBeforeExecute(Exception e) {
+        if (e instanceof OpenApiPropagatedException) {
+            return ((OpenApiPropagatedException) e).isRejectedByDownstream();
+        }
+        if (e instanceof PermissionDeniedException) {
+            return true;
+        }
+        if (e instanceof ServiceException) {
+            return REJECTED_BEFORE_EXECUTE_ERROR_TYPES.contains(((ServiceException) e).getErrorType());
+        }
+        return false;
+    }
+
     private String buildErrorJson(DryRunResult<?> result) {
         Map<String, Object> error = new HashMap<>();
         error.put("errorCode", result.getErrorCode());
         error.put("errorParams", result.getErrorParams());
+        return JsonUtils.toJson(error);
+    }
+
+    private String buildErrorJson(Exception e) {
+        Map<String, Object> error = new HashMap<>();
+        if (e instanceof OpenApiPropagatedException) {
+            EsbV4RespError respError = ((OpenApiPropagatedException) e).getError();
+            if (respError != null) {
+                error.put("errorCode", respError.getCode());
+                error.put("errorMsg", respError.getMessage());
+            }
+        } else if (e instanceof ServiceException) {
+            ServiceException serviceException = (ServiceException) e;
+            error.put("errorCode", serviceException.getErrorCode());
+            error.put("errorParams", serviceException.getErrorParams());
+        }
+        error.putIfAbsent("errorMsg", e.getMessage());
         return JsonUtils.toJson(error);
     }
 

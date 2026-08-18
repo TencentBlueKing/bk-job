@@ -28,21 +28,22 @@ import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.executor.AbstractOperationExecutor;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.common.api.model.DryRunResult;
-import com.tencent.bk.job.manage.api.inner.ServiceApprovalJobPlanResource;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import com.tencent.bk.job.manage.api.esb.v4.OpenApiJobPlanV4Resource;
+import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
-import com.tencent.bk.job.manage.model.inner.request.ServiceApprovalCreateJobPlanRequest;
 import org.springframework.stereotype.Component;
 
 /**
- * 创建执行方案的出站分发
+ * 创建执行方案的出站分发。预检与放行都直接复用对外的 OpenAPI，不再另立一套内部执行接口
  */
 @Component
 public class CreateJobPlanOperationExecutor extends AbstractOperationExecutor<V4CreateJobPlanRequest> {
 
-    private final ServiceApprovalJobPlanResource approvalJobPlanResource;
+    private final OpenApiJobPlanV4Resource jobPlanV4Resource;
 
-    public CreateJobPlanOperationExecutor(ServiceApprovalJobPlanResource approvalJobPlanResource) {
-        this.approvalJobPlanResource = approvalJobPlanResource;
+    public CreateJobPlanOperationExecutor(OpenApiJobPlanV4Resource jobPlanV4Resource) {
+        this.jobPlanV4Resource = jobPlanV4Resource;
     }
 
     @Override
@@ -55,13 +56,17 @@ public class CreateJobPlanOperationExecutor extends AbstractOperationExecutor<V4
         return V4CreateJobPlanRequest.class;
     }
 
+    /**
+     * 操作人只能取任务的 creator，且该值只能来自 DB。
+     * <p>
+     * 轻量化部署下 Feign 调用会退化成本地方法调用，请求头不再经过拦截器，下游取到的是<b>本次请求线程上
+     * 已有的操作人</b>；该值等于 creator 由 refresh 的归属校验保证（调用方必须就是任务发起人本人），
+     * 放宽那处校验会同时破坏这里的身份正确性。
+     */
     @Override
     public DryRunResult<?> invoke(V4CreateJobPlanRequest params, ApprovalTaskDTO task, boolean dryRun) {
-        ServiceApprovalCreateJobPlanRequest request = new ServiceApprovalCreateJobPlanRequest();
-        request.setRequest(params);
-        request.setOperator(task.getCreator());
-        request.setAppCode(task.getAppCode());
-        request.setDryRun(dryRun);
-        return unwrap(approvalJobPlanResource.createJobPlan(request));
+        EsbV4Response<OpenApiV4JobPlanDTO> response = jobPlanV4Resource.createJobPlan(
+            task.getCreator(), task.getAppCode(), dryRun, params);
+        return unwrap(response, dryRun);
     }
 }

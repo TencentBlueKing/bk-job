@@ -28,7 +28,7 @@ import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.audit.context.AuditContext;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
-import com.tencent.bk.job.common.api.model.ResolvedSummary;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.audit.JobAuditAttributeNames;
 import com.tencent.bk.job.common.audit.JobAuditExtendDataKeys;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;

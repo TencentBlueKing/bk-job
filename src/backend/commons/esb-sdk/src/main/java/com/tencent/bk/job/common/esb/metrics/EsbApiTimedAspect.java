@@ -35,11 +35,13 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 
@@ -78,9 +80,28 @@ public class EsbApiTimedAspect {
         Tags tags = Tags.of("app_code", StringUtils.isNotBlank(appCode) ? appCode : "None");
 
         Method method = ((MethodSignature) pjp.getSignature()).getMethod();
+        // 预检也是一次真实的 API 调用，计入调用量；但它不产生任何写操作，须能与正式调用分开看
+        tags = tags.and("dry_run", String.valueOf(isDryRun(method, pjp.getArgs(), request)));
         EsbApiTimed timed = method.getAnnotation(EsbApiTimed.class);
         final String metricName = timed.value();
         return processWithTimer(pjp, timed, metricName, tags);
+    }
+
+    /**
+     * 轻量化部署下服务间调用会退化为本地方法直调，此时线程上绑定的仍是最外层那次请求，
+     * 从中读不到调用方为本次调用设置的预检标识，只有方法参数才是准确的。
+     */
+    private boolean isDryRun(Method method, Object[] args, HttpServletRequest request) {
+        Annotation[][] paramAnnotations = method.getParameterAnnotations();
+        for (int i = 0; i < paramAnnotations.length && i < args.length; i++) {
+            for (Annotation annotation : paramAnnotations[i]) {
+                if (annotation instanceof RequestHeader
+                    && JobCommonHeaders.BK_JOB_DRY_RUN.equals(((RequestHeader) annotation).value())) {
+                    return Boolean.TRUE.equals(args[i]);
+                }
+            }
+        }
+        return Boolean.parseBoolean(request.getHeader(JobCommonHeaders.BK_JOB_DRY_RUN));
     }
 
     private Object processWithTimer(ProceedingJoinPoint pjp, EsbApiTimed timed, String metricName,

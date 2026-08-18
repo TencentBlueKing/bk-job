@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.api.model;
+package com.tencent.bk.job.common.model;
 
 import lombok.Data;
 
@@ -36,9 +36,8 @@ import java.util.List;
  * 内容不足会直接导致盲签。因此它记录的是<b>解析后的实际影响面</b>（实际目标机、账号别名、脚本版本、
  * 高危命中），而不是用户原始入参里的动态分组 ID 之类的间接引用。
  * <p>
- * 由各下游服务在 dryRun 返回点之后填充，随 {@link DryRunResult#getResolvedSummary()} 回传，
- * 由 job-analysis 一次性序列化进 approval_task.resolved_summary，取单时直接读库渲染，
- * 不必每次取单都重跑执行对象解析。
+ * 由各下游服务在 dryRun 返回点之后填充并随响应回传，由 job-analysis 一次性序列化进
+ * approval_task.resolved_summary，取单时直接读库渲染，不必每次取单都重跑执行对象解析。
  */
 @Data
 public class ResolvedSummary {

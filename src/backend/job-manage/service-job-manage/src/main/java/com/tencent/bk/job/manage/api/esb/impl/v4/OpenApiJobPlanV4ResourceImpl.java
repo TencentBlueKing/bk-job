@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -39,6 +40,8 @@ import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.service.plan.V4JobPlanCreateService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -60,11 +63,28 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v4_create_job_plan"})
     public EsbV4Response<OpenApiV4JobPlanDTO> createJobPlan(String username,
                                                         String appCode,
+                                                        Boolean dryRun,
                                                         @AuditRequestBody V4CreateJobPlanRequest request) {
         User user = JobContextUtil.getUser();
-        // 直接创建，不是预检
-        TaskPlanInfoDTO savedPlan = jobPlanCreateService.createJobPlan(user, request, false);
-        return EsbV4Response.success(toOpenApiV4JobPlanDTO(request.getAppId(), username, savedPlan));
+        boolean isDryRun = Boolean.TRUE.equals(dryRun);
+        TaskPlanInfoDTO plan = jobPlanCreateService.createJobPlan(user, request, isDryRun);
+        if (isDryRun) {
+            return EsbV4Response.dryRunSuccess(buildSummary(plan));
+        }
+        return EsbV4Response.success(toOpenApiV4JobPlanDTO(request.getAppId(), username, plan));
+    }
+
+    private ResolvedSummary buildSummary(TaskPlanInfoDTO plan) {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setName(plan.getName());
+        summary.addField("job_template_id", String.valueOf(plan.getTemplateId()));
+        if (CollectionUtils.isNotEmpty(plan.getEnableStepList())) {
+            summary.addField("enable_steps", StringUtils.join(plan.getEnableStepList(), ","));
+        }
+        if (CollectionUtils.isNotEmpty(plan.getVariableList())) {
+            summary.addField("variable_count", String.valueOf(plan.getVariableList().size()));
+        }
+        return summary;
     }
 
     private OpenApiV4JobPlanDTO toOpenApiV4JobPlanDTO(Long appId, String username, TaskPlanInfoDTO savedPlan) {

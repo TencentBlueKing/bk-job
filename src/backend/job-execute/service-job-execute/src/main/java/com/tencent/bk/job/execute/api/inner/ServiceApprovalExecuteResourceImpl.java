@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.api.model.DryRunResult;
-import com.tencent.bk.job.common.api.model.ResolvedSummary;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.api.util.DryRunResultUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -42,16 +42,13 @@ import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteJobPlanRequest;
-import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastTransferFileRequest;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
 import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalExecuteJobPlanRequest;
-import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastTransferFileRequest;
 import com.tencent.bk.job.execute.service.ResolvedSummaryBuilder;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.execute.service.V4ExecuteJobPlanRequestConverter;
-import com.tencent.bk.job.execute.service.V4FastExecuteScriptRequestConverter;
 import com.tencent.bk.job.execute.service.V4FastTransferFileRequestConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -89,30 +86,6 @@ public class ServiceApprovalExecuteResourceImpl implements ServiceApprovalExecut
         this.appScopeMappingService = appScopeMappingService;
         this.tenantService = tenantService;
         this.validator = validator;
-    }
-
-    @Override
-    public InternalResponse<DryRunResult<V4JobExecuteDTO>> fastExecuteScript(
-        ServiceApprovalFastExecuteScriptRequest request) {
-
-        log.info("Approval fast execute script, operator: {}, dryRun: {}", request.getOperator(), request.isDryRun());
-        V4FastExecuteScriptRequest v4Request = request.getRequest();
-        DryRunResult<V4JobExecuteDTO> paramCheckResult = checkWrapper(v4Request, request.getOperator());
-        if (paramCheckResult != null) {
-            return InternalResponse.buildSuccessResp(paramCheckResult);
-        }
-        return InternalResponse.buildSuccessResp(DryRunResultUtil.call(v4Request, validator, () -> {
-            User operator = prepareOperator(v4Request, request.getOperator());
-            FastTaskDTO fastTask = V4FastExecuteScriptRequestConverter.convert(
-                v4Request, operator, request.getAppCode(), request.isDryRun());
-            TaskInstanceDTO taskInstance = taskExecuteService.executeFastTask(fastTask);
-            if (!request.isDryRun()) {
-                return DryRunResult.valid(null, buildFastTaskResult(fastTask));
-            }
-            ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
-            fillTimeoutDefault(summary, v4Request.getTimeout());
-            return DryRunResult.valid(summary, null);
-        }));
     }
 
     @Override

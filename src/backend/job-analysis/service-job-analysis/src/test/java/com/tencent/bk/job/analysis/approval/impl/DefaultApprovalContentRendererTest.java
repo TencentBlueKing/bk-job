@@ -29,7 +29,7 @@ import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalRiskLevelEnum;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
-import com.tencent.bk.job.common.api.model.ResolvedSummary;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BasicApp;

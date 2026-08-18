@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.api.model.DryRunResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
 import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalExecuteJobPlanRequest;
-import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastTransferFileRequest;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,13 +48,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @SmartFeignClient(value = "job-execute", contextId = "approvalExecuteResource")
 @InternalAPI
 public interface ServiceApprovalExecuteResource {
-
-    /**
-     * 预检或执行快速执行脚本
-     */
-    @PostMapping("/service/execution/approval/fast-execute-script")
-    InternalResponse<DryRunResult<V4JobExecuteDTO>> fastExecuteScript(
-        @RequestBody ServiceApprovalFastExecuteScriptRequest request);
 
     /**
      * 预检或执行分发文件

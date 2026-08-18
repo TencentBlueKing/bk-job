@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.api.model;
 
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import lombok.Data;
 
 /**

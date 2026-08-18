@@ -42,7 +42,7 @@ import com.tencent.bk.job.analysis.config.ApprovalProperties;
 import com.tencent.bk.job.analysis.dao.ApprovalTaskDAO;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.common.api.model.DryRunResult;
-import com.tencent.bk.job.common.api.model.ResolvedSummary;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -53,9 +53,8 @@ import com.tencent.bk.job.crontab.model.inner.request.ServiceApprovalSaveCronReq
 import com.tencent.bk.job.crontab.model.inner.request.ServiceApprovalUpdateCronStatusRequest;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalExecuteJobPlanRequest;
-import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastTransferFileRequest;
-import com.tencent.bk.job.manage.model.inner.request.ServiceApprovalCreateJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -489,31 +488,52 @@ class ApprovalTaskServiceImplTest {
     class StructuralConstraintTest {
 
         /**
-         * 放行时"不得 skipAuth"这条性质由结构保证而非运行期断言：审批路径专用的 6 个 inner 请求体
-         * 里根本没有 skipAuth / cronTaskId 字段，因此调用方无从传入。
+         * 放行时"不得 skipAuth"这条性质由结构保证而非运行期断言：审批下发用的请求体里根本没有
+         * skipAuth / cronTaskId 字段，因此调用方无从传入。
          * 一旦有人为了"复用"给它们加上这两个字段，本用例立刻失败。
          */
         @Test
-        @DisplayName("审批专用 inner 请求体不含 skipAuth / cronTaskId 字段")
-        void givenApprovalInnerRequestsThenNoSkipAuthField() {
+        @DisplayName("审批下发用的请求体不含 skipAuth / cronTaskId 字段")
+        void givenApprovalRequestsThenNoSkipAuthField() {
             List<Class<?>> requestClasses = Arrays.asList(
-                ServiceApprovalFastExecuteScriptRequest.class,
                 ServiceApprovalFastTransferFileRequest.class,
                 ServiceApprovalExecuteJobPlanRequest.class,
-                ServiceApprovalCreateJobPlanRequest.class,
                 ServiceApprovalSaveCronRequest.class,
                 ServiceApprovalUpdateCronStatusRequest.class
             );
             for (Class<?> requestClass : requestClasses) {
-                List<String> fieldNames = new ArrayList<>();
-                for (Field field : requestClass.getDeclaredFields()) {
-                    fieldNames.add(field.getName());
-                }
+                List<String> fieldNames = declaredFieldNames(requestClass);
                 assertThat(fieldNames)
                     .as("%s 不得出现 skipAuth / cronTaskId", requestClass.getSimpleName())
                     .doesNotContain("skipAuth", "cronTaskId");
                 assertThat(fieldNames).contains("dryRun", "operator");
             }
+        }
+
+        /**
+         * 已改走 OpenAPI 的操作没有 inner 包装体，同一条性质落在对外请求体上：
+         * 它们是公开契约，本就不该出现这两个内部字段，出现即意味着内部开关被暴露给了外部调用方
+         */
+        @Test
+        @DisplayName("改走 OpenAPI 的操作，其对外请求体同样不含 skipAuth / cronTaskId 字段")
+        void givenOpenApiRequestsThenNoSkipAuthField() {
+            List<Class<?>> requestClasses = Arrays.asList(
+                V4FastExecuteScriptRequest.class,
+                V4CreateJobPlanRequest.class
+            );
+            for (Class<?> requestClass : requestClasses) {
+                assertThat(declaredFieldNames(requestClass))
+                    .as("%s 不得出现 skipAuth / cronTaskId", requestClass.getSimpleName())
+                    .doesNotContain("skipAuth", "cronTaskId");
+            }
+        }
+
+        private List<String> declaredFieldNames(Class<?> clazz) {
+            List<String> fieldNames = new ArrayList<>();
+            for (Field field : clazz.getDeclaredFields()) {
+                fieldNames.add(field.getName());
+            }
+            return fieldNames;
         }
 
         @Test

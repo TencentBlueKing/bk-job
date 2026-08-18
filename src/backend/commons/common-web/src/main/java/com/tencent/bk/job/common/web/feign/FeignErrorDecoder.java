@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.esb.exception.OpenApiPropagatedException;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
@@ -63,12 +65,34 @@ public class FeignErrorDecoder extends ErrorDecoder.Default {
                     if (serviceResponse != null && serviceResponse.getCode() != null) {
                         return decodeErrorCode(feignException, serviceResponse);
                     }
+                    Exception openApiException = decodeOpenApiError(feignException, responseBody);
+                    if (openApiException != null) {
+                        return openApiException;
+                    }
                 }
             }
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
         }
         return exception;
+    }
+
+    /**
+     * 下游 OpenAPI（{@link EsbV4Response}）的错误体，原样包成异常带回，由上层的 OpenAPI 异常处理器直接回吐。
+     * <p>
+     * 这里刻意不走 {@link #decodeErrorCode} 那套“内部错误一律降级为 InternalException”的逻辑：
+     * 服务间调用下游 OpenAPI 时，错的往往是最上层调用方填的参数，把它降级成“内部错误”等于把用户能改的问题
+     * 说成系统故障。
+     *
+     * @return 响应体不是 OpenAPI 错误体时返回 null，交回原有分支处理
+     */
+    private Exception decodeOpenApiError(FeignException exception, String responseBody) {
+        EsbV4Response<?> openApiResponse = JsonUtils.fromJson(responseBody, EsbV4Response.class);
+        if (openApiResponse == null || openApiResponse.getError() == null
+            || StringUtils.isEmpty(openApiResponse.getError().getCode())) {
+            return null;
+        }
+        return new OpenApiPropagatedException(openApiResponse.getError(), exception.status(), exception);
     }
 
     private Exception decodeErrorCode(FeignException exception, InternalResponse<?> response) {
