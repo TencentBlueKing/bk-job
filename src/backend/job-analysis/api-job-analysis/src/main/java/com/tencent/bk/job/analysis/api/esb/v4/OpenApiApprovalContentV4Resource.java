@@ -43,6 +43,12 @@ import jakarta.validation.constraints.NotBlank;
  * <b>服务端路径不含 {@code system} 段</b>：网关谓词 {@code /api/job/v4/job-analysis/{api_name}} 的
  * {@code api_name} 是单段变量、不跨 {@code /}。网关侧本资源登记为
  * {@code /api/v4/system/get_approval_content}，且不登记同名的用户态资源。
+ * <p>
+ * <b>网关上本资源是应用态（{@code X-Bk-Job-Api-Type: app}、{@code userVerifiedRequired: false}）</b>，
+ * 因此 {@code X-Username} 只是调用方自行填写、由 job-gateway 透传下来的值，并非网关认证过的用户身份。
+ * 它仍然参与"必须是任务发起人"的校验，可信度建立在"资源公开但不可自助申请权限、appCode 必须命中渠道
+ * 白名单"之上——即信任被授权的渠道会如实传入当前审批人。租户随该用户一并落到调用上下文，
+ * 与其他接口一致，不作为本接口的参数。
  */
 @RequestMapping("/esb/api/v4")
 @EsbV4API
@@ -51,8 +57,8 @@ import jakarta.validation.constraints.NotBlank;
 public interface OpenApiApprovalContentV4Resource {
 
     /**
-     * 取审批内容：调用方必须是该任务指派渠道的应用，且 username 必须是任务发起人本人。
-     * 内容里含脚本明文，任一不符都按"任务不存在"返回
+     * 取审批内容：调用方 appCode 必须属于该任务指派渠道配置的应用集合，租户必须与任务一致，
+     * 且 username 必须是任务发起人本人。内容里含脚本明文，任一不符都按"任务不存在"返回
      */
     @GetMapping("/get_approval_content")
     EsbV4Response<V4ApprovalContentDTO> getApprovalContent(

@@ -35,9 +35,11 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -121,17 +123,28 @@ public class ApprovalChannelRegistry {
     }
 
     /**
-     * 取该渠道调用作业平台时使用的内置 appCode，未配置时返回空串。
+     * 取该渠道调用作业平台时使用的内置 appCode 集合，配置为英文逗号分隔的多值。
      * <p>
-     * 取内容接口据此判断"调用方正是该任务指派的渠道"。<b>未配置一律视为不匹配</b>，
-     * 放开校验会让任何有网关权限的应用读到别人的审批内容（含脚本明文）。
+     * 取内容接口据此判断"调用方属于该任务指派渠道的应用"。<b>未配置或解析后为空集合一律返回空集合、
+     * 即一律视为不匹配</b>，放开校验会让任何有网关权限的应用读到别人的审批内容（含脚本明文）。
+     * 空项被忽略，因此空串 appCode 永远不会命中。
      */
-    public String getChannelAppCode(String channelName) {
+    public Set<String> getChannelAppCodes(String channelName) {
         ApprovalChannelEnum channelEnum = ApprovalChannelEnum.valOf(channelName);
         if (channelEnum == ApprovalChannelEnum.IMATE) {
-            return StringUtils.defaultString(approvalProperties.getChannels().getImate().getAppCode());
+            return parseAppCodes(approvalProperties.getChannels().getImate().getAppCode());
         }
-        return StringUtils.EMPTY;
+        return Collections.emptySet();
+    }
+
+    private Set<String> parseAppCodes(String configuredAppCodes) {
+        if (StringUtils.isBlank(configuredAppCodes)) {
+            return Collections.emptySet();
+        }
+        return Arrays.stream(StringUtils.split(configuredAppCodes, ','))
+            .map(StringUtils::trim)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toSet());
     }
 
     /**

@@ -60,6 +60,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -266,9 +267,14 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     }
 
     /**
-     * 取内容方必须同时是该任务的租户、发起人本人、以及任务指派渠道对应的应用。
+     * 取内容方必须同时是该任务的租户、发起人本人、以及任务指派渠道对应的应用之一。
      * <p>
      * 内容里有脚本明文，任一不符都按"任务不存在"处理，不区分"不存在"与"无权访问"。
+     * <p>
+     * <b>本接口在网关上登记为应用态，网关不认证用户身份</b>：这里比对的 username 是调用方自行填写的
+     * 值，其可信度来自"调用方 appCode 必须命中该渠道配置的白名单、且该资源不可自助申请权限"，
+     * 即<b>信任被授权的渠道会如实传入当前审批人</b>，而不是来自网关的用户认证。因此 appCode 这条
+     * 校验是整条链的信任根，未配置一律不匹配（见 {@link ApprovalChannelRegistry#getChannelAppCodes}）。
      */
     private boolean isAssignedChannelCaller(ApprovalTaskDTO task, ApprovalCallerContext caller) {
         if (!Objects.equals(task.getTenantId(), caller.getTenantId())) {
@@ -280,9 +286,10 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
                 task.getApprovalTaskId());
             return false;
         }
-        String channelAppCode = channelRegistry.getChannelAppCode(task.getApprovalChannel());
-        if (StringUtils.isBlank(channelAppCode) || !channelAppCode.equals(caller.getAppCode())) {
-            log.warn("Get approval content rejected: appCode {} is not the assigned channel {} of task {}",
+        Set<String> channelAppCodes = channelRegistry.getChannelAppCodes(task.getApprovalChannel());
+        if (!channelAppCodes.contains(caller.getAppCode())) {
+            log.warn("Get approval content rejected: appCode {} is not one of the assigned channel {} apps "
+                    + "of task {}",
                 caller.getAppCode(), task.getApprovalChannel(), task.getApprovalTaskId());
             return false;
         }

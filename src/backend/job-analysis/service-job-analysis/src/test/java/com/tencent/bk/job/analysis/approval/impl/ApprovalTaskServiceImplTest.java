@@ -67,6 +67,8 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -127,7 +129,7 @@ class ApprovalTaskServiceImplTest {
 
         when(channelRegistry.getChannelByName(anyString())).thenReturn(approvalChannel);
         when(channelRegistry.getChannel(any())).thenReturn(approvalChannel);
-        when(channelRegistry.getChannelAppCode(anyString())).thenReturn(CHANNEL_APP_CODE);
+        when(channelRegistry.getChannelAppCodes(anyString())).thenReturn(Collections.singleton(CHANNEL_APP_CODE));
         // getExecutor 返回带通配符的泛型，用 doReturn 绕开捕获类型不可赋值的限制
         doReturn(executor).when(executorRegistry).getExecutor(any());
 
@@ -600,9 +602,38 @@ class ApprovalTaskServiceImplTest {
         @DisplayName("渠道未配置 appCode 时不得放过任何调用方")
         void givenChannelAppCodeNotConfiguredThenNotFound() {
             when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(buildPendingTask());
-            when(channelRegistry.getChannelAppCode(anyString())).thenReturn("");
+            when(channelRegistry.getChannelAppCodes(anyString())).thenReturn(Collections.emptySet());
             ApprovalCallerContext caller = ApprovalCallerContext.builder()
                 .tenantId(TENANT_ID).username(CREATOR).appCode("").build();
+
+            assertThatThrownBy(() -> approvalTaskService.getApprovalContent(TASK_ID, caller))
+                .isInstanceOf(NotFoundException.class);
+            verify(contentRenderer, never()).render(any());
+        }
+
+        @Test
+        @DisplayName("渠道配置多个 appCode 时命中其中任意一个即可取到内容")
+        void givenCallerAppCodeMatchesOneOfConfiguredThenReturnContent() {
+            ApprovalTaskDTO task = buildPendingTask();
+            ApprovalContent rendered = new ApprovalContent();
+            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(task);
+            when(contentRenderer.render(task)).thenReturn(rendered);
+            when(channelRegistry.getChannelAppCodes(anyString()))
+                .thenReturn(new HashSet<>(Arrays.asList("other_app", CHANNEL_APP_CODE)));
+            ApprovalCallerContext caller = ApprovalCallerContext.builder()
+                .tenantId(TENANT_ID).username(CREATOR).appCode(CHANNEL_APP_CODE).build();
+
+            assertThat(approvalTaskService.getApprovalContent(TASK_ID, caller)).isSameAs(rendered);
+        }
+
+        @Test
+        @DisplayName("调用方 appCode 不在渠道配置的多个 appCode 中时按任务不存在处理")
+        void givenCallerAppCodeNotInConfiguredThenNotFound() {
+            when(approvalTaskDAO.getByApprovalTaskId(TASK_ID)).thenReturn(buildPendingTask());
+            when(channelRegistry.getChannelAppCodes(anyString()))
+                .thenReturn(new HashSet<>(Arrays.asList("app_a", "app_b")));
+            ApprovalCallerContext caller = ApprovalCallerContext.builder()
+                .tenantId(TENANT_ID).username(CREATOR).appCode("app_c").build();
 
             assertThatThrownBy(() -> approvalTaskService.getApprovalContent(TASK_ID, caller))
                 .isInstanceOf(NotFoundException.class);

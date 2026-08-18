@@ -9883,8 +9883,14 @@ paths:
           type: string
         required: true
         description: 审批任务ID，由发起审批的接口返回并由调用方交给审批渠道
+      - in: header
+        name: X-Bk-Username
+        schema:
+          type: string
+        required: true
+        description: 取内容时的用户，必须传当前审批人
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -9899,10 +9905,10 @@ paths:
             yaml: |-
               set:
                 - key: X-Bk-Job-Api-Type
-                  value: 'user'
+                  value: 'app'
               remove: []
         authConfig:
-          userVerifiedRequired: true
+          userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Get approval content

@@ -88,7 +88,8 @@ public class ApprovalProperties {
         private String url;
 
         /**
-         * 该渠道取单时使用的 appCode。取单接口据此校验"调用方正是该任务指派的渠道"
+         * 该渠道取内容时使用的 appCode，多个用英文逗号分隔。取内容接口据此校验
+         * "调用方属于该任务指派渠道的应用集合"。未配置或解析后为空集合一律视为不匹配
          */
         private String appCode;
 

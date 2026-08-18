@@ -1,20 +1,26 @@
 ### Description
 
-Fetch the approval content of an approval task, so that the **approval channel** can create a ticket and present it to the approver.
+Fetch the approval content of an approval task, so that the **approval channel** can create a ticket and present it to the approver. This is an **application-authenticated API**.
 
 Caller restrictions (any mismatch is reported as "approval task does not exist", without distinguishing "does not exist" from "no permission"):
 
-- The caller must be **the application of the approval channel assigned to the task** (the channel appCode must strictly equal the one recorded on the task);
-- The calling user must be **the creator of the approval task**;
-- The tenant of the calling user must match the tenant of the approval task.
+- The caller must be **the application of the approval channel assigned to the task**;
+- The user passed in the `X-Bk-Username` header must be **the creator of the approval task**;
+- The tenant that user belongs to must match the tenant of the approval task.
 
-The restriction down to the creator is needed because the approval content contains plaintext script content, and application-level authorization alone cannot prevent other people from reading it.
+The channel must therefore fetch the content as **the current approver** and must not always pass a fixed account. This API **does not accept self-service permission applications** and can only be called after being granted by the Job platform administrator.
 
 The approval content `approval_content` is **Markdown already rendered by the Job platform**, so the channel can present it directly without assembling anything. The body contains, in order, a level-one title, a summary table, a detail table for every execution step, the script content code block and the raw parameters JSON code block. The title, the creator and the risk level are all rendered into it, so the response no longer carries separate structured fields. The summary lists the **resolved actual impact** (the real target host list, the execution account, the defaults that took effect, and so on), so that the approver can see exactly "what will be executed on which machines". The value of a sensitive field is only a placeholder and never carries the real value. **Script content is the single exception and is shown as is**, otherwise the approver has no way to assess the risk.
 
 {% include '_generic_v4_approval_flow.md.j2' %}
 
 ### Request Parameters
+
+#### Header Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| X-Bk-Username | string | Yes | The user fetching the content. Must be the current approver |
 
 #### Query Parameters
 
