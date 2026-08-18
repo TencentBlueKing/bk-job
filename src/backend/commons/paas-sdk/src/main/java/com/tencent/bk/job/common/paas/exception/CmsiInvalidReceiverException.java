@@ -25,17 +25,19 @@
 package com.tencent.bk.job.common.paas.exception;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.Getter;
 
 import java.util.List;
 
 /**
  * 通知渠道侧判定消息接收人无效（如已离职）导致发送失败。
- * 属于预期内的业务结果而非系统故障，调用方无需重试，也不应按错误上报。
+ * 属于接收人参数问题而非服务故障，因此不归入 PaasException，
+ * 否则同步调用链上会被全局异常处理器按兜底的 ServiceException 打出 ERROR 日志。
+ * 调用方无需重试。
  */
 @Getter
-public class CmsiInvalidReceiverException extends PaasException {
+public class CmsiInvalidReceiverException extends InvalidParamException {
 
     /**
      * 通知渠道类型
@@ -49,7 +51,6 @@ public class CmsiInvalidReceiverException extends PaasException {
 
     public CmsiInvalidReceiverException(String msgType, List<String> invalidReceivers) {
         super(
-            ErrorType.INVALID_PARAM,
             ErrorCode.CMSI_NO_VALID_RECEIVER,
             new Object[]{String.join(",", invalidReceivers)}
         );

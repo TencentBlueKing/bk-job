@@ -169,7 +169,7 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
                         resp.getError().getMessage()
                     });
             }
-        } catch (PaasException e) {
+        } catch (CmsiInvalidReceiverException | PaasException e) {
             throw e;
         } catch (Exception e) {
             CmsiInvalidReceiverException invalidReceiverException = tryConvertToInvalidReceiverException(e, msgType);
