@@ -5,7 +5,7 @@
 1. 调用方调用发起接口。作业平台对参数做一次完整预检（权限、目标解析、高危规则等），预检通过后返回 `approval_task_id`；此时操作**尚未执行**。
 2. 调用方把 `approval_task_id` 交给审批渠道，由渠道创建审批单据。
 3. 审批渠道凭 `approval_task_id` 调用 `/api/v4/system/get_approval_content`，取回审批内容并展示给审批人。
-4. 审批人在渠道内完成审批后，调用方用 `approval_task_id` 与渠道单据 ID `approval_ticket_id` 调用 `/api/v4/refresh_approval_task` 推进任务。
+4. 审批人在渠道内完成审批后，调用方用 `approval_task_id` 与渠道单据 ID `approval_ticket_id` 调用 `/api/v4/refresh_approval_task` 推进任务；IMate 渠道没有独立的单据 ID，两者传相同的值即可。
 5. 作业平台**自行向审批渠道回查审批结论**：通过则执行原操作，并把执行结果放在 `execute_result` 中返回；被驳回则任务转为 `REJECTED`。
 
 流程中的硬性约束：

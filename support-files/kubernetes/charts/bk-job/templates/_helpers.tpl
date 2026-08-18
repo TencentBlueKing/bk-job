@@ -901,6 +901,10 @@ approval:
     imate:
       url: {{ .Values.analysisConfig.approval.channels.imate.url | quote }}
       appCode: {{ .Values.analysisConfig.approval.channels.imate.appCode | quote }}
+      openApi:
+        # IMate 颁发给作业平台的凭证，回查审批结论时以 x-app-id / x-secret 发出，与蓝鲸凭证无关
+        appId: {{ .Values.analysisConfig.approval.channels.imate.openApi.appId | quote }}
+        secret: {{ .Values.analysisConfig.approval.channels.imate.openApi.secret | quote }}
       mock:
         # 该开关决定 Mock 渠道 Bean 是否注册，只能在启动前就位，改动后必须重启
         enabled: {{ .Values.analysisConfig.approval.channels.imate.mock.enabled }}

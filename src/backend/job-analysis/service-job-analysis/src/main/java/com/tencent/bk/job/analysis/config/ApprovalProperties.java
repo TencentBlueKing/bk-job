@@ -83,7 +83,7 @@ public class ApprovalProperties {
     public static class ImateConfig {
 
         /**
-         * 渠道服务地址
+         * 渠道开放接口的根地址，回查审批结论时使用
          */
         private String url;
 
@@ -93,7 +93,37 @@ public class ApprovalProperties {
          */
         private String appCode;
 
+        private OpenApiConfig openApi = new OpenApiConfig();
+
         private MockConfig mock = new MockConfig();
+    }
+
+    /**
+     * 回查 IMate 审批结论时使用的凭证。
+     * <p>
+     * <b>这里是 IMate 自己颁发的凭证，与蓝鲸的 app_code / app_secret 是两套东西，不可混用</b>：
+     * <ul>
+     *     <li>出站（作业平台回查 IMate）：用本节点的 {@link #appId} / {@link #secret}，
+     *     以 {@code x-app-id} / {@code x-secret} 请求头发出；</li>
+     *     <li>入站（IMate 来取审批内容）：校验的是 {@link ImateConfig#appCode} 里的<b>蓝鲸 appCode</b>。</li>
+     * </ul>
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class OpenApiConfig {
+
+        /**
+         * IMate 侧为作业平台分配的应用 ID
+         */
+        private String appId;
+
+        /**
+         * IMate 侧为作业平台分配的应用密钥。
+         * <b>排除出 toString</b>：配置对象被整体打印时不应带出密钥
+         */
+        @ToString.Exclude
+        private String secret;
     }
 
     /**

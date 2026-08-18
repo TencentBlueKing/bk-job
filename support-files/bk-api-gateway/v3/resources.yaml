@@ -9681,7 +9681,7 @@ paths:
                   description: 审批任务ID，由发起审批的接口返回
                 approval_ticket_id:
                   type: string
-                  description: 审批渠道的单据ID。仅用于让作业平台回查审批结论，不代表任何审批结论；一旦与任务绑定即不可更换
+                  description: 审批渠道的单据ID。仅用于让作业平台回查审批结论，不代表任何审批结论；一旦与任务绑定即不可更换。IMate渠道以审批任务ID唯一标识审批单、没有独立的单据ID，请传与approval_task_id相同的值
         required: true
         description: 请求体只有两个ID。审批结论只能由作业平台自己回查审批渠道得出，因此本接口不接受任何审批结论字段（无状态、审批人、审批时间、审批意见等字段），多传的字段会被忽略
       x-bk-apigateway-resource:
