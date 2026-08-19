@@ -321,12 +321,22 @@ public class JobContextUtil {
     }
 
     public static String getTenantId() {
-        JobContext jobContext = JobContextThreadLocal.get();
-        String tenantId = jobContext == null ? null : jobContext.getTenantId();
+        String tenantId = findTenantId();
         if (tenantId == null) {
             log.warn("tenantId is null in JobContext: {}", StackTraceUtil.getCurrentStackTrace());
         }
         return tenantId;
+    }
+
+    /**
+     * 获取当前上下文中的租户，取不到时返回 null 且不告警。
+     * <p>
+     * 供后台线程、服务间调用透传等<b>本就可能没有租户上下文</b>的场景使用，这些场景下用
+     * {@link #getTenantId()} 会打出大量无效告警。要求租户必须存在的业务逻辑仍应使用 {@link #getTenantId()}。
+     */
+    public static String findTenantId() {
+        JobContext jobContext = JobContextThreadLocal.get();
+        return jobContext == null ? null : jobContext.getTenantId();
     }
 
     public static User getUser() {
