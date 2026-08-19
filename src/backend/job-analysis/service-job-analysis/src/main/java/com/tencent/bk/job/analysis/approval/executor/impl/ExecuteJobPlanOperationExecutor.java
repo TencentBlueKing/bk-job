@@ -28,26 +28,27 @@ import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.executor.AbstractOperationExecutor;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.common.api.model.DryRunResult;
-import com.tencent.bk.job.execute.api.inner.ServiceApprovalExecuteResource;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import com.tencent.bk.job.execute.api.esb.v4.OpenApiExecuteJobPlanV4Resource;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteJobPlanRequest;
-import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalExecuteJobPlanRequest;
+import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
 import org.springframework.stereotype.Component;
 
 /**
- * 启动执行方案的出站分发。
+ * 启动执行方案的出站分发。预检与放行都直接复用对外的 OpenAPI，不再另立一套内部执行接口。
  * <p>
- * 走的是新增的 ServiceApprovalExecuteResource.executeJobPlan，该入口把 cronTaskId 固化为 null，
- * 而下游 buildExecuteParam 把 skipAuth 收窄为 {@code cronTaskId != null && skipAuth}，
- * 因此<b>审批路径在结构上就拿不到 skipAuth</b>。这比在共享入口里加断言牢固 ——
- * 不要为了"复用"改回 ServiceExecuteTaskResource.executeTask，那会把这层结构性保证拆掉。
+ * 下游 V4ExecuteJobPlanRequestConverter 把 cronTaskId 固化为 null，而执行链路把 skipAuth 收窄为
+ * {@code cronTaskId != null && skipAuth}，因此<b>审批路径在结构上就拿不到 skipAuth</b>；
+ * 转换器里的 assertDryRunNotSkipAuth 再兜一道。不要为了"复用"改走能传 cronTaskId 的入口，
+ * 那会把这层结构性保证拆掉。
  */
 @Component
 public class ExecuteJobPlanOperationExecutor extends AbstractOperationExecutor<V4ExecuteJobPlanRequest> {
 
-    private final ServiceApprovalExecuteResource approvalExecuteResource;
+    private final OpenApiExecuteJobPlanV4Resource executeJobPlanResource;
 
-    public ExecuteJobPlanOperationExecutor(ServiceApprovalExecuteResource approvalExecuteResource) {
-        this.approvalExecuteResource = approvalExecuteResource;
+    public ExecuteJobPlanOperationExecutor(OpenApiExecuteJobPlanV4Resource executeJobPlanResource) {
+        this.executeJobPlanResource = executeJobPlanResource;
     }
 
     @Override
@@ -60,13 +61,17 @@ public class ExecuteJobPlanOperationExecutor extends AbstractOperationExecutor<V
         return V4ExecuteJobPlanRequest.class;
     }
 
+    /**
+     * 操作人只能取任务的 creator，且该值只能来自 DB。
+     * <p>
+     * 轻量化部署下 Feign 调用会退化成本地方法调用，请求头不再经过拦截器，下游取到的是<b>本次请求线程上
+     * 已有的操作人</b>；该值等于 creator 由 refresh 的归属校验保证（调用方必须就是任务发起人本人），
+     * 放宽那处校验会同时破坏这里的身份正确性。
+     */
     @Override
     public DryRunResult<?> invoke(V4ExecuteJobPlanRequest params, ApprovalTaskDTO task, boolean dryRun) {
-        ServiceApprovalExecuteJobPlanRequest request = new ServiceApprovalExecuteJobPlanRequest();
-        request.setRequest(params);
-        request.setOperator(task.getCreator());
-        request.setAppCode(task.getAppCode());
-        request.setDryRun(dryRun);
-        return unwrap(approvalExecuteResource.executeJobPlan(request));
+        EsbV4Response<V4JobExecuteDTO> response = executeJobPlanResource.executeJobPlan(
+            task.getCreator(), task.getAppCode(), dryRun, params);
+        return unwrap(response, dryRun);
     }
 }

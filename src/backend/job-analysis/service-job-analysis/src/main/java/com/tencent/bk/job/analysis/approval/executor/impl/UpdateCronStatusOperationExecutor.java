@@ -28,21 +28,22 @@ import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.executor.AbstractOperationExecutor;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.common.api.model.DryRunResult;
-import com.tencent.bk.job.crontab.api.inner.ServiceApprovalCronResource;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import com.tencent.bk.job.crontab.api.esb.v4.OpenApiUpdateCronStatusV4Resource;
 import com.tencent.bk.job.crontab.model.esb.v4.req.V4UpdateCronStatusRequest;
-import com.tencent.bk.job.crontab.model.inner.request.ServiceApprovalUpdateCronStatusRequest;
+import com.tencent.bk.job.crontab.model.esb.v4.resp.V4CronJobDTO;
 import org.springframework.stereotype.Component;
 
 /**
- * 定时任务启停的出站分发
+ * 定时任务启停的出站分发。预检与放行都直接复用对外的 OpenAPI，不再另立一套内部执行接口
  */
 @Component
 public class UpdateCronStatusOperationExecutor extends AbstractOperationExecutor<V4UpdateCronStatusRequest> {
 
-    private final ServiceApprovalCronResource approvalCronResource;
+    private final OpenApiUpdateCronStatusV4Resource updateCronStatusResource;
 
-    public UpdateCronStatusOperationExecutor(ServiceApprovalCronResource approvalCronResource) {
-        this.approvalCronResource = approvalCronResource;
+    public UpdateCronStatusOperationExecutor(OpenApiUpdateCronStatusV4Resource updateCronStatusResource) {
+        this.updateCronStatusResource = updateCronStatusResource;
     }
 
     @Override
@@ -55,13 +56,17 @@ public class UpdateCronStatusOperationExecutor extends AbstractOperationExecutor
         return V4UpdateCronStatusRequest.class;
     }
 
+    /**
+     * 操作人只能取任务的 creator，且该值只能来自 DB。
+     * <p>
+     * 轻量化部署下 Feign 调用会退化成本地方法调用，请求头不再经过拦截器，下游取到的是<b>本次请求线程上
+     * 已有的操作人</b>；该值等于 creator 由 refresh 的归属校验保证（调用方必须就是任务发起人本人），
+     * 放宽那处校验会同时破坏这里的身份正确性。
+     */
     @Override
     public DryRunResult<?> invoke(V4UpdateCronStatusRequest params, ApprovalTaskDTO task, boolean dryRun) {
-        ServiceApprovalUpdateCronStatusRequest request = new ServiceApprovalUpdateCronStatusRequest();
-        request.setRequest(params);
-        request.setOperator(task.getCreator());
-        request.setAppCode(task.getAppCode());
-        request.setDryRun(dryRun);
-        return unwrap(approvalCronResource.updateCronStatus(request));
+        EsbV4Response<V4CronJobDTO> response = updateCronStatusResource.updateCronStatus(
+            task.getCreator(), task.getAppCode(), dryRun, params);
+        return unwrap(response, dryRun);
     }
 }
