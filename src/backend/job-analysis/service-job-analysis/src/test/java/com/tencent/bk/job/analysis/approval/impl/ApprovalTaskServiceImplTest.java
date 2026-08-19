@@ -41,19 +41,19 @@ import com.tencent.bk.job.analysis.approval.model.ApprovalCallerContext;
 import com.tencent.bk.job.analysis.config.ApprovalProperties;
 import com.tencent.bk.job.analysis.dao.ApprovalTaskDAO;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
-import com.tencent.bk.job.common.api.model.DryRunResult;
 import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.crontab.model.inner.request.ServiceApprovalSaveCronRequest;
-import com.tencent.bk.job.crontab.model.inner.request.ServiceApprovalUpdateCronStatusRequest;
+import com.tencent.bk.job.crontab.model.esb.v4.req.V4SaveCronRequest;
+import com.tencent.bk.job.crontab.model.esb.v4.req.V4UpdateCronStatusRequest;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteJobPlanRequest;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
-import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalExecuteJobPlanRequest;
-import com.tencent.bk.job.execute.model.inner.request.ServiceApprovalFastTransferFileRequest;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4FastTransferFileRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -146,7 +146,7 @@ class ApprovalTaskServiceImplTest {
         void givenValidRequestThenPersistEncryptedSnapshot() {
             ResolvedSummary summary = new ResolvedSummary();
             summary.setName("test-script-task");
-            executor.result = DryRunResult.valid(summary, null);
+            executor.result = EsbV4Response.dryRunSuccess(summary);
 
             long before = System.currentTimeMillis();
             ApprovalTaskDTO task = approvalTaskService.create(
@@ -174,7 +174,8 @@ class ApprovalTaskServiceImplTest {
         @Test
         @DisplayName("预检不通过时抛出下游错误且不落库")
         void givenInvalidRequestThenRejectWithoutPersist() {
-            executor.result = DryRunResult.invalid(ErrorCode.SCRIPT_NOT_EXIST, null);
+            // 下游的业务失败一律以异常形态到达，不存在"返回失败结果对象"的路径
+            executor.exceptionToThrow = new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
 
             assertThatThrownBy(() -> approvalTaskService.create(
                 ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildParams(), null, caller()))
@@ -188,7 +189,7 @@ class ApprovalTaskServiceImplTest {
         @Test
         @DisplayName("未指定渠道时使用服务端默认渠道")
         void givenNoChannelThenUseDefaultChannel() {
-            executor.result = DryRunResult.valid(new ResolvedSummary(), null);
+            executor.result = EsbV4Response.dryRunSuccess(new ResolvedSummary());
 
             ApprovalTaskDTO task = approvalTaskService.create(
                 ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildParams(), null, caller());
@@ -209,7 +210,7 @@ class ApprovalTaskServiceImplTest {
             when(approvalTaskDAO.bindTicketIdIfAbsent(TASK_ID, TICKET_ID)).thenReturn(1);
             when(approvalTaskDAO.casConsumeToExecuting(eq(TASK_ID), eq(CREATOR), anyLong(), anyLong(), anyLong()))
                 .thenReturn(1);
-            executor.result = DryRunResult.valid(null, "job-instance-1");
+            executor.result = EsbV4Response.success("job-instance-1");
 
             approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
 
@@ -219,7 +220,7 @@ class ApprovalTaskServiceImplTest {
         @Test
         @DisplayName("发起、驳回、作废都不审计：它们不曾真正改变系统，记下来只会淹没放行事件")
         void givenNotReleasedThenNoAudit() {
-            executor.result = DryRunResult.valid(new ResolvedSummary(), null);
+            executor.result = EsbV4Response.dryRunSuccess(new ResolvedSummary());
             approvalTaskService.create(
                 ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildParams(), ApprovalChannelEnum.IMATE, caller());
 
@@ -250,7 +251,7 @@ class ApprovalTaskServiceImplTest {
             when(approvalTaskDAO.bindTicketIdIfAbsent(TASK_ID, TICKET_ID)).thenReturn(1);
             when(approvalTaskDAO.casConsumeToExecuting(eq(TASK_ID), eq(CREATOR), anyLong(), anyLong(), anyLong()))
                 .thenReturn(1);
-            executor.result = DryRunResult.valid(null, "job-instance-1");
+            executor.result = EsbV4Response.success("job-instance-1");
 
             approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
 
@@ -269,7 +270,7 @@ class ApprovalTaskServiceImplTest {
             when(approvalTaskDAO.bindTicketIdIfAbsent(TASK_ID, TICKET_ID)).thenReturn(1);
             when(approvalTaskDAO.casConsumeToExecuting(eq(TASK_ID), eq(CREATOR), anyLong(), anyLong(), anyLong()))
                 .thenReturn(1, 0);
-            executor.result = DryRunResult.valid(null, "job-instance-1");
+            executor.result = EsbV4Response.success("job-instance-1");
 
             approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
             approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
@@ -425,7 +426,7 @@ class ApprovalTaskServiceImplTest {
             when(approvalTaskDAO.bindTicketIdIfAbsent(TASK_ID, TICKET_ID)).thenReturn(1);
             when(approvalTaskDAO.casConsumeToExecuting(eq(TASK_ID), eq(CREATOR), anyLong(), anyLong(), anyLong()))
                 .thenReturn(1);
-            executor.result = DryRunResult.invalid(ErrorCode.SCRIPT_NOT_EXIST, null);
+            executor.exceptionToThrow = new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
 
             assertThatThrownBy(() -> approvalTaskService.refresh(TASK_ID, TICKET_ID, caller()))
                 .isInstanceOf(ServiceException.class);
@@ -488,38 +489,20 @@ class ApprovalTaskServiceImplTest {
     class StructuralConstraintTest {
 
         /**
-         * 放行时"不得 skipAuth"这条性质由结构保证而非运行期断言：审批下发用的请求体里根本没有
-         * skipAuth / cronTaskId 字段，因此调用方无从传入。
+         * 放行时"不得 skipAuth"这条性质由结构保证而非运行期断言：六个操作全部走对外 OpenAPI，
+         * 而对外请求体是公开契约，本就不该出现这两个内部字段，因此调用方无从传入。
          * 一旦有人为了"复用"给它们加上这两个字段，本用例立刻失败。
          */
         @Test
-        @DisplayName("审批下发用的请求体不含 skipAuth / cronTaskId 字段")
-        void givenApprovalRequestsThenNoSkipAuthField() {
-            List<Class<?>> requestClasses = Arrays.asList(
-                ServiceApprovalFastTransferFileRequest.class,
-                ServiceApprovalExecuteJobPlanRequest.class,
-                ServiceApprovalSaveCronRequest.class,
-                ServiceApprovalUpdateCronStatusRequest.class
-            );
-            for (Class<?> requestClass : requestClasses) {
-                List<String> fieldNames = declaredFieldNames(requestClass);
-                assertThat(fieldNames)
-                    .as("%s 不得出现 skipAuth / cronTaskId", requestClass.getSimpleName())
-                    .doesNotContain("skipAuth", "cronTaskId");
-                assertThat(fieldNames).contains("dryRun", "operator");
-            }
-        }
-
-        /**
-         * 已改走 OpenAPI 的操作没有 inner 包装体，同一条性质落在对外请求体上：
-         * 它们是公开契约，本就不该出现这两个内部字段，出现即意味着内部开关被暴露给了外部调用方
-         */
-        @Test
-        @DisplayName("改走 OpenAPI 的操作，其对外请求体同样不含 skipAuth / cronTaskId 字段")
+        @DisplayName("审批下发用的对外请求体不含 skipAuth / cronTaskId 字段")
         void givenOpenApiRequestsThenNoSkipAuthField() {
             List<Class<?>> requestClasses = Arrays.asList(
                 V4FastExecuteScriptRequest.class,
-                V4CreateJobPlanRequest.class
+                V4FastTransferFileRequest.class,
+                V4ExecuteJobPlanRequest.class,
+                V4CreateJobPlanRequest.class,
+                V4SaveCronRequest.class,
+                V4UpdateCronStatusRequest.class
             );
             for (Class<?> requestClass : requestClasses) {
                 assertThat(declaredFieldNames(requestClass))
@@ -548,7 +531,7 @@ class ApprovalTaskServiceImplTest {
             when(approvalTaskDAO.bindTicketIdIfAbsent(TASK_ID, TICKET_ID)).thenReturn(1);
             when(approvalTaskDAO.casConsumeToExecuting(eq(TASK_ID), eq(CREATOR), anyLong(), anyLong(), anyLong()))
                 .thenReturn(1);
-            executor.result = DryRunResult.valid(null, "job-instance-1");
+            executor.result = EsbV4Response.success("job-instance-1");
 
             approvalTaskService.refresh(TASK_ID, TICKET_ID, caller());
 
@@ -758,7 +741,7 @@ class ApprovalTaskServiceImplTest {
             when(approvalTaskDAO.casConsumeToExecuting(eq(TASK_ID), eq(CREATOR), anyLong(), anyLong(), anyLong()))
                 .thenReturn(1);
             if (executor.exceptionToThrow == null) {
-                executor.result = DryRunResult.valid(null, "job-instance-1");
+                executor.result = EsbV4Response.success("job-instance-1");
             }
         }
 
@@ -854,7 +837,7 @@ class ApprovalTaskServiceImplTest {
         private final List<Boolean> dryRunFlags = new ArrayList<>();
         private final List<String> operators = new ArrayList<>();
         private final List<V4FastExecuteScriptRequest> paramsSeen = new ArrayList<>();
-        private DryRunResult<?> result = DryRunResult.valid(new ResolvedSummary(), null);
+        private EsbV4Response<?> result = EsbV4Response.dryRunSuccess(new ResolvedSummary());
         private RuntimeException exceptionToThrow;
 
         @Override
@@ -868,7 +851,7 @@ class ApprovalTaskServiceImplTest {
         }
 
         @Override
-        public DryRunResult<?> invoke(V4FastExecuteScriptRequest params, ApprovalTaskDTO task, boolean dryRun) {
+        public EsbV4Response<?> invoke(V4FastExecuteScriptRequest params, ApprovalTaskDTO task, boolean dryRun) {
             dryRunFlags.add(dryRun);
             operators.add(task.getCreator());
             paramsSeen.add(params);

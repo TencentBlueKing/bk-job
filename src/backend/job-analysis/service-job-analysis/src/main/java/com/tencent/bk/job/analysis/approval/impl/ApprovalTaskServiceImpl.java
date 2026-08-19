@@ -43,14 +43,14 @@ import com.tencent.bk.job.analysis.approval.model.ApprovalCallerContext;
 import com.tencent.bk.job.analysis.config.ApprovalProperties;
 import com.tencent.bk.job.analysis.dao.ApprovalTaskDAO;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
-import com.tencent.bk.job.common.api.model.DryRunResult;
 import com.tencent.bk.job.common.model.ResolvedSummary;
-import com.tencent.bk.job.common.api.util.DryRunResultUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.exception.OpenApiPropagatedException;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4RespError;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -146,15 +146,10 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         task.setCreateTime(now);
         task.setExpireAt(now + TimeUnit.HOURS.toMillis(resolveTtlHours()));
 
-        // 预检与放行执行走同一个 invoke，只有 dryRun 取值不同
-        DryRunResult<?> dryRunResult = invokeExecutor(executor, params, task, true);
-        if (!dryRunResult.isValid()) {
-            log.info("Create approval task rejected by dry run, operationType: {}, errorCode: {}",
-                operationType, dryRunResult.getErrorCode());
-            throw DryRunResultUtil.toException(dryRunResult);
-        }
+        // 预检与放行执行走同一个 invoke，只有 dryRun 取值不同；下游拒绝会以异常直接向上抛出
+        EsbV4Response<?> dryRunResponse = invokeExecutor(executor, params, task, true);
 
-        ResolvedSummary summary = dryRunResult.getResolvedSummary();
+        ResolvedSummary summary = dryRunResponse.getDryRunSummary();
         if (summary == null) {
             summary = new ResolvedSummary();
         }
@@ -333,10 +328,10 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         // 必须埋在下发之前：下发结果如何都不影响"这一单已被放行"这个事实
         approvalMetrics.recordDispatched(task);
 
-        DryRunResult<?> result;
+        EsbV4Response<?> response;
         try {
             // dryRun=false 正式执行；operator 取 DB 中的 creator，且不得 skipAuth
-            result = invokeExecutor(executor, params, task, false);
+            response = invokeExecutor(executor, params, task, false);
         } catch (Exception e) {
             if (isRejectedBeforeExecute(e)) {
                 // 下游明确的业务失败：确定未执行，落 FAILED 终态，用户需重新发起审批
@@ -350,13 +345,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
             return loadOwnTask(approvalTaskId, caller);
         }
 
-        if (!result.isValid()) {
-            // 下游明确的业务失败：确定未执行，落 FAILED 终态，用户需重新发起审批
-            log.warn("Approval task {} execute failed with errorCode {}", approvalTaskId, result.getErrorCode());
-            approvalTaskDAO.markFailed(approvalTaskId, buildErrorJson(result));
-            throw DryRunResultUtil.toException(result);
-        }
-        Object executeResult = result.getExecuteResult();
+        Object executeResult = response.getData();
         approvalTaskDAO.markExecuted(approvalTaskId, executeResult == null ? null : JsonUtils.toJson(executeResult));
         log.info("Approval task {} executed", approvalTaskId);
         ApprovalTaskDTO executedTask = loadOwnTask(approvalTaskId, caller);
@@ -465,17 +454,22 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
     /**
      * 用 {@link OperationExecutor#getParamsClass()} 完成类型收窄，类型不符属编码错误，直接失败
      */
-    private <T> DryRunResult<?> invokeExecutor(OperationExecutor<T> executor,
-                                               Object params,
-                                               ApprovalTaskDTO task,
-                                               boolean dryRun) {
+    private <T> EsbV4Response<?> invokeExecutor(OperationExecutor<T> executor,
+                                                Object params,
+                                                ApprovalTaskDTO task,
+                                                boolean dryRun) {
         Class<T> paramsClass = executor.getParamsClass();
         if (!paramsClass.isInstance(params)) {
             throw new IllegalArgumentException("Params type mismatch for operationType "
                 + executor.getOperationType() + ", expect " + paramsClass.getName()
                 + " but got " + (params == null ? "null" : params.getClass().getName()));
         }
-        return executor.invoke(paramsClass.cast(params), task, dryRun);
+        EsbV4Response<?> response = executor.invoke(paramsClass.cast(params), task, dryRun);
+        if (response == null) {
+            // 空响应属于结果未知，不能当成执行失败：调用方会据此决定能否落 FAILED 终态
+            throw new InternalException("Empty response from downstream service", ErrorCode.INTERNAL_ERROR);
+        }
+        return response;
     }
 
     /**
@@ -508,13 +502,6 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
             return REJECTED_BEFORE_EXECUTE_ERROR_TYPES.contains(((ServiceException) e).getErrorType());
         }
         return false;
-    }
-
-    private String buildErrorJson(DryRunResult<?> result) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("errorCode", result.getErrorCode());
-        error.put("errorParams", result.getErrorParams());
-        return JsonUtils.toJson(error);
     }
 
     private String buildErrorJson(Exception e) {

@@ -26,10 +26,10 @@ package com.tencent.bk.job.analysis.approval.executor;
 
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
-import com.tencent.bk.job.common.api.model.DryRunResult;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 
 /**
- * 按操作类型分发到下游 inner 接口的出站 SPI。
+ * 按操作类型分发到下游对外 OpenAPI 的出站 SPI。
  * <p>
  * <b>创建审批任务与审批放行走的是同一个 {@link #invoke}，只有 dryRun 取值不同</b> ——
  * 这是"预检与执行不漂移"的结构保证。任何"为了方便"给预检单开一条代码路径的改动都会破掉这条性质：
@@ -47,17 +47,22 @@ public interface OperationExecutor<T> {
     Class<T> getParamsClass();
 
     /**
-     * 调用下游 inner 接口。
+     * 调用下游对外 OpenAPI。
      * <p>
      * operator <b>只能取 {@link ApprovalTaskDTO#getCreator()}</b>，不得取当次请求的调用者 ——
      * 放行请求的发起者与审批任务的发起人不是同一个概念，用错就等于允许他人借已批准的任务执行操作。
      * <p>
      * <b>不得传 skipAuth</b>：放行时 IAM 鉴权必须在完整链路中真实发生。
+     * <p>
+     * 下游的失败一律以异常形态到达（微服务下由 FeignErrorDecoder 还原成 OpenApiPropagatedException，
+     * 轻量化部署下是被调服务原样抛出），因此<b>能正常返回就意味着下游已经成功</b>。实现<b>不得</b>把失败
+     * 响应翻译成某种"失败结果对象"返回：调用方据此区分"确定未执行"与"结果未知"，
+     * 谎报会让同一个操作被执行两次。
      *
      * @param params 从 DB 参数快照解密反序列化出的请求体，不接受任何外部覆盖
      * @param task   审批任务；创建阶段传入的是尚未落库的任务对象
      * @param dryRun true 为创建阶段预检，false 为放行执行
-     * @return 下游返回的预检/执行结果；结果未知（超时、连接中断等）时抛异常而不是返回失败
+     * @return 预检响应只有 dry_run_summary，执行响应只有 data
      */
-    DryRunResult<?> invoke(T params, ApprovalTaskDTO task, boolean dryRun);
+    EsbV4Response<?> invoke(T params, ApprovalTaskDTO task, boolean dryRun);
 }

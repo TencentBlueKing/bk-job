@@ -25,9 +25,8 @@
 package com.tencent.bk.job.analysis.approval.executor.impl;
 
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
-import com.tencent.bk.job.analysis.approval.executor.AbstractOperationExecutor;
+import com.tencent.bk.job.analysis.approval.executor.OperationExecutor;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
-import com.tencent.bk.job.common.api.model.DryRunResult;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.execute.api.esb.v4.OpenApiExecuteJobPlanV4Resource;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteJobPlanRequest;
@@ -43,7 +42,7 @@ import org.springframework.stereotype.Component;
  * 那会把这层结构性保证拆掉。
  */
 @Component
-public class ExecuteJobPlanOperationExecutor extends AbstractOperationExecutor<V4ExecuteJobPlanRequest> {
+public class ExecuteJobPlanOperationExecutor implements OperationExecutor<V4ExecuteJobPlanRequest> {
 
     private final OpenApiExecuteJobPlanV4Resource executeJobPlanResource;
 
@@ -69,9 +68,10 @@ public class ExecuteJobPlanOperationExecutor extends AbstractOperationExecutor<V
      * 放宽那处校验会同时破坏这里的身份正确性。
      */
     @Override
-    public DryRunResult<?> invoke(V4ExecuteJobPlanRequest params, ApprovalTaskDTO task, boolean dryRun) {
-        EsbV4Response<V4JobExecuteDTO> response = executeJobPlanResource.executeJobPlan(
+    public EsbV4Response<V4JobExecuteDTO> invoke(V4ExecuteJobPlanRequest params,
+                                                 ApprovalTaskDTO task,
+                                                 boolean dryRun) {
+        return executeJobPlanResource.executeJobPlan(
             task.getCreator(), task.getAppCode(), dryRun, params);
-        return unwrap(response, dryRun);
     }
 }

@@ -25,9 +25,8 @@
 package com.tencent.bk.job.analysis.approval.executor.impl;
 
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
-import com.tencent.bk.job.analysis.approval.executor.AbstractOperationExecutor;
+import com.tencent.bk.job.analysis.approval.executor.OperationExecutor;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
-import com.tencent.bk.job.common.api.model.DryRunResult;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.manage.api.esb.v4.OpenApiJobPlanV4Resource;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
@@ -38,7 +37,7 @@ import org.springframework.stereotype.Component;
  * 创建执行方案的出站分发。预检与放行都直接复用对外的 OpenAPI，不再另立一套内部执行接口
  */
 @Component
-public class CreateJobPlanOperationExecutor extends AbstractOperationExecutor<V4CreateJobPlanRequest> {
+public class CreateJobPlanOperationExecutor implements OperationExecutor<V4CreateJobPlanRequest> {
 
     private final OpenApiJobPlanV4Resource jobPlanV4Resource;
 
@@ -64,9 +63,9 @@ public class CreateJobPlanOperationExecutor extends AbstractOperationExecutor<V4
      * 放宽那处校验会同时破坏这里的身份正确性。
      */
     @Override
-    public DryRunResult<?> invoke(V4CreateJobPlanRequest params, ApprovalTaskDTO task, boolean dryRun) {
-        EsbV4Response<OpenApiV4JobPlanDTO> response = jobPlanV4Resource.createJobPlan(
-            task.getCreator(), task.getAppCode(), dryRun, params);
-        return unwrap(response, dryRun);
+    public EsbV4Response<OpenApiV4JobPlanDTO> invoke(V4CreateJobPlanRequest params,
+                                                     ApprovalTaskDTO task,
+                                                     boolean dryRun) {
+        return jobPlanV4Resource.createJobPlan(task.getCreator(), task.getAppCode(), dryRun, params);
     }
 }

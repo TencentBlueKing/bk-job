@@ -25,9 +25,8 @@
 package com.tencent.bk.job.analysis.approval.executor.impl;
 
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
-import com.tencent.bk.job.analysis.approval.executor.AbstractOperationExecutor;
+import com.tencent.bk.job.analysis.approval.executor.OperationExecutor;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
-import com.tencent.bk.job.common.api.model.DryRunResult;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.execute.api.esb.v4.OpenApiFastExecuteScriptV4Resource;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
@@ -38,7 +37,7 @@ import org.springframework.stereotype.Component;
  * 快速执行脚本的出站分发。预检与放行都直接复用对外的 OpenAPI，不再另立一套内部执行接口
  */
 @Component
-public class FastExecuteScriptOperationExecutor extends AbstractOperationExecutor<V4FastExecuteScriptRequest> {
+public class FastExecuteScriptOperationExecutor implements OperationExecutor<V4FastExecuteScriptRequest> {
 
     private final OpenApiFastExecuteScriptV4Resource fastExecuteScriptResource;
 
@@ -64,9 +63,10 @@ public class FastExecuteScriptOperationExecutor extends AbstractOperationExecuto
      * 放宽那处校验会同时破坏这里的身份正确性。
      */
     @Override
-    public DryRunResult<?> invoke(V4FastExecuteScriptRequest params, ApprovalTaskDTO task, boolean dryRun) {
-        EsbV4Response<V4JobExecuteDTO> response = fastExecuteScriptResource.fastExecuteScript(
+    public EsbV4Response<V4JobExecuteDTO> invoke(V4FastExecuteScriptRequest params,
+                                                 ApprovalTaskDTO task,
+                                                 boolean dryRun) {
+        return fastExecuteScriptResource.fastExecuteScript(
             task.getCreator(), task.getAppCode(), dryRun, params);
-        return unwrap(response, dryRun);
     }
 }
