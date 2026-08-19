@@ -1,0 +1,58 @@
+### Description
+
+Switch an existing cron job on or off. A newly created cron job is paused by default and only starts to be triggered as planned after this API switches it on; once paused, the cron job is removed from the scheduler and is no longer triggered.
+
+Before calling: the target cron job must exist in the given resource scope and the caller must have the permission to switch cron jobs on and off in that resource scope. Switching a cron job on additionally requires the permission to launch the job plan it uses.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bk_scope_type | string | Yes | Resource scope type. Options: `biz` (business), `biz_set` (business set) |
+| bk_scope_id | string | Yes | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
+| id | long | Yes | Cron job ID, must be a positive integer |
+| status | int | Yes | Target status. Options: 1 (switch on), 2 (pause) |
+
+### Request Parameters Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 700001,
+    "status": 1
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "id": 700001,
+        "status": 1
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Never null | Description |
+|-------|------|------------|-------------|
+| id | long | Yes | Cron job ID |
+| status | int | Yes | Cron job status after the change. Options: 1 (running), 2 (paused) |

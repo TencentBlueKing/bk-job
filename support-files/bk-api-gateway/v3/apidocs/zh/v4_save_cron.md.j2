@@ -1,0 +1,130 @@
+### 功能描述
+
+新建或更新定时任务，两种操作共用本接口：请求体中传 `id` 表示更新该定时任务，不传 `id` 表示新建。
+
+**保存后定时任务处于暂停状态，不会被调度。** 新建出来的定时任务默认暂停；更新已有定时任务同样会把它置为暂停并从调度中摘除。需要定时任务按计划触发时，请在保存成功后再调用「启停定时任务」接口把状态置为启动。
+
+调用前须满足：要定时执行的执行方案已存在；调用身份对该资源范围具备新建定时任务（更新时为编辑定时任务）的操作权限；更新时该定时任务须存在于同一资源范围内。
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| id | long | 否 | 定时任务 ID。更新已有定时任务时必填，新建时不填 |
+| job_plan_id | long | 否 | 要定时执行的执行方案 ID。新建时必填，更新时选填 |
+| name | string | 否 | 定时任务名称，长度不可超过 60 个字符，不可包含 HTML 特殊字符 `<`、`>`、`"`、`'`。新建时必填，更新时选填 |
+| expression | string | 否 | 周期执行的 cron 表达式，各字段含义为「分 时 日 月 周」，如 `0/5 * * * ?` 表示每 5 分钟执行一次。与 `execute_time` 二者至少填一个 |
+| execute_time | long | 否 | 单次执行的指定执行时间，Unix 时间戳，单位为秒。与 `expression` 二者至少填一个 |
+| execute_time_zone | string | 否 | 定时任务触发时间所在的时区，如 `Asia/Shanghai`。不传时取业务时区，业务时区为空时取服务器时区 |
+| global_var_list | array | 否 | 定时任务启动执行方案时的全局变量取值列表，不传表示全部使用执行方案中的默认值 |
+
+**注：** 更新已有定时任务时，`job_plan_id`、`name`、`expression`、`execute_time` 中至少须提供一项。
+
+##### global_var_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| id | long | 否 | 全局变量 ID。与 `name` 二者填一个，同时存在时以本字段为准 |
+| name | string | 否 | 全局变量名。与 `id` 二者填一个 |
+| value | string | 否 | 全局变量取值。执行目标类变量请用 `execute_target` 传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用本字段 |
+| execute_target | object | 否 | 执行目标类全局变量的取值 |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target_without_container_req.md.j2' %}
+
+### 请求参数示例
+
+- POST
+
+新建一个周期执行的定时任务：
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_plan_id": 50001,
+    "name": "nightly-clean",
+    "expression": "0/5 * * * ?",
+    "execute_time_zone": "Asia/Shanghai",
+    "global_var_list": [
+        {
+            "id": 300001,
+            "value": "/data/release"
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "dynamic_group_list": [
+                    {
+                        "id": "asdo8gojhasdfskft7pr5"
+                    }
+                ],
+                "topo_node_list": [
+                    {
+                        "id": 1000,
+                        "node_type": "module"
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
+
+更新已有定时任务，改为在指定时刻单次执行：
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 700001,
+    "name": "one-shot-clean",
+    "execute_time": 1786694400,
+    "execute_time_zone": "Asia/Shanghai"
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "id": 700001,
+        "name": "nightly-clean",
+        "status": 2
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段 | 类型 | 是否一定不为null | 描述 |
+|------|------|------------|------|
+| id | long | 是 | 定时任务 ID；新建时为新生成的 ID，更新时与请求中的 `id` 相同 |
+| name | string | 否 | 定时任务名称 |
+| status | int | 是 | 定时任务状态。可选值：1（已启动）、2（已暂停）。保存操作不会启用定时任务，因此本接口固定返回 2 |
