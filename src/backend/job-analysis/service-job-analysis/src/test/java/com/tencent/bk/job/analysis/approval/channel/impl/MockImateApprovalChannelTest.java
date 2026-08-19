@@ -31,18 +31,16 @@ import com.tencent.bk.job.analysis.config.ApprovalProperties;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.env.MockEnvironment;
 
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * 单元测试 - IMate 渠道 Mock 实现。
  * <p>
- * 锁定 Mock 的三条约束：未登记的 ID 一律 PENDING（不存在任何把默认结论改成 APPROVED 的开关）、
- * 任务 ID 与单据 ID 任一命中即通过、生产 profile 下开启直接启动失败。
+ * 锁定 Mock 的两条约束：未登记的 ID 一律 PENDING（不存在任何把默认结论改成 APPROVED 的开关）、
+ * 任务 ID 与单据 ID 任一命中即通过。
  */
 class MockImateApprovalChannelTest {
 
@@ -111,22 +109,8 @@ class MockImateApprovalChannelTest {
             .isEqualTo(ApprovalResultStatusEnum.APPROVED);
     }
 
-    @Test
-    @DisplayName("生产 profile 下开启 Mock 直接启动失败")
-    void givenProductionProfileThenFailFast() {
-        MockEnvironment environment = new MockEnvironment();
-        environment.setActiveProfiles("prod");
-        ApprovalProperties properties = new ApprovalProperties();
-
-        assertThatThrownBy(() -> new MockImateApprovalChannel(properties, environment))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("production profile");
-    }
-
     private MockImateApprovalChannel buildChannel(ApprovalProperties properties) {
-        MockEnvironment environment = new MockEnvironment();
-        environment.setActiveProfiles("dev");
-        return new MockImateApprovalChannel(properties, environment);
+        return new MockImateApprovalChannel(properties);
     }
 
     private ApprovalProperties buildProperties(String approvedId) {

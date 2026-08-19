@@ -7881,9 +7881,6 @@ paths:
                       approval_task_id:
                         type: string
                         description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
-                      tenant_id:
-                        type: string
-                        description: 审批任务所属租户ID，便于调用方识别任务归属
                       status:
                         type: string
                         description: '审批任务状态。新建时固定为: PENDING - 待审批'
@@ -8211,9 +8208,6 @@ paths:
                       approval_task_id:
                         type: string
                         description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
-                      tenant_id:
-                        type: string
-                        description: 审批任务所属租户ID，便于调用方识别任务归属
                       status:
                         type: string
                         description: '审批任务状态。新建时固定为: PENDING - 待审批'
@@ -8678,9 +8672,6 @@ paths:
                       approval_task_id:
                         type: string
                         description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
-                      tenant_id:
-                        type: string
-                        description: 审批任务所属租户ID，便于调用方识别任务归属
                       status:
                         type: string
                         description: '审批任务状态。新建时固定为: PENDING - 待审批'
@@ -8937,9 +8928,6 @@ paths:
                       approval_task_id:
                         type: string
                         description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
-                      tenant_id:
-                        type: string
-                        description: 审批任务所属租户ID，便于调用方识别任务归属
                       status:
                         type: string
                         description: '审批任务状态。新建时固定为: PENDING - 待审批'
@@ -9117,9 +9105,6 @@ paths:
                       approval_task_id:
                         type: string
                         description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
-                      tenant_id:
-                        type: string
-                        description: 审批任务所属租户ID，便于调用方识别任务归属
                       status:
                         type: string
                         description: '审批任务状态。新建时固定为: PENDING - 待审批'
@@ -9383,9 +9368,6 @@ paths:
                       approval_task_id:
                         type: string
                         description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
-                      tenant_id:
-                        type: string
-                        description: 审批任务所属租户ID，便于调用方识别任务归属
                       status:
                         type: string
                         description: '审批任务状态。新建时固定为: PENDING - 待审批'

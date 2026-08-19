@@ -120,7 +120,6 @@ public class ApprovalV4ApiSupport {
     public V4ApprovalTaskCreatedDTO toCreatedDTO(ApprovalTaskDTO task) {
         V4ApprovalTaskCreatedDTO createdDTO = new V4ApprovalTaskCreatedDTO();
         createdDTO.setApprovalTaskId(task.getApprovalTaskId());
-        createdDTO.setTenantId(task.getTenantId());
         createdDTO.setStatus(task.getStatus());
         createdDTO.setApprovalChannel(task.getApprovalChannel());
         createdDTO.setExpireAt(task.getExpireAt());

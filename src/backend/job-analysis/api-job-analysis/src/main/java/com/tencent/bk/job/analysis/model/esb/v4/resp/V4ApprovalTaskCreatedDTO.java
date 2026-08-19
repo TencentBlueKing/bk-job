@@ -40,12 +40,6 @@ public class V4ApprovalTaskCreatedDTO {
     private String approvalTaskId;
 
     /**
-     * 任务所属租户，便于调用方识别任务归属
-     */
-    @JsonProperty("tenant_id")
-    private String tenantId;
-
-    /**
      * 任务状态，新建时固定为 PENDING
      */
     @JsonProperty("status")

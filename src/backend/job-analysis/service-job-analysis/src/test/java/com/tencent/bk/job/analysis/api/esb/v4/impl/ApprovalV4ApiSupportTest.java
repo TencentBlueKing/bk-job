@@ -129,7 +129,6 @@ class ApprovalV4ApiSupportTest {
         assertThat(caller.getAppCode()).isEqualTo(APP_CODE);
 
         V4ApprovalTaskCreatedDTO data = response.getData();
-        assertThat(data.getTenantId()).isEqualTo(TENANT_ID);
         assertThat(data.getApprovalTaskId()).isEqualTo("task-1");
         assertThat(data.getStatus()).isEqualTo(ApprovalStatusEnum.PENDING.name());
         assertThat(data.getExpireAt()).isEqualTo(1000L);

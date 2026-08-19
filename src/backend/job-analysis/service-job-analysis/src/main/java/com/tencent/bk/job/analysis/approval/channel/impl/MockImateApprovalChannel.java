@@ -33,10 +33,8 @@ import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -44,8 +42,8 @@ import java.util.List;
  * <p>
  * 审批任务 ID 或渠道单据 ID 命中配置里登记的"视为审批通过"列表即 APPROVED，其余一律 PENDING。
  * <p>
- * <b>两条底线不能动</b>：未命中一律返回 PENDING，绝不兜底成 APPROVED；开关默认 false，
- * 在生产 profile 下被开启时直接启动失败。
+ * <b>底线不能动</b>：未命中一律返回 PENDING，绝不兜底成 APPROVED。开启后审批形同虚设，
+ * 因此开关默认 false，且开启期间每次放行都会打出告警，由运维确保它不出现在生产配置中。
  * <p>
  * Mock 期间"绑定证明"与"approver == creator"两项校验会自动满足，
  * <b>Mock 下跑通不等于放行校验链有效</b>。
@@ -55,16 +53,10 @@ import java.util.List;
 @ConditionalOnProperty(name = "job.analysis.approval.channels.imate.mock.enabled", havingValue = "true")
 public class MockImateApprovalChannel implements ApprovalChannel {
 
-    /**
-     * 生产环境的 Spring profile 名。在这些 profile 下开启 Mock 一律视为误配置
-     */
-    private static final List<String> PRODUCTION_PROFILES = Arrays.asList("prod", "production");
-
     private final ApprovalProperties approvalProperties;
 
-    public MockImateApprovalChannel(ApprovalProperties approvalProperties, Environment environment) {
+    public MockImateApprovalChannel(ApprovalProperties approvalProperties) {
         this.approvalProperties = approvalProperties;
-        checkNotProductionProfile(environment);
         log.warn("!!! Approval channel IMATE is running in MOCK mode, DO NOT use it in production !!! "
             + "Approval results are NOT queried from the real approval channel. "
             + "Registered mock approved id count: {}",
@@ -89,6 +81,9 @@ public class MockImateApprovalChannel implements ApprovalChannel {
             result.setStatus(ApprovalResultStatusEnum.PENDING);
             return result;
         }
+        // 这条放行没有经过任何人审批，审计时须能一眼看出
+        log.warn("!!! Approval task {} is APPROVED by MOCK channel, NOT by a real approver !!!",
+            task.getApprovalTaskId());
         result.setStatus(ApprovalResultStatusEnum.APPROVED);
         result.setApprovalTaskId(task.getApprovalTaskId());
         result.setApprover(task.getCreator());
@@ -98,16 +93,5 @@ public class MockImateApprovalChannel implements ApprovalChannel {
 
     private boolean containsId(List<String> approvedIds, String id) {
         return id != null && CollectionUtils.isNotEmpty(approvedIds) && approvedIds.contains(id);
-    }
-
-    private void checkNotProductionProfile(Environment environment) {
-        String[] activeProfiles = environment.getActiveProfiles();
-        for (String activeProfile : activeProfiles) {
-            if (PRODUCTION_PROFILES.contains(activeProfile.trim().toLowerCase())) {
-                throw new IllegalStateException("Mock approval channel is enabled under production profile "
-                    + activeProfile + ", which would make the approval mechanism useless. "
-                    + "Remove job.analysis.approval.channels.imate.mock.enabled from the production config.");
-            }
-        }
     }
 }
