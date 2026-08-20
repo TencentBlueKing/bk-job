@@ -248,7 +248,7 @@ class ApprovalTaskDAOImplIntegrationTest {
         task.setAppId(2L);
         task.setOperationType("FAST_EXECUTE_SCRIPT");
         task.setOperationParams("{\"bk_scope_type\":\"biz\"}");
-        task.setResolvedSummary("{\"totalExecuteObjectCount\":1}");
+        task.setResolvedSummary("{\"total_execute_object_count\":1}");
         task.setCreator("admin");
         task.setAppCode("bk_test");
         task.setApprovalChannel("IMATE");

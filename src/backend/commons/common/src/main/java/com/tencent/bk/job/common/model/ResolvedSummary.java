@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -38,6 +39,9 @@ import java.util.List;
  * <p>
  * 由各下游服务在 dryRun 返回点之后填充并随响应回传，由 job-analysis 一次性序列化进
  * approval_task.resolved_summary，取单时直接读库渲染，不必每次取单都重跑执行对象解析。
+ * <p>
+ * 它既随 EsbV4Response#dryRunSummary 返回给开放接口调用方，又原样落库做快照，
+ * 因此所有字段必须按 v4 开放接口约定序列化为下划线命名，新增字段一律逐个标注 {@link JsonProperty}。
  */
 @Data
 public class ResolvedSummary {
@@ -58,41 +62,49 @@ public class ResolvedSummary {
     /**
      * 操作类型，取值见 job-analysis 的 ApprovalOperationTypeEnum
      */
+    @JsonProperty("operation_type")
     private String operationType;
 
     /**
      * 操作对象名称，如作业名、执行方案名、定时任务名，供单据标题使用
      */
+    @JsonProperty("name")
     private String name;
 
     /**
      * 操作级别的概要条目，如执行方案 ID、定时任务表达式等
      */
+    @JsonProperty("fields")
     private List<ResolvedField> fields;
 
     /**
      * 分步骤解析结果。快速执行脚本/分发文件只有一个步骤；创建执行方案与定时任务操作不涉及步骤，此处为空
      */
+    @JsonProperty("steps")
     private List<ResolvedStep> steps;
 
     /**
      * 全部步骤去重后的执行对象总数，即"将在多少台主机/容器上执行"
      */
+    @JsonProperty("total_execute_object_count")
     private Integer totalExecuteObjectCount;
 
     /**
      * 是否存在动态分组 / 拓扑节点目标。为 true 时单据必须提示"实际执行台数在放行时重新解析确定"
      */
+    @JsonProperty("contains_dynamic_target")
     private Boolean containsDynamicTarget;
 
     /**
      * 是否命中高危脚本规则。为 true 时单据须显著标注
      */
+    @JsonProperty("dangerous_rule_matched")
     private Boolean dangerousRuleMatched;
 
     /**
      * 未显式指定而按默认生效的参数，逐项说明后果（如文件分发默认强制模式会覆盖同名文件）
      */
+    @JsonProperty("defaults_applied")
     private List<ResolvedField> defaultsApplied;
 
     public void addField(String label, String value) {
@@ -128,16 +140,19 @@ public class ResolvedSummary {
         /**
          * 展示名
          */
+        @JsonProperty("label")
         private String label;
 
         /**
          * 展示值
          */
+        @JsonProperty("value")
         private String value;
 
         /**
          * 是否高危项，需在单据中显著标注
          */
+        @JsonProperty("highlight")
         private boolean highlight;
 
         public ResolvedField() {
@@ -161,63 +176,76 @@ public class ResolvedSummary {
     @Data
     public static class ResolvedStep {
 
+        @JsonProperty("name")
         private String name;
 
         /**
          * 步骤类型，如 EXECUTE_SCRIPT / SEND_FILE
          */
+        @JsonProperty("execute_type")
         private String executeType;
 
         /**
          * 解析出的执行账号别名。不是用户传的 accountId，而是审批人能看懂的别名
          */
+        @JsonProperty("account_alias")
         private String accountAlias;
 
         /**
          * 是否 root 等高危账号
          */
+        @JsonProperty("high_risk_account")
         private Boolean highRiskAccount;
 
+        @JsonProperty("script_name")
         private String scriptName;
 
         /**
          * 脚本版本 ID。引用已有脚本时有值，手工录入脚本内容时为空
          */
+        @JsonProperty("script_version_id")
         private Long scriptVersionId;
 
         /**
          * 脚本来源，取值见 ScriptSourceEnum：1-手工录入 2-引用业务脚本 3-引用公共脚本
          */
+        @JsonProperty("script_source")
         private Integer scriptSource;
 
         /**
          * 高危脚本规则命中概要。有值即须在单据中显著标注
          */
+        @JsonProperty("dangerous_check_summary")
         private String dangerousCheckSummary;
 
         /**
          * 本步骤解析出的执行对象总数
          */
+        @JsonProperty("execute_object_count")
         private Integer executeObjectCount;
 
         /**
          * 本步骤解析出的执行对象，最多 {@link #MAX_EXECUTE_OBJECT_COUNT} 条
          */
+        @JsonProperty("execute_objects")
         private List<ResolvedExecuteObject> executeObjects;
 
         /**
          * 执行对象列表是否因超过上限被截断
          */
+        @JsonProperty("execute_object_truncated")
         private Boolean executeObjectTruncated;
 
         /**
          * 目标是否为动态分组 / 拓扑节点 / 容器过滤器
          */
+        @JsonProperty("contains_dynamic_target")
         private Boolean containsDynamicTarget;
 
         /**
          * 步骤级补充条目，如文件源、目标路径
          */
+        @JsonProperty("fields")
         private List<ResolvedField> fields;
 
         public void addField(String label, String value) {
@@ -240,13 +268,16 @@ public class ResolvedSummary {
         /**
          * 执行对象类型：HOST / CONTAINER
          */
+        @JsonProperty("type")
         private String type;
 
+        @JsonProperty("id")
         private Long id;
 
         /**
          * 展示值，主机为 云区域ID:IP，容器为容器名
          */
+        @JsonProperty("display")
         private String display;
 
         public ResolvedExecuteObject() {
