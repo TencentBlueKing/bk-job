@@ -47,12 +47,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -151,7 +155,8 @@ class DefaultApprovalContentRendererTest {
         String summarySection = sectionOf(rendered.getApprovalContent(), SECTION_SUMMARY);
         assertThat(summarySection)
             .contains("运基线")
-            .contains("37");
+            .contains("37")
+            .contains("root");
         assertThat(firstLine(rendered.getApprovalContent()))
             .as("标题须带上操作名与业务名")
             .contains(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT.getNameI18nKey())
@@ -171,16 +176,61 @@ class DefaultApprovalContentRendererTest {
     }
 
     @Test
-    @DisplayName("步骤虽不展示但仍参与风险定级：只有高危账号、没命中高危规则时风险等级依然是 HIGH")
-    void givenHighRiskAccountOnlyThenStillHighRiskLevel() {
+    @DisplayName("步骤明细不展示，但用到的执行账号汇总成一行：以什么身份上机是审批人必须看到的")
+    void givenStepAccountsThenShowInSummary() {
         ResolvedSummary summary = buildFullSummary();
-        summary.setDangerousRuleMatched(false);
-        summary.getSteps().get(0).setDangerousCheckSummary(null);
+        ResolvedSummary.ResolvedStep secondStep = new ResolvedSummary.ResolvedStep();
+        secondStep.setAccountAlias("mysql");
+        summary.addStep(secondStep);
+        // 同一个账号在多个步骤里出现只列一次
+        ResolvedSummary.ResolvedStep thirdStep = new ResolvedSummary.ResolvedStep();
+        thirdStep.setAccountAlias("root");
+        summary.addStep(thirdStep);
+
+        ApprovalContent rendered = renderer.render(scriptTask(summary, true));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "content.accounts")).contains("root, mysql");
+    }
+
+    @ParameterizedTest(name = "命中高危={0}、执行对象数={1} 时风险等级为 {2}")
+    @DisplayName("风险等级只看高危语句命中与执行对象规模")
+    @MethodSource("riskLevels")
+    void givenSummaryThenResolveRiskLevel(boolean dangerousRuleMatched,
+                                          Integer executeObjectCount,
+                                          ApprovalRiskLevelEnum expected) {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setDangerousRuleMatched(dangerousRuleMatched);
+        summary.setTotalExecuteObjectCount(executeObjectCount);
+
+        ApprovalContent rendered = renderer.render(scriptTask(summary, true));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "riskLevel")).contains(expected.getNameI18nKey());
+    }
+
+    static Stream<Arguments> riskLevels() {
+        return Stream.of(
+            // 命中高危语句一律高危，与规模无关
+            Arguments.of(true, 1, ApprovalRiskLevelEnum.HIGH),
+            Arguments.of(false, 101, ApprovalRiskLevelEnum.HIGH),
+            // 100 台不算超过 100
+            Arguments.of(false, 100, ApprovalRiskLevelEnum.MEDIUM),
+            Arguments.of(false, 11, ApprovalRiskLevelEnum.MEDIUM),
+            // 10 台不算超过 10
+            Arguments.of(false, 10, ApprovalRiskLevelEnum.LOW),
+            Arguments.of(false, null, ApprovalRiskLevelEnum.LOW));
+    }
+
+    @Test
+    @DisplayName("动态目标只作提示，不再抬高风险等级")
+    void givenDynamicTargetThenRiskLevelUnaffected() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setContainsDynamicTarget(true);
+        summary.setTotalExecuteObjectCount(1);
 
         ApprovalContent rendered = renderer.render(scriptTask(summary, true));
 
         assertThat(tableRow(rendered.getApprovalContent(), "riskLevel"))
-            .contains(ApprovalRiskLevelEnum.HIGH.getNameI18nKey());
+            .contains(ApprovalRiskLevelEnum.LOW.getNameI18nKey());
     }
 
     @Test
@@ -192,6 +242,16 @@ class DefaultApprovalContentRendererTest {
             .contains(ApprovalRiskLevelEnum.HIGH.getNameI18nKey());
         assertThat(tableRow(rendered.getApprovalContent(), "dangerousRuleMatched"))
             .contains("**task.approval.content.dangerousRuleMatched**");
+    }
+
+    @Test
+    @DisplayName("没传的字段不出现在原始参数里：一屏 null 会把真正传了什么淹没掉")
+    void givenNullFieldsThenNotRenderedInRawParams() {
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
+
+        assertThat(sectionOf(rendered.getApprovalContent(), SECTION_RAW_PARAMS))
+            .doesNotContain("null")
+            .contains("quick-script");
     }
 
     @Test

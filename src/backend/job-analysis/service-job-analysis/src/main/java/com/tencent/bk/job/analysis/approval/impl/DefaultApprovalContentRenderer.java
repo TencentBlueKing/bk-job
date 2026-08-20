@@ -45,7 +45,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 
 /**
@@ -53,8 +55,7 @@ import java.util.StringJoiner;
  * 原始参数 JSON 代码块。
  * <p>
  * <b>逐步骤的解析结果不渲染</b>：单据铺得越长，审批人越容易一路划到底直接点通过。步骤解析结果
- * 仍完整记录在 approval_task.resolved_summary 里备查，其中的高危信号（高危账号、高危语句命中）
- * 也仍参与 {@link #resolveRiskLevel} 的风险定级，只是不再逐条摊到单据正文上。
+ * 仍完整记录在 approval_task.resolved_summary 里备查，正文只从中汇总出"以什么身份上机"这一行。
  * <p>
  * <b>敏感字段的脱敏由 {@link ApprovalParamsCryptoService} 完成</b>，本类拿到的已是脱敏后的参数，
  * 不自行判断哪个字段敏感。
@@ -134,6 +135,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         if (StringUtils.isNotBlank(summary.getName())) {
             putRow(rows, label("name"), summary.getName(), false);
         }
+        putRow(rows, label("accounts"), describeAccounts(summary), false);
         putResolvedFields(rows, summary.getFields(), StringUtils.EMPTY);
         if (summary.getTotalExecuteObjectCount() != null) {
             putRow(rows, label("totalExecuteObjectCount"),
@@ -200,7 +202,8 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
             ApprovalDisplayParams displayParams =
                 paramsCryptoService.desensitizeFromSnapshot(operationType, task.getOperationParams());
             scriptBlocks.addAll(displayParams.getPlainTextBlocks());
-            root = JsonUtils.toJsonNode(JsonUtils.toJson(displayParams.getParams()));
+            // 未传的字段一律不展示：一屏的 null 会把真正传了什么淹没掉
+            root = JsonUtils.toJsonNode(JsonUtils.toNonNullJson(displayParams.getParams()));
         } catch (Exception e) {
             // 参数区渲染失败不能让整份内容出不来，概要与步骤仍然可用
             log.error("Render raw params failed, approvalTaskId: {}", task.getApprovalTaskId(), e);
@@ -222,28 +225,15 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
      * 风险等级只是给审批人的提示强度，不参与放行校验
      */
     private ApprovalRiskLevelEnum resolveRiskLevel(ResolvedSummary summary) {
-        if (Boolean.TRUE.equals(summary.getDangerousRuleMatched()) || containsHighRiskAccount(summary)) {
+        int count = summary.getTotalExecuteObjectCount() == null ? 0 : summary.getTotalExecuteObjectCount();
+        if (Boolean.TRUE.equals(summary.getDangerousRuleMatched())
+            || count > ApprovalRiskLevelEnum.HIGH_RISK_EXECUTE_OBJECT_COUNT) {
             return ApprovalRiskLevelEnum.HIGH;
         }
-        Integer count = summary.getTotalExecuteObjectCount();
-        boolean largeScale = count != null
-            && count >= ApprovalRiskLevelEnum.MEDIUM_RISK_EXECUTE_OBJECT_COUNT;
-        if (largeScale || Boolean.TRUE.equals(summary.getContainsDynamicTarget())) {
+        if (count > ApprovalRiskLevelEnum.MEDIUM_RISK_EXECUTE_OBJECT_COUNT) {
             return ApprovalRiskLevelEnum.MEDIUM;
         }
         return ApprovalRiskLevelEnum.LOW;
-    }
-
-    private boolean containsHighRiskAccount(ResolvedSummary summary) {
-        if (CollectionUtils.isEmpty(summary.getSteps())) {
-            return false;
-        }
-        for (ResolvedSummary.ResolvedStep step : summary.getSteps()) {
-            if (Boolean.TRUE.equals(step.getHighRiskAccount())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -270,6 +260,22 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         ResourceScope scope = app.getScope();
         String scopeDesc = scope.getType().getValue() + ":" + scope.getId();
         return StringUtils.isBlank(app.getName()) ? scopeDesc : app.getName() + "(" + scopeDesc + ")";
+    }
+
+    /**
+     * 各步骤用到的执行账号去重后合并成一行：步骤明细不展示，但"以什么身份上机"是审批人必须看到的
+     */
+    private String describeAccounts(ResolvedSummary summary) {
+        if (CollectionUtils.isEmpty(summary.getSteps())) {
+            return null;
+        }
+        Set<String> accounts = new LinkedHashSet<>();
+        for (ResolvedSummary.ResolvedStep step : summary.getSteps()) {
+            if (StringUtils.isNotBlank(step.getAccountAlias())) {
+                accounts.add(step.getAccountAlias());
+            }
+        }
+        return accounts.isEmpty() ? null : String.join(", ", accounts);
     }
 
     private void putResolvedFields(List<TableRow> rows,

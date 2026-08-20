@@ -32,19 +32,24 @@ package com.tencent.bk.job.analysis.approval.consts;
 public enum ApprovalRiskLevelEnum {
 
     /**
-     * 命中高危脚本规则，或以 root 等高危账号执行
+     * 命中高危脚本规则，或执行对象数超过 {@link #HIGH_RISK_EXECUTE_OBJECT_COUNT}
      */
     HIGH,
 
     /**
-     * 执行目标规模较大，或目标含动态分组 / 拓扑节点（实际影响面在放行时才确定）
+     * 执行对象数超过 {@link #MEDIUM_RISK_EXECUTE_OBJECT_COUNT}
      */
     MEDIUM,
 
     LOW;
 
     /**
-     * 目标数达到该值即视为规模较大。取值偏保守：宁可多提示，不可漏提示
+     * 执行对象数超过该值即视为大规模操作
+     */
+    public static final int HIGH_RISK_EXECUTE_OBJECT_COUNT = 100;
+
+    /**
+     * 执行对象数超过该值即视为规模较大。取值偏保守：宁可多提示，不可漏提示
      */
     public static final int MEDIUM_RISK_EXECUTE_OBJECT_COUNT = 10;
 
