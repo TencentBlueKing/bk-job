@@ -132,7 +132,7 @@ class ResolvedSummaryBuilderTest {
         ResolvedSummary.ResolvedStep step = summary.getSteps().get(0);
         assertThat(step.getHighRiskAccount()).isFalse();
         assertThat(fieldValue(step.getFields(), "file_target_path")).isEqualTo("/tmp/");
-        assertThat(fieldValue(step.getFields(), "file_source_list")).isEqualTo("root@1 target(s) -> /data/a.tar.gz");
+        assertThat(fieldValue(step.getFields(), "file_source_list")).isEqualTo("root: /data/a.tar.gz");
         // 强制模式会自动建目录并覆盖同名文件，后果远大于严格模式，必须在单据里说清
         assertThat(fieldValue(step.getFields(), "transfer_mode")).isEqualTo("FORCE");
         assertThat(summary.getDangerousRuleMatched()).isFalse();
@@ -157,8 +157,26 @@ class ResolvedSummaryBuilderTest {
         ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
 
         assertThat(fieldValue(summary.getSteps().get(0).getFields(), "file_source_list"))
-            .isEqualTo("root@1 target(s) -> /data/a.tar.gz"
-                + ResolvedSummary.ITEM_SEPARATOR + "mysql@1 target(s) -> /data/b.tar.gz");
+            .isEqualTo("root: /data/a.tar.gz" + ResolvedSummary.ITEM_SEPARATOR + "mysql: /data/b.tar.gz");
+    }
+
+    @Test
+    @DisplayName("源文件没解析出账号时只列文件路径，不留下孤零零的连接符")
+    void buildFileStepSummaryWithoutFileSourceAccount() {
+        StepInstanceDTO stepInstance = new StepInstanceDTO();
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
+        stepInstance.setFileTargetPath("/tmp/");
+        stepInstance.setFileSourceList(Collections.singletonList(
+            buildFileSource(null, 201L, "/data/a.tar.gz")));
+        stepInstance.setNotExistPathHandler(NotExistPathHandlerEnum.CREATE_DIR.getValue());
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+
+        ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
+
+        assertThat(fieldValue(summary.getSteps().get(0).getFields(), "file_source_list"))
+            .isEqualTo("/data/a.tar.gz");
     }
 
     @ParameterizedTest(name = "{0} 生效时概要里的分发模式为 {0}")

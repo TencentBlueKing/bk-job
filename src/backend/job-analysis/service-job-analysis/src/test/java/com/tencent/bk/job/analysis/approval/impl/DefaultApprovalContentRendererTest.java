@@ -260,7 +260,7 @@ class DefaultApprovalContentRendererTest {
 
         String content = rendered.getApprovalContent();
         assertThat(tableRow(content, "content.field.file_source_list"))
-            .contains("root@1 target(s) -> /data/a.tar.gz");
+            .contains("root: /data/a.tar.gz");
         assertThat(tableRow(content, "content.field.file_target_path")).contains("/tmp/");
     }
 
@@ -271,8 +271,8 @@ class DefaultApprovalContentRendererTest {
         summary.setOperationType(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN.name());
         summary.setName("发布流程");
         summary.addField("job_plan_id", String.valueOf(PLAN_ID));
-        summary.addStep(fileStep("/data/app/", "root@2 target(s) -> /pkg/app.tar.gz"));
-        summary.addStep(fileStep("/data/app/", "mysql@1 target(s) -> /pkg/conf.yaml"));
+        summary.addStep(fileStep("/data/app/", "root: /pkg/app.tar.gz"));
+        summary.addStep(fileStep("/data/app/", "mysql: /pkg/conf.yaml"));
         ResolvedSummary.ResolvedStep scriptStep = new ResolvedSummary.ResolvedStep();
         scriptStep.setExecuteType("EXECUTE_SCRIPT");
         summary.addStep(scriptStep);
@@ -294,7 +294,7 @@ class DefaultApprovalContentRendererTest {
     void givenTooManyFileSourcesThenTruncateWithTotalCount() {
         List<String> fileSources = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
-            fileSources.add("root@1 target(s) -> /pkg/app-" + i + ".tar.gz");
+            fileSources.add("root: /pkg/app-" + i + ".tar.gz");
         }
         ResolvedSummary summary = new ResolvedSummary();
         summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
@@ -646,7 +646,7 @@ class DefaultApprovalContentRendererTest {
         summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
         summary.setName("分发安装包");
         summary.setTotalExecuteObjectCount(3);
-        ResolvedSummary.ResolvedStep step = fileStep("/tmp/", "root@1 target(s) -> /data/a.tar.gz");
+        ResolvedSummary.ResolvedStep step = fileStep("/tmp/", "root: /data/a.tar.gz");
         step.addField(TRANSFER_MODE, stepTransferMode);
         summary.addStep(step);
         if (defaultAppliedMode != null) {

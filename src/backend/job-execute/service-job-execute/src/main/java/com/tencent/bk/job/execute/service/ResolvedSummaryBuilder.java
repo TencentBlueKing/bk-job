@@ -168,7 +168,11 @@ public class ResolvedSummaryBuilder {
     }
 
     /**
-     * 源文件按"账号@目标 -> 文件路径"的形式概述，让审批人看清要从哪台机器取哪些文件
+     * 源文件按"账号: 文件路径"的形式概述，让审批人看清要以什么身份取哪些文件。
+     * <p>
+     * 不带源机器台数：这段文本在预检时按固定语言拼好，而单据是稍后按审批人语言渲染的，
+     * 塞英文进去必然有一半人看不懂，做成结构化字段又要为一个数字打通跨服务的国际化。
+     * 需要知道从哪台机器取的，快速分发文件可看正文里的原始参数，执行方案可查该执行方案的步骤定义
      */
     private static String summaryFileSources(List<FileSourceDTO> fileSources) {
         if (CollectionUtils.isEmpty(fileSources)) {
@@ -176,24 +180,28 @@ public class ResolvedSummaryBuilder {
         }
         StringBuilder sb = new StringBuilder();
         for (FileSourceDTO fileSource : fileSources) {
+            String item = describeFileSource(fileSource);
+            if (StringUtils.isBlank(item)) {
+                continue;
+            }
             if (sb.length() > 0) {
                 sb.append(ResolvedSummary.ITEM_SEPARATOR);
             }
-            if (StringUtils.isNotBlank(fileSource.getAccountAlias())) {
-                sb.append(fileSource.getAccountAlias()).append('@');
-            }
-            List<ExecuteObject> sourceExecuteObjects = resolveExecuteObjects(fileSource.getServers());
-            if (!sourceExecuteObjects.isEmpty()) {
-                sb.append(sourceExecuteObjects.size()).append(" target(s)");
-            }
-            if (CollectionUtils.isNotEmpty(fileSource.getFiles())) {
-                sb.append(" -> ");
-                sb.append(fileSource.getFiles().stream()
-                    .map(FileDetailDTO::getFilePath)
-                    .collect(Collectors.joining(",")));
-            }
+            sb.append(item);
         }
-        return sb.toString();
+        return sb.length() == 0 ? null : sb.toString();
+    }
+
+    private static String describeFileSource(FileSourceDTO fileSource) {
+        String filePaths = CollectionUtils.isEmpty(fileSource.getFiles()) ? null
+            : fileSource.getFiles().stream()
+            .map(FileDetailDTO::getFilePath)
+            .collect(Collectors.joining(","));
+        String accountAlias = fileSource.getAccountAlias();
+        if (StringUtils.isBlank(accountAlias)) {
+            return filePaths;
+        }
+        return StringUtils.isBlank(filePaths) ? accountAlias : accountAlias + ": " + filePaths;
     }
 
     private static List<ExecuteObject> resolveExecuteObjects(ExecuteTargetDTO executeTarget) {
