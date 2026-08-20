@@ -49,6 +49,13 @@ public class ResolvedSummary {
     public static final int MAX_EXECUTE_OBJECT_COUNT = 100;
 
     /**
+     * 一个概要条目里多条内容之间的分隔符（如一个步骤的多个文件源）。
+     * <p>
+     * 下游按它拼接，单据渲染侧按它拆开逐条截断，因此是两侧共用的格式约定，不能各写各的
+     */
+    public static final String ITEM_SEPARATOR = "; ";
+
+    /**
      * 操作类型，取值见 job-analysis 的 ApprovalOperationTypeEnum
      */
     private String operationType;

@@ -138,6 +138,29 @@ class ResolvedSummaryBuilderTest {
         assertThat(summary.getDangerousRuleMatched()).isFalse();
     }
 
+    @Test
+    @DisplayName("多个文件源按共用的条目分隔符拼接，单据渲染侧据此逐条截断")
+    void buildFileStepSummaryWithMultipleFileSources() {
+        StepInstanceDTO stepInstance = new StepInstanceDTO();
+        stepInstance.setName("fast_file_step");
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
+        stepInstance.setFileTargetPath("/tmp/");
+        stepInstance.setFileSourceList(Arrays.asList(
+            buildFileSource("root", 201L, "/data/a.tar.gz"),
+            buildFileSource("mysql", 202L, "/data/b.tar.gz")));
+        stepInstance.setNotExistPathHandler(NotExistPathHandlerEnum.CREATE_DIR.getValue());
+        stepInstance.setTargetExecuteObjects(buildResolvedTarget(101L));
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+
+        ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
+
+        assertThat(fieldValue(summary.getSteps().get(0).getFields(), "file_source_list"))
+            .isEqualTo("root@1 target(s) -> /data/a.tar.gz"
+                + ResolvedSummary.ITEM_SEPARATOR + "mysql@1 target(s) -> /data/b.tar.gz");
+    }
+
     @ParameterizedTest(name = "{0} 生效时概要里的分发模式为 {0}")
     @DisplayName("每种分发模式都按底层的同名文件与路径处置方式反推出来，保险模式不能被说成强制模式")
     @EnumSource(FileTransferModeEnum.class)
@@ -249,6 +272,16 @@ class ResolvedSummaryBuilderTest {
     void buildSummaryWithoutTaskInstance() {
         assertThat(ResolvedSummaryBuilder.build(null)).isNotNull();
         assertThat(ResolvedSummaryBuilder.build(new TaskInstanceDTO()).getSteps()).isNull();
+    }
+
+    private FileSourceDTO buildFileSource(String accountAlias, Long hostId, String filePath) {
+        FileSourceDTO fileSource = new FileSourceDTO();
+        fileSource.setAccountAlias(accountAlias);
+        fileSource.setServers(buildResolvedTarget(hostId));
+        FileDetailDTO fileDetail = new FileDetailDTO();
+        fileDetail.setFilePath(filePath);
+        fileSource.setFiles(Collections.singletonList(fileDetail));
+        return fileSource;
     }
 
     private ExecuteTargetDTO buildResolvedTarget(Long... hostIds) {

@@ -54,9 +54,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -91,6 +93,9 @@ class DefaultApprovalContentRendererTest {
         "| task.approval.content.table.item | task.approval.content.table.value |";
 
     private static final String TRANSFER_MODE = "transfer_mode";
+    private static final String FILE_SOURCE_LIST = "file_source_list";
+    private static final String FILE_TARGET_PATH = "file_target_path";
+    private static final String FILE_TARGET_NAME = "file_target_name";
 
     private static final String TASK_ID = "e2a1c0d4111122223333444455556666";
     private static final String CREATOR = "admin";
@@ -237,11 +242,84 @@ class DefaultApprovalContentRendererTest {
     }
 
     @Test
-    @DisplayName("非文件分发场景不出分发模式行，概要里不塞无关项")
-    void givenNoFileStepThenNoTransferModeRow() {
+    @DisplayName("非文件分发场景不出文件相关行，概要里不塞无关项")
+    void givenNoFileStepThenNoFileRows() {
         ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
 
-        assertThat(rendered.getApprovalContent()).doesNotContain("content.field.transfer_mode");
+        assertThat(rendered.getApprovalContent())
+            .doesNotContain("content.field.transfer_mode")
+            .doesNotContain("content.field.file_source_list")
+            .doesNotContain("content.field.file_target_path")
+            .doesNotContain("content.field.file_target_name");
+    }
+
+    @Test
+    @DisplayName("文件分发的源文件与目标路径汇总进概要：会不会覆盖生产目录，审批人得看得见")
+    void givenFileStepThenShowSourceAndTargetPath() {
+        ApprovalContent rendered = renderer.render(fileTask(buildFileSummary("FORCE", null)));
+
+        String content = rendered.getApprovalContent();
+        assertThat(tableRow(content, "content.field.file_source_list"))
+            .contains("root@1 target(s) -> /data/a.tar.gz");
+        assertThat(tableRow(content, "content.field.file_target_path")).contains("/tmp/");
+    }
+
+    @Test
+    @DisplayName("执行方案的文件步骤定义在方案里、入参只有 plan_id，概要不汇总就等于完全看不到")
+    void givenJobPlanWithFileStepsThenShowMergedFileInfo() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN.name());
+        summary.setName("发布流程");
+        summary.addField("job_plan_id", String.valueOf(PLAN_ID));
+        summary.addStep(fileStep("/data/app/", "root@2 target(s) -> /pkg/app.tar.gz"));
+        summary.addStep(fileStep("/data/app/", "mysql@1 target(s) -> /pkg/conf.yaml"));
+        ResolvedSummary.ResolvedStep scriptStep = new ResolvedSummary.ResolvedStep();
+        scriptStep.setExecuteType("EXECUTE_SCRIPT");
+        summary.addStep(scriptStep);
+
+        ApprovalContent rendered = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN, summary, null));
+
+        String content = rendered.getApprovalContent();
+        assertThat(tableRow(content, "content.field.file_source_list"))
+            .contains("/pkg/app.tar.gz")
+            .contains("/pkg/conf.yaml");
+        assertThat(tableRow(content, "content.field.file_target_path"))
+            .as("两个步骤打的是同一个目标目录，只列一次")
+            .isEqualTo("| task.approval.content.field.file_target_path | /data/app/ |");
+    }
+
+    @Test
+    @DisplayName("源文件超过上限只列前几条并补上总数，不把单据重新撑成一堵墙")
+    void givenTooManyFileSourcesThenTruncateWithTotalCount() {
+        List<String> fileSources = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            fileSources.add("root@1 target(s) -> /pkg/app-" + i + ".tar.gz");
+        }
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
+        summary.addStep(fileStep("/tmp/", String.join(ResolvedSummary.ITEM_SEPARATOR, fileSources)));
+
+        ApprovalContent rendered = renderer.render(fileTask(summary));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "content.field.file_source_list"))
+            .contains("/pkg/app-0.tar.gz")
+            .contains("/pkg/app-4.tar.gz")
+            .doesNotContain("/pkg/app-5.tar.gz")
+            .contains("task.approval.content.value.itemTruncated");
+    }
+
+    @Test
+    @DisplayName("目标文件名通常不填，为空时不出行，填了才展示")
+    void givenFileTargetNameThenShowOnlyWhenPresent() {
+        assertThat(renderer.render(fileTask(buildFileSummary("FORCE", null))).getApprovalContent())
+            .doesNotContain("content.field.file_target_name");
+
+        ResolvedSummary summary = buildFileSummary("FORCE", null);
+        summary.getSteps().get(0).addField(FILE_TARGET_NAME, "app-renamed.tar.gz");
+
+        assertThat(tableRow(renderer.render(fileTask(summary)).getApprovalContent(),
+            "content.field.file_target_name")).contains("app-renamed.tar.gz");
     }
 
     @ParameterizedTest(name = "命中高危={0}、执行对象数={1} 时风险等级为 {2}")
@@ -568,16 +646,25 @@ class DefaultApprovalContentRendererTest {
         summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
         summary.setName("分发安装包");
         summary.setTotalExecuteObjectCount(3);
-        ResolvedSummary.ResolvedStep step = new ResolvedSummary.ResolvedStep();
-        step.setExecuteType("SEND_FILE");
-        step.setAccountAlias("root");
-        step.addField("file_target_path", "/tmp/");
+        ResolvedSummary.ResolvedStep step = fileStep("/tmp/", "root@1 target(s) -> /data/a.tar.gz");
         step.addField(TRANSFER_MODE, stepTransferMode);
         summary.addStep(step);
         if (defaultAppliedMode != null) {
             summary.addDefaultApplied(TRANSFER_MODE, defaultAppliedMode);
         }
         return summary;
+    }
+
+    /**
+     * 一个文件分发步骤，字段名与 job-execute 侧 ResolvedSummaryBuilder 写入的保持一致
+     */
+    private ResolvedSummary.ResolvedStep fileStep(String targetPath, String fileSourceList) {
+        ResolvedSummary.ResolvedStep step = new ResolvedSummary.ResolvedStep();
+        step.setExecuteType("SEND_FILE");
+        step.setAccountAlias("root");
+        step.addField(FILE_TARGET_PATH, targetPath);
+        step.addField(FILE_SOURCE_LIST, fileSourceList);
+        return step;
     }
 
     private ApprovalTaskDTO fileTask(ResolvedSummary summary) {

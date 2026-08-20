@@ -177,7 +177,7 @@ public class ResolvedSummaryBuilder {
         StringBuilder sb = new StringBuilder();
         for (FileSourceDTO fileSource : fileSources) {
             if (sb.length() > 0) {
-                sb.append("; ");
+                sb.append(ResolvedSummary.ITEM_SEPARATOR);
             }
             if (StringUtils.isNotBlank(fileSource.getAccountAlias())) {
                 sb.append(fileSource.getAccountAlias()).append('@');
