@@ -62,14 +62,14 @@ public class ApprovalDisplayParams {
     public static class PlainTextBlock {
 
         /**
-         * 该段明文在参数里的字段名，用于在审批内容里标明它是哪个字段
+         * 该段明文的语言，用作代码块的语言标记以便审批人看到高亮；未知语言时为空
          */
-        private final String field;
+        private final String language;
 
         private final String value;
 
-        public PlainTextBlock(String field, String value) {
-            this.field = field;
+        public PlainTextBlock(String language, String value) {
+            this.language = language;
             this.value = value;
         }
     }

@@ -166,8 +166,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         }
         appendHeading(content, 2, label("section.scriptContent"));
         for (PlainTextBlock block : scriptBlocks) {
-            content.append('`').append(block.getField()).append('`').append(LINE_SEPARATOR).append(LINE_SEPARATOR);
-            appendCodeBlock(content, StringUtils.EMPTY, block.getValue());
+            appendCodeBlock(content, StringUtils.defaultString(block.getLanguage()), block.getValue());
         }
     }
 

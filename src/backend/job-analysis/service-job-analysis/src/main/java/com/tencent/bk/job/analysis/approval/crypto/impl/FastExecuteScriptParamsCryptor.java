@@ -32,6 +32,7 @@ import com.tencent.bk.job.analysis.approval.crypto.SensitiveValueCryptor;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -47,8 +48,6 @@ import java.util.List;
  */
 @Service
 public class FastExecuteScriptParamsCryptor implements ApprovalParamsCryptor<V4FastExecuteScriptRequest> {
-
-    private static final String FIELD_SCRIPT_CONTENT = "script_content";
 
     private final SensitiveValueCryptor valueCryptor;
     private final ApprovalDisplayMasker displayMasker;
@@ -94,8 +93,9 @@ public class FastExecuteScriptParamsCryptor implements ApprovalParamsCryptor<V4F
         // 脚本正文是审批人要审的对象本身，摘到单独的章节里原样展示，参数区只留指向该章节的说明
         String scriptContent = decodeBase64(params.getContent());
         if (StringUtils.isNotEmpty(scriptContent)) {
+            String language = ScriptTypeEnum.getName(params.getScriptLanguage());
             displayParams.getPlainTextBlocks()
-                .add(new ApprovalDisplayParams.PlainTextBlock(FIELD_SCRIPT_CONTENT, scriptContent));
+                .add(new ApprovalDisplayParams.PlainTextBlock(language, scriptContent));
             params.setContent(displayMasker.scriptInSection());
         }
 

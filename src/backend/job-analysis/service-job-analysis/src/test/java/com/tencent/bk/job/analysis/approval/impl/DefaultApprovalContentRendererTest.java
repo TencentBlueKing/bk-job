@@ -43,6 +43,7 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteJobPlanRequest;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4GlobalVarDTO;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -266,14 +267,13 @@ class DefaultApprovalContentRendererTest {
     }
 
     @Test
-    @DisplayName("脚本内容单独成章、代码块原样展示并已解码：不展示则审批人无从判断风险")
+    @DisplayName("脚本内容单独成章、按脚本语言高亮展示并已解码：不展示则审批人无从判断风险")
     void givenScriptContentThenShowDecodedPlainTextInOwnSection() {
         ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
 
         String scriptSection = sectionOf(rendered.getApprovalContent(), SECTION_SCRIPT);
         assertThat(scriptSection)
-            .contains("`script_content`")
-            .contains("```\n" + SCRIPT_CONTENT + "\n```");
+            .contains("```shell\n" + SCRIPT_CONTENT + "\n```");
         assertThat(sectionOf(rendered.getApprovalContent(), SECTION_RAW_PARAMS))
             .as("参数里只留指向脚本章节的占位符，避免同一段脚本出现两遍")
             .contains("task.approval.content.value.scriptInSection")
@@ -287,12 +287,27 @@ class DefaultApprovalContentRendererTest {
         V4FastExecuteScriptRequest request = new V4FastExecuteScriptRequest();
         request.setName("quick-script");
         request.setContent(base64(script));
+        request.setScriptLanguage(ScriptTypeEnum.PYTHON.getValue());
 
         ApprovalContent rendered = renderer.render(taskOf(
             ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildFullSummary(), request));
 
         assertThat(sectionOf(rendered.getApprovalContent(), SECTION_SCRIPT))
-            .contains("````\n" + script + "\n````");
+            .contains("````python\n" + script + "\n````");
+    }
+
+    @Test
+    @DisplayName("脚本语言未知时不写语言标记，代码块本身仍然成立")
+    void givenUnknownScriptLanguageThenNoLanguageTag() {
+        V4FastExecuteScriptRequest request = new V4FastExecuteScriptRequest();
+        request.setName("quick-script");
+        request.setContent(base64(SCRIPT_CONTENT));
+
+        ApprovalContent rendered = renderer.render(taskOf(
+            ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildFullSummary(), request));
+
+        assertThat(sectionOf(rendered.getApprovalContent(), SECTION_SCRIPT))
+            .contains("```\n" + SCRIPT_CONTENT + "\n```");
     }
 
     @Test
@@ -495,6 +510,7 @@ class DefaultApprovalContentRendererTest {
         V4FastExecuteScriptRequest request = new V4FastExecuteScriptRequest();
         request.setName("quick-script");
         request.setContent(base64(SCRIPT_CONTENT));
+        request.setScriptLanguage(ScriptTypeEnum.SHELL.getValue());
         request.setScriptParam(base64(SENSITIVE_SCRIPT_PARAM));
         request.setParamSensitive(paramSensitive);
         EsbCustomHostPasswordDTO hostPassword = new EsbCustomHostPasswordDTO();
