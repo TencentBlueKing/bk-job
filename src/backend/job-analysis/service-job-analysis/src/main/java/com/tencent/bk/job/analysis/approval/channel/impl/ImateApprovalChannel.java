@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
@@ -93,6 +94,11 @@ public class ImateApprovalChannel implements ApprovalChannel {
     private final ApprovalProperties approvalProperties;
     private final HttpHelper httpHelper;
 
+    /**
+     * 注解不可省略：本类还有一个供单测注入 HttpHelper 的构造器，多构造器且都无注解时
+     * Spring 会放弃构造器注入、回退去找无参构造器，导致启动期实例化失败
+     */
+    @Autowired
     public ImateApprovalChannel(ApprovalProperties approvalProperties) {
         this(approvalProperties, HttpHelperFactory.getDefaultHttpHelper());
     }
