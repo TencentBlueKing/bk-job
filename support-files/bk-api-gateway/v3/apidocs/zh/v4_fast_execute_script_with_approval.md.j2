@@ -18,9 +18,9 @@
 | task_name | string | 否 | 自定义作业名称，长度不可超过 512 字符；不传时由系统生成 |
 | script_version_id | long | 否 | 引用的脚本版本 ID。与 `script_id`、`script_content` 三者填一个，优先级最高 |
 | script_id | string | 否 | 引用的脚本 ID，使用该脚本的上线版本。与 `script_version_id`、`script_content` 三者填一个，优先级次之 |
-| script_content | string | 否 | Base64 编码后的脚本内容。与 `script_version_id`、`script_id` 三者填一个，优先级最低。脚本内容会在审批内容中原样展示，以便审批人判断风险 |
+| script_content | string | 否 | Base64 编码后的脚本内容。与 `script_version_id`、`script_id` 三者填一个，优先级最低。脚本内容会在审批内容中原样展示，以便审批人判断风险。传入非 Base64 内容会返回参数校验失败 |
 | script_language | int | 否 | 脚本语言，仅用 `script_content` 传入自定义脚本时需要。可选值：1（shell）、2（bat）、3（perl）、4（python）、5（powershell）、6（sql）。不传默认 1 |
-| script_param | string | 否 | Base64 编码后的脚本参数。注意：1. 如果有多个参数，如 `param1 param2`，需要对 `param1 param2` 整体进行 Base64 编码，而不是对每个参数分别编码再拼接；2. 非敏感参数编码前长度不能超过 64K，敏感参数编码前长度不能超过 47K |
+| script_param | string | 否 | Base64 编码后的脚本参数。注意：1. 如果有多个参数，如 `param1 param2`，需要对 `param1 param2` 整体进行 Base64 编码，而不是对每个参数分别编码再拼接；2. 非敏感参数编码前长度不能超过 64K，敏感参数编码前长度不能超过 47K；3. 传入非 Base64 内容会返回参数校验失败 |
 | param_sensitive | boolean | 否 | 脚本参数是否为敏感参数。可选值：`true`（敏感，在执行详情页面隐藏，且在审批内容中只显示占位符）、`false`（非敏感，默认 `false`） |
 | account_alias | string | 否 | 执行账号别名，一般与机器上的账号名相同，如 `root`、`user00`。与 `account_id` 二者填一个，同时存在时以 `account_id` 为准 |
 | account_id | long | 否 | 执行账号 ID。与 `account_alias` 二者填一个，同时存在时以本字段为准 |

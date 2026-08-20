@@ -29,14 +29,13 @@ import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayMasker;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalParamsCryptor;
 import com.tencent.bk.job.analysis.approval.crypto.SensitiveValueCryptor;
+import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 
 /**
@@ -132,12 +131,9 @@ public class FastExecuteScriptParamsCryptor implements ApprovalParamsCryptor<V4F
         if (StringUtils.isEmpty(value)) {
             return value;
         }
-        try {
-            return new String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException e) {
-            // 不是合法 BASE64 时原样返回：展示原值好过让审批人看到一个空字段
-            return value;
-        }
+        String decoded = Base64Util.decodeContentToStrStrictly(value);
+        // 解不出可读文本说明调用方传的就不是 BASE64，原样展示：展示原值好过让审批人看到一串乱码
+        return decoded == null ? value : decoded;
     }
 
     private interface PasswordHandler {

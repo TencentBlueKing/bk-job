@@ -323,6 +323,21 @@ class DefaultApprovalContentRendererTest {
     }
 
     @Test
+    @DisplayName("脚本参数没按协议做 BASE64 时原样展示：解出来的二进制垃圾比原值更没法看")
+    void givenNotBase64ScriptParamThenShowRawValue() {
+        V4FastExecuteScriptRequest request = buildScriptRequest(false);
+        // "111" 会被宽松解码器解出 0xD7 0x5D，直接按 UTF-8 展示就是一串乱码
+        request.setScriptParam("111");
+
+        ApprovalContent rendered = renderer.render(
+            taskOf(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildFullSummary(), request));
+
+        assertThat(sectionOf(rendered.getApprovalContent(), SECTION_RAW_PARAMS))
+            .contains("\"111\"")
+            .doesNotContain("\uFFFD");
+    }
+
+    @Test
     @DisplayName("执行方案全局变量：密文变量打码，普通变量原样展示供审批人判断影响面")
     void givenJobPlanGlobalVarThenMaskCipherVarOnly() {
         V4ExecuteJobPlanRequest request = new V4ExecuteJobPlanRequest();

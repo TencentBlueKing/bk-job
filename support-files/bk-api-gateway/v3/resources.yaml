@@ -7043,7 +7043,7 @@ paths:
                   description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
                 script_param:
                   type: string
-                  description: 脚本参数Base64。注意：1.如果有多个参数，比如"param1 param2"这种，需要对"param1 param2"整体进行base64编码，而不是对每个参数进行base64编码再拼接起来。2.非敏感参数编码前长度不能超过64K，敏感参数编码前长度不能超过47K
+                  description: 脚本参数Base64。注意：1.如果有多个参数，比如"param1 param2"这种，需要对"param1 param2"整体进行base64编码，而不是对每个参数进行base64编码再拼接起来。2.非敏感参数编码前长度不能超过64K，敏感参数编码前长度不能超过47K。3.传入非Base64内容会返回参数校验失败
                 account_alias:
                   type: string
                   description: 执行账号别名，一般情况下与机器上账号名称相同，例如user00或root。
@@ -7185,7 +7185,7 @@ paths:
                   description: 执行目标。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空
                 script_content:
                   type: string
-                  description: Base64编码后的脚本内容。
+                  description: Base64编码后的脚本内容。传入非Base64内容会返回参数校验失败
                 param_sensitive:
                   type: boolean
                   default: false
@@ -8911,7 +8911,7 @@ paths:
                   description: 自定义作业名称，长度不可超过512字符
                 script_content:
                   type: string
-                  description: Base64编码后的脚本内容。与script_id、script_version_id三者填一个，优先级为script_version_id > script_id > script_content
+                  description: Base64编码后的脚本内容。与script_id、script_version_id三者填一个，优先级为script_version_id > script_id > script_content。传入非Base64内容会返回参数校验失败
                 script_id:
                   type: string
                   description: 引用的脚本ID，使用该脚本的上线版本。与script_content、script_version_id三者填一个
@@ -8924,7 +8924,7 @@ paths:
                   description: '脚本语言，仅script_content方式需要。可选值: 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql'
                 script_param:
                   type: string
-                  description: 脚本参数Base64。注意：1.如果有多个参数，比如"param1 param2"这种，需要对"param1 param2"整体进行base64编码，而不是对每个参数进行base64编码再拼接起来。2.非敏感参数编码前长度不能超过64K，敏感参数编码前长度不能超过47K
+                  description: 脚本参数Base64。注意：1.如果有多个参数，比如"param1 param2"这种，需要对"param1 param2"整体进行base64编码，而不是对每个参数进行base64编码再拼接起来。2.非敏感参数编码前长度不能超过64K，敏感参数编码前长度不能超过47K。3.传入非Base64内容会返回参数校验失败
                 param_sensitive:
                   type: boolean
                   default: false
