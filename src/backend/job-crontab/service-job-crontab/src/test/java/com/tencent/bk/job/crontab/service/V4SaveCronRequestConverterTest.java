@@ -106,8 +106,21 @@ class V4SaveCronRequestConverterTest {
         assertThat(cronJobInfo.getLastModifyUser()).isEqualTo("admin");
         assertThat(cronJobInfo.getLastModifyTime()).isNotNull();
         assertThat(cronJobInfo.getDelete()).isFalse();
-        // 保存不改变启停状态
-        assertThat(cronJobInfo.getEnable()).isFalse();
+        // 启停状态留空交给服务层按新建/更新的语义补齐，保存接口自身不改变它
+        assertThat(cronJobInfo.getEnable()).isNull();
+    }
+
+    @Test
+    @DisplayName("更新已有定时任务不带上启停状态，否则会把正在调度的定时任务停掉")
+    void convertUpdateThenKeepEnableUntouched() {
+        V4SaveCronRequest request = createRequest();
+        request.setId(500L);
+        stubPlanVariable(1L, "var_str", TaskVariableTypeEnum.STRING.getType());
+
+        CronJobInfoDTO cronJobInfo = converter.convert(request, OPERATOR);
+
+        assertThat(cronJobInfo.getId()).isEqualTo(500L);
+        assertThat(cronJobInfo.getEnable()).isNull();
     }
 
     @Test

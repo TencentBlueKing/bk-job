@@ -34,8 +34,8 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
+import com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum;
 import com.tencent.bk.job.crontab.model.esb.v4.req.V4SaveCronRequest;
 import com.tencent.bk.job.crontab.model.esb.v4.resp.V4CronJobDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
@@ -108,8 +108,7 @@ public class OpenApiSaveCronV4ResourceImpl implements OpenApiSaveCronV4Resource 
         V4CronJobDTO result = new V4CronJobDTO();
         result.setId(cronJobInfo.getId());
         result.setName(cronJobInfo.getName());
-        result.setStatus(Boolean.TRUE.equals(cronJobInfo.getEnable())
-            ? CronStatusEnum.RUNNING.getStatus() : CronStatusEnum.STOPPING.getStatus());
+        result.setStatus(V4CronStatusEnum.of(Boolean.TRUE.equals(cronJobInfo.getEnable())).getStatus());
         return result;
     }
 }

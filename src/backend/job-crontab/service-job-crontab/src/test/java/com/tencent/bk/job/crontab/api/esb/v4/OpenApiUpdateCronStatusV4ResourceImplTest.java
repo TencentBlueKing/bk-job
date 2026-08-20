@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
+import com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.esb.v4.req.V4UpdateCronStatusRequest;
 import com.tencent.bk.job.crontab.model.esb.v4.resp.V4CronJobDTO;
@@ -90,7 +90,7 @@ class OpenApiUpdateCronStatusV4ResourceImplTest {
         when(cronJobService.getCronJobInfoById(APP_ID, CRON_ID)).thenReturn(buildCronJobInfo());
 
         EsbV4Response<V4CronJobDTO> response =
-            resource.updateCronStatus(USERNAME, APP_CODE, true, baseRequest(CronStatusEnum.RUNNING.getStatus()));
+            resource.updateCronStatus(USERNAME, APP_CODE, true, baseRequest(V4CronStatusEnum.ENABLED.getStatus()));
 
         assertThat(response.getData()).isNull();
         verify(cronJobService, never()).changeCronJobEnableStatus(any(), anyLong(), anyLong(), anyBoolean());
@@ -102,13 +102,13 @@ class OpenApiUpdateCronStatusV4ResourceImplTest {
         when(cronJobService.getCronJobInfoById(APP_ID, CRON_ID)).thenReturn(buildCronJobInfo());
 
         EsbV4Response<V4CronJobDTO> response =
-            resource.updateCronStatus(USERNAME, APP_CODE, true, baseRequest(CronStatusEnum.RUNNING.getStatus()));
+            resource.updateCronStatus(USERNAME, APP_CODE, true, baseRequest(V4CronStatusEnum.ENABLED.getStatus()));
 
         ResolvedSummary summary = response.getDryRunSummary();
         assertThat(summary.getName()).isEqualTo("test_cron");
         assertThat(summaryFields(summary))
             .containsEntry("cron_id", String.valueOf(CRON_ID))
-            .containsEntry("target_status", CronStatusEnum.RUNNING.name())
+            .containsEntry("target_status", V4CronStatusEnum.ENABLED.name())
             .containsEntry("job_plan_id", "100")
             .containsEntry("cron_expression", "0 0 12 * *");
     }
@@ -119,7 +119,7 @@ class OpenApiUpdateCronStatusV4ResourceImplTest {
         when(cronJobService.getCronJobInfoById(APP_ID, CRON_ID)).thenReturn(null);
 
         assertThatThrownBy(() ->
-            resource.updateCronStatus(USERNAME, APP_CODE, true, baseRequest(CronStatusEnum.RUNNING.getStatus())))
+            resource.updateCronStatus(USERNAME, APP_CODE, true, baseRequest(V4CronStatusEnum.ENABLED.getStatus())))
             .isInstanceOf(NotFoundException.class);
     }
 
@@ -127,16 +127,16 @@ class OpenApiUpdateCronStatusV4ResourceImplTest {
     @DisplayName("dryRun 未传时按正式执行处理，返回改后的状态")
     void givenNullDryRunThenChangeStatus() {
         EsbV4Response<V4CronJobDTO> response =
-            resource.updateCronStatus(USERNAME, APP_CODE, null, baseRequest(CronStatusEnum.STOPPING.getStatus()));
+            resource.updateCronStatus(USERNAME, APP_CODE, null, baseRequest(V4CronStatusEnum.DISABLED.getStatus()));
 
         assertThat(response.getDryRunSummary()).isNull();
         assertThat(response.getData().getId()).isEqualTo(CRON_ID);
-        assertThat(response.getData().getStatus()).isEqualTo(CronStatusEnum.STOPPING.getStatus());
+        assertThat(response.getData().getStatus()).isEqualTo(V4CronStatusEnum.DISABLED.getStatus());
         verify(cronJobService).changeCronJobEnableStatus(any(), eq(APP_ID), eq(CRON_ID), eq(false));
     }
 
     @Test
-    @DisplayName("状态值不在启动与暂停之外时拒绝")
+    @DisplayName("状态值不在启用与停用之外时拒绝")
     void givenIllegalStatusThenReject() {
         assertThatThrownBy(() -> resource.updateCronStatus(USERNAME, APP_CODE, true, baseRequest(99)))
             .isInstanceOf(InvalidParamException.class);

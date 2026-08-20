@@ -32,8 +32,11 @@ import lombok.EqualsAndHashCode;
 /**
  * v4 启停定时任务请求。
  * <p>
- * 与 v3 的 EsbUpdateCronStatusV3Request 的协议差异：不再提供 bk_biz_id 兼容字段，
- * 业务范围只用 bk_scope_type + bk_scope_id。
+ * 与 v3 的 EsbUpdateCronStatusV3Request 的协议差异：
+ * <ul>
+ *     <li>不再提供 bk_biz_id 兼容字段，业务范围只用 bk_scope_type + bk_scope_id；</li>
+ *     <li>状态取值改为 1-启用 / 0-停用，纠正 v3 用 2 表示停用的遗留取值。</li>
+ * </ul>
  * <p>
  * 校验不放在请求体的 validate 方法里，而是由 V4UpdateCronStatusRequestConverter 统一执行，
  * 这样审批预检链路与直接执行链路使用同一份校验实现。
@@ -49,7 +52,7 @@ public class V4UpdateCronStatusRequest extends EsbAppScopeReq {
     private Long id;
 
     /**
-     * 目标状态。1-启动，2-暂停
+     * 目标状态，取值见 {@link com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum}：1-启用，0-停用
      */
     @JsonProperty("status")
     private Integer status;

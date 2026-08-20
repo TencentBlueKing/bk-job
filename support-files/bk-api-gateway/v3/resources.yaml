@@ -7599,7 +7599,7 @@ paths:
                 transfer_mode:
                   type: number
                   default: 2
-                  description: '传输模式。可选值: 1 - 严谨模式（目标路径不存在则失败）, 2 - 强制模式（目标路径不存在则自动创建目录，同名文件会被覆盖）。不传或传其它值一律按强制模式处理'
+                  description: '传输模式。可选值: 1 - 严谨模式（目标路径不存在则失败）, 2 - 强制模式（目标路径不存在则自动创建目录，同名文件被直接覆盖）, 3 - 保险模式（按源主机分目录存放，不同来源的同名文件不会互相覆盖）, 4 - 保险模式（按日期与源主机分目录存放）。不传按强制模式处理，传上述以外的值报错'
                 download_speed_limit:
                   type: number
                   description: 下载限速，单位MB，不传表示不限速
@@ -7927,7 +7927,7 @@ paths:
   /api/v4/save_cron:
     post:
       operationId: v4_save_cron
-      description: 新建或更新定时任务，保存后定时任务处于暂停状态，需再调用启停定时任务接口才会开始调度
+      description: 新建或更新定时任务，本接口不改变启停状态：新建出来的定时任务默认停用，需再调用启停定时任务接口才会开始调度；更新已有定时任务保持原状态不变
       tags:
         - v4
       responses:
@@ -7948,7 +7948,7 @@ paths:
                         description: 定时任务名称
                       status:
                         type: number
-                        description: '定时任务状态。可选值: 1 - 已启动, 2 - 已暂停。保存操作不会启用定时任务，因此本接口固定返回2'
+                        description: '定时任务状态。可选值: 1 - 已启用, 0 - 已停用。保存操作不会启用定时任务，因此本接口固定返回0'
                     description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
           description: ''
         '400':
@@ -8099,7 +8099,7 @@ paths:
   /api/v4/update_cron_status:
     post:
       operationId: v4_update_cron_status
-      description: 启动或暂停定时任务
+      description: 启用或停用定时任务
       tags:
         - v4
       responses:
@@ -8117,7 +8117,7 @@ paths:
                         description: 定时任务ID
                       status:
                         type: number
-                        description: '变更后的定时任务状态。可选值: 1 - 已启动, 2 - 已暂停'
+                        description: '变更后的定时任务状态。可选值: 1 - 已启用, 0 - 已停用'
                     description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
           description: ''
         '400':
@@ -8165,7 +8165,7 @@ paths:
                   description: 定时任务ID，须为正整数
                 status:
                   type: number
-                  description: '目标状态。可选值: 1 - 启动, 2 - 暂停'
+                  description: '目标状态。可选值: 1 - 启用, 0 - 停用'
         required: true
         description: ''
       x-bk-apigateway-resource:
@@ -9547,7 +9547,7 @@ paths:
                 transfer_mode:
                   type: number
                   default: 2
-                  description: '传输模式。可选值: 1 - 严谨模式（目标路径不存在则失败）, 2 - 强制模式（目标路径不存在则创建，同名文件会被覆盖）。不传默认2'
+                  description: '传输模式。可选值: 1 - 严谨模式（目标路径不存在则失败）, 2 - 强制模式（目标路径不存在则自动创建目录，同名文件被直接覆盖）, 3 - 保险模式（按源主机分目录存放，不同来源的同名文件不会互相覆盖）, 4 - 保险模式（按日期与源主机分目录存放）。不传按强制模式处理，传上述以外的值报错'
                 download_speed_limit:
                   type: number
                   description: 下载限速，单位MB，不传表示不限速
@@ -10154,13 +10154,13 @@ paths:
                     properties:
                       id:
                         type: number
-                        description: 全局变量ID。与name二者填一个，优先级更高
+                        description: 全局变量ID。与name二者填一个，同时存在时以本字段为准
                       name:
                         type: string
                         description: 全局变量名。与id二者填一个
                       value:
                         type: string
-                        description: 全局变量取值。主机类变量用execute_target传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用该字段。密文类型变量在审批内容中只显示占位符
+                        description: 全局变量取值。执行目标类变量用execute_target传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用该字段。密文类型变量在审批内容中只显示占位符
                       execute_target:
                         type: object
                         properties:
@@ -10208,92 +10208,7 @@ paths:
                                   description: '拓扑节点类型。可选值: module - 模块, set - 集群'
                               description: 一个CMDB拓扑节点
                             description: CMDB拓扑节点列表
-                          kube_container_filters:
-                            type: array
-                            items:
-                              type: object
-                              required:
-                              - kube_cluster_filter
-                              properties:
-                                kube_cluster_filter:
-                                  type: object
-                                  required:
-                                  - cluster_uid_list
-                                  properties:
-                                    cluster_uid_list:
-                                      type: array
-                                      items:
-                                        type: string
-                                      description: 集群UID列表
-                                  description: 集群过滤器
-                                kube_namespace_filter:
-                                  type: object
-                                  properties:
-                                    namespace_name_list:
-                                      type: array
-                                      items:
-                                        type: string
-                                      description: namespace名称列表
-                                  description: namespace过滤器
-                                kube_workload_filter:
-                                  type: object
-                                  properties:
-                                    kind:
-                                      type: string
-                                      description: workload类型，如deployment、statefulSet、daemonSet、customResource等
-                                    workload_name_list:
-                                      type: array
-                                      items:
-                                        type: string
-                                      description: workload名称列表
-                                  description: workload过滤器
-                                kube_pod_filter:
-                                  type: object
-                                  properties:
-                                    pod_name_list:
-                                      type: array
-                                      items:
-                                        type: string
-                                      description: pod名称列表
-                                    label_selector:
-                                      type: array
-                                      items:
-                                        type: object
-                                        properties:
-                                          key:
-                                            type: string
-                                            description: label key
-                                          operator:
-                                            type: string
-                                            description: '操作符。可选值: not_exists, equals, in, not_equals, not_in, exists, gt, lt'
-                                          values:
-                                            type: array
-                                            items:
-                                              type: string
-                                            description: label value列表，operator为in或not_in时必填
-                                      description: 标签选择器列表
-                                    label_selector_expr:
-                                      type: array
-                                      items:
-                                        type: string
-                                      description: label selector表达式
-                                  description: pod属性过滤器
-                                kube_container_prop_filter:
-                                  type: object
-                                  properties:
-                                    container_name_list:
-                                      type: array
-                                      items:
-                                        type: string
-                                      description: 容器名称列表
-                                  description: 容器属性过滤器
-                                execute_in_whole_cluster:
-                                  type: boolean
-                                  default: false
-                                  description: 是否在整个集群内执行，默认为false。为true时忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter
-                              description: 一个容器过滤器
-                            description: 容器过滤器列表
-                        description: 主机类全局变量的取值。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空
+                        description: 执行目标类全局变量的取值。host_list、dynamic_group_list、topo_node_list不能同时为空
                     description: 一个全局变量取值
                   description: 定时任务启动执行方案时的全局变量取值列表，不传表示全部使用执行方案中的默认值
         required: true
@@ -10399,7 +10314,7 @@ paths:
                   description: 定时任务ID
                 status:
                   type: number
-                  description: '目标状态。可选值: 1 - 启动, 2 - 暂停'
+                  description: '目标状态。可选值: 1 - 启用, 0 - 停用'
         required: true
         description: ''
       x-bk-apigateway-resource:
@@ -10804,7 +10719,7 @@ paths:
                         description: 审批任务过期时刻，Unix时间戳，单位毫秒；过期后不可再放行
                       approval_content:
                         type: string
-                        description: 审批内容，Markdown格式，由作业平台渲染完成，审批渠道直接展示即可。依次包含一级标题（形如“快速执行脚本 - 某业务 - 37个执行对象”）、操作概要表格（操作类型、资源范围、发起人、风险等级、执行对象清单、生效的默认值等）、各执行步骤的明细表格、脚本内容代码块、原始参数JSON代码块。密码类敏感字段的值仅为占位符，不含真实值，脚本内容例外、原样展示；目标含动态分组或拓扑节点时正文中会给出「放行时重新解析」的提示
+                        description: 审批内容，Markdown格式，由作业平台渲染完成，审批渠道直接展示即可。依次包含一级标题（形如“快速执行脚本 - 某业务 - 37个执行对象”）、操作概要表格（操作类型、资源范围、发起人、风险等级、操作对象、执行对象总数、生效的默认值等）、脚本内容代码块、原始参数JSON代码块。逐步骤的明细（步骤名称、执行账号、脚本名称、目标机清单等）不在正文中展开，以免单据过长使审批人直接划到底放行，但仍参与风险等级判定。密码类敏感字段的值仅为占位符，不含真实值，脚本内容例外、原样展示；目标含动态分组或拓扑节点时正文中会给出「放行时重新解析」的提示
                     description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
           description: ''
         '400':

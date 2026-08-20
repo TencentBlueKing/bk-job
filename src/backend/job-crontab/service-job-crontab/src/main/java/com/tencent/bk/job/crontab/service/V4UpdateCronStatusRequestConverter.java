@@ -26,7 +26,7 @@ package com.tencent.bk.job.crontab.service;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
+import com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum;
 import com.tencent.bk.job.crontab.model.esb.v4.req.V4UpdateCronStatusRequest;
 
 /**
@@ -54,7 +54,7 @@ public class V4UpdateCronStatusRequestConverter {
      */
     public static boolean convertToEnable(V4UpdateCronStatusRequest request) {
         validate(request);
-        return CronStatusEnum.RUNNING.getStatus().equals(request.getStatus());
+        return V4CronStatusEnum.valOf(request.getStatus()).isEnabled();
     }
 
     public static void validate(V4UpdateCronStatusRequest request) {
@@ -62,9 +62,9 @@ public class V4UpdateCronStatusRequestConverter {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"id", "id must be a positive integer"});
         }
-        if (CronStatusEnum.valOf(request.getStatus() == null ? -1 : request.getStatus()) == null) {
+        if (V4CronStatusEnum.valOf(request.getStatus()) == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"status", "status must be 1(running) or 2(stopping)"});
+                new String[]{"status", "status must be 1(enabled) or 0(disabled)"});
         }
     }
 }

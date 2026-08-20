@@ -22,7 +22,7 @@ Before calling: the caller must have the permission to perform fast file transfe
 | account_alias | string | No | Alias of the execution account on the destination hosts. Provide either `account_alias` or `account_id`; `account_id` wins if both are given |
 | account_id | long | No | ID of the execution account on the destination hosts. Provide either `account_alias` or `account_id`; this one wins if both are given |
 | execute_target | object | Yes | Distribution target |
-| transfer_mode | int | No | Transfer mode. Options: 1 (strict mode, fails when the target path does not exist), 2 (force mode, creates the target path when missing and overwrites files with the same name). Defaults to 2 |
+| transfer_mode | int | No | Transfer mode. Options: 1 (strict mode, fails when the target path does not exist), 2 (force mode, creates the target path when missing and overwrites files with the same name), 3 (safety mode, stores files in per-source-host subdirectories so that same-named files from different sources never overwrite each other), 4 (safety mode, stores files in subdirectories grouped by date and source host). Omitting the field falls back to force mode, so mind its overwrite behaviour; any value other than the ones above is rejected |
 | download_speed_limit | int | No | Download speed limit in MB. No limit when omitted |
 | upload_speed_limit | int | No | Upload speed limit in MB. No limit when omitted |
 | timeout | int | No | File transfer timeout in seconds. Defaults to 7200, valid range 1-259200 |

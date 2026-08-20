@@ -16,7 +16,7 @@ Before calling: the target cron job must exist in the given resource scope and t
 | bk_scope_id | string | Yes | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
 | approval_channel | string | No | Approval channel. Options: `IMATE` (IMate approval channel). The default channel configured on the server is used when omitted. Only the channel enum can be specified; the channel address and secret always come from the server configuration |
 | id | long | Yes | Cron job ID |
-| status | int | Yes | Target status. Options: 1 (start), 2 (pause) |
+| status | int | Yes | Target status. Options: 1 (enabled), 0 (disabled) |
 
 ### Request Parameters Example
 

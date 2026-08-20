@@ -25,13 +25,14 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.ResolvedSummary;
-import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.util.FileTransferModeUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -150,18 +151,20 @@ public class ResolvedSummaryBuilder {
             step.addField("file_target_path", stepInstance.getFileTargetPath());
             step.addField("file_target_name", stepInstance.getFileTargetName());
             step.addField("file_source_list", summaryFileSources(stepInstance.getFileSourceList()));
-            step.addField("transfer_mode", describeTransferMode(stepInstance.getNotExistPathHandler()));
+            step.addField("transfer_mode", describeTransferMode(stepInstance));
         }
     }
 
     /**
-     * 强制模式会在目标路径不存在时自动创建目录并覆盖同名文件，与严格模式的后果差别很大，必须让审批人看到
+     * 各分发模式对已有文件的处置差别很大（强制模式会建目录并覆盖同名文件，保险模式则分目录存放），必须让审批人看到
      */
-    private static String describeTransferMode(Integer notExistPathHandler) {
-        if (notExistPathHandler == null) {
+    private static String describeTransferMode(StepInstanceDTO stepInstance) {
+        if (stepInstance.getNotExistPathHandler() == null) {
             return null;
         }
-        return NotExistPathHandlerEnum.STEP_FAIL.getValue() == notExistPathHandler ? "STRICT" : "FORCE";
+        FileTransferModeEnum transferMode = FileTransferModeUtil.getTransferMode(
+            stepInstance.getFileDuplicateHandle(), stepInstance.getNotExistPathHandler());
+        return transferMode == null ? null : transferMode.name();
     }
 
     /**

@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
+import com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.esb.v4.req.V4SaveCronRequest;
 import com.tencent.bk.job.crontab.model.esb.v4.resp.V4CronJobDTO;
@@ -132,7 +132,7 @@ class OpenApiSaveCronV4ResourceImplTest {
 
         assertThat(response.getDryRunSummary()).isNull();
         assertThat(response.getData().getId()).isEqualTo(66L);
-        assertThat(response.getData().getStatus()).isEqualTo(CronStatusEnum.STOPPING.getStatus());
+        assertThat(response.getData().getStatus()).isEqualTo(V4CronStatusEnum.DISABLED.getStatus());
     }
 
     @Test
@@ -148,7 +148,7 @@ class OpenApiSaveCronV4ResourceImplTest {
 
         EsbV4Response<V4CronJobDTO> response = callSaveCron(request, null);
 
-        assertThat(response.getData().getStatus()).isEqualTo(CronStatusEnum.RUNNING.getStatus());
+        assertThat(response.getData().getStatus()).isEqualTo(V4CronStatusEnum.ENABLED.getStatus());
         verify(cronJobService, never()).createCronJobInfo(any(), any());
     }
 

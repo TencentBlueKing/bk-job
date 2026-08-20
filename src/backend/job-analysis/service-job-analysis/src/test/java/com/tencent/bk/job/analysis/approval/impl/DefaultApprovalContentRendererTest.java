@@ -28,14 +28,21 @@ import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalRiskLevelEnum;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalParamsCryptorRegistry;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalParamsCryptorTestSupport;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
-import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BasicApp;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteJobPlanRequest;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4GlobalVarDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,12 +64,17 @@ import static org.mockito.Mockito.when;
 /**
  * 单元测试 - 审批内容渲染与脱敏。
  * <p>
- * 本类盯死两件"破了就等于没做"的事：
+ * 本类盯死三件"破了就等于没做"的事：
  * <ul>
- *     <li><b>正文必须看清"在哪些机器上执行什么"</b>，否则等于逼审批人盲签；</li>
- *     <li><b>密码类字段的明文与密文都不得出现在正文的任何位置</b>，脚本内容是唯一例外。</li>
+ *     <li><b>正文必须看清操作影响面</b>（业务、操作类型、执行对象总数、高危与动态目标提示），否则等于逼审批人盲签；</li>
+ *     <li><b>密码类字段的明文与密文都不得出现在正文的任何位置</b>，脚本内容是唯一例外；</li>
+ *     <li><b>逐步骤的解析结果不进正文</b>：单据铺得越长审批人越容易一路划到底直接点通过，
+ *     但它仍须参与风险定级。</li>
  * </ul>
  * 断言一律落在 {@code approvalContent} 这一份 Markdown 正文上：它是审批人唯一看得到的东西。
+ * <p>
+ * 参数快照用真实的加密实现产出，而不是塞一段手写 JSON：只有走同一条链路，
+ * "加密了就一定打码"这个不变式才真的被验证到。
  */
 class DefaultApprovalContentRendererTest {
 
@@ -75,11 +87,14 @@ class DefaultApprovalContentRendererTest {
     private static final String TASK_ID = "e2a1c0d4111122223333444455556666";
     private static final String CREATOR = "admin";
     private static final Long APP_ID = 2L;
+    private static final long PLAN_ID = 100L;
     private static final String SCRIPT_CONTENT = "echo hello && rm -rf /tmp/a";
     private static final String PLAIN_PASSWORD = "P@ssw0rd-should-never-appear";
-    private static final String ENCRYPTED_PASSWORD = "CIPHER-3f8a9b-should-never-appear";
+    private static final String HOST_PASSWORD = "CIPHER-3f8a9b-should-never-appear";
     private static final String SENSITIVE_SCRIPT_PARAM = "--token=secret-should-never-appear";
 
+    private ApprovalParamsCryptorTestSupport cryptorSupport;
+    private ApprovalParamsCryptoService cryptoService;
     private CommonAppService appService;
     private MessageI18nService i18nService;
     private DefaultApprovalContentRenderer renderer;
@@ -98,13 +113,20 @@ class DefaultApprovalContentRendererTest {
         when(i18nService.getI18n(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         when(i18nService.getI18nWithArgs(anyString(), any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        renderer = new DefaultApprovalContentRenderer(i18nService, appService, new NoopParamsCryptoService());
+        cryptorSupport = new ApprovalParamsCryptorTestSupport();
+        cryptorSupport.givenPlanVars(PLAN_ID,
+            cryptorSupport.cipherVar(1L, "password"),
+            cryptorSupport.stringVar(2L, "port"));
+        cryptoService = new ApprovalParamsCryptoServiceImpl(
+            new ApprovalParamsCryptorRegistry(cryptorSupport.allCryptors()));
+
+        renderer = new DefaultApprovalContentRenderer(i18nService, appService, cryptoService);
     }
 
     @Test
     @DisplayName("正文是一份 Markdown：一级标题 + 概要表格 + 脚本章节 + 原始参数代码块，顺序固定")
     void givenTaskThenRenderMarkdownWithFixedSectionOrder() {
-        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
 
         String content = rendered.getApprovalContent();
         assertThat(content)
@@ -122,15 +144,14 @@ class DefaultApprovalContentRendererTest {
     }
 
     @Test
-    @DisplayName("正文看得清在哪些机器上执行什么：执行对象、台数、账号、脚本名都在")
-    void givenSummaryThenShowExecuteObjectsAndScript() {
-        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+    @DisplayName("正文看得清影响面：操作对象、执行对象总数与业务都在概要里")
+    void givenSummaryThenShowScaleAndScope() {
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
 
-        assertThat(rendered.getApprovalContent())
-            .contains("0:127.0.0.1")
-            .contains("37")
-            .contains("root")
-            .contains("check_disk.sh");
+        String summarySection = sectionOf(rendered.getApprovalContent(), SECTION_SUMMARY);
+        assertThat(summarySection)
+            .contains("运基线")
+            .contains("37");
         assertThat(firstLine(rendered.getApprovalContent()))
             .as("标题须带上操作名与业务名")
             .contains(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT.getNameI18nKey())
@@ -138,15 +159,37 @@ class DefaultApprovalContentRendererTest {
     }
 
     @Test
-    @DisplayName("高危账号与高危规则命中都加粗，风险等级为 HIGH")
-    void givenHighRiskThenBoldAndHighRiskLevel() {
-        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+    @DisplayName("逐步骤的解析结果不进正文：单据越长审批人越容易一路划到底直接点通过")
+    void givenStepsThenNotRendered() {
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
+
+        assertThat(rendered.getApprovalContent())
+            .doesNotContain("0:127.0.0.1")
+            .doesNotContain("check_disk.sh")
+            .doesNotContain("执行脚本")
+            .doesNotContain("task.approval.content.stepPrefix");
+    }
+
+    @Test
+    @DisplayName("步骤虽不展示但仍参与风险定级：只有高危账号、没命中高危规则时风险等级依然是 HIGH")
+    void givenHighRiskAccountOnlyThenStillHighRiskLevel() {
+        ResolvedSummary summary = buildFullSummary();
+        summary.setDangerousRuleMatched(false);
+        summary.getSteps().get(0).setDangerousCheckSummary(null);
+
+        ApprovalContent rendered = renderer.render(scriptTask(summary, true));
 
         assertThat(tableRow(rendered.getApprovalContent(), "riskLevel"))
             .contains(ApprovalRiskLevelEnum.HIGH.getNameI18nKey());
-        assertThat(rendered.getApprovalContent())
-            .as("高危账号所在行须加粗，否则容易被扫过去")
-            .contains("**root**");
+    }
+
+    @Test
+    @DisplayName("高危规则命中加粗，风险等级为 HIGH")
+    void givenHighRiskThenBoldAndHighRiskLevel() {
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "riskLevel"))
+            .contains(ApprovalRiskLevelEnum.HIGH.getNameI18nKey());
         assertThat(tableRow(rendered.getApprovalContent(), "dangerousRuleMatched"))
             .contains("**task.approval.content.dangerousRuleMatched**");
     }
@@ -154,7 +197,7 @@ class DefaultApprovalContentRendererTest {
     @Test
     @DisplayName("动态分组目标在正文中可见且加粗：这是对「放行时重新解析」这一已知限制的如实披露")
     void givenDynamicTargetThenBoldHintVisible() {
-        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
 
         String row = tableRow(rendered.getApprovalContent(), "containsDynamicTarget");
         assertThat(row)
@@ -165,14 +208,14 @@ class DefaultApprovalContentRendererTest {
     @Test
     @DisplayName("脚本内容单独成章、代码块原样展示并已解码：不展示则审批人无从判断风险")
     void givenScriptContentThenShowDecodedPlainTextInOwnSection() {
-        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
 
         String scriptSection = sectionOf(rendered.getApprovalContent(), SECTION_SCRIPT);
         assertThat(scriptSection)
             .contains("`script_content`")
             .contains("```\n" + SCRIPT_CONTENT + "\n```");
         assertThat(sectionOf(rendered.getApprovalContent(), SECTION_RAW_PARAMS))
-            .as("参数树里只留指向脚本章节的占位符，避免同一段脚本出现两遍")
+            .as("参数里只留指向脚本章节的占位符，避免同一段脚本出现两遍")
             .contains("task.approval.content.value.scriptInSection")
             .doesNotContain(SCRIPT_CONTENT);
     }
@@ -181,9 +224,12 @@ class DefaultApprovalContentRendererTest {
     @DisplayName("脚本自带 ``` 时代码块围栏自动加长，不会把后续内容挤出代码块")
     void givenScriptWithFenceThenExtendFence() {
         String script = "echo '```'";
-        String params = "{\"name\":\"quick-script\",\"script_content\":\"" + base64(script) + "\"}";
+        V4FastExecuteScriptRequest request = new V4FastExecuteScriptRequest();
+        request.setName("quick-script");
+        request.setContent(base64(script));
 
-        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), params));
+        ApprovalContent rendered = renderer.render(taskOf(
+            ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, buildFullSummary(), request));
 
         assertThat(sectionOf(rendered.getApprovalContent(), SECTION_SCRIPT))
             .contains("````\n" + script + "\n````");
@@ -192,7 +238,7 @@ class DefaultApprovalContentRendererTest {
     @Test
     @DisplayName("主机账号密码只披露「提供了自定义密码」，明文与密文都不出现")
     void givenHostPasswordThenOnlyDiscloseProvided() {
-        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
 
         assertThat(rendered.getApprovalContent()).contains("task.approval.content.value.passwordProvided");
         assertContentFreeOfSecrets(rendered);
@@ -201,7 +247,7 @@ class DefaultApprovalContentRendererTest {
     @Test
     @DisplayName("用户声明为敏感的脚本参数打固定掩码，连长度都不泄露")
     void givenSensitiveScriptParamThenMasked() {
-        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
 
         assertThat(sectionOf(rendered.getApprovalContent(), SECTION_RAW_PARAMS)).contains("******");
         assertContentFreeOfSecrets(rendered);
@@ -210,26 +256,33 @@ class DefaultApprovalContentRendererTest {
     @Test
     @DisplayName("未声明为敏感的脚本参数原样解码展示：它同样是判断风险的必要信息")
     void givenNonSensitiveScriptParamThenShowDecoded() {
-        ApprovalContent rendered = renderer.render(buildTask(buildFullSummary(), buildScriptParams(false)));
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), false));
 
         assertThat(sectionOf(rendered.getApprovalContent(), SECTION_RAW_PARAMS))
             .contains(SENSITIVE_SCRIPT_PARAM);
     }
 
     @Test
-    @DisplayName("执行方案全局变量值一律打码：v4 请求体无变量类型，宁可全打也不能漏掉密码类变量")
-    void givenJobPlanGlobalVarThenAlwaysMasked() {
-        String params = "{\"job_plan_id\":100,\"global_var_list\":["
-            + "{\"name\":\"password\",\"value\":\"" + PLAIN_PASSWORD + "\"},"
-            + "{\"name\":\"port\",\"value\":\"8080\"}]}";
-        ApprovalTaskDTO task = buildTask(new ResolvedSummary(), params);
-        task.setOperationType(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN.name());
+    @DisplayName("执行方案全局变量：密文变量打码，普通变量原样展示供审批人判断影响面")
+    void givenJobPlanGlobalVarThenMaskCipherVarOnly() {
+        V4ExecuteJobPlanRequest request = new V4ExecuteJobPlanRequest();
+        request.setPlanId(PLAN_ID);
+        V4GlobalVarDTO cipherVar = new V4GlobalVarDTO();
+        cipherVar.setId(1L);
+        cipherVar.setName("password");
+        cipherVar.setValue(PLAIN_PASSWORD);
+        V4GlobalVarDTO plainVar = new V4GlobalVarDTO();
+        plainVar.setId(2L);
+        plainVar.setName("port");
+        plainVar.setValue("8080");
+        request.setGlobalVars(Arrays.asList(cipherVar, plainVar));
 
-        ApprovalContent rendered = renderer.render(task);
+        ApprovalContent rendered = renderer.render(taskOf(
+            ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN, new ResolvedSummary(), request));
 
         assertThat(rendered.getApprovalContent())
             .contains("******")
-            .doesNotContain("8080");
+            .contains("8080");
         assertContentFreeOfSecrets(rendered);
     }
 
@@ -239,10 +292,10 @@ class DefaultApprovalContentRendererTest {
         DefaultApprovalContentRenderer failingRenderer = new DefaultApprovalContentRenderer(
             i18nService, appService, new FailingParamsCryptoService());
 
-        ApprovalContent rendered = failingRenderer.render(buildTask(buildFullSummary(), buildScriptParams(true)));
+        ApprovalContent rendered = failingRenderer.render(scriptTask(buildFullSummary(), true));
 
         String content = rendered.getApprovalContent();
-        assertThat(content).contains(SECTION_SUMMARY).contains("check_disk.sh");
+        assertThat(content).contains(SECTION_SUMMARY).contains("运基线");
         assertThat(sectionOf(content, SECTION_RAW_PARAMS)).contains("rawParamsRenderFail");
         assertContentFreeOfSecrets(rendered);
     }
@@ -250,7 +303,7 @@ class DefaultApprovalContentRendererTest {
     @Test
     @DisplayName("概要为空也能出内容，不因缺字段抛异常")
     void givenEmptySummaryThenStillRender() {
-        ApprovalTaskDTO task = buildTask(new ResolvedSummary(), null);
+        ApprovalTaskDTO task = buildTask(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, new ResolvedSummary(), null);
         task.setResolvedSummary(null);
 
         ApprovalContent rendered = renderer.render(task);
@@ -270,7 +323,7 @@ class DefaultApprovalContentRendererTest {
     private void assertContentFreeOfSecrets(ApprovalContent rendered) {
         assertThat(StringUtils.defaultString(rendered.getApprovalContent()))
             .doesNotContain(PLAIN_PASSWORD)
-            .doesNotContain(ENCRYPTED_PASSWORD)
+            .doesNotContain(HOST_PASSWORD)
             .doesNotContain(SENSITIVE_SCRIPT_PARAM);
     }
 
@@ -303,19 +356,35 @@ class DefaultApprovalContentRendererTest {
         return index;
     }
 
-    private ApprovalTaskDTO buildTask(ResolvedSummary summary, String paramsJson) {
+    private ApprovalTaskDTO scriptTask(ResolvedSummary summary, boolean paramSensitive) {
+        return taskOf(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT, summary,
+            buildScriptRequest(paramSensitive));
+    }
+
+    /**
+     * 参数快照走真实加密产出，与线上落库的内容一致
+     */
+    private ApprovalTaskDTO taskOf(ApprovalOperationTypeEnum operationType,
+                                   ResolvedSummary summary,
+                                   Object params) {
+        return buildTask(operationType, summary, cryptoService.encryptToSnapshot(operationType, params));
+    }
+
+    private ApprovalTaskDTO buildTask(ApprovalOperationTypeEnum operationType,
+                                      ResolvedSummary summary,
+                                      String snapshot) {
         ApprovalTaskDTO task = new ApprovalTaskDTO();
         task.setApprovalTaskId(TASK_ID);
         task.setTenantId("default");
         task.setAppId(APP_ID);
-        task.setOperationType(ApprovalOperationTypeEnum.FAST_EXECUTE_SCRIPT.name());
+        task.setOperationType(operationType.name());
         task.setCreator(CREATOR);
         task.setApprovalChannel("IMATE");
         task.setStatus("PENDING");
         task.setCreateTime(System.currentTimeMillis());
         task.setExpireAt(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(8));
         task.setResolvedSummary(JsonUtils.toJson(summary));
-        task.setOperationParams(paramsJson);
+        task.setOperationParams(snapshot);
         return task;
     }
 
@@ -347,43 +416,38 @@ class DefaultApprovalContentRendererTest {
         return summary;
     }
 
-    private String buildScriptParams(boolean paramSensitive) {
-        return "{\"name\":\"quick-script\",\"script_content\":\"" + base64(SCRIPT_CONTENT) + "\","
-            + "\"script_param\":\"" + base64(SENSITIVE_SCRIPT_PARAM) + "\","
-            + "\"param_sensitive\":" + paramSensitive + ","
-            + "\"host_password_list\":[{\"host_id\":1,\"account\":\"root\","
-            + "\"encrypted_password\":\"" + ENCRYPTED_PASSWORD + "\"}]}";
+    private V4FastExecuteScriptRequest buildScriptRequest(boolean paramSensitive) {
+        V4FastExecuteScriptRequest request = new V4FastExecuteScriptRequest();
+        request.setName("quick-script");
+        request.setContent(base64(SCRIPT_CONTENT));
+        request.setScriptParam(base64(SENSITIVE_SCRIPT_PARAM));
+        request.setParamSensitive(paramSensitive);
+        EsbCustomHostPasswordDTO hostPassword = new EsbCustomHostPasswordDTO();
+        hostPassword.setHostId(1L);
+        hostPassword.setEncryptedPassword(HOST_PASSWORD);
+        request.setHostPasswordList(Collections.singletonList(hostPassword));
+        return request;
     }
 
     private static String base64(String value) {
         return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }
 
-    /**
-     * 不做任何加解密的替身：本类验证的是"渲染时是否脱敏"，与加密实现无关
-     */
-    private static class NoopParamsCryptoService implements ApprovalParamsCryptoService {
-
-        @Override
-        public String encryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson) {
-            return paramsJson;
-        }
-
-        @Override
-        public String decryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson) {
-            return paramsJson;
-        }
-    }
-
     private static class FailingParamsCryptoService implements ApprovalParamsCryptoService {
 
         @Override
-        public String encryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson) {
-            return paramsJson;
+        public String encryptToSnapshot(ApprovalOperationTypeEnum operationType, Object params) {
+            return JsonUtils.toJson(params);
         }
 
         @Override
-        public String decryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson) {
+        public Object decryptFromSnapshot(ApprovalOperationTypeEnum operationType, String snapshot) {
+            throw new IllegalStateException("decrypt failed");
+        }
+
+        @Override
+        public ApprovalDisplayParams desensitizeFromSnapshot(ApprovalOperationTypeEnum operationType,
+                                                             String snapshot) {
             throw new IllegalStateException("decrypt failed");
         }
     }

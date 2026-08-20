@@ -35,8 +35,8 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
+import com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum;
 import com.tencent.bk.job.crontab.model.esb.v4.req.V4UpdateCronStatusRequest;
 import com.tencent.bk.job.crontab.model.esb.v4.resp.V4CronJobDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
@@ -95,8 +95,7 @@ public class OpenApiUpdateCronStatusV4ResourceImpl implements OpenApiUpdateCronS
         ResolvedSummary summary = new ResolvedSummary();
         summary.setName(cronJobInfo.getName());
         summary.addField("cron_id", String.valueOf(cronJobId));
-        summary.addField("target_status",
-            enable ? CronStatusEnum.RUNNING.name() : CronStatusEnum.STOPPING.name());
+        summary.addField("target_status", V4CronStatusEnum.of(enable).name());
         summary.addField("job_plan_id", String.valueOf(cronJobInfo.getTaskPlanId()));
         summary.addField("cron_expression", cronJobInfo.getCronExpression());
         return summary;

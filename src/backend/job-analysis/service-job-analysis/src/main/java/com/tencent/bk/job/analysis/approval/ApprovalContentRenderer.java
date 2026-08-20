@@ -38,7 +38,7 @@ public interface ApprovalContentRenderer {
     /**
      * 渲染审批内容。
      * <p>
-     * <b>敏感字段一律只输出占位符</b>（脚本内容例外，见 {@link ApprovalSensitiveFields}），
+     * <b>敏感字段一律只输出占位符</b>（脚本内容例外，单独成章展示），
      * 明文与密文都不得出现在返回值里。
      */
     ApprovalContent render(ApprovalTaskDTO task);

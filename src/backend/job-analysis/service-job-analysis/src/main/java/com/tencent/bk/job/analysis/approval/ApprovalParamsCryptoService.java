@@ -25,33 +25,28 @@
 package com.tencent.bk.job.analysis.approval;
 
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams;
 
 /**
- * 审批任务参数快照的敏感字段加解密。
+ * 审批任务的参数快照与请求对象之间的转换，敏感字段在转换过程中加密 / 还原。
  * <p>
- * 参数快照会在库里驻留最长一个 TTL（默认 8 小时），加上清理任务的保留期后可能长达 30 天。
- * 快照里含脚本明文与密码类字段，明文落库等于把这些内容的暴露面从"一次执行"扩大到"一段驻留期"，
- * 因此落库前必须加密、放行前才解密。
- * <p>
- * <b>加密失败一律 fail-closed</b>：发起接口直接报错，绝不降级为明文落库。
+ * 加密在序列化之前、还原在反序列化之后完成，敏感字段由各操作类型的
+ * {@link com.tencent.bk.job.analysis.approval.crypto.ApprovalParamsCryptor} 按字段语义决定。
  */
 public interface ApprovalParamsCryptoService {
 
     /**
-     * 加密参数快照中的敏感字段，其余字段原样保留
-     *
-     * @param operationType 操作类型，决定哪些字段是敏感字段
-     * @param paramsJson    原始参数快照 JSON
-     * @return 敏感字段已替换为密文的 JSON
+     * 加密敏感字段并序列化为参数快照
      */
-    String encryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson);
+    String encryptToSnapshot(ApprovalOperationTypeEnum operationType, Object params);
 
     /**
-     * 还原参数快照中的敏感字段
-     *
-     * @param operationType 操作类型
-     * @param paramsJson    落库的参数快照 JSON
-     * @return 敏感字段已还原为明文的 JSON
+     * 从参数快照还原出请求对象，还原出的对象即下发给下游服务的请求体
      */
-    String decryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson);
+    Object decryptFromSnapshot(ApprovalOperationTypeEnum operationType, String snapshot);
+
+    /**
+     * 从参数快照还原出脱敏后的请求对象，供审批内容展示
+     */
+    ApprovalDisplayParams desensitizeFromSnapshot(ApprovalOperationTypeEnum operationType, String snapshot);
 }

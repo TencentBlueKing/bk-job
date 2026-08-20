@@ -1,8 +1,8 @@
 ### Description
 
-Switch an existing cron job on or off. A newly created cron job is paused by default and only starts to be triggered as planned after this API switches it on; once paused, the cron job is removed from the scheduler and is no longer triggered.
+Enable or disable an existing cron job. A newly created cron job is disabled by default and only starts to be triggered as planned after this API enables it; once disabled, the cron job is removed from the scheduler and is no longer triggered.
 
-Before calling: the target cron job must exist in the given resource scope and the caller must have the permission to switch cron jobs on and off in that resource scope. Switching a cron job on additionally requires the permission to launch the job plan it uses.
+Before calling: the target cron job must exist in the given resource scope and the caller must have the permission to switch cron jobs on and off in that resource scope. Enabling a cron job additionally requires the permission to launch the job plan it uses.
 
 ### Request Parameters
 
@@ -13,7 +13,7 @@ Before calling: the target cron job must exist in the given resource scope and t
 | bk_scope_type | string | Yes | Resource scope type. Options: `biz` (business), `biz_set` (business set) |
 | bk_scope_id | string | Yes | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
 | id | long | Yes | Cron job ID, must be a positive integer |
-| status | int | Yes | Target status. Options: 1 (switch on), 2 (pause) |
+| status | int | Yes | Target status. Options: 1 (enabled), 0 (disabled) |
 
 ### Request Parameters Example
 
@@ -55,4 +55,4 @@ Before calling: the target cron job must exist in the given resource scope and t
 | Field | Type | Never null | Description |
 |-------|------|------------|-------------|
 | id | long | Yes | Cron job ID |
-| status | int | Yes | Cron job status after the change. Options: 1 (running), 2 (paused) |
+| status | int | Yes | Cron job status after the change. Options: 1 (enabled), 0 (disabled) |

@@ -44,9 +44,9 @@ public class V4CronJobDTO {
     private String name;
 
     /**
-     * 取值见 CronStatusEnum：1-已启动 2-已暂停
+     * 取值见 {@link com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum}：1-已启用 0-已停用
      */
     @JsonProperty("status")
-    @Schema(description = "定时任务状态：1-已启动 2-已暂停")
+    @Schema(description = "定时任务状态：1-已启用 0-已停用")
     private Integer status;
 }

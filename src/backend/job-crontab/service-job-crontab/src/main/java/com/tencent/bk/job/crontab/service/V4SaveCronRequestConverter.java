@@ -119,8 +119,8 @@ public class V4SaveCronRequestConverter {
             cronJobInfo.setCreator(username);
             cronJobInfo.setDelete(false);
         }
-        // 保存不改变启停状态，启停由单独的接口负责
-        cronJobInfo.setEnable(false);
+        // enable 留空表示"本次保存不改变启停状态"：新建默认停用、更新沿用原状态，都由服务层按语义补齐。
+        // 保存接口不得停掉一个正在调度的定时任务，启停一律走单独的接口。
         cronJobInfo.setLastModifyUser(username);
         cronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
         return cronJobInfo;

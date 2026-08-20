@@ -24,125 +24,96 @@
 
 package com.tencent.bk.job.analysis.approval.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
-import com.tencent.bk.job.analysis.approval.ApprovalSensitiveFields;
-import com.tencent.bk.job.analysis.approval.ApprovalSensitiveFields.SensitiveField;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalParamsCryptor;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalParamsCryptorRegistry;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.crypto.CryptoScenarioEnum;
-import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
-import com.tencent.bk.sdk.crypto.util.CryptorMetaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 /**
- * 按操作类型逐字段加解密参数快照。
+ * 按操作类型把参数快照与请求对象互转，转换过程中完成敏感字段的加密与还原。
  * <p>
- * 敏感字段路径取自 {@link ApprovalSensitiveFields}，与审批内容的脱敏共用同一份登记，
- * 避免"库里加密了、审批内容里明文展示"这类不会报错的漂移。
+ * 加密作用在<b>反序列化出来的强类型请求对象</b>上，而不是序列化后的 JSON 文本：
+ * 哪个字段敏感由字段本身决定，不依赖对 JSON 树的路径匹配，新增字段时不会出现"忘了登记路径"的静默漏加密。
  */
 @Slf4j
 @Service
 public class ApprovalParamsCryptoServiceImpl implements ApprovalParamsCryptoService {
 
-    private final SymmetricCryptoService symmetricCryptoService;
+    private final ApprovalParamsCryptorRegistry cryptorRegistry;
 
-    public ApprovalParamsCryptoServiceImpl(SymmetricCryptoService symmetricCryptoService) {
-        this.symmetricCryptoService = symmetricCryptoService;
+    public ApprovalParamsCryptoServiceImpl(ApprovalParamsCryptorRegistry cryptorRegistry) {
+        this.cryptorRegistry = cryptorRegistry;
     }
 
     @Override
-    public String encryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson) {
-        return transform(operationType, paramsJson, true);
+    public String encryptToSnapshot(ApprovalOperationTypeEnum operationType, Object params) {
+        if (params == null) {
+            return null;
+        }
+        // 加密改写的是请求对象本身，先深拷贝一份，避免污染调用方后续要用的对象
+        ApprovalParamsCryptor<?> cryptor = cryptorRegistry.getCryptor(operationType);
+        Object copy = copy(params, cryptor.getParamsClass(), operationType);
+        // 加密失败让异常向上传播，绝不降级为明文落库
+        encrypt(cryptor, copy);
+        return JsonUtils.toJson(copy);
     }
 
     @Override
-    public String decryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson) {
-        return transform(operationType, paramsJson, false);
+    public Object decryptFromSnapshot(ApprovalOperationTypeEnum operationType, String snapshot) {
+        ApprovalParamsCryptor<?> cryptor = cryptorRegistry.getCryptor(operationType);
+        Object params = parse(snapshot, cryptor.getParamsClass(), operationType);
+        decrypt(cryptor, params);
+        return params;
     }
 
-    private String transform(ApprovalOperationTypeEnum operationType, String paramsJson, boolean encrypt) {
-        if (StringUtils.isEmpty(paramsJson)) {
-            return paramsJson;
+    @Override
+    public ApprovalDisplayParams desensitizeFromSnapshot(ApprovalOperationTypeEnum operationType, String snapshot) {
+        ApprovalParamsCryptor<?> cryptor = cryptorRegistry.getCryptor(operationType);
+        Object params = parse(snapshot, cryptor.getParamsClass(), operationType);
+        return desensitize(cryptor, params);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void encrypt(ApprovalParamsCryptor<T> cryptor, Object params) {
+        cryptor.encrypt((T) params);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void decrypt(ApprovalParamsCryptor<T> cryptor, Object params) {
+        cryptor.decrypt((T) params);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> ApprovalDisplayParams desensitize(ApprovalParamsCryptor<T> cryptor, Object params) {
+        return cryptor.desensitize((T) params);
+    }
+
+    private <T> T copy(Object params, Class<T> paramsClass, ApprovalOperationTypeEnum operationType) {
+        if (!paramsClass.isInstance(params)) {
+            throw new IllegalArgumentException("Params type mismatch for operationType " + operationType
+                + ", expect " + paramsClass.getName() + " but got " + params.getClass().getName());
         }
-        List<SensitiveField> fields = ApprovalSensitiveFields.of(operationType);
-        if (fields.isEmpty()) {
-            return paramsJson;
+        return parse(JsonUtils.toJson(params), paramsClass, operationType);
+    }
+
+    private <T> T parse(String snapshot, Class<T> paramsClass, ApprovalOperationTypeEnum operationType) {
+        if (StringUtils.isEmpty(snapshot)) {
+            throw new InternalException(
+                "Empty approval operation params, operationType=" + operationType, ErrorCode.INTERNAL_ERROR);
         }
-        JsonNode root = JsonUtils.toJsonNode(paramsJson);
-        if (root == null) {
+        T params = JsonUtils.fromJson(snapshot, paramsClass);
+        if (params == null) {
             // fail-closed：解析不了就不放行，绝不把未加密的内容原样落库、也不拿可疑内容去执行
             throw new InternalException(
-                "Parse approval operation params failed, operationType=" + operationType.name(),
-                ErrorCode.INTERNAL_ERROR
-            );
+                "Parse approval operation params failed, operationType=" + operationType, ErrorCode.INTERNAL_ERROR);
         }
-        boolean changed = false;
-        for (SensitiveField field : fields) {
-            changed |= transformPath(root, field.getPath(), 0, encrypt);
-        }
-        return changed ? JsonUtils.toJson(root) : paramsJson;
-    }
-
-    /**
-     * 沿路径下钻，对末段的文本叶子做加解密
-     *
-     * @return 是否发生了改写
-     */
-    private boolean transformPath(JsonNode node, List<String> path, int depth, boolean encrypt) {
-        if (node == null || node.isNull()) {
-            return false;
-        }
-        String segment = path.get(depth);
-        boolean lastSegment = depth == path.size() - 1;
-        if (ApprovalSensitiveFields.ARRAY_WILDCARD.equals(segment)) {
-            if (!(node instanceof ArrayNode)) {
-                return false;
-            }
-            boolean changed = false;
-            for (JsonNode element : node) {
-                changed |= transformPath(element, path, depth + 1, encrypt);
-            }
-            return changed;
-        }
-        if (!(node instanceof ObjectNode)) {
-            return false;
-        }
-        ObjectNode objectNode = (ObjectNode) node;
-        if (!lastSegment) {
-            return transformPath(objectNode.get(segment), path, depth + 1, encrypt);
-        }
-        JsonNode leaf = objectNode.get(segment);
-        if (leaf == null || !leaf.isTextual()) {
-            return false;
-        }
-        String value = leaf.asText();
-        if (StringUtils.isEmpty(value)) {
-            return false;
-        }
-        objectNode.put(segment, encrypt ? encryptValue(value) : decryptValue(value));
-        return true;
-    }
-
-    private String encryptValue(String plainText) {
-        // 加密失败让异常向上传播：发起接口报错好过把明文写进库里
-        return symmetricCryptoService.encryptToBase64Str(plainText, CryptoScenarioEnum.APPROVAL_PARAMS_SNAPSHOT);
-    }
-
-    private String decryptValue(String cipherText) {
-        String algorithm = CryptorMetaUtil.getCryptorNameFromCipher(cipherText);
-        if (StringUtils.isBlank(algorithm)) {
-            algorithm = CryptorNames.NONE;
-        }
-        return symmetricCryptoService.decrypt(cipherText, algorithm);
+        return params;
     }
 }

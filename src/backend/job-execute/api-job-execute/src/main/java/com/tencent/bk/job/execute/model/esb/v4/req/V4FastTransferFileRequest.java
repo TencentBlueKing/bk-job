@@ -123,7 +123,9 @@ public class V4FastTransferFileRequest extends EsbAppScopeReq {
     private Integer timeout;
 
     /**
-     * 传输模式。1-严谨模式（目标路径不存在则失败），2-强制模式（目标路径不存在则创建）。不传默认强制模式
+     * 传输模式。1-严谨模式（目标路径不存在则失败），2-强制模式（目标路径不存在则创建、同名文件覆盖），
+     * 3-保险模式（按源主机分目录存放），4-保险模式（按日期与源主机分目录存放）。
+     * 不传默认强制模式，传枚举外的值报错
      */
     @JsonProperty("transfer_mode")
     private Integer transferMode;

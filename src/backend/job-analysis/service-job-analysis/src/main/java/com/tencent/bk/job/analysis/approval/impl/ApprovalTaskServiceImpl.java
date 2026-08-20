@@ -157,8 +157,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         summary.setOperationType(operationType.name());
         task.setResolvedSummary(JsonUtils.toJson(summary));
         // 加密失败让异常向上传播，绝不降级为明文落库
-        task.setOperationParams(
-            paramsCryptoService.encryptSensitiveFields(operationType, JsonUtils.toJson(params)));
+        task.setOperationParams(paramsCryptoService.encryptToSnapshot(operationType, params));
 
         approvalTaskDAO.insertApprovalTask(task);
         log.info("Approval task created, approvalTaskId: {}, operationType: {}, creator: {}, channel: {}, "
@@ -442,9 +441,7 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
      */
     private Object resolveParamsFromSnapshot(ApprovalTaskDTO task) {
         ApprovalOperationTypeEnum operationType = ApprovalOperationTypeEnum.valOf(task.getOperationType());
-        OperationExecutor<?> executor = executorRegistry.getExecutor(operationType);
-        String paramsJson = paramsCryptoService.decryptSensitiveFields(operationType, task.getOperationParams());
-        Object params = JsonUtils.fromJson(paramsJson, executor.getParamsClass());
+        Object params = paramsCryptoService.decryptFromSnapshot(operationType, task.getOperationParams());
         if (params instanceof EsbAppScopeReq) {
             ((EsbAppScopeReq) params).setAppId(task.getAppId());
         }

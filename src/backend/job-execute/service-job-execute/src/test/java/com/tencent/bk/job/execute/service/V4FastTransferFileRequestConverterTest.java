@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
@@ -51,6 +52,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -58,6 +62,7 @@ import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -173,6 +178,57 @@ class V4FastTransferFileRequestConverterTest {
 
         assertThat(fastTask.getStepInstance().getNotExistPathHandler())
             .isEqualTo(NotExistPathHandlerEnum.STEP_FAIL.getValue());
+        assertThat(fastTask.getStepInstance().getFileDuplicateHandle())
+            .isEqualTo(DuplicateHandlerEnum.OVERWRITE.getId());
+    }
+
+    @ParameterizedTest(name = "传输模式 {0} 对应同名处理 {1}、路径不存在处理 {2}")
+    @DisplayName("四种传输模式各自转换为对应的同名文件与不存在路径处理方式")
+    @MethodSource("transferModes")
+    void convertEachTransferMode(Integer transferMode,
+                                 DuplicateHandlerEnum duplicateHandler,
+                                 NotExistPathHandlerEnum notExistPathHandler) {
+        V4FastTransferFileRequest request = baseRequest();
+        request.setTransferMode(transferMode);
+
+        FastTaskDTO fastTask = converter.convert(request, OPERATOR, APP_CODE, false);
+
+        assertThat(fastTask.getStepInstance().getFileDuplicateHandle()).isEqualTo(duplicateHandler.getId());
+        assertThat(fastTask.getStepInstance().getNotExistPathHandler()).isEqualTo(notExistPathHandler.getValue());
+    }
+
+    static Stream<Arguments> transferModes() {
+        return Stream.of(
+            Arguments.of(1, DuplicateHandlerEnum.OVERWRITE, NotExistPathHandlerEnum.STEP_FAIL),
+            Arguments.of(2, DuplicateHandlerEnum.OVERWRITE, NotExistPathHandlerEnum.CREATE_DIR),
+            Arguments.of(3, DuplicateHandlerEnum.GROUP_BY_IP, NotExistPathHandlerEnum.CREATE_DIR),
+            Arguments.of(4, DuplicateHandlerEnum.GROUP_BY_DATE_AND_IP, NotExistPathHandlerEnum.CREATE_DIR));
+    }
+
+    @Test
+    @DisplayName("不传传输模式按强制模式处理：目标路径自动创建、同名文件覆盖")
+    void convertWithoutTransferModeThenForce() {
+        FastTaskDTO fastTask = converter.convert(baseRequest(), OPERATOR, APP_CODE, false);
+
+        assertThat(fastTask.getStepInstance().getFileDuplicateHandle())
+            .isEqualTo(DuplicateHandlerEnum.OVERWRITE.getId());
+        assertThat(fastTask.getStepInstance().getNotExistPathHandler())
+            .isEqualTo(NotExistPathHandlerEnum.CREATE_DIR.getValue());
+    }
+
+    @Test
+    @DisplayName("传枚举外的传输模式直接报错，不静默降级为强制模式")
+    void convertRejectUnknownTransferMode() {
+        V4FastTransferFileRequest request = baseRequest();
+        request.setTransferMode(99);
+
+        assertThatThrownBy(() -> converter.convert(request, OPERATOR, APP_CODE, false))
+            .isInstanceOf(InvalidParamException.class);
+
+        ValidateResult result = converter.validate(request);
+        assertThat(result.isPass()).isFalse();
+        assertThat(result.getErrorCode()).isEqualTo(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME);
+        assertThat(result.getErrorParams()).containsExactly("transfer_mode");
     }
 
     @Test

@@ -2,7 +2,7 @@
 
 Create or update a cron job; both operations share this API. Providing `id` in the body updates that cron job, while omitting `id` creates a new one.
 
-**After saving, the cron job stays paused and is not scheduled.** A newly created cron job is paused by default, and updating an existing cron job also pauses it and removes it from the scheduler. Call the "update cron status" API to switch it on after saving if it should be triggered as planned.
+**This API never changes the enabled/disabled state of a cron job.** A newly created cron job is disabled by default, so call the "update cron status" API after saving if it should be triggered as planned. Updating an existing cron job keeps its current state, so a scheduled cron job is not stopped by an update.
 
 Before calling: the job plan to be scheduled must exist; the caller must have the permission to create (or, when updating, to edit) cron jobs in the resource scope; when updating, the cron job must exist in the same resource scope.
 
@@ -112,7 +112,7 @@ Update an existing cron job to run once at a given time:
     "data": {
         "id": 700001,
         "name": "nightly-clean",
-        "status": 2
+        "status": 0
     }
 }
 ```
@@ -127,4 +127,4 @@ Update an existing cron job to run once at a given time:
 |-------|------|------------|-------------|
 | id | long | Yes | Cron job ID; a newly generated ID when creating, and the same as the `id` in the request when updating |
 | name | string | No | Cron job name |
-| status | int | Yes | Cron job status. Options: 1 (running), 2 (paused). Saving never switches a cron job on, so this API always returns 2 |
+| status | int | Yes | Cron job status. Options: 1 (enabled), 0 (disabled). Saving does not change this state: creating always returns 0, while updating returns the state the cron job had before the update |

@@ -311,7 +311,12 @@ public class CronJobServiceImpl implements CronJobService {
         checkCronJobPlanOrScript(cronJobInfo);
         processCronJobVariableValueMask(cronJobInfo);
 
-        if (cronJobInfo.getEnable()) {
+        // 不传启停状态表示本次更新不改变它：更新一个正在调度的定时任务不应把它从调度里摘掉
+        if (cronJobInfo.getEnable() == null) {
+            cronJobInfo.setEnable(originCron.getEnable());
+        }
+
+        if (Boolean.TRUE.equals(cronJobInfo.getEnable())) {
             // 启用状态下更新需要执行方案的执行权限，该校验对预检同样生效
             authExecuteTask(cronJobInfo);
         }
@@ -322,7 +327,7 @@ public class CronJobServiceImpl implements CronJobService {
             return cronJobInfo;
         }
 
-        if (cronJobInfo.getEnable()) {
+        if (Boolean.TRUE.equals(cronJobInfo.getEnable())) {
             if (cronJobDAO.updateCronJobById(cronJobInfo)) {
                 informAllToAddJobToQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
             } else {

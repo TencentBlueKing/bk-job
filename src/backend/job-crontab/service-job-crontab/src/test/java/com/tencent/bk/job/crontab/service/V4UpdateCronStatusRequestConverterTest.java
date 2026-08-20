@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.service;
 
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
+import com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum;
 import com.tencent.bk.job.crontab.model.esb.v4.req.V4UpdateCronStatusRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,12 +39,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class V4UpdateCronStatusRequestConverterTest {
 
     @Test
-    @DisplayName("状态 1 转换为启动，状态 2 转换为暂停")
+    @DisplayName("状态 1 转换为启用，状态 0 转换为停用")
     void convertStatusToEnable() {
         assertThat(V4UpdateCronStatusRequestConverter.convertToEnable(
-            request(1L, CronStatusEnum.RUNNING.getStatus()))).isTrue();
+            request(1L, V4CronStatusEnum.ENABLED.getStatus()))).isTrue();
         assertThat(V4UpdateCronStatusRequestConverter.convertToEnable(
-            request(1L, CronStatusEnum.STOPPING.getStatus()))).isFalse();
+            request(1L, V4CronStatusEnum.DISABLED.getStatus()))).isFalse();
+    }
+
+    @Test
+    @DisplayName("v3 用 2 表示停用是历史遗留取值，v4 不接受")
+    void rejectLegacyStoppingStatus() {
+        assertThatThrownBy(() -> V4UpdateCronStatusRequestConverter.convertToEnable(request(1L, 2)))
+            .isInstanceOf(InvalidParamException.class);
     }
 
     @Test

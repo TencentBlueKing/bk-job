@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.ResolvedSummary;
+import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -133,6 +134,36 @@ class ResolvedSummaryBuilderTest {
         // 强制模式会自动建目录并覆盖同名文件，后果远大于严格模式，必须在单据里说清
         assertThat(fieldValue(step.getFields(), "transfer_mode")).isEqualTo("FORCE");
         assertThat(summary.getDangerousRuleMatched()).isFalse();
+    }
+
+    @Test
+    @DisplayName("保险模式不能在概要里被描述成会覆盖同名文件的强制模式")
+    void buildFileStepSummaryWithSafetyTransferMode() {
+        FileSourceDTO fileSource = new FileSourceDTO();
+        fileSource.setAccountAlias("root");
+        fileSource.setServers(buildResolvedTarget(201L));
+        FileDetailDTO fileDetail = new FileDetailDTO();
+        fileDetail.setFilePath("/data/a.tar.gz");
+        fileSource.setFiles(Collections.singletonList(fileDetail));
+
+        StepInstanceDTO stepInstance = new StepInstanceDTO();
+        stepInstance.setName("fast_file_step");
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
+        stepInstance.setAccountAlias("mysql");
+        stepInstance.setFileTargetPath("/tmp/");
+        stepInstance.setFileSourceList(Collections.singletonList(fileSource));
+        stepInstance.setFileDuplicateHandle(DuplicateHandlerEnum.GROUP_BY_IP.getId());
+        stepInstance.setNotExistPathHandler(NotExistPathHandlerEnum.CREATE_DIR.getValue());
+        stepInstance.setTargetExecuteObjects(buildResolvedTarget(101L));
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setName("fast_file_task");
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+
+        ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
+
+        ResolvedSummary.ResolvedStep step = summary.getSteps().get(0);
+        assertThat(fieldValue(step.getFields(), "transfer_mode")).isEqualTo("SAFETY_IP_PREFIX");
     }
 
     @Test

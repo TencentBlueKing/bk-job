@@ -35,6 +35,7 @@ import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalResultStatusEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalStatusEnum;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams;
 import com.tencent.bk.job.analysis.approval.executor.OperationExecutor;
 import com.tencent.bk.job.analysis.approval.executor.OperationExecutorRegistry;
 import com.tencent.bk.job.analysis.approval.model.ApprovalCallerContext;
@@ -863,7 +864,10 @@ class ApprovalTaskServiceImplTest {
     }
 
     /**
-     * 加解密替身：加密加前缀、解密去前缀，用于断言"落库的是密文、执行用的是明文"
+     * 加解密替身：加密加前缀、解密去前缀，用于断言"落库的是密文、执行用的是明文"。
+     * <p>
+     * 本类的用例只走快速执行脚本，故反序列化固定用 {@link V4FastExecuteScriptRequest}；
+     * 真实的按操作类型分派见 {@link ApprovalParamsCryptoServiceImplTest}。
      */
     private static class ApprovalParamsCryptoServiceStub
         implements com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService {
@@ -871,13 +875,20 @@ class ApprovalTaskServiceImplTest {
         private static final String PREFIX = "ENC:";
 
         @Override
-        public String encryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson) {
-            return PREFIX + paramsJson;
+        public String encryptToSnapshot(ApprovalOperationTypeEnum operationType, Object params) {
+            return PREFIX + JsonUtils.toJson(params);
         }
 
         @Override
-        public String decryptSensitiveFields(ApprovalOperationTypeEnum operationType, String paramsJson) {
-            return paramsJson.startsWith(PREFIX) ? paramsJson.substring(PREFIX.length()) : paramsJson;
+        public Object decryptFromSnapshot(ApprovalOperationTypeEnum operationType, String snapshot) {
+            String json = snapshot.startsWith(PREFIX) ? snapshot.substring(PREFIX.length()) : snapshot;
+            return JsonUtils.fromJson(json, V4FastExecuteScriptRequest.class);
+        }
+
+        @Override
+        public ApprovalDisplayParams desensitizeFromSnapshot(ApprovalOperationTypeEnum operationType,
+                                                             String snapshot) {
+            return ApprovalDisplayParams.of(decryptFromSnapshot(operationType, snapshot));
         }
     }
 }

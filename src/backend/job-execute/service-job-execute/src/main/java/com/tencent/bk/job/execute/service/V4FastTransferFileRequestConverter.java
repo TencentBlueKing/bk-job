@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -144,6 +143,12 @@ public class V4FastTransferFileRequestConverter {
         if (CollectionUtils.isEmpty(request.getFileSources())) {
             log.warn("Fast transfer file, file source list is empty!");
             return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source_list");
+        }
+        // 分发模式不传按强制模式处理，但传了就必须是合法取值：静默降级会让调用方以为选中了某种模式
+        if (request.getTransferMode() != null
+            && FileTransferModeEnum.getFileTransferModeEnum(request.getTransferMode()) == null) {
+            log.warn("Fast transfer file, transfer mode is invalid! transferMode={}", request.getTransferMode());
+            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "transfer_mode");
         }
         if (request.getRollingConfig() != null) {
             ValidateResult result = validateRollingFileSources(request);
@@ -268,14 +273,20 @@ public class V4FastTransferFileRequestConverter {
         if (request.getDownloadSpeedLimit() != null && request.getDownloadSpeedLimit() > 0) {
             stepInstance.setFileDownloadSpeedLimit(DataSizeConverter.convertMBToKB(request.getDownloadSpeedLimit()));
         }
-        FileTransferModeEnum transferMode = FileTransferModeEnum.getFileTransferModeEnum(request.getTransferMode());
-        if (transferMode == FileTransferModeEnum.STRICT) {
-            stepInstance.setNotExistPathHandler(NotExistPathHandlerEnum.STEP_FAIL.getValue());
-        } else {
-            // 不传或非法值一律按强制模式处理，与 v3 行为一致
-            stepInstance.setNotExistPathHandler(NotExistPathHandlerEnum.CREATE_DIR.getValue());
-        }
+        FileTransferModeEnum transferMode = resolveTransferMode(request.getTransferMode());
+        stepInstance.setFileDuplicateHandle(transferMode.getDuplicateHandler().getId());
+        stepInstance.setNotExistPathHandler(transferMode.getNotExistPathHandler().getValue());
         return stepInstance;
+    }
+
+    /**
+     * 不传分发模式时按强制模式处理；取值合法性已在 {@link #validate} 中校验过
+     */
+    private FileTransferModeEnum resolveTransferMode(Integer transferMode) {
+        if (transferMode == null) {
+            return FileTransferModeEnum.FORCE;
+        }
+        return FileTransferModeEnum.getFileTransferModeEnum(transferMode);
     }
 
     private List<FileSourceDTO> convertFileSources(Long appId, List<V4FileSourceDTO> fileSources) {

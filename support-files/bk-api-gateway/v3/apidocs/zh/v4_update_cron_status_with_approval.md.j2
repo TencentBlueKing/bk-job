@@ -16,7 +16,7 @@
 | bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
 | approval_channel | string | 否 | 审批渠道。可选值：`IMATE`（IMate 审批渠道）。不传时使用服务端配置的默认渠道。只能指定渠道枚举值，渠道地址与密钥一律取自服务端配置 |
 | id | long | 是 | 定时任务 ID |
-| status | int | 是 | 目标状态。可选值：1（启动）、2（暂停） |
+| status | int | 是 | 目标状态。可选值：1（启用）、0（停用） |
 
 ### 请求参数示例
 

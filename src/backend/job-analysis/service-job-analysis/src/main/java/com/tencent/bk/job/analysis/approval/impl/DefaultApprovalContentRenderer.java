@@ -25,13 +25,11 @@
 package com.tencent.bk.job.analysis.approval.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.analysis.approval.ApprovalContentRenderer;
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
-import com.tencent.bk.job.analysis.approval.ApprovalSensitiveFields;
-import com.tencent.bk.job.analysis.approval.ApprovalSensitiveFields.SensitiveField;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams.PlainTextBlock;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalRiskLevelEnum;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
@@ -46,37 +44,29 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.StringJoiner;
 
 /**
- * 默认实现：把审批任务渲染成一份 Markdown，依次为标题、操作概要表格、各执行步骤表格、
- * 脚本内容代码块、原始参数 JSON 代码块。
+ * 默认实现：把审批任务渲染成一份 Markdown，依次为标题、操作概要表格、脚本内容代码块、
+ * 原始参数 JSON 代码块。
  * <p>
- * <b>敏感字段的呈现方式由 {@link ApprovalSensitiveFields} 统一登记</b>，本类不自行判断哪个字段敏感。
- * 脚本内容是唯一原样展示的敏感字段：不展示则审批人无从判断风险。
+ * <b>逐步骤的解析结果不渲染</b>：单据铺得越长，审批人越容易一路划到底直接点通过。步骤解析结果
+ * 仍完整记录在 approval_task.resolved_summary 里备查，其中的高危信号（高危账号、高危语句命中）
+ * 也仍参与 {@link #resolveRiskLevel} 的风险定级，只是不再逐条摊到单据正文上。
+ * <p>
+ * <b>敏感字段的脱敏由 {@link ApprovalParamsCryptoService} 完成</b>，本类拿到的已是脱敏后的参数，
+ * 不自行判断哪个字段敏感。
  */
 @Slf4j
 @Service
 public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
 
     /**
-     * 掩码占位符。长度固定，连原值长度都不泄露
-     */
-    private static final String MASK = "******";
-
-    /**
      * 原始参数 JSON 最多展示的字符数，超出截断：参数体可能很大（如上千台主机的 host_id 列表）
      */
     private static final int MAX_RAW_PARAMS_LENGTH = 20000;
-
-    /**
-     * 执行对象最多逐个列出的条数，超出只给总数
-     */
-    private static final int MAX_LISTED_EXECUTE_OBJECTS = 20;
 
     private static final String I18N_PREFIX = "task.approval.content.";
 
@@ -118,9 +108,8 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         StringBuilder content = new StringBuilder();
         appendHeading(content, 1, title);
         appendSummary(content, task, operationType, app, summary, riskLevel);
-        appendSteps(content, summary);
 
-        // 脚本正文与原始参数出自同一份解密后的参数树：脚本被摘出去单独展示，树里只留占位符
+        // 脚本正文与原始参数出自同一份脱敏后的参数：脚本被摘出去单独展示，参数里只留占位符
         List<PlainTextBlock> scriptBlocks = new ArrayList<>();
         String rawParamsJson = renderRawParams(task, operationType, scriptBlocks);
         appendScripts(content, scriptBlocks);
@@ -166,41 +155,8 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         appendTable(content, rows);
     }
 
-    private void appendSteps(StringBuilder content, ResolvedSummary summary) {
-        List<ResolvedSummary.ResolvedStep> steps = summary.getSteps();
-        if (CollectionUtils.isEmpty(steps)) {
-            return;
-        }
-        for (int i = 0; i < steps.size(); i++) {
-            appendHeading(content, 2, labelWithArgs("stepPrefix", i + 1));
-            appendTable(content, buildStepRows(steps.get(i)));
-        }
-    }
-
-    private List<TableRow> buildStepRows(ResolvedSummary.ResolvedStep step) {
-        List<TableRow> rows = new ArrayList<>();
-        putRow(rows, label("step.name"), step.getName(), false);
-        putRow(rows, label("step.executeType"), step.getExecuteType(), false);
-        // root 等高危账号意味着目标机上不受限，必须显著标注
-        putRow(rows, label("step.account"), step.getAccountAlias(), Boolean.TRUE.equals(step.getHighRiskAccount()));
-        putRow(rows, label("step.scriptName"), step.getScriptName(), false);
-        if (step.getScriptVersionId() != null) {
-            putRow(rows, label("step.scriptVersionId"), String.valueOf(step.getScriptVersionId()), false);
-        }
-        putRow(rows, label("step.dangerousCheck"), step.getDangerousCheckSummary(), true);
-        if (step.getExecuteObjectCount() != null) {
-            putRow(rows, label("step.executeObjectCount"), String.valueOf(step.getExecuteObjectCount()), false);
-        }
-        putRow(rows, label("step.executeObjects"), describeExecuteObjects(step), false);
-        if (Boolean.TRUE.equals(step.getContainsDynamicTarget())) {
-            putRow(rows, label("containsDynamicTarget"), label("value.dynamicTargetHint"), true);
-        }
-        putResolvedFields(rows, step.getFields(), StringUtils.EMPTY);
-        return rows;
-    }
-
     /**
-     * 脚本内容：唯一原样展示的敏感字段，用代码块承载，换行与缩进都保持原样
+     * 脚本内容：用代码块承载，换行与缩进都保持原样
      */
     private void appendScripts(StringBuilder content, List<PlainTextBlock> scriptBlocks) {
         if (CollectionUtils.isEmpty(scriptBlocks)) {
@@ -208,8 +164,8 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         }
         appendHeading(content, 2, label("section.scriptContent"));
         for (PlainTextBlock block : scriptBlocks) {
-            content.append('`').append(block.path).append('`').append(LINE_SEPARATOR).append(LINE_SEPARATOR);
-            appendCodeBlock(content, StringUtils.EMPTY, block.value);
+            content.append('`').append(block.getField()).append('`').append(LINE_SEPARATOR).append(LINE_SEPARATOR);
+            appendCodeBlock(content, StringUtils.EMPTY, block.getValue());
         }
     }
 
@@ -228,8 +184,8 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     }
 
     /**
-     * 把参数快照渲染成脱敏后的 JSON 文本，同时把 PLAIN_TEXT 类敏感字段（脚本内容）摘出到
-     * {@code scriptBlocks}，树里只留一个指向脚本章节的占位符。
+     * 把参数快照渲染成脱敏后的 JSON 文本，同时把需要原样展示的明文段（脚本内容）摘出到
+     * {@code scriptBlocks}，参数里只留一个指向脚本章节的占位符。
      *
      * @return 脱敏后的 JSON 文本；无参数快照时为空串，渲染失败时为 null
      */
@@ -241,8 +197,10 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         }
         JsonNode root;
         try {
-            root = JsonUtils.toJsonNode(paramsCryptoService.decryptSensitiveFields(
-                operationType, task.getOperationParams()));
+            ApprovalDisplayParams displayParams =
+                paramsCryptoService.desensitizeFromSnapshot(operationType, task.getOperationParams());
+            scriptBlocks.addAll(displayParams.getPlainTextBlocks());
+            root = JsonUtils.toJsonNode(JsonUtils.toJson(displayParams.getParams()));
         } catch (Exception e) {
             // 参数区渲染失败不能让整份内容出不来，概要与步骤仍然可用
             log.error("Render raw params failed, approvalTaskId: {}", task.getApprovalTaskId(), e);
@@ -251,9 +209,6 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         if (root == null) {
             return null;
         }
-        for (SensitiveField field : ApprovalSensitiveFields.of(operationType)) {
-            applyContentDisplay(root, field, 0, StringUtils.EMPTY, scriptBlocks);
-        }
         // 统一换行符：Jackson 的缩进输出跟随运行平台，不统一会让同一份内容在不同节点上长得不一样
         String json = root.toPrettyString().replace("\r\n", LINE_SEPARATOR);
         if (json.length() > MAX_RAW_PARAMS_LENGTH) {
@@ -261,87 +216,6 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
                 + labelWithArgs("value.rawParamsTruncated", MAX_RAW_PARAMS_LENGTH);
         }
         return json;
-    }
-
-    /**
-     * 按登记的呈现方式改写敏感字段的值。
-     * <p>
-     * <b>必须先改写整棵树再序列化输出</b>，否则藏在数组元素里的敏感值会被原样带出。
-     */
-    private void applyContentDisplay(JsonNode node,
-                                     SensitiveField field,
-                                     int depth,
-                                     String pathPrefix,
-                                     List<PlainTextBlock> scriptBlocks) {
-        if (node == null || node.isNull()) {
-            return;
-        }
-        List<String> path = field.getPath();
-        String segment = path.get(depth);
-        boolean lastSegment = depth == path.size() - 1;
-        if (ApprovalSensitiveFields.ARRAY_WILDCARD.equals(segment)) {
-            if (!(node instanceof ArrayNode)) {
-                return;
-            }
-            for (int i = 0; i < node.size(); i++) {
-                applyContentDisplay(node.get(i), field, depth + 1,
-                    pathPrefix + "[" + i + "]", scriptBlocks);
-            }
-            return;
-        }
-        if (!(node instanceof ObjectNode)) {
-            return;
-        }
-        ObjectNode objectNode = (ObjectNode) node;
-        String childPath = joinPath(pathPrefix, segment);
-        if (!lastSegment) {
-            applyContentDisplay(objectNode.get(segment), field, depth + 1, childPath, scriptBlocks);
-            return;
-        }
-        JsonNode leaf = objectNode.get(segment);
-        if (leaf == null || !leaf.isTextual() || StringUtils.isEmpty(leaf.asText())) {
-            return;
-        }
-        if (!shouldMask(objectNode, field)) {
-            // 用户没声明为敏感：原样展示才有助于判断风险，只是 BASE64 需先解码
-            if (field.isBase64Encoded()) {
-                objectNode.put(segment, decodeBase64(leaf.asText()));
-            }
-            return;
-        }
-        switch (field.getContentDisplay()) {
-            case PLAIN_TEXT:
-                // 脚本内容摘出来单独用代码块展示，树里只留占位符
-                scriptBlocks.add(new PlainTextBlock(childPath,
-                    field.isBase64Encoded() ? decodeBase64(leaf.asText()) : leaf.asText()));
-                objectNode.put(segment, label("value.scriptInSection"));
-                break;
-            case PASSWORD_PROVIDED:
-                objectNode.put(segment, label("value.passwordProvided"));
-                break;
-            case MASKED:
-            default:
-                objectNode.put(segment, MASK);
-                break;
-        }
-    }
-
-    /**
-     * 有脱敏条件时只有条件为 true 才脱敏（如 script_param 仅在用户声明为敏感参数时打码）
-     */
-    private boolean shouldMask(ObjectNode parent, SensitiveField field) {
-        List<String> conditionPath = field.getMaskConditionPath();
-        if (CollectionUtils.isEmpty(conditionPath)) {
-            return true;
-        }
-        JsonNode node = parent;
-        for (String segment : conditionPath) {
-            if (node == null || !node.isObject()) {
-                return false;
-            }
-            node = node.get(segment);
-        }
-        return node != null && node.asBoolean(false);
     }
 
     /**
@@ -396,24 +270,6 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         ResourceScope scope = app.getScope();
         String scopeDesc = scope.getType().getValue() + ":" + scope.getId();
         return StringUtils.isBlank(app.getName()) ? scopeDesc : app.getName() + "(" + scopeDesc + ")";
-    }
-
-    private String describeExecuteObjects(ResolvedSummary.ResolvedStep step) {
-        List<ResolvedSummary.ResolvedExecuteObject> executeObjects = step.getExecuteObjects();
-        if (CollectionUtils.isEmpty(executeObjects)) {
-            return null;
-        }
-        int listedCount = Math.min(executeObjects.size(), MAX_LISTED_EXECUTE_OBJECTS);
-        StringJoiner joiner = new StringJoiner(", ");
-        for (int i = 0; i < listedCount; i++) {
-            joiner.add(StringUtils.defaultString(executeObjects.get(i).getDisplay()));
-        }
-        StringBuilder value = new StringBuilder(joiner.toString());
-        int total = step.getExecuteObjectCount() == null ? executeObjects.size() : step.getExecuteObjectCount();
-        if (total > listedCount) {
-            value.append(' ').append(labelWithArgs("value.moreExecuteObjects", total - listedCount));
-        }
-        return value.toString();
     }
 
     private void putResolvedFields(List<TableRow> rows,
@@ -566,19 +422,6 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         }
     }
 
-    private String decodeBase64(String value) {
-        try {
-            return new String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException e) {
-            // 不是合法 BASE64 时原样返回：展示原值好过让审批人看到一个空字段
-            return value;
-        }
-    }
-
-    private String joinPath(String prefix, String segment) {
-        return StringUtils.isEmpty(prefix) ? segment : prefix + "." + segment;
-    }
-
     private String prefixed(String prefix, String label) {
         return StringUtils.isEmpty(prefix) ? label : prefix + " " + label;
     }
@@ -594,21 +437,6 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
 
         TableRow(String label, String value) {
             this.label = label;
-            this.value = value;
-        }
-    }
-
-    /**
-     * 一段从参数树里摘出来、原样展示的文本（目前只有脚本内容）
-     */
-    private static class PlainTextBlock {
-
-        private final String path;
-
-        private final String value;
-
-        PlainTextBlock(String path, String value) {
-            this.path = path;
             this.value = value;
         }
     }
