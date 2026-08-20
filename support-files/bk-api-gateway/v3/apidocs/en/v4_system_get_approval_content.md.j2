@@ -10,7 +10,7 @@ Caller restrictions (any mismatch is reported as "approval task does not exist",
 
 The channel must therefore fetch the content as **the current approver** and must not always pass a fixed account. This API **does not accept self-service permission applications** and can only be called after being granted by the Job platform administrator.
 
-The approval content `approval_content` is **Markdown already rendered by the Job platform**, so the channel can present it directly without assembling anything. The body contains, in order, a level-one title, a summary table, the script content code block and the raw parameters JSON code block. The title, the creator and the risk level are all rendered into it, so the response no longer carries separate structured fields. The summary gives the **impact resolved by the pre-check** (risk level, execute account, total execute objects, defaults that took effect, high-risk and dynamic target notices, and so on); per-step details are not expanded in the body, so that an over-long ticket does not push the approver to scroll straight to the bottom and release it. The value of a sensitive field is only a placeholder and never carries the real value. **Script content is the single exception and is shown as is**, otherwise the approver has no way to assess the risk.
+The approval content `approval_content` is **Markdown already rendered by the Job platform**, so the channel can present it directly without assembling anything. The body contains, in order, a level-one title, a summary table, the script content code block and the raw parameters JSON code block. The title, the creator and the risk level are all rendered into it, so the response no longer carries separate structured fields. The summary gives the **impact resolved by the pre-check** (risk level, execute account, transfer mode for file transfer operations, total execute objects, defaults that took effect, high-risk and dynamic target notices, and so on); per-step details are not expanded in the body, so that an over-long ticket does not push the approver to scroll straight to the bottom and release it. The value of a sensitive field is only a placeholder and never carries the real value. **Script content is the single exception and is shown as is**, otherwise the approver has no way to assess the risk.
 
 The risk level is a hint for the approver only and never takes part in the release check. It is determined as follows:
 
@@ -63,6 +63,24 @@ The risk level is a hint for the approver only and never takes part in the relea
 }
 ```
 
+#### Operation Summary Example of a File Transfer
+
+For a file transfer the transfer mode takes a row of its own in the summary, and its value is the mode **actually in effect** as resolved by the pre-check. The "[Default]" mark only shows up when `transfer_mode` was not passed, never when the caller passed it explicitly. The rendered table looks like:
+
+```markdown
+| Item | Content |
+| --- | --- |
+| Operation type | Fast transfer file |
+| Resource scope | BlueKing(biz:2) |
+| Initiator | admin |
+| Risk level | Low |
+| Operation object | Distribute the installation package |
+| Execute account | root |
+| Transfer mode | Safety mode (store files with the same name in directories named by source IP, create the target path if it does not exist) |
+| Total execute objects | 3 |
+| [Default] Timeout | 7200s |
+```
+
 ### Response Parameters
 
 {% include '_generic_v4_response.md.j2' %}
@@ -73,4 +91,4 @@ The risk level is a hint for the approver only and never takes part in the relea
 |-------|------|-------------|
 | approval_task_id | string | Approval task ID |
 | expire_at | long | Expiry moment of the approval task, Unix timestamp in milliseconds. After expiry the task can no longer be released |
-| approval_content | string | Approval content in Markdown, already rendered by the Job platform, which the channel can present directly. It contains, in order, a level-one title (such as "Fast execute script - BlueKing - 37 execute object(s)"), the summary table (operation type, resource scope, initiator, risk level, operation object, execute account, total execute objects, defaults that took effect, and so on), the script content code block (tagged with the script language, such as shell or python, so the channel can highlight it) and the raw parameters JSON code block. The execute account is the de-duplicated set of account aliases resolved for every step; per-step details (step name, script name, target host list, and so on) are not expanded in the body, so that an over-long ticket does not push the approver to scroll straight to the bottom and release it. High-risk items that must stand out (matched high-risk statement rules, dynamic group targets) are rendered in Markdown bold. Fields that were not provided are omitted from the raw parameters, which therefore list only what the caller actually passed in. The values of password-like sensitive fields are placeholders only and carry no real value, **script content being the single exception shown as is**. When the target contains dynamic groups or topology nodes, the body states that the machines actually executed on are resolved again at release time |
+| approval_content | string | Approval content in Markdown, already rendered by the Job platform, which the channel can present directly. It contains, in order, a level-one title (such as "Fast execute script - BlueKing - 37 execute object(s)"), the summary table (operation type, resource scope, initiator, risk level, operation object, execute account, transfer mode, total execute objects, defaults that took effect, and so on), the script content code block (tagged with the script language, such as shell or python, so the channel can highlight it) and the raw parameters JSON code block. The execute account is the de-duplicated set of account aliases resolved for every step. The transfer mode row only shows up for file transfer operations: it is the de-duplicated set of the **modes actually in effect** as resolved by the pre-check (strict / force / safety mode) together with how files with the same name and a missing target path are handled, and it is marked with "[Default]" only when `transfer_mode` was not passed and the force mode took effect by default, never when the caller passed it explicitly. Per-step details (step name, script name, target host list, and so on) are not expanded in the body, so that an over-long ticket does not push the approver to scroll straight to the bottom and release it. High-risk items that must stand out (matched high-risk statement rules, dynamic group targets) are rendered in Markdown bold. Fields that were not provided are omitted from the raw parameters, which therefore list only what the caller actually passed in. The values of password-like sensitive fields are placeholders only and carry no real value, **script content being the single exception shown as is**. When the target contains dynamic groups or topology nodes, the body states that the machines actually executed on are resolved again at release time |

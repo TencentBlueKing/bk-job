@@ -51,6 +51,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -88,6 +89,8 @@ class DefaultApprovalContentRendererTest {
     private static final String SECTION_RAW_PARAMS = "## task.approval.content.section.rawParams";
     private static final String TABLE_HEADER =
         "| task.approval.content.table.item | task.approval.content.table.value |";
+
+    private static final String TRANSFER_MODE = "transfer_mode";
 
     private static final String TASK_ID = "e2a1c0d4111122223333444455556666";
     private static final String CREATOR = "admin";
@@ -191,6 +194,54 @@ class DefaultApprovalContentRendererTest {
         ApprovalContent rendered = renderer.render(scriptTask(summary, true));
 
         assertThat(tableRow(rendered.getApprovalContent(), "content.accounts")).contains("root, mysql");
+    }
+
+    @ParameterizedTest(name = "显式指定 {0} 时概要展示该模式本身")
+    @DisplayName("步骤明细不展示，但实际生效的分发模式汇总成一行：文件怎么落盘是审批人必须看到的")
+    @ValueSource(strings = {"STRICT", "FORCE", "SAFETY_IP_PREFIX", "SAFETY_DATE_PREFIX"})
+    void givenExplicitTransferModeThenShowResolvedMode(String transferMode) {
+        ApprovalContent rendered = renderer.render(fileTask(buildFileSummary(transferMode, null)));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "content.field.transfer_mode"))
+            .contains("task.approval.content.value.transferMode." + transferMode)
+            .as("显式指定过的模式不能标成按默认生效")
+            .doesNotContain("task.approval.content.defaultPrefix");
+    }
+
+    @Test
+    @DisplayName("未指定分发模式时展示默认生效的强制模式并标注默认，且只出一行")
+    void givenTransferModeDefaultAppliedThenMarkDefaultOnce() {
+        ApprovalContent rendered = renderer.render(fileTask(buildFileSummary("FORCE", "FORCE")));
+
+        String content = rendered.getApprovalContent();
+        assertThat(tableRow(content, "content.field.transfer_mode"))
+            .contains("task.approval.content.defaultPrefix")
+            .contains("task.approval.content.value.transferMode.FORCE");
+        assertThat(Arrays.stream(content.split("\n"))
+            .filter(line -> line.contains("content.field.transfer_mode"))
+            .count())
+            .as("默认项与概要行说的是同一件事，不能重复出行")
+            .isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("步骤没带出分发模式时退回展示默认生效的模式，整行不能消失")
+    void givenTransferModeOnlyInDefaultsThenStillShow() {
+        ResolvedSummary summary = buildFileSummary(null, "FORCE");
+
+        ApprovalContent rendered = renderer.render(fileTask(summary));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "content.field.transfer_mode"))
+            .contains("task.approval.content.defaultPrefix")
+            .contains("task.approval.content.value.transferMode.FORCE");
+    }
+
+    @Test
+    @DisplayName("非文件分发场景不出分发模式行，概要里不塞无关项")
+    void givenNoFileStepThenNoTransferModeRow() {
+        ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
+
+        assertThat(rendered.getApprovalContent()).doesNotContain("content.field.transfer_mode");
     }
 
     @ParameterizedTest(name = "命中高危={0}、执行对象数={1} 时风险等级为 {2}")
@@ -504,6 +555,33 @@ class DefaultApprovalContentRendererTest {
             new ResolvedSummary.ResolvedExecuteObject("HOST", 1L, "0:127.0.0.1")));
         summary.addStep(step);
         return summary;
+    }
+
+    /**
+     * 文件分发单据：分发模式由预检解析后写在步骤上，未显式指定时另有一条默认生效记录
+     *
+     * @param stepTransferMode     步骤解析出的实际生效模式，为 null 表示步骤未带出
+     * @param defaultAppliedMode   按默认生效的模式，为 null 表示调用方显式指定过
+     */
+    private ResolvedSummary buildFileSummary(String stepTransferMode, String defaultAppliedMode) {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
+        summary.setName("分发安装包");
+        summary.setTotalExecuteObjectCount(3);
+        ResolvedSummary.ResolvedStep step = new ResolvedSummary.ResolvedStep();
+        step.setExecuteType("SEND_FILE");
+        step.setAccountAlias("root");
+        step.addField("file_target_path", "/tmp/");
+        step.addField(TRANSFER_MODE, stepTransferMode);
+        summary.addStep(step);
+        if (defaultAppliedMode != null) {
+            summary.addDefaultApplied(TRANSFER_MODE, defaultAppliedMode);
+        }
+        return summary;
+    }
+
+    private ApprovalTaskDTO fileTask(ResolvedSummary summary) {
+        return buildTask(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE, summary, null);
     }
 
     private V4FastExecuteScriptRequest buildScriptRequest(boolean paramSensitive) {

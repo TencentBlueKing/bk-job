@@ -49,13 +49,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * 默认实现：把审批任务渲染成一份 Markdown，依次为标题、操作概要表格、脚本内容代码块、
  * 原始参数 JSON 代码块。
  * <p>
  * <b>逐步骤的解析结果不渲染</b>：单据铺得越长，审批人越容易一路划到底直接点通过。步骤解析结果
- * 仍完整记录在 approval_task.resolved_summary 里备查，正文只从中汇总出"以什么身份上机"这一行。
+ * 仍完整记录在 approval_task.resolved_summary 里备查，正文只从中汇总出"以什么身份上机""文件怎么落盘"
+ * 这类审批人必须看到的关键信息。
  * <p>
  * <b>敏感字段的脱敏由 {@link ApprovalParamsCryptoService} 完成</b>，本类拿到的已是脱敏后的参数，
  * 不自行判断哪个字段敏感。
@@ -72,6 +74,11 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     private static final String I18N_PREFIX = "task.approval.content.";
 
     private static final String LINE_SEPARATOR = "\n";
+
+    /**
+     * 文件分发模式的字段名，由下游在步骤解析结果里回带
+     */
+    private static final String FIELD_TRANSFER_MODE = "transfer_mode";
 
     private final MessageI18nService i18nService;
     private final CommonAppService appService;
@@ -136,6 +143,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
             putRow(rows, label("name"), summary.getName(), false);
         }
         putRow(rows, label("accounts"), describeAccounts(summary), false);
+        putTransferModeRow(rows, summary);
         putResolvedFields(rows, summary.getFields(), StringUtils.EMPTY);
         if (summary.getTotalExecuteObjectCount() != null) {
             putRow(rows, label("totalExecuteObjectCount"),
@@ -149,8 +157,8 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
             putRow(rows, label("containsDynamicTarget"), label("value.dynamicTargetHint"), true);
         }
         if (CollectionUtils.isNotEmpty(summary.getDefaultsApplied())) {
-            // 默认生效的参数后果与显式指定一样，必须逐项披露
-            putResolvedFields(rows, summary.getDefaultsApplied(), label("defaultPrefix"));
+            // 默认生效的参数后果与显式指定一样，必须逐项披露；分发模式已单独成行，此处不再重复
+            putResolvedFields(rows, defaultsAppliedExceptTransferMode(summary), label("defaultPrefix"));
         }
 
         appendHeading(content, 2, label("section.summary"));
@@ -275,6 +283,71 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
             }
         }
         return accounts.isEmpty() ? null : String.join(", ", accounts);
+    }
+
+    /**
+     * 分发模式同样从各步骤汇总成一行：同名文件是被覆盖还是分目录存放、目标路径不存在时是直接失败还是
+     * 自动建目录，后果差别很大，与"以什么身份上机"一样是审批人必须看到的，不能因为步骤明细不展示就丢失。
+     * <p>
+     * 未显式指定而按默认生效时给标签加上默认前缀：默认落到的强制模式破坏性最大，不能让审批人以为用户选过
+     */
+    private void putTransferModeRow(List<TableRow> rows, ResolvedSummary summary) {
+        ResolvedSummary.ResolvedField defaultApplied =
+            findField(summary.getDefaultsApplied(), FIELD_TRANSFER_MODE);
+        String transferModes = describeTransferModes(summary);
+        if (StringUtils.isBlank(transferModes) && defaultApplied != null) {
+            // 步骤解析结果里没带出模式时，至少把默认生效的那个亮出来，不能整行消失
+            transferModes = transferModeName(defaultApplied.getValue());
+        }
+        String fieldLabel = resolvedFieldLabel(FIELD_TRANSFER_MODE);
+        if (defaultApplied != null) {
+            fieldLabel = prefixed(label("defaultPrefix"), fieldLabel);
+        }
+        putRow(rows, fieldLabel, transferModes, false);
+    }
+
+    /**
+     * 各步骤解析出的分发模式去重后合并，多个文件分发步骤用了不同模式时逐一列出
+     */
+    private String describeTransferModes(ResolvedSummary summary) {
+        if (CollectionUtils.isEmpty(summary.getSteps())) {
+            return null;
+        }
+        Set<String> transferModes = new LinkedHashSet<>();
+        for (ResolvedSummary.ResolvedStep step : summary.getSteps()) {
+            ResolvedSummary.ResolvedField field = findField(step.getFields(), FIELD_TRANSFER_MODE);
+            if (field != null && StringUtils.isNotBlank(field.getValue())) {
+                transferModes.add(transferModeName(field.getValue()));
+            }
+        }
+        return transferModes.isEmpty() ? null : String.join(", ", transferModes);
+    }
+
+    /**
+     * 模式枚举名对审批人来说是天书，翻译成说清后果的文案；缺文案时原样展示
+     */
+    private String transferModeName(String transferMode) {
+        if (StringUtils.isBlank(transferMode)) {
+            return null;
+        }
+        String translated = tryGetI18n(I18N_PREFIX + "value.transferMode." + transferMode);
+        return translated == null ? transferMode : translated;
+    }
+
+    private List<ResolvedSummary.ResolvedField> defaultsAppliedExceptTransferMode(ResolvedSummary summary) {
+        return summary.getDefaultsApplied().stream()
+            .filter(field -> !FIELD_TRANSFER_MODE.equals(field.getLabel()))
+            .collect(Collectors.toList());
+    }
+
+    private ResolvedSummary.ResolvedField findField(List<ResolvedSummary.ResolvedField> fields, String label) {
+        if (CollectionUtils.isEmpty(fields)) {
+            return null;
+        }
+        return fields.stream()
+            .filter(field -> label.equals(field.getLabel()))
+            .findFirst()
+            .orElse(null);
     }
 
     private void putResolvedFields(List<TableRow> rows,

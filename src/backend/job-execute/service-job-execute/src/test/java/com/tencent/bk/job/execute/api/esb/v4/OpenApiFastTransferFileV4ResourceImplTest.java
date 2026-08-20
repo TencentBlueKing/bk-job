@@ -47,6 +47,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Collections;
 import java.util.List;
@@ -122,33 +124,22 @@ class OpenApiFastTransferFileV4ResourceImplTest {
                 FileTransferModeEnum.FORCE.name());
     }
 
-    @Test
-    @DisplayName("用户显式选了严格传输模式时不标为按默认生效")
-    void givenStrictTransferModeThenNoTransferModeDefault() {
-        when(taskExecuteService.executeFastTask(any())).thenReturn(buildResolvedTaskInstance());
+    @ParameterizedTest(name = "显式指定 {0} 时概要带出该模式且不标为按默认生效")
+    @DisplayName("用户显式选过传输模式就不能标成默认，否则审批人会以为这个模式不是他挑的")
+    @EnumSource(FileTransferModeEnum.class)
+    void givenExplicitTransferModeThenResolvedModeWithoutDefaultMark(FileTransferModeEnum transferMode) {
+        when(taskExecuteService.executeFastTask(any())).thenReturn(buildResolvedTaskInstance(transferMode));
         V4FastTransferFileRequest request = baseRequest();
         request.setTimeout(600);
-        request.setTransferMode(FileTransferModeEnum.STRICT.getValue());
+        request.setTransferMode(transferMode.getValue());
 
         EsbV4Response<V4JobExecuteDTO> response =
             resource.fastTransferFile(USERNAME, APP_CODE, true, request);
 
         assertThat(response.getDryRunSummary().getDefaultsApplied()).isNullOrEmpty();
-    }
-
-    @Test
-    @DisplayName("传了非法传输模式时仍按强制模式生效，概要必须如实标注")
-    void givenInvalidTransferModeThenMarkForceApplied() {
-        when(taskExecuteService.executeFastTask(any())).thenReturn(buildResolvedTaskInstance());
-        V4FastTransferFileRequest request = baseRequest();
-        request.setTimeout(600);
-        request.setTransferMode(-1);
-
-        EsbV4Response<V4JobExecuteDTO> response =
-            resource.fastTransferFile(USERNAME, APP_CODE, true, request);
-
-        assertThat(defaultAppliedValues(response.getDryRunSummary()))
-            .containsExactly(FileTransferModeEnum.FORCE.name());
+        assertThat(stepFieldValue(response.getDryRunSummary(), "transfer_mode"))
+            .as("概要必须带出实际生效的模式，审批人看到的不能是另一种模式")
+            .isEqualTo(transferMode.name());
     }
 
     @Test
@@ -186,6 +177,14 @@ class OpenApiFastTransferFileV4ResourceImplTest {
             .collect(Collectors.toList());
     }
 
+    private String stepFieldValue(ResolvedSummary summary, String label) {
+        return summary.getSteps().get(0).getFields().stream()
+            .filter(field -> label.equals(field.getLabel()))
+            .map(ResolvedSummary.ResolvedField::getValue)
+            .findFirst()
+            .orElse(null);
+    }
+
     private V4FastTransferFileRequest baseRequest() {
         V4FastTransferFileRequest request = new V4FastTransferFileRequest();
         request.setAppId(2L);
@@ -216,9 +215,17 @@ class OpenApiFastTransferFileV4ResourceImplTest {
     }
 
     /**
-     * 模拟预检返回的作业实例：执行对象已在 dryRun 返回点之前解析完成
+     * 不传分发模式时按强制模式生效，与请求转换器的处理保持一致
      */
     private TaskInstanceDTO buildResolvedTaskInstance() {
+        return buildResolvedTaskInstance(FileTransferModeEnum.FORCE);
+    }
+
+    /**
+     * 模拟预检返回的作业实例：执行对象已在 dryRun 返回点之前解析完成，
+     * 分发模式已被拆成同名文件与不存在路径两个底层处置方式落在步骤上
+     */
+    private TaskInstanceDTO buildResolvedTaskInstance(FileTransferModeEnum transferMode) {
         HostDTO host = new HostDTO();
         host.setHostId(101L);
         host.setBkCloudId(0L);
@@ -231,6 +238,8 @@ class OpenApiFastTransferFileV4ResourceImplTest {
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
         stepInstance.setAccountAlias("root");
         stepInstance.setTargetExecuteObjects(target);
+        stepInstance.setFileDuplicateHandle(transferMode.getDuplicateHandler().getId());
+        stepInstance.setNotExistPathHandler(transferMode.getNotExistPathHandler().getValue());
 
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         taskInstance.setName("test_task");

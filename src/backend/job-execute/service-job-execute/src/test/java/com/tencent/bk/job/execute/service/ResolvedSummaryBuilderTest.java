@@ -25,9 +25,9 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.ResolvedSummary;
-import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
@@ -38,6 +38,8 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -136,9 +138,10 @@ class ResolvedSummaryBuilderTest {
         assertThat(summary.getDangerousRuleMatched()).isFalse();
     }
 
-    @Test
-    @DisplayName("保险模式不能在概要里被描述成会覆盖同名文件的强制模式")
-    void buildFileStepSummaryWithSafetyTransferMode() {
+    @ParameterizedTest(name = "{0} 生效时概要里的分发模式为 {0}")
+    @DisplayName("每种分发模式都按底层的同名文件与路径处置方式反推出来，保险模式不能被说成强制模式")
+    @EnumSource(FileTransferModeEnum.class)
+    void buildFileStepSummaryWithEachTransferMode(FileTransferModeEnum transferMode) {
         FileSourceDTO fileSource = new FileSourceDTO();
         fileSource.setAccountAlias("root");
         fileSource.setServers(buildResolvedTarget(201L));
@@ -152,8 +155,8 @@ class ResolvedSummaryBuilderTest {
         stepInstance.setAccountAlias("mysql");
         stepInstance.setFileTargetPath("/tmp/");
         stepInstance.setFileSourceList(Collections.singletonList(fileSource));
-        stepInstance.setFileDuplicateHandle(DuplicateHandlerEnum.GROUP_BY_IP.getId());
-        stepInstance.setNotExistPathHandler(NotExistPathHandlerEnum.CREATE_DIR.getValue());
+        stepInstance.setFileDuplicateHandle(transferMode.getDuplicateHandler().getId());
+        stepInstance.setNotExistPathHandler(transferMode.getNotExistPathHandler().getValue());
         stepInstance.setTargetExecuteObjects(buildResolvedTarget(101L));
 
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
@@ -163,7 +166,7 @@ class ResolvedSummaryBuilderTest {
         ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
 
         ResolvedSummary.ResolvedStep step = summary.getSteps().get(0);
-        assertThat(fieldValue(step.getFields(), "transfer_mode")).isEqualTo("SAFETY_IP_PREFIX");
+        assertThat(fieldValue(step.getFields(), "transfer_mode")).isEqualTo(transferMode.name());
     }
 
     @Test

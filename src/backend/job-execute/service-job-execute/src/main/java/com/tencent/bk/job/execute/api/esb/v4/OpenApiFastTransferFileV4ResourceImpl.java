@@ -97,11 +97,14 @@ public class OpenApiFastTransferFileV4ResourceImpl implements OpenApiFastTransfe
     }
 
     /**
-     * 不传或传非法值都会落到强制模式：目标路径不存在时自动建目录、同名文件直接覆盖。
-     * 后果远大于严格模式，必须在概要里标成"按默认生效"，不能让审批人以为用户显式选过
+     * 不传分发模式会落到强制模式：目标路径不存在时自动建目录、同名文件直接覆盖。后果远大于严格模式，
+     * 必须在概要里标成"按默认生效"，不能让审批人以为用户显式选过。
+     * <p>
+     * 只在<b>未传</b>时标注：显式传入的模式由概要里的分发模式行按预检解析结果如实展示，
+     * 再标一次"默认"反而是误导（取值合法性已由请求转换器校验，非法值走不到这里）
      */
     private void fillTransferModeDefault(ResolvedSummary summary, Integer transferMode) {
-        if (FileTransferModeEnum.getFileTransferModeEnum(transferMode) != FileTransferModeEnum.STRICT) {
+        if (transferMode == null) {
             summary.addDefaultApplied("transfer_mode", FileTransferModeEnum.FORCE.name());
         }
     }
