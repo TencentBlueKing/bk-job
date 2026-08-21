@@ -32,6 +32,8 @@ import com.tencent.bk.job.analysis.approval.channel.model.ApprovalResult;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalResultStatusEnum;
 import com.tencent.bk.job.analysis.config.ApprovalProperties;
+import com.tencent.bk.job.analysis.config.condition.ConditionalOnImateApprovalUrlConfigured;
+import com.tencent.bk.job.analysis.config.condition.ConditionalOnMockImateApprovalDisabled;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
@@ -46,7 +48,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import java.net.URLEncoder;
@@ -82,13 +83,9 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component
-@ConditionalOnExpression(
-    // 与 Mock 渠道严格互斥：同一渠道注册两个实现会让回查目标不确定，Registry 会直接启动失败。
-    // 这里用 equalsIgnoreCase 对齐 @ConditionalOnProperty 的 havingValue 语义，避免 "True" 这类写法两边都命中。
-    // url 未配置即视为渠道未就绪，不注册本 Bean，带审批的接口会明确返回"渠道不可用"而不是运行期才失败
-    "!'${job.analysis.approval.channels.imate.mock.enabled:false}'.equalsIgnoreCase('true') "
-        + "&& !'${job.analysis.approval.channels.imate.url:}'.trim().isEmpty()"
-)
+// 类上叠加的多个条件注解是 AND 关系：Mock 未开启（与 Mock 渠道严格互斥）且渠道地址已配置，才注册真实渠道
+@ConditionalOnMockImateApprovalDisabled
+@ConditionalOnImateApprovalUrlConfigured
 public class ImateApprovalChannel implements ApprovalChannel {
 
     private static final String APPROVAL_DETAIL_URI = "/open/approval/detail";

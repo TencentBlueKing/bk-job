@@ -29,10 +29,10 @@ import com.tencent.bk.job.analysis.approval.channel.model.ApprovalResult;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalResultStatusEnum;
 import com.tencent.bk.job.analysis.config.ApprovalProperties;
+import com.tencent.bk.job.analysis.config.condition.ConditionalOnMockImateApprovalEnabled;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -50,7 +50,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "job.analysis.approval.channels.imate.mock.enabled", havingValue = "true")
+@ConditionalOnMockImateApprovalEnabled
 public class MockImateApprovalChannel implements ApprovalChannel {
 
     private final ApprovalProperties approvalProperties;

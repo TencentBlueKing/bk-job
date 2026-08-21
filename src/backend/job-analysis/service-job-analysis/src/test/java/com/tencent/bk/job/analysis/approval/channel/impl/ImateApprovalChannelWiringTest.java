@@ -43,12 +43,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code @Autowired} 时 Spring 会放弃构造器注入、回退去找无参构造器，启动即失败。
  * 这里让容器真的去装配一次，把该性质锁住。
  * <p>
- * 同时覆盖真实渠道与 Mock 渠道的互斥：同一渠道注册两个实现会让回查目标不确定。
+ * 同时覆盖真实渠道与 Mock 渠道的互斥：同一渠道注册两个实现会让回查目标不确定。装配条件由
+ * {@code @ConditionalOnMockImateApprovalDisabled} 与 {@code @ConditionalOnImateApprovalUrlConfigured}
+ * 两个注解叠加而成（AND 关系），本类同时锁住这套组合的取值边界。
  */
 class ImateApprovalChannelWiringTest {
 
     private static final String PROP_URL = "job.analysis.approval.channels.imate.url=http://imate.example.com";
     private static final String PROP_MOCK_ON = "job.analysis.approval.channels.imate.mock.enabled=true";
+
+    /**
+     * Mock 开关配了个既非 true 也非 false 的值：<b>宁可两个渠道都不可用，也不能悄悄落到某一个上</b>
+     */
+    private static final String PROP_MOCK_ILLEGAL = "job.analysis.approval.channels.imate.mock.enabled=yes";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(ChannelTestConfiguration.class));
@@ -69,6 +76,16 @@ class ImateApprovalChannelWiringTest {
             .run(context -> assertThat(context)
                 .hasSingleBean(MockImateApprovalChannel.class)
                 .doesNotHaveBean(ImateApprovalChannel.class));
+    }
+
+    @Test
+    @DisplayName("Mock 开关配成非法值时两个实现都不装配，应用照常启动，用到审批时才明确报渠道不可用")
+    void givenIllegalMockSwitchThenNoChannelWired() {
+        contextRunner.withPropertyValues(PROP_URL, PROP_MOCK_ILLEGAL)
+            .run(context -> assertThat(context)
+                .hasNotFailed()
+                .doesNotHaveBean(ImateApprovalChannel.class)
+                .doesNotHaveBean(MockImateApprovalChannel.class));
     }
 
     @Test
