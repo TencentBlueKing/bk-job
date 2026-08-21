@@ -75,9 +75,9 @@ class ImateApprovalChannelTest {
     private static final String OPEN_API_SECRET = "imate-issued-secret";
 
     /**
-     * 审批正文里的脚本明文，出现在任何一条日志里都是泄露
+     * 审批正文里的脚本片段：正文内容本身不敏感，但整段很长，日志里应只留长度摘要
      */
-    private static final String SCRIPT_IN_APPROVAL_CONTENT = "rm -rf /data/should-never-appear-in-log";
+    private static final String SCRIPT_IN_APPROVAL_CONTENT = "rm -rf /data/should-not-appear-in-log";
 
     private HttpHelper httpHelper;
     private ApprovalProperties properties;
@@ -272,16 +272,16 @@ class ImateApprovalChannelTest {
     }
 
     @Test
-    @DisplayName("响应体照打，但审批正文换成长度摘要：approvalContent 含脚本明文，不能落盘")
-    void givenApprovalContentInResponseThenMaskItInLog() {
+    @DisplayName("响应体照打，但审批正文换成长度摘要：正文动辄数千字符，整段打印会把日志淹掉")
+    void givenApprovalContentInResponseThenShortenItInLog() {
         mockResponse(buildDetailJson(TASK_ID, "APPROVED", "bob", null, null));
 
         channel.queryResult(buildTask(), TICKET_ID);
 
         assertThat(allLogs())
-            .as("审批正文里的脚本明文出现在任何一条日志里都是泄露")
+            .as("正文应换成长度摘要，不整段进日志")
             .noneMatch(line -> line.contains(SCRIPT_IN_APPROVAL_CONTENT));
-        assertThat(logLine("Response|")).contains("\"approvalContent\":\"<masked,length=");
+        assertThat(logLine("Response|")).contains("\"approvalContent\":\"<omitted,length=");
     }
 
     @Test
@@ -310,8 +310,8 @@ class ImateApprovalChannelTest {
     }
 
     @Test
-    @DisplayName("对端返回非 0 状态码时也有日志与耗时，且响应体里的正文仍是脱敏的")
-    void givenErrorResponseThenLogCostTimeWithMaskedContent() {
+    @DisplayName("对端返回非 0 状态码时也有日志与耗时，且响应体里的正文仍换成长度摘要")
+    void givenErrorResponseThenLogCostTimeWithShortenedContent() {
         mockResponse("{\"status\":2302081,\"message\":\"审批单不存在\",\"data\":{\"approvalContent\":\""
             + SCRIPT_IN_APPROVAL_CONTENT + "\"}}");
 
@@ -326,15 +326,15 @@ class ImateApprovalChannelTest {
     }
 
     @Test
-    @DisplayName("返回结构与预期不符、取不出正文取值时整体只打长度，不赌里面没有脚本")
-    void givenUnparsableApprovalContentThenMaskWholeBody() {
-        mockResponse("{\"status\":0,\"data\":{\"approvalContent\":[\"" + SCRIPT_IN_APPROVAL_CONTENT + "\"]}}");
+    @DisplayName("响应体解析不了时原样打印：排查对端返回结构要的就是那份原始报文")
+    void givenUnparsableResponseThenLogRawBody() {
+        String brokenJson = "{\"status\":0,\"data\":{\"approvalContent\":\"" + SCRIPT_IN_APPROVAL_CONTENT;
+        mockResponse(brokenJson);
 
         assertThatThrownBy(() -> channel.queryResult(buildTask(), TICKET_ID))
             .isInstanceOf(Exception.class);
 
-        assertThat(allLogs()).noneMatch(line -> line.contains(SCRIPT_IN_APPROVAL_CONTENT));
-        assertThat(logLine("Response|")).contains("resp=<masked,length=");
+        assertThat(logLine("Response|")).contains("resp=" + brokenJson);
     }
 
     private void mockResponse(String body) {

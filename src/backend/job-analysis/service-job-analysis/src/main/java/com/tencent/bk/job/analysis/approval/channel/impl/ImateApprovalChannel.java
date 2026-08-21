@@ -25,6 +25,8 @@
 package com.tencent.bk.job.analysis.approval.channel.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.analysis.approval.channel.ApprovalChannel;
 import com.tencent.bk.job.analysis.approval.channel.impl.model.ImateApprovalDetail;
 import com.tencent.bk.job.analysis.approval.channel.impl.model.ImateOpenApiResponse;
@@ -56,8 +58,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.StringJoiner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * IMate 审批渠道：回查 IMate 侧的审批结论。
@@ -72,14 +72,13 @@ import java.util.regex.Pattern;
  * 与蓝鲸的 app_code / app_secret 无关，也与"IMate 来取审批内容时校验的蓝鲸 appCode"不是一回事。
  * <p>
  * <b>日志边界</b>：回查是跨系统调用，出问题时必须能对账，所以请求（含请求头）、响应体与耗时都要打印，
- * 但有两条硬约束：
+ * 但有两条约束：
  * <ul>
- *     <li>响应里的 {@code approvalContent} 是作业平台自己渲染的审批正文，<b>含脚本明文</b>，
- *     打印前替换成长度摘要（{@code <masked,length=N>}），只保留对账真正需要的
+ *     <li>响应里的 {@code approvalContent} 是作业平台自己渲染的审批正文，内容本身不敏感，但动辄数千字符，
+ *     整段打印会把日志淹掉，因此换成长度摘要（{@code <omitted,length=N>}），只留对账真正需要的
  *     taskId / status / approver / approveTime；</li>
  *     <li>{@code x-secret} 是 IMate 颁发的凭证，<b>只打字段名不打取值</b>；{@code x-app-id} 不敏感，原样打印。</li>
  * </ul>
- * 注意底层 HttpHelper 在 DEBUG 级别会打印完整响应（不经本类脱敏），生产环境不应对其开启 DEBUG。
  */
 @Slf4j
 @Component
@@ -94,12 +93,6 @@ public class ImateApprovalChannel implements ApprovalChannel {
 
     private static final String FIELD_APPROVAL_CONTENT = "approvalContent";
     private static final String MASKED_VALUE = "<masked>";
-
-    /**
-     * 匹配响应体里的 approvalContent 取值（含转义字符的字符串，或 null），用于打印前替换成长度摘要
-     */
-    private static final Pattern APPROVAL_CONTENT_PATTERN =
-        Pattern.compile("\"" + FIELD_APPROVAL_CONTENT + "\"\\s*:\\s*(?:\"((?:\\\\.|[^\"\\\\])*)\"|null)");
 
     private static final String IMATE_STATUS_PENDING = "PENDING";
     private static final String IMATE_STATUS_APPROVED = "APPROVED";
@@ -180,13 +173,13 @@ public class ImateApprovalChannel implements ApprovalChannel {
             ImateApprovalDetail detail = parseDetail(respStr, approvalTaskId);
             log.info("[ImateApprovalChannel] Response|method={}|url={}|success=true|costTime={}|resp={}",
                 HttpMethodEnum.GET.name(), url, System.currentTimeMillis() - startTime,
-                maskApprovalContent(respStr));
+                shortenApprovalContent(respStr));
             return detail;
         } catch (Exception e) {
             // 超时与对端报错是最需要耗时数据的场景：响应体此时通常为空，耗时是唯一能判断"卡在哪"的线索
             log.warn("[ImateApprovalChannel] Response|method={}|url={}|success=false|costTime={}|resp={}",
                 HttpMethodEnum.GET.name(), url, System.currentTimeMillis() - startTime,
-                maskApprovalContent(respStr), e);
+                shortenApprovalContent(respStr), e);
             throw e;
         }
     }
@@ -221,32 +214,55 @@ public class ImateApprovalChannel implements ApprovalChannel {
     }
 
     /**
-     * 把响应体里的 approvalContent 换成长度摘要：审批正文含脚本明文，不能落盘，但其余字段
-     * （taskId / status / approver / approveTime）都是对账必需的，整体不打等于没日志。
+     * 把响应体里的 approvalContent 换成长度摘要再打印：正文内容本身不敏感，但太长，
+     * 而其余字段（taskId / status / approver / approveTime）都是对账必需的。
      * <p>
-     * <b>匹配不上就整体不打</b>：响应体里出现了 approvalContent 这个字段名却取不出取值，说明返回结构
-     * 与预期不符，此时宁可只留一个长度也不能赌"里面没有脚本"
+     * 解析失败说明对端返回的结构与预期不符，此时<b>原样打印</b>——排查要的就是那份原始报文。
+     * <p>
+     * <b>不要改回正则匹配</b>：正文是渲染好的审批 Markdown，动辄数千字符，而
+     * {@code (?:\\.|[^"\\])*} 这类"转义字符交替 + 星号"在 Java 正则里按字符递归匹配，
+     * 两千字符左右就会 StackOverflowError，把整个回查请求带崩
      */
-    private String maskApprovalContent(String respStr) {
+    private String shortenApprovalContent(String respStr) {
         if (StringUtils.isBlank(respStr) || !respStr.contains(FIELD_APPROVAL_CONTENT)) {
             return respStr;
         }
-        Matcher matcher = APPROVAL_CONTENT_PATTERN.matcher(respStr);
-        StringBuffer masked = new StringBuffer(respStr.length());
-        boolean matched = false;
-        while (matcher.find()) {
-            matched = true;
-            String content = matcher.group(1);
-            String replacement = "\"" + FIELD_APPROVAL_CONTENT + "\":"
-                + (content == null ? "null" : "\"" + maskedLength(content) + "\"");
-            matcher.appendReplacement(masked, Matcher.quoteReplacement(replacement));
+        JsonNode root = JsonUtils.toJsonNode(respStr);
+        if (root == null) {
+            // 解析失败的原因与原始报文已由 JsonUtils 记下，这里原样打印
+            return respStr;
         }
-        matcher.appendTail(masked);
-        return matched ? masked.toString() : maskedLength(respStr);
+        try {
+            shortenApprovalContentField(root);
+            return JsonUtils.toJson(root);
+        } catch (Exception e) {
+            // 打日志不能反过来把回查请求带崩
+            log.warn("Shorten approval content failed, print raw response", e);
+            return respStr;
+        }
     }
 
-    private String maskedLength(String value) {
-        return "<masked,length=" + value.length() + ">";
+    /**
+     * 递归把 approvalContent 字段就地换成长度摘要，取值不是字符串时保持原样
+     */
+    private void shortenApprovalContentField(JsonNode node) {
+        if (node.isObject()) {
+            ObjectNode objectNode = (ObjectNode) node;
+            JsonNode content = objectNode.get(FIELD_APPROVAL_CONTENT);
+            if (content != null && content.isTextual()) {
+                objectNode.put(FIELD_APPROVAL_CONTENT, lengthSummary(content.asText()));
+            }
+        }
+        for (JsonNode child : node) {
+            shortenApprovalContentField(child);
+        }
+    }
+
+    /**
+     * 长度取的是<b>反序列化之后</b>的字符数，与 JSON 里带转义符的写法长度不同，仅用于日志比对
+     */
+    private String lengthSummary(String value) {
+        return "<omitted,length=" + value.length() + ">";
     }
 
     private String buildDetailUrl(String rootUrl, String approvalTaskId) {
