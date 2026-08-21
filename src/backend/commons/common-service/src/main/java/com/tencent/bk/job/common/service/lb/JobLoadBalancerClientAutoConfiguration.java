@@ -69,7 +69,7 @@ public class JobLoadBalancerClientAutoConfiguration {
     }
 
     private static class JobLoadBalancerClient extends BlockingLoadBalancerClient {
-        public JobLoadBalancerClient(LoadBalancerClientFactory loadBalancerClientFactory) {
+        JobLoadBalancerClient(LoadBalancerClientFactory loadBalancerClientFactory) {
             super(loadBalancerClientFactory);
         }
 

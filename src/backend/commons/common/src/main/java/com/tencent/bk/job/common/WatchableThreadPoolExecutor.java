@@ -108,20 +108,9 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
                                        long keepAliveTime,
                                        TimeUnit unit,
                                        BlockingQueue<Runnable> workQueue) {
-        this(meterRegistry, poolName, corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, true);
-    }
-
-    public WatchableThreadPoolExecutor(MeterRegistry meterRegistry,
-                                       String poolName,
-                                       int corePoolSize,
-                                       int maximumPoolSize,
-                                       long keepAliveTime,
-                                       TimeUnit unit,
-                                       BlockingQueue<Runnable> workQueue,
-        boolean propagateContext) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
         this.poolName = poolName;
-        this.propagateContext = propagateContext;
+        this.propagateContext = true;
         init(poolName, meterRegistry);
     }
 
