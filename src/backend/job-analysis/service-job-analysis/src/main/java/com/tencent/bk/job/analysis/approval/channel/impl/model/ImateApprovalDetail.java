@@ -30,7 +30,8 @@ import lombok.Data;
  * IMate 审批单详情，回查审批结论时只取判定与审计需要的字段。
  * <p>
  * <b>刻意不映射 approvalContent</b>：那是作业平台自己渲染后交给 IMate 的正文，含脚本明文，
- * 回查链路不需要它，不接进来就不会被日志或异常栈带出去。
+ * 回查链路不需要它，不接进来就不会被异常栈带出去。原始响应体在打印前由
+ * {@code ImateApprovalChannel} 将该字段替换成长度摘要。
  */
 @Data
 public class ImateApprovalDetail {

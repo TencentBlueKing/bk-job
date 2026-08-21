@@ -24,24 +24,32 @@
 
 package com.tencent.bk.job.analysis.approval.channel.impl;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalResult;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalResultStatusEnum;
 import com.tencent.bk.job.analysis.config.ApprovalProperties;
 import com.tencent.bk.job.analysis.model.dto.ApprovalTaskDTO;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.http.HttpResponse;
 import org.apache.http.Header;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,8 +62,9 @@ import static org.mockito.Mockito.when;
 /**
  * 单元测试 - IMate 审批渠道真实实现。
  * <p>
- * 重点锁定三件事：只有 IMate 返回 APPROVED 才算通过（EXPIRED / CANCELED 一律不放行）、
- * 绑定证明原样取自响应而不是用请求参数自证、以及回查用的是 IMate 颁发的凭证而非蓝鲸凭证。
+ * 重点锁定四件事：只有 IMate 返回 APPROVED 才算通过（EXPIRED / CANCELED 一律不放行）、
+ * 绑定证明原样取自响应而不是用请求参数自证、回查用的是 IMate 颁发的凭证而非蓝鲸凭证，
+ * 以及<b>日志既够对账又不泄密</b>——审批正文里的脚本明文与 x-secret 绝不落盘。
  */
 class ImateApprovalChannelTest {
 
@@ -65,9 +74,16 @@ class ImateApprovalChannelTest {
     private static final String OPEN_API_APP_ID = "imate-issued-app-id";
     private static final String OPEN_API_SECRET = "imate-issued-secret";
 
+    /**
+     * 审批正文里的脚本明文，出现在任何一条日志里都是泄露
+     */
+    private static final String SCRIPT_IN_APPROVAL_CONTENT = "rm -rf /data/should-never-appear-in-log";
+
     private HttpHelper httpHelper;
     private ApprovalProperties properties;
     private ImateApprovalChannel channel;
+    private Logger channelLogger;
+    private ListAppender<ILoggingEvent> logAppender;
 
     @BeforeEach
     void setUp() {
@@ -79,7 +95,17 @@ class ImateApprovalChannelTest {
         imate.setAppCode("bk_imate");
         imate.getOpenApi().setAppId(OPEN_API_APP_ID);
         imate.getOpenApi().setSecret(OPEN_API_SECRET);
+        channelLogger = (Logger) LoggerFactory.getLogger(ImateApprovalChannel.class);
+        logAppender = new ListAppender<>();
+        logAppender.start();
+        channelLogger.addAppender(logAppender);
         channel = new ImateApprovalChannel(properties, httpHelper);
+    }
+
+    @AfterEach
+    void tearDown() {
+        channelLogger.detachAppender(logAppender);
+        logAppender.stop();
     }
 
     @Test
@@ -225,8 +251,107 @@ class ImateApprovalChannelTest {
         assertThat(captor.getValue().getUrl()).isEqualTo(ROOT_URL + "/open/approval/detail?taskId=" + TASK_ID);
     }
 
+    @Test
+    @DisplayName("成功回查的日志够对账：请求、响应体、耗时都在，taskId 与状态可查")
+    void givenSuccessThenLogRequestResponseAndCostTime() {
+        mockResponse(buildDetailJson(TASK_ID, "APPROVED", "bob", "同意", "2026-08-17T15:30:20"));
+
+        channel.queryResult(buildTask(), TICKET_ID);
+
+        assertThat(logLine("Request|"))
+            .contains("method=GET")
+            .contains(ROOT_URL + "/open/approval/detail?taskId=" + TASK_ID)
+            .contains("x-app-id=" + OPEN_API_APP_ID);
+        assertThat(logLine("Response|"))
+            .contains("success=true")
+            .contains("costTime=")
+            .contains("\"taskId\":\"" + TASK_ID + "\"")
+            .contains("\"status\":\"APPROVED\"")
+            .contains("\"approver\":\"bob\"")
+            .contains("\"approveTime\":\"2026-08-17T15:30:20\"");
+    }
+
+    @Test
+    @DisplayName("响应体照打，但审批正文换成长度摘要：approvalContent 含脚本明文，不能落盘")
+    void givenApprovalContentInResponseThenMaskItInLog() {
+        mockResponse(buildDetailJson(TASK_ID, "APPROVED", "bob", null, null));
+
+        channel.queryResult(buildTask(), TICKET_ID);
+
+        assertThat(allLogs())
+            .as("审批正文里的脚本明文出现在任何一条日志里都是泄露")
+            .noneMatch(line -> line.contains(SCRIPT_IN_APPROVAL_CONTENT));
+        assertThat(logLine("Response|")).contains("\"approvalContent\":\"<masked,length=");
+    }
+
+    @Test
+    @DisplayName("x-secret 是 IMate 颁发的凭证，任何一条日志里都不能出现它的取值")
+    void thenNeverLogSecret() {
+        mockResponse(buildDetailJson(TASK_ID, "APPROVED", "bob", null, null));
+
+        channel.queryResult(buildTask(), TICKET_ID);
+
+        assertThat(allLogs()).noneMatch(line -> line.contains(OPEN_API_SECRET));
+        assertThat(logLine("Request|")).contains("x-secret=<masked>");
+    }
+
+    @Test
+    @DisplayName("请求抛异常时同样有日志与耗时：超时最需要的就是耗时数据")
+    void givenRequestExceptionThenLogCostTime() {
+        when(httpHelper.requestForSuccessResp(any()))
+            .thenThrow(new InternalException("read timed out", ErrorCode.INTERNAL_ERROR));
+
+        assertThatThrownBy(() -> channel.queryResult(buildTask(), TICKET_ID))
+            .isInstanceOf(InternalException.class);
+
+        assertThat(logLine("Response|"))
+            .contains("success=false")
+            .contains("costTime=");
+    }
+
+    @Test
+    @DisplayName("对端返回非 0 状态码时也有日志与耗时，且响应体里的正文仍是脱敏的")
+    void givenErrorResponseThenLogCostTimeWithMaskedContent() {
+        mockResponse("{\"status\":2302081,\"message\":\"审批单不存在\",\"data\":{\"approvalContent\":\""
+            + SCRIPT_IN_APPROVAL_CONTENT + "\"}}");
+
+        assertThatThrownBy(() -> channel.queryResult(buildTask(), TICKET_ID))
+            .isInstanceOf(InternalException.class);
+
+        assertThat(logLine("Response|"))
+            .contains("success=false")
+            .contains("costTime=")
+            .contains("2302081");
+        assertThat(allLogs()).noneMatch(line -> line.contains(SCRIPT_IN_APPROVAL_CONTENT));
+    }
+
+    @Test
+    @DisplayName("返回结构与预期不符、取不出正文取值时整体只打长度，不赌里面没有脚本")
+    void givenUnparsableApprovalContentThenMaskWholeBody() {
+        mockResponse("{\"status\":0,\"data\":{\"approvalContent\":[\"" + SCRIPT_IN_APPROVAL_CONTENT + "\"]}}");
+
+        assertThatThrownBy(() -> channel.queryResult(buildTask(), TICKET_ID))
+            .isInstanceOf(Exception.class);
+
+        assertThat(allLogs()).noneMatch(line -> line.contains(SCRIPT_IN_APPROVAL_CONTENT));
+        assertThat(logLine("Response|")).contains("resp=<masked,length=");
+    }
+
     private void mockResponse(String body) {
         when(httpHelper.requestForSuccessResp(any())).thenReturn(new HttpResponse(200, body, null));
+    }
+
+    private List<String> allLogs() {
+        return logAppender.list.stream()
+            .map(ILoggingEvent::getFormattedMessage)
+            .collect(Collectors.toList());
+    }
+
+    private String logLine(String keyword) {
+        return allLogs().stream()
+            .filter(line -> line.contains(keyword))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("未找到包含 " + keyword + " 的日志，实际日志：" + allLogs()));
     }
 
     private String headerValue(HttpRequest request, String name) {
@@ -246,7 +371,7 @@ class ImateApprovalChannelTest {
             + "\"taskId\":\"" + taskId + "\","
             + "\"saasId\":\"" + OPEN_API_APP_ID + "\","
             + "\"title\":\"关于执行脚本的审批\","
-            + "\"approvalContent\":\"## 脚本内容\\n echo hello\","
+            + "\"approvalContent\":\"## 脚本内容\\n " + SCRIPT_IN_APPROVAL_CONTENT + "\","
             + "\"status\":\"" + status + "\","
             + jsonField("approver", approver)
             + jsonField("approveComment", approveComment)

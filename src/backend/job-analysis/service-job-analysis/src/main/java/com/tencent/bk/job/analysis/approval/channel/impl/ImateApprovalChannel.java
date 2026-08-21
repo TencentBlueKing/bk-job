@@ -54,6 +54,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * IMate 审批渠道：回查 IMate 侧的审批结论。
@@ -67,8 +70,15 @@ import java.time.format.DateTimeFormatter;
  * <b>凭证边界</b>：{@code x-app-id} / {@code x-secret} 是 IMate 颁发给作业平台的凭证，
  * 与蓝鲸的 app_code / app_secret 无关，也与"IMate 来取审批内容时校验的蓝鲸 appCode"不是一回事。
  * <p>
- * <b>日志</b>：IMate 响应里的 approvalContent 含脚本明文，本类只打印任务 ID、状态与审批人，
- * 绝不打印响应体。注意底层 HttpHelper 在 DEBUG 级别会打印完整响应，生产环境不应对其开启 DEBUG。
+ * <b>日志边界</b>：回查是跨系统调用，出问题时必须能对账，所以请求（含请求头）、响应体与耗时都要打印，
+ * 但有两条硬约束：
+ * <ul>
+ *     <li>响应里的 {@code approvalContent} 是作业平台自己渲染的审批正文，<b>含脚本明文</b>，
+ *     打印前替换成长度摘要（{@code <masked,length=N>}），只保留对账真正需要的
+ *     taskId / status / approver / approveTime；</li>
+ *     <li>{@code x-secret} 是 IMate 颁发的凭证，<b>只打字段名不打取值</b>；{@code x-app-id} 不敏感，原样打印。</li>
+ * </ul>
+ * 注意底层 HttpHelper 在 DEBUG 级别会打印完整响应（不经本类脱敏），生产环境不应对其开启 DEBUG。
  */
 @Slf4j
 @Component
@@ -84,6 +94,15 @@ public class ImateApprovalChannel implements ApprovalChannel {
     private static final String APPROVAL_DETAIL_URI = "/open/approval/detail";
     private static final String HEADER_APP_ID = "x-app-id";
     private static final String HEADER_SECRET = "x-secret";
+
+    private static final String FIELD_APPROVAL_CONTENT = "approvalContent";
+    private static final String MASKED_VALUE = "<masked>";
+
+    /**
+     * 匹配响应体里的 approvalContent 取值（含转义字符的字符串，或 null），用于打印前替换成长度摘要
+     */
+    private static final Pattern APPROVAL_CONTENT_PATTERN =
+        Pattern.compile("\"" + FIELD_APPROVAL_CONTENT + "\"\\s*:\\s*(?:\"((?:\\\\.|[^\"\\\\])*)\"|null)");
 
     private static final String IMATE_STATUS_PENDING = "PENDING";
     private static final String IMATE_STATUS_APPROVED = "APPROVED";
@@ -135,6 +154,9 @@ public class ImateApprovalChannel implements ApprovalChannel {
 
     /**
      * 发起回查。<b>任何异常都直接向上抛</b>，由调用方 fail-closed 处理，这里不做任何"查不到即通过"的兜底。
+     * <p>
+     * 请求、响应与耗时都记日志：这是跨系统调用，对端超时或改了返回结构时，日志是唯一的对账依据。
+     * 敏感内容的处理见类注释的"日志边界"
      */
     private ImateApprovalDetail requestApprovalDetail(String approvalTaskId) {
         ApprovalProperties.ImateConfig imateConfig = approvalProperties.getChannels().getImate();
@@ -147,11 +169,33 @@ public class ImateApprovalChannel implements ApprovalChannel {
             new BasicHeader(HEADER_SECRET, openApi.getSecret()),
             new BasicHeader("Accept", "application/json")
         };
-        HttpResponse httpResponse = httpHelper.requestForSuccessResp(
-            HttpRequest.builder(HttpMethodEnum.GET, buildDetailUrl(imateConfig.getUrl(), approvalTaskId))
-                .setHeaders(headers)
-                .build());
-        ImateOpenApiResponse<ImateApprovalDetail> response = JsonUtils.fromJson(httpResponse.getEntity(),
+        String url = buildDetailUrl(imateConfig.getUrl(), approvalTaskId);
+        log.info("[ImateApprovalChannel] Request|method={}|url={}|headers={}",
+            HttpMethodEnum.GET.name(), url, describeHeaders(headers));
+        long startTime = System.currentTimeMillis();
+        String respStr = null;
+        try {
+            HttpResponse httpResponse = httpHelper.requestForSuccessResp(
+                HttpRequest.builder(HttpMethodEnum.GET, url)
+                    .setHeaders(headers)
+                    .build());
+            respStr = httpResponse.getEntity();
+            ImateApprovalDetail detail = parseDetail(respStr, approvalTaskId);
+            log.info("[ImateApprovalChannel] Response|method={}|url={}|success=true|costTime={}|resp={}",
+                HttpMethodEnum.GET.name(), url, System.currentTimeMillis() - startTime,
+                maskApprovalContent(respStr));
+            return detail;
+        } catch (Exception e) {
+            // 超时与对端报错是最需要耗时数据的场景：响应体此时通常为空，耗时是唯一能判断"卡在哪"的线索
+            log.warn("[ImateApprovalChannel] Response|method={}|url={}|success=false|costTime={}|resp={}",
+                HttpMethodEnum.GET.name(), url, System.currentTimeMillis() - startTime,
+                maskApprovalContent(respStr), e);
+            throw e;
+        }
+    }
+
+    private ImateApprovalDetail parseDetail(String respStr, String approvalTaskId) {
+        ImateOpenApiResponse<ImateApprovalDetail> response = JsonUtils.fromJson(respStr,
             new TypeReference<ImateOpenApiResponse<ImateApprovalDetail>>() {
             });
         if (response == null || !response.isSuccess()) {
@@ -165,6 +209,47 @@ public class ImateApprovalChannel implements ApprovalChannel {
                 ErrorCode.INTERNAL_ERROR);
         }
         return response.getData();
+    }
+
+    /**
+     * 请求头照打，唯独 {@code x-secret} 只打字段名：凭证一旦落盘，日志的流转范围就是它的泄露范围
+     */
+    private String describeHeaders(Header[] headers) {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (Header header : headers) {
+            boolean secret = HEADER_SECRET.equalsIgnoreCase(header.getName());
+            joiner.add(header.getName() + "=" + (secret ? MASKED_VALUE : header.getValue()));
+        }
+        return joiner.toString();
+    }
+
+    /**
+     * 把响应体里的 approvalContent 换成长度摘要：审批正文含脚本明文，不能落盘，但其余字段
+     * （taskId / status / approver / approveTime）都是对账必需的，整体不打等于没日志。
+     * <p>
+     * <b>匹配不上就整体不打</b>：响应体里出现了 approvalContent 这个字段名却取不出取值，说明返回结构
+     * 与预期不符，此时宁可只留一个长度也不能赌"里面没有脚本"
+     */
+    private String maskApprovalContent(String respStr) {
+        if (StringUtils.isBlank(respStr) || !respStr.contains(FIELD_APPROVAL_CONTENT)) {
+            return respStr;
+        }
+        Matcher matcher = APPROVAL_CONTENT_PATTERN.matcher(respStr);
+        StringBuffer masked = new StringBuffer(respStr.length());
+        boolean matched = false;
+        while (matcher.find()) {
+            matched = true;
+            String content = matcher.group(1);
+            String replacement = "\"" + FIELD_APPROVAL_CONTENT + "\":"
+                + (content == null ? "null" : "\"" + maskedLength(content) + "\"");
+            matcher.appendReplacement(masked, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(masked);
+        return matched ? masked.toString() : maskedLength(respStr);
+    }
+
+    private String maskedLength(String value) {
+        return "<masked,length=" + value.length() + ">";
     }
 
     private String buildDetailUrl(String rootUrl, String approvalTaskId) {
