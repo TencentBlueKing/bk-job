@@ -30,6 +30,8 @@ public class MetricsConstants {
     // metric name
     // 后台指标
     public static final String NAME_NOTIFY_DELAY = "job.notify.delay";
+    // 消息通知发送次数，按渠道与接收人有效性区分
+    public static final String NAME_NOTIFY_SEND_TOTAL = "job.notify.send.total";
     public static final String NAME_NOTIFY_POOL_SIZE = "job.notify.pool.size";
     public static final String NAME_NOTIFY_QUEUE_SIZE = "job.notify.queue.size";
     public static final String NAME_CMDB_QUERY_POOL_SIZE = "job.cmdb.query.pool.size";
@@ -80,6 +82,7 @@ public class MetricsConstants {
     public static final String TAG_KEY_APP_ID = "appId";
     public static final String TAG_KEY_MSG_TYPE = "msgType";
     public static final String TAG_KEY_SEND_STATUS = "sendStatus";
+    public static final String TAG_KEY_RECEIVER_STATUS = "receiverStatus";
     public static final String TAG_KEY_CMDB_EVENT_TYPE = "type";
     public static final String TAG_KEY_CMDB_HOST_EVENT_HANDLER_NAME = "name";
     public static final String TAG_KEY_CMDB_EVENT_HANDLE_RESULT = "handleResult";
@@ -103,6 +106,12 @@ public class MetricsConstants {
     public static final String TAG_VALUE_SEND_STATUS_SUCCESS = "success";
     // 消息通知发送失败
     public static final String TAG_VALUE_SEND_STATUS_FAILED = "failed";
+    // 通知渠道接受了接收人
+    public static final String TAG_VALUE_RECEIVER_STATUS_VALID = "valid";
+    // 通知渠道判定接收人无效，如已离职
+    public static final String TAG_VALUE_RECEIVER_STATUS_INVALID = "invalid";
+    // 未能判定接收人有效性，如渠道不可用、超配额未实际发送
+    public static final String TAG_VALUE_RECEIVER_STATUS_UNKNOWN = "unknown";
     // CMDB事件类型：业务
     public static final String TAG_VALUE_CMDB_EVENT_TYPE_BIZ = "biz";
     // CMDB事件类型：业务集
