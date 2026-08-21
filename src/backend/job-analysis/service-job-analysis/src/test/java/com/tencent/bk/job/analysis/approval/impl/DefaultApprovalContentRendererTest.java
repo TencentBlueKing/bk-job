@@ -60,6 +60,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -242,6 +243,45 @@ class DefaultApprovalContentRendererTest {
     }
 
     @Test
+    @DisplayName("带默认前缀的行统一沉底，普通字段行保持原有相对顺序")
+    void givenDefaultsAppliedThenSinkToBottomOfTable() {
+        ResolvedSummary summary = buildFileSummary("FORCE", "FORCE");
+        summary.addField("job_plan_id", String.valueOf(PLAN_ID));
+        summary.addDefaultApplied("timeout", "7200");
+
+        String content = renderer.render(fileTask(summary)).getApprovalContent();
+
+        List<String> labels = summaryRowLabels(content);
+        assertThat(labels)
+            .as("默认值提示聚到表格最后，不再夹在普通字段行中间")
+            .endsWith("task.approval.content.defaultPrefix task.approval.content.field.transfer_mode",
+                "task.approval.content.defaultPrefix task.approval.content.field.timeout");
+        assertThat(labels)
+            .as("普通字段行的相对顺序不变")
+            .containsSubsequence("task.approval.content.field.file_source_list",
+                "task.approval.content.field.file_target_path",
+                "task.approval.content.field.job_plan_id");
+        assertThat(labels.stream().filter(label -> label.contains("field.transfer_mode")).count())
+            .as("沉底的是同一行而不是多出一行")
+            .isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("显式指定分发模式时该行留在原位，不跟着默认值提示沉底")
+    void givenExplicitTransferModeThenKeepRowInPlace() {
+        ResolvedSummary summary = buildFileSummary("STRICT", null);
+        summary.addField("job_plan_id", String.valueOf(PLAN_ID));
+        summary.addDefaultApplied("timeout", "7200");
+
+        String content = renderer.render(fileTask(summary)).getApprovalContent();
+
+        assertThat(summaryRowLabels(content))
+            .containsSubsequence("task.approval.content.field.transfer_mode",
+                "task.approval.content.field.job_plan_id",
+                "task.approval.content.defaultPrefix task.approval.content.field.timeout");
+    }
+
+    @Test
     @DisplayName("非文件分发场景不出文件相关行，概要里不塞无关项")
     void givenNoFileStepThenNoFileRows() {
         ApprovalContent rendered = renderer.render(scriptTask(buildFullSummary(), true));
@@ -328,21 +368,38 @@ class DefaultApprovalContentRendererTest {
             .doesNotContain("| " + targetStatus + " |");
     }
 
+    @ParameterizedTest(name = "新增/修改 {0} 翻译成文案而不是枚举名")
+    @DisplayName("定时任务是新增还是修改，同样翻译成文案：CREATE / UPDATE 审批人看不懂")
+    @ValueSource(strings = {"CREATE", "UPDATE"})
+    void givenCronOperationThenTranslateValue(String operation) {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.SAVE_CRON.name());
+        summary.addField("operation", operation);
+
+        ApprovalContent rendered = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.SAVE_CRON, summary, null));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "content.field.operation"))
+            .contains("task.approval.content.value.operation." + operation)
+            .as("翻译后不该再把枚举名摊给审批人")
+            .doesNotContain("| " + operation + " |");
+    }
+
     @Test
-    @DisplayName("只有白名单里的字段翻译取值：自由值与产品上保留英文的操作名不能被误翻译")
+    @DisplayName("白名单外的字段取值原样展示：定时规则这类自由值不能被当成枚举名去翻译")
     void givenNonEnumFieldsThenKeepValueAsIs() {
         ResolvedSummary summary = new ResolvedSummary();
         summary.setOperationType(ApprovalOperationTypeEnum.SAVE_CRON.name());
-        summary.addField("operation", "UPDATE");
-        summary.addField("cron_expression", "0 0 2 * * ?");
+        summary.addField("cron_expression", "0 2 * * *");
+        summary.addField("execute_time_zone", "Asia/Shanghai");
 
         ApprovalContent rendered = renderer.render(
             buildTask(ApprovalOperationTypeEnum.SAVE_CRON, summary, null));
 
         String content = rendered.getApprovalContent();
-        assertThat(tableRow(content, "content.field.operation")).contains("UPDATE");
-        assertThat(tableRow(content, "content.field.cron_expression")).contains("0 0 2 * * ?");
-        assertThat(content).doesNotContain("task.approval.content.value.operation");
+        assertThat(tableRow(content, "content.field.cron_expression")).contains("0 2 * * *");
+        assertThat(tableRow(content, "content.field.execute_time_zone")).contains("Asia/Shanghai");
+        assertThat(content).doesNotContain("task.approval.content.value.cron_expression");
     }
 
     @Test
@@ -605,6 +662,17 @@ class DefaultApprovalContentRendererTest {
         int start = indexOf(content, heading);
         int end = content.indexOf("\n## ", start + heading.length());
         return end < 0 ? content.substring(start) : content.substring(start, end);
+    }
+
+    /**
+     * 按渲染顺序取出概要表格各行的标签，用于校验行顺序
+     */
+    private List<String> summaryRowLabels(String content) {
+        return Arrays.stream(sectionOf(content, SECTION_SUMMARY).split("\n"))
+            .filter(line -> line.startsWith("|"))
+            .map(line -> line.split("\\|")[1].trim())
+            .filter(label -> !"---".equals(label) && !label.endsWith("table.item"))
+            .collect(Collectors.toList());
     }
 
     /**

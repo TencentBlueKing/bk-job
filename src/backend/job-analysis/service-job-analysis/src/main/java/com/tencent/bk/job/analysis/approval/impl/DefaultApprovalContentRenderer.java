@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -89,11 +90,9 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
      * 值是枚举名、需要翻译成人话的操作级字段：字段名 -> 取值文案的 i18n key 前缀。
      * <p>
      * <b>刻意做成白名单而不是"所有字段都试着翻译一下"</b>：概要里的字段值大多是自由值（定时规则、
-     * 执行方案 ID），而 save_cron 的 operation（CREATE / UPDATE）是产品上明确要保留英文枚举名的，
-     * 一旦改成隐式匹配，日后有人补一条 value.operation.CREATE 就会静默改掉已定的展示行为
+     * 执行方案 ID、步骤名称），隐式匹配会让日后新增一条 value.xxx 就静默改掉某个字段的展示行为
      */
-    private static final Map<String, String> ENUM_VALUE_I18N_PREFIXES =
-        Collections.singletonMap("target_status", "value.cronStatus.");
+    private static final Map<String, String> ENUM_VALUE_I18N_PREFIXES = buildEnumValueI18nPrefixes();
 
     /**
      * 一个概要行最多展示的条目数，超出只补一句总数。
@@ -107,6 +106,13 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     private final MessageI18nService i18nService;
     private final CommonAppService appService;
     private final ApprovalParamsCryptoService paramsCryptoService;
+
+    private static Map<String, String> buildEnumValueI18nPrefixes() {
+        Map<String, String> prefixes = new HashMap<>();
+        prefixes.put("target_status", "value.cronStatus.");
+        prefixes.put("operation", "value.operation.");
+        return Collections.unmodifiableMap(prefixes);
+    }
 
     public DefaultApprovalContentRenderer(MessageI18nService i18nService,
                                           CommonAppService appService,
@@ -150,7 +156,11 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     }
 
     /**
-     * 操作概要：默认最先看到的东西，用表格逐行摊开解析后的实际影响面
+     * 操作概要：默认最先看到的东西，用表格逐行摊开解析后的实际影响面。
+     * <p>
+     * <b>带默认前缀的行统一沉底</b>：夹在普通字段行中间时表格观感杂乱，而沉底聚在一起的恰好都是
+     * "用户没选、系统替他选了"的项，反倒更醒目。分发模式的默认标记是行内前缀而不是独立行，
+     * 因此它按默认生效时也随之沉底、显式指定时留在原位，但无论哪种都只出一行
      */
     private void appendSummary(StringBuilder content,
                                ApprovalTaskDTO task,
@@ -159,6 +169,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
                                ResolvedSummary summary,
                                ApprovalRiskLevelEnum riskLevel) {
         List<TableRow> rows = new ArrayList<>();
+        List<TableRow> defaultRows = new ArrayList<>();
         putRow(rows, label("operationType"), operationName(operationType), false);
         putRow(rows, label("scope"), describeScope(app, task.getAppId()), false);
         putRow(rows, label("creator"), task.getCreator(), false);
@@ -172,7 +183,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         putFileFieldRow(rows, summary, FIELD_FILE_SOURCE_LIST);
         putFileFieldRow(rows, summary, FIELD_FILE_TARGET_PATH);
         putFileFieldRow(rows, summary, FIELD_FILE_TARGET_NAME);
-        putTransferModeRow(rows, summary);
+        putTransferModeRow(rows, defaultRows, summary);
         putResolvedFields(rows, summary.getFields(), StringUtils.EMPTY);
         if (summary.getTotalExecuteObjectCount() != null) {
             putRow(rows, label("totalExecuteObjectCount"),
@@ -187,8 +198,9 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         }
         if (CollectionUtils.isNotEmpty(summary.getDefaultsApplied())) {
             // 默认生效的参数后果与显式指定一样，必须逐项披露；分发模式已单独成行，此处不再重复
-            putResolvedFields(rows, defaultsAppliedExceptTransferMode(summary), label("defaultPrefix"));
+            putResolvedFields(defaultRows, defaultsAppliedExceptTransferMode(summary), label("defaultPrefix"));
         }
+        rows.addAll(defaultRows);
 
         appendHeading(content, 2, label("section.summary"));
         appendTable(content, rows);
@@ -366,9 +378,10 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
      * 分发模式同样从各步骤汇总成一行：同名文件是被覆盖还是分目录存放、目标路径不存在时是直接失败还是
      * 自动建目录，后果差别很大，与"以什么身份上机"一样是审批人必须看到的，不能因为步骤明细不展示就丢失。
      * <p>
-     * 未显式指定而按默认生效时给标签加上默认前缀：默认落到的强制模式破坏性最大，不能让审批人以为用户选过
+     * 未显式指定而按默认生效时给标签加上默认前缀：默认落到的强制模式破坏性最大，不能让审批人以为用户选过。
+     * 此时该行与其余默认值提示一同沉底，落在 {@code defaultRows} 而不是 {@code rows}
      */
-    private void putTransferModeRow(List<TableRow> rows, ResolvedSummary summary) {
+    private void putTransferModeRow(List<TableRow> rows, List<TableRow> defaultRows, ResolvedSummary summary) {
         ResolvedSummary.ResolvedField defaultApplied =
             findField(summary.getDefaultsApplied(), FIELD_TRANSFER_MODE);
         String transferModes = describeTransferModes(summary);
@@ -377,10 +390,11 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
             transferModes = transferModeName(defaultApplied.getValue());
         }
         String fieldLabel = resolvedFieldLabel(FIELD_TRANSFER_MODE);
-        if (defaultApplied != null) {
-            fieldLabel = prefixed(label("defaultPrefix"), fieldLabel);
+        if (defaultApplied == null) {
+            putRow(rows, fieldLabel, transferModes, false);
+            return;
         }
-        putRow(rows, fieldLabel, transferModes, false);
+        putRow(defaultRows, prefixed(label("defaultPrefix"), fieldLabel), transferModes, false);
     }
 
     /**
