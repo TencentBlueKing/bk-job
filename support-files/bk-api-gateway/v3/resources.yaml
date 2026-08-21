@@ -9139,8 +9139,8 @@ paths:
         required: true
         description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -9603,8 +9603,8 @@ paths:
         required: true
         description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -9859,8 +9859,8 @@ paths:
         required: true
         description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -10036,8 +10036,8 @@ paths:
         required: true
         description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -10214,8 +10214,8 @@ paths:
         required: true
         description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -10318,8 +10318,8 @@ paths:
         required: true
         description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -10431,8 +10431,8 @@ paths:
         required: true
         description: 审批任务ID，由发起审批的接口返回。只能查询本人通过同一应用发起的审批任务，其余情况一律返回任务不存在
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -10554,8 +10554,8 @@ paths:
         required: true
         description: 请求体只有两个ID。审批结论只能由作业平台自己回查审批渠道得出，因此本接口不接受任何审批结论字段（无状态、审批人、审批时间、审批意见等字段），多传的字段会被忽略
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -10673,8 +10673,8 @@ paths:
         required: true
         description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -10759,7 +10759,7 @@ paths:
         required: true
         description: 取内容时的用户，必须传当前审批人
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
