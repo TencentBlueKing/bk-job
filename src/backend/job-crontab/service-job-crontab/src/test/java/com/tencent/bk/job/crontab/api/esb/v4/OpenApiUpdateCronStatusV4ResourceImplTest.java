@@ -67,6 +67,16 @@ class OpenApiUpdateCronStatusV4ResourceImplTest {
     private static final Long APP_ID = 2L;
     private static final Long CRON_ID = 88L;
 
+    /**
+     * 库里存的是转换后的 Quartz 形态定时规则
+     */
+    private static final String CRON_EXPRESSION_QUARTZ = "0 30 10 8 * ? *";
+
+    /**
+     * 用户创建时提交的 UNIX 形态，也是概要里该展示的形态
+     */
+    private static final String CRON_EXPRESSION_UNIX = "30 10 8 * *";
+
     private CronJobService cronJobService;
 
     private OpenApiUpdateCronStatusV4ResourceImpl resource;
@@ -110,7 +120,8 @@ class OpenApiUpdateCronStatusV4ResourceImplTest {
             .containsEntry("cron_id", String.valueOf(CRON_ID))
             .containsEntry("target_status", V4CronStatusEnum.ENABLED.name())
             .containsEntry("job_plan_id", "100")
-            .containsEntry("cron_expression", "0 0 12 * *");
+            // 定时规则按用户创建时提交的 UNIX 形态展示，而不是库里的 Quartz 形态
+            .containsEntry("cron_expression", CRON_EXPRESSION_UNIX);
     }
 
     @Test
@@ -167,7 +178,7 @@ class OpenApiUpdateCronStatusV4ResourceImplTest {
         cronJobInfo.setAppId(APP_ID);
         cronJobInfo.setName("test_cron");
         cronJobInfo.setTaskPlanId(100L);
-        cronJobInfo.setCronExpression("0 0 12 * *");
+        cronJobInfo.setCronExpression(CRON_EXPRESSION_QUARTZ);
         return cronJobInfo;
     }
 }

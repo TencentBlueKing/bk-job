@@ -40,6 +40,7 @@ import com.tencent.bk.job.crontab.model.esb.v4.req.V4SaveCronRequest;
 import com.tencent.bk.job.crontab.model.esb.v4.resp.V4CronJobDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.V4SaveCronRequestConverter;
+import com.tencent.bk.job.crontab.util.CronExpressionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -87,7 +88,10 @@ public class OpenApiSaveCronV4ResourceImpl implements OpenApiSaveCronV4Resource 
     }
 
     /**
-     * 定时任务没有执行目标，概要区展示的是"将按什么周期、用哪个执行方案跑什么任务"
+     * 定时任务没有执行目标，概要区展示的是"将按什么周期、用哪个执行方案跑什么任务"。
+     * <p>
+     * 定时规则按<b>用户提交的 UNIX 形态</b>展示：{@link CronJobInfoDTO#getCronExpression()} 里存的是
+     * 转换后的 Quartz 表达式，审批人核对的应当是自己传进来的那一串
      */
     private ResolvedSummary buildSummary(CronJobInfoDTO cronJobInfo, boolean update) {
         ResolvedSummary summary = new ResolvedSummary();
@@ -97,7 +101,8 @@ public class OpenApiSaveCronV4ResourceImpl implements OpenApiSaveCronV4Resource 
             summary.addField("cron_id", String.valueOf(cronJobInfo.getId()));
         }
         summary.addField("job_plan_id", String.valueOf(cronJobInfo.getTaskPlanId()));
-        summary.addField("cron_expression", cronJobInfo.getCronExpression());
+        summary.addField("cron_expression",
+            CronExpressionUtil.fixExpressionForUserSafely(cronJobInfo.getCronExpression()));
         summary.addField("execute_time",
             cronJobInfo.getExecuteTime() == null ? null : String.valueOf(cronJobInfo.getExecuteTime()));
         summary.addField("execute_time_zone", cronJobInfo.getExecuteTimeZone());

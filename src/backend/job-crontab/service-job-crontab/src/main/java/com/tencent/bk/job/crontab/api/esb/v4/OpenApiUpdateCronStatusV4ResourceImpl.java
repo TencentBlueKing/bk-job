@@ -41,6 +41,7 @@ import com.tencent.bk.job.crontab.model.esb.v4.req.V4UpdateCronStatusRequest;
 import com.tencent.bk.job.crontab.model.esb.v4.resp.V4CronJobDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.V4UpdateCronStatusRequestConverter;
+import com.tencent.bk.job.crontab.util.CronExpressionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -86,6 +87,9 @@ public class OpenApiUpdateCronStatusV4ResourceImpl implements OpenApiUpdateCronS
      * <p>
      * 定时任务不存在时<b>直接拒绝，不允许产出"只剩 id 与目标状态"的概要</b>：
      * 那样的单据无法判断影响面，等于让审批人盲签。
+     * <p>
+     * 定时规则按<b>用户提交的 UNIX 形态</b>展示：库里存的是转换后的 Quartz 表达式，
+     * 审批人核对的应当是创建时传进来的那一串
      */
     private ResolvedSummary buildSummary(Long appId, Long cronJobId, boolean enable) {
         CronJobInfoDTO cronJobInfo = cronJobService.getCronJobInfoById(appId, cronJobId);
@@ -97,7 +101,8 @@ public class OpenApiUpdateCronStatusV4ResourceImpl implements OpenApiUpdateCronS
         summary.addField("cron_id", String.valueOf(cronJobId));
         summary.addField("target_status", V4CronStatusEnum.of(enable).name());
         summary.addField("job_plan_id", String.valueOf(cronJobInfo.getTaskPlanId()));
-        summary.addField("cron_expression", cronJobInfo.getCronExpression());
+        summary.addField("cron_expression",
+            CronExpressionUtil.fixExpressionForUserSafely(cronJobInfo.getCronExpression()));
         return summary;
     }
 }

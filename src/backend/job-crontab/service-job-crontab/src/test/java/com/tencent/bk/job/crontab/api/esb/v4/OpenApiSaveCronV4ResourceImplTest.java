@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -61,6 +62,16 @@ class OpenApiSaveCronV4ResourceImplTest {
 
     private static final String USERNAME = "admin";
     private static final String APP_CODE = "bk_ai";
+
+    /**
+     * 用户提交的 UNIX 形态定时规则，也是概要里该展示的形态
+     */
+    private static final String CRON_EXPRESSION_UNIX = "30 10 8 * *";
+
+    /**
+     * 转换后落库的 Quartz 形态，由 V4SaveCronRequestConverter 产出（此处被 mock，直接给结果）
+     */
+    private static final String CRON_EXPRESSION_QUARTZ = "0 30 10 8 * ? *";
 
     private CronJobService cronJobService;
 
@@ -96,9 +107,25 @@ class OpenApiSaveCronV4ResourceImplTest {
         ResolvedSummary summary = response.getDryRunSummary();
         assertThat(summary.getName()).isEqualTo("test_cron");
         assertThat(summaryFields(summary)).containsEntry("operation", "CREATE");
+        // 定时规则按用户提交的 UNIX 形态展示，而不是转换后落库的 Quartz 形态
+        assertThat(summaryFields(summary)).containsEntry("cron_expression", CRON_EXPRESSION_UNIX);
         // 新增时还没有定时任务 ID，概要里不该出现
         assertThat(summaryFields(summary)).doesNotContainKey("cron_id");
         verify(cronJobService, never()).createCronJobInfo(any(), any());
+    }
+
+    @Test
+    @DisplayName("定时规则转换失败时退回原表达式，不让预检整个失败")
+    void givenUnconvertibleCronExpressionThenFallbackToRawValue() {
+        doAnswer(invocation -> buildCronJobInfo(invocation.getArgument(0, V4SaveCronRequest.class), "not-a-cron"))
+            .when(requestConverter).convert(any(), any());
+        when(cronJobService.dryRunCreateCronJobInfo(any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
+
+        EsbV4Response<V4CronJobDTO> response = callSaveCron(baseCreateRequest(), true);
+
+        assertThat(summaryFields(response.getDryRunSummary()))
+            .containsEntry("cron_expression", "not-a-cron");
     }
 
     @Test
@@ -177,17 +204,21 @@ class OpenApiSaveCronV4ResourceImplTest {
         request.setScopeId("2");
         request.setName("test_cron");
         request.setPlanId(100L);
-        request.setCronExpression("0 0 12 * *");
+        request.setCronExpression(CRON_EXPRESSION_UNIX);
         return request;
     }
 
     private CronJobInfoDTO buildCronJobInfo(V4SaveCronRequest request) {
+        return buildCronJobInfo(request, CRON_EXPRESSION_QUARTZ);
+    }
+
+    private CronJobInfoDTO buildCronJobInfo(V4SaveCronRequest request, String cronExpression) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         cronJobInfo.setId(request.getId());
         cronJobInfo.setAppId(request.getAppId());
         cronJobInfo.setName(request.getName());
         cronJobInfo.setTaskPlanId(request.getPlanId());
-        cronJobInfo.setCronExpression(request.getCronExpression());
+        cronJobInfo.setCronExpression(cronExpression);
         return cronJobInfo;
     }
 }
