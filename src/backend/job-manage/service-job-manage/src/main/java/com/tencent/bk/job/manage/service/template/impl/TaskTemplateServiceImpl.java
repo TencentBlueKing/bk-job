@@ -71,6 +71,7 @@ import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.job.manage.service.template.FileSourceReferenceService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -104,6 +105,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     private final TemplateScriptStatusUpdateService templateScriptStatusUpdateService;
     private final TaskFavoriteService taskFavoriteService;
     private final TemplateAuthService templateAuthService;
+    private final FileSourceReferenceService fileSourceReferenceService;
     private TaskPlanService taskPlanService;
     private ScriptManager scriptManager;
     private CronJobService cronJobService;
@@ -144,7 +146,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         TagService tagService,
         TemplateScriptStatusUpdateService templateScriptStatusUpdateService,
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
-        TemplateAuthService templateAuthService) {
+        TemplateAuthService templateAuthService,
+        FileSourceReferenceService fileSourceReferenceService) {
         this.taskStepService = taskStepService;
         this.taskVariableService = taskVariableService;
         this.taskTemplateDAO = taskTemplateDAO;
@@ -152,6 +155,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         this.templateScriptStatusUpdateService = templateScriptStatusUpdateService;
         this.taskFavoriteService = taskFavoriteService;
         this.templateAuthService = templateAuthService;
+        this.fileSourceReferenceService = fileSourceReferenceService;
     }
 
     private void setUpdateFlag(TaskTemplateInfoDTO templateInfo) {
@@ -368,6 +372,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     public TaskTemplateInfoDTO saveTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo) {
         checkTaskTemplateExists(taskTemplateInfo);
         authCreateTemplate(username, taskTemplateInfo.getAppId());
+        fileSourceReferenceService.validateReferencedFileSources(username, taskTemplateInfo, true);
         TaskTemplateInfoDTO createdTemplate = saveOrUpdateTaskTemplate(taskTemplateInfo);
         templateAuthService.registerTemplate(createdTemplate.getId(), createdTemplate.getName(), username);
         return createdTemplate;
@@ -387,6 +392,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     public TaskTemplateInfoDTO updateTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo) {
         checkTaskTemplateExists(taskTemplateInfo);
         authEditTemplate(username, taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
+
+        fileSourceReferenceService.validateReferencedFileSources(username, taskTemplateInfo, false);
 
         TaskTemplateInfoDTO template = saveOrUpdateTaskTemplate(taskTemplateInfo);
 

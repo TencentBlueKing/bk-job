@@ -31,6 +31,7 @@ import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface FileSourceDAO {
     Integer insertFileSource(FileSourceDTO fileSourceDTO);
@@ -46,6 +47,13 @@ public interface FileSourceDAO {
     FileSourceDTO getFileSourceById(Integer id);
 
     List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids);
+
+    /**
+     * 从给定的 ID 中筛出在指定业务可见范围内的文件源 ID：
+     * 「归属该业务/已显式共享给该业务」「已共享给所有业务」二者之一成立。
+     * 不过滤启用状态，由调用方结合 enable 判定最终可用性。
+     */
+    Set<Integer> listFileSourceIdsInAppScope(Long appId, Collection<Integer> ids);
 
     @Deprecated
     @CompatibleImplementation(name = "fileSourceId", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,

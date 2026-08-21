@@ -492,6 +492,8 @@ public class ErrorCode {
     public static final int BK_ARTIFACTORY_BASE_URL_INVALID = 1260020;
     // 白名单记录已存在，请删除旧数据后再添加
     public static final int FILE_SOURCE_WHITE_INFO_ALREADY_EXISTS = 1260021;
+    // 文件源[id={0}]已被禁用
+    public static final int FILE_SOURCE_DISABLED = 1260023;
 
     // 文件网关 end
     // 文件代理 start

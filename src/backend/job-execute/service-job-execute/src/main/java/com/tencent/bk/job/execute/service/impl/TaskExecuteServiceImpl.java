@@ -96,6 +96,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
+import com.tencent.bk.job.execute.service.FileSourceReferenceService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -106,6 +107,7 @@ import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.util.LoggerFactory;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
@@ -179,6 +181,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final CustomPasswordCache customPasswordCache;
 
     private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
+    private final FileSourceReferenceService fileSourceReferenceService;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -201,7 +204,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor,
                                   RunningJobResourceQuotaManager runningJobResourceQuotaManager,
                                   HostService hostService,
-                                  CustomPasswordCache customPasswordCache) {
+                                  CustomPasswordCache customPasswordCache,
+                                  FileSourceReferenceService fileSourceReferenceService) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -221,6 +225,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
         this.hostService = hostService;
         this.customPasswordCache = customPasswordCache;
+        this.fileSourceReferenceService = fileSourceReferenceService;
     }
 
     @Override
@@ -302,9 +307,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkStepInstance(taskInstance, Collections.singletonList(stepInstance));
             watch.stop();
 
+            // 校验引用的第三方文件源对当前业务可用，查询结果供后续鉴权复用
+            watch.start("validateFileSourceReference");
+            List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities =
+                fileSourceReferenceService.validateReferencedFileSources(
+                    appId, stepInstance.getFileSourceList());
+            watch.stop();
+
             // 鉴权
             watch.start("authFastExecute");
-            authFastExecute(taskInstance, stepInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
+            authFastExecute(taskInstance, stepInstance,
+                taskInstanceExecuteObjects.getWhiteHostAllowActions(), fileSourceAvailabilities);
             watch.stop();
 
             // 保存作业
@@ -795,14 +808,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void authFastExecute(TaskInstanceDTO taskInstance,
                                  StepInstanceDTO stepInstance,
-                                 Map<Long, List<String>> whiteHostAllowActions) {
+                                 Map<Long, List<String>> whiteHostAllowActions,
+                                 List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
         AuthResult authResult;
         if (stepInstance.isScriptStep()) {
             // 鉴权脚本任务
             authResult = authExecuteScript(taskInstance, stepInstance, whiteHostAllowActions);
         } else {
             // 鉴权文件任务
-            authResult = authFileTransfer(taskInstance, stepInstance, whiteHostAllowActions);
+            authResult = authFileTransfer(taskInstance, stepInstance, whiteHostAllowActions,
+                fileSourceAvailabilities);
         }
 
         if (!authResult.isPass()) {
@@ -880,7 +895,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private AuthResult authFileTransfer(TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
-                                        Map<Long, List<String>> whiteHostAllowActions) {
+                                        Map<Long, List<String>> whiteHostAllowActions,
+                                        List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
         String username = taskInstance.getOperator();
         Long appId = taskInstance.getAppId();
 
@@ -893,6 +909,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
             username, new AppResourceScope(appId), accounts);
 
+        // 文件源鉴权必须在下面主机为空的提前返回之前合并进来，否则目标主机全部命中白名单时会静默跳过
+        AuthResult preHostAuthResult = accountAuthResult.mergeAuthResult(
+            authViewFileSource(username, appId, fileSourceAvailabilities));
+
         ExecuteTargetDTO executeTarget = stepInstance.getTargetExecuteObjects().clone();
         stepInstance.getFileSourceList().stream()
             .filter(fileSource -> !fileSource.isLocalUpload()
@@ -902,13 +922,38 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, executeTarget, whiteHostAllowActions);
         if (executeTarget.isEmpty()) {
             // 如果主机为空，无需对主机进行权限
-            return accountAuthResult;
+            return preHostAuthResult;
         }
 
         AuthResult serverAuthResult = executeAuthService.authFastPushFile(
             username, new AppResourceScope(appId), executeTarget);
 
-        return accountAuthResult.mergeAuthResult(serverAuthResult);
+        return preHostAuthResult.mergeAuthResult(serverAuthResult);
+    }
+
+    /**
+     * 只对归属当前业务的文件源做 view_file_source 鉴权。
+     * <p>
+     * 共享过来的文件源跳过鉴权：其 IAM 实例注册在归属业务路径下，共享方业务的用户天然拿不到该实例的权限，
+     * 共享关系本身即视为归属业务管理员做出的一次显式授权。
+     */
+    private AuthResult authViewFileSource(String username,
+                                          Long appId,
+                                          List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
+        if (CollectionUtils.isEmpty(fileSourceAvailabilities)) {
+            return AuthResult.pass();
+        }
+        Map<Integer, String> ownFileSourceIdToName = new HashMap<>();
+        for (ServiceFileSourceAvailabilityDTO availability : fileSourceAvailabilities) {
+            if (appId.equals(availability.getOwnerAppId())) {
+                ownFileSourceIdToName.put(availability.getId(), availability.getAlias());
+            }
+        }
+        if (ownFileSourceIdToName.isEmpty()) {
+            return AuthResult.pass();
+        }
+        return executeAuthService.batchAuthViewFileSource(
+            username, new AppResourceScope(appId), ownFileSourceIdToName);
     }
 
     private void checkStepInstanceExecuteTargetNonEmpty(StepInstanceDTO stepInstance) {
@@ -1350,11 +1395,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     scriptStepInstance.setScriptName(script.getName());
                 }
             }
-            authFastExecute(taskInstance, scriptStepInstance, whiteHostAllowActions);
+            authFastExecute(taskInstance, scriptStepInstance, whiteHostAllowActions,
+                Collections.emptyList());
         } else if (taskType.equals(TaskTypeEnum.FILE.getValue())) {
             // 快速分发文件鉴权
             StepInstanceDTO fileStepInstance = taskInstance.getStepInstances().get(0);
-            authFastExecute(taskInstance, fileStepInstance, whiteHostAllowActions);
+            // 重做走的是已落库的执行实例，不对其引用的文件源追加可用性校验与鉴权，避免存量作业无法重做
+            authFastExecute(taskInstance, fileStepInstance, whiteHostAllowActions,
+                Collections.emptyList());
         } else {
             log.warn("Auth fail because of invalid task type!");
             throw new PermissionDeniedException(AuthResult.fail());

@@ -28,12 +28,19 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 @Api(tags = {"job-file-gateway:service:FileSource"})
 @SmartFeignClient(value = "job-file-gateway", contextId = "fileSourceResource")
@@ -59,4 +66,14 @@ public interface ServiceFileSourceResource {
     InternalResponse<Boolean> existsFileSourceUsingCredential(
         @ApiParam(value = "Job业务ID", required = true) @PathVariable("appId") Long appId,
         @ApiParam(value = "凭证ID", required = true) @PathVariable("credentialId") String credentialId);
+
+    /**
+     * 批量判断文件源对指定业务是否可用。查不到的 ID 也会返回一条 {@code inAppScope = false} 的记录，
+     * 调用方无需自行补齐缺失的 ID。
+     */
+    @ApiOperation(value = "批量查询文件源对指定业务的可用性")
+    @PostMapping("/service/app/{appId}/fileSource/availability/check")
+    InternalResponse<List<ServiceFileSourceAvailabilityDTO>> checkFileSourceAvailability(
+        @ApiParam(value = "Job业务ID", required = true) @PathVariable("appId") Long appId,
+        @ApiParam(value = "文件源ID列表", required = true) @RequestBody List<Integer> fileSourceIdList);
 }
