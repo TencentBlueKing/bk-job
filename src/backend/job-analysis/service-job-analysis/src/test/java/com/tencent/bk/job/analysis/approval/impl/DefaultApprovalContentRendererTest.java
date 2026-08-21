@@ -309,6 +309,58 @@ class DefaultApprovalContentRendererTest {
             .contains("task.approval.content.value.itemTruncated");
     }
 
+    @ParameterizedTest(name = "目标状态 {0} 翻译成文案而不是枚举名")
+    @DisplayName("定时任务的目标状态是枚举名，审批人看不懂启的还是停的，须翻译成文案")
+    @ValueSource(strings = {"ENABLED", "DISABLED"})
+    void givenCronTargetStatusThenTranslateValue(String targetStatus) {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.UPDATE_CRON_STATUS.name());
+        summary.setName("每天凌晨清理日志");
+        summary.addField("cron_id", "100");
+        summary.addField("target_status", targetStatus);
+
+        ApprovalContent rendered = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.UPDATE_CRON_STATUS, summary, null));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "content.field.target_status"))
+            .contains("task.approval.content.value.cronStatus." + targetStatus)
+            .as("翻译后不该再把枚举名摊给审批人")
+            .doesNotContain("| " + targetStatus + " |");
+    }
+
+    @Test
+    @DisplayName("只有白名单里的字段翻译取值：自由值与产品上保留英文的操作名不能被误翻译")
+    void givenNonEnumFieldsThenKeepValueAsIs() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.SAVE_CRON.name());
+        summary.addField("operation", "UPDATE");
+        summary.addField("cron_expression", "0 0 2 * * ?");
+
+        ApprovalContent rendered = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.SAVE_CRON, summary, null));
+
+        String content = rendered.getApprovalContent();
+        assertThat(tableRow(content, "content.field.operation")).contains("UPDATE");
+        assertThat(tableRow(content, "content.field.cron_expression")).contains("0 0 2 * * ?");
+        assertThat(content).doesNotContain("task.approval.content.value.operation");
+    }
+
+    @Test
+    @DisplayName("目标状态缺文案时原样展示枚举名，不能让整行变空")
+    void givenCronStatusI18nMissingThenFallbackToEnumName() {
+        when(i18nService.getI18n("task.approval.content.value.cronStatus.ENABLED"))
+            .thenThrow(new IllegalStateException("no such message"));
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.UPDATE_CRON_STATUS.name());
+        summary.addField("target_status", "ENABLED");
+
+        ApprovalContent rendered = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.UPDATE_CRON_STATUS, summary, null));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "content.field.target_status"))
+            .contains("ENABLED");
+    }
+
     @Test
     @DisplayName("目标文件名通常不填，为空时不出行，填了才展示")
     void givenFileTargetNameThenShowOnlyWhenPresent() {

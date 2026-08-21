@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -83,6 +84,16 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     private static final String FIELD_FILE_SOURCE_LIST = "file_source_list";
     private static final String FIELD_FILE_TARGET_PATH = "file_target_path";
     private static final String FIELD_FILE_TARGET_NAME = "file_target_name";
+
+    /**
+     * 值是枚举名、需要翻译成人话的操作级字段：字段名 -> 取值文案的 i18n key 前缀。
+     * <p>
+     * <b>刻意做成白名单而不是"所有字段都试着翻译一下"</b>：概要里的字段值大多是自由值（定时规则、
+     * 执行方案 ID），而 save_cron 的 operation（CREATE / UPDATE）是产品上明确要保留英文枚举名的，
+     * 一旦改成隐式匹配，日后有人补一条 value.operation.CREATE 就会静默改掉已定的展示行为
+     */
+    private static final Map<String, String> ENUM_VALUE_I18N_PREFIXES =
+        Collections.singletonMap("target_status", "value.cronStatus.");
 
     /**
      * 一个概要行最多展示的条目数，超出只补一句总数。
@@ -417,8 +428,21 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         }
         for (ResolvedSummary.ResolvedField field : fields) {
             String fieldLabel = prefixed(labelPrefix, resolvedFieldLabel(field.getLabel()));
-            putRow(rows, fieldLabel, field.getValue(), field.isHighlight());
+            putRow(rows, fieldLabel, resolvedFieldValue(field.getLabel(), field.getValue()), field.isHighlight());
         }
+    }
+
+    /**
+     * 白名单里的字段值是枚举名，对审批人来说与天书无异（"启的还是停的"要靠猜），翻译成人话；
+     * 缺文案时原样展示，与 {@link #transferModeName} 同构
+     */
+    private String resolvedFieldValue(String fieldName, String value) {
+        String keyPrefix = ENUM_VALUE_I18N_PREFIXES.get(fieldName);
+        if (keyPrefix == null || StringUtils.isBlank(value)) {
+            return value;
+        }
+        String translated = tryGetI18n(I18N_PREFIX + keyPrefix + value);
+        return translated == null ? value : translated;
     }
 
     /**
