@@ -38,6 +38,7 @@ import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaMana
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
+import com.tencent.bk.job.execute.service.FileSourceReferenceService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -99,6 +100,7 @@ class TaskExecuteServiceImplConvertToServersDTOTest {
     @Mock private HostService hostService;
     @Mock private CustomPasswordCache customPasswordCache;
     @Mock private TenantService tenantService;
+    @Mock private FileSourceReferenceService fileSourceReferenceService;
 
     private TaskExecuteServiceImpl service;
     private Method convertMethod;
@@ -125,7 +127,8 @@ class TaskExecuteServiceImplConvertToServersDTOTest {
             runningJobResourceQuotaManager,
             hostService,
             customPasswordCache,
-            tenantService
+            tenantService,
+            fileSourceReferenceService
         );
 
         convertMethod = TaskExecuteServiceImpl.class

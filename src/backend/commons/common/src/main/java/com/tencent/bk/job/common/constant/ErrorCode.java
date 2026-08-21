@@ -555,6 +555,8 @@ public class ErrorCode {
      * 回探失败时记录日志（不抛异常）。
      */
     public static final int FILE_WORKER_CONNECTIVITY_CHECK_FAIL = 1260022;
+    // 文件源[id={0}]已被禁用
+    public static final int FILE_SOURCE_DISABLED = 1260023;
 
     // 文件网关 end
     // 文件代理 start

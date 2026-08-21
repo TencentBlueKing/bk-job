@@ -22,39 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.model.dto;
+package com.tencent.bk.job.execute.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
+
+import java.util.List;
 
 /**
- * 文件源
+ * 校验作业中引用的第三方文件源对当前业务是否可用
  */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class FileSourceBasicInfoDTO {
+public interface FileSourceReferenceService {
+
     /**
-     * id
+     * 校验文件步骤引用的第三方文件源（fileType = 3）对指定业务均可用，不可用则抛异常。
+     * <p>
+     * 返回批量查询结果供调用方复用（后续的 view_file_source 鉴权需要其中的 ownerAppId 与 alias），
+     * 整个请求只发起一次跨服务查询。未引用第三方文件源时返回空列表且不发起查询。
+     *
+     * @param tenantId       租户ID
+     * @param appId          当前业务ID
+     * @param fileSourceList 文件步骤的源文件配置
+     * @return 被引用的文件源的可用性查询结果
      */
-    private Integer id;
-    /**
-     * appId
-     */
-    private Long appId;
-    /**
-     * 文件源标识
-     */
-    private String code;
-    /**
-     * 文件源别名
-     */
-    private String alias;
-    /**
-     * 是否启用
-     */
-    private Boolean enable;
+    List<ServiceFileSourceAvailabilityDTO> validateReferencedFileSources(String tenantId,
+                                                                         long appId,
+                                                                         List<FileSourceDTO> fileSourceList);
 }
