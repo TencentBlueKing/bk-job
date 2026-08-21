@@ -128,6 +128,10 @@ public class V4JobPlanCreateServiceImpl implements V4JobPlanCreateService {
         // 此行之上不得新增写操作：预检与真实创建必须走同一段校验代码，但预检绝不能把执行方案落库。
         // 往上插入写操作会让预检穿透成真实创建，用户还没审批，执行方案已经建出来了。
         if (dryRun) {
+            // 审批概要要按名称而不是 ID 展示启用的步骤，把上文已查出的模板步骤带回去，省得为一行展示再查一次模板。
+            // 与真实创建时 TaskPlanInfoDTO#buildPlanInfo 的填法一致：stepList 是方案的全部步骤，
+            // enableStepList 是其中启用的那些
+            planInfoDTO.setStepList(template.getStepList());
             return planInfoDTO;
         }
 

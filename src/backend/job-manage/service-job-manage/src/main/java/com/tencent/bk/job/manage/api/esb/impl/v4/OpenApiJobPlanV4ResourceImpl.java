@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.esb.v4.OpenApiJobPlanV4Resource;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.service.plan.V4JobPlanCreateService;
@@ -44,6 +45,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
@@ -78,13 +84,38 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         ResolvedSummary summary = new ResolvedSummary();
         summary.setName(plan.getName());
         summary.addField("job_template_id", String.valueOf(plan.getTemplateId()));
-        if (CollectionUtils.isNotEmpty(plan.getEnableStepList())) {
-            summary.addField("enable_steps", StringUtils.join(plan.getEnableStepList(), ","));
-        }
+        putEnableStepsField(summary, plan);
         if (CollectionUtils.isNotEmpty(plan.getVariableList())) {
             summary.addField("variable_count", String.valueOf(plan.getVariableList().size()));
         }
         return summary;
+    }
+
+    /**
+     * 启用的步骤按<b>名称</b>逐行给出，一行一个步骤：一串步骤 ID 审批人完全看不出这个方案会跑什么。
+     * <p>
+     * 换行由渲染侧转成表格单元格内的 {@code <br>}，此处只管按行拼。<b>步骤不做条数截断</b>：
+     * 条数上限就是模板的步骤数（人工编排出来的，不会像文件源那样上千条），而截掉几个步骤名恰好
+     * 截掉的是本行唯一要说明的事。启用的是全部模板步骤时换用带「全部」注明的标签，省得审批人自己去数
+     */
+    private void putEnableStepsField(ResolvedSummary summary, TaskPlanInfoDTO plan) {
+        List<Long> enableStepIds = plan.getEnableStepList();
+        if (CollectionUtils.isEmpty(enableStepIds)) {
+            return;
+        }
+        Map<Long, String> stepNames = new LinkedHashMap<>();
+        if (CollectionUtils.isNotEmpty(plan.getStepList())) {
+            for (TaskStepDTO step : plan.getStepList()) {
+                stepNames.put(step.getId(), step.getName());
+            }
+        }
+        List<String> names = new ArrayList<>(enableStepIds.size());
+        for (Long stepId : enableStepIds) {
+            // 名称缺失时退回 ID：整行不能因此变空，审批人至少还能拿 ID 去查
+            names.add(StringUtils.defaultIfBlank(stepNames.get(stepId), String.valueOf(stepId)));
+        }
+        boolean allStepsEnabled = !stepNames.isEmpty() && enableStepIds.containsAll(stepNames.keySet());
+        summary.addField(allStepsEnabled ? "enable_steps_all" : "enable_steps", String.join("\n", names));
     }
 
     private OpenApiV4JobPlanDTO toOpenApiV4JobPlanDTO(Long appId, String username, TaskPlanInfoDTO savedPlan) {

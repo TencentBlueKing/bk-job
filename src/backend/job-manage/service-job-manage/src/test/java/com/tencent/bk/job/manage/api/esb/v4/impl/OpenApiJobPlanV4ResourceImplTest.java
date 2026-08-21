@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -71,6 +72,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -162,11 +164,16 @@ class OpenApiJobPlanV4ResourceImplTest {
         for (Long stepId : stepIds) {
             TaskStepDTO step = new TaskStepDTO();
             step.setId(stepId);
+            step.setName(stepName(stepId));
             stepList.add(step);
         }
         template.setStepList(stepList);
         template.setVariableList(variables == null ? Collections.emptyList() : variables);
         return template;
+    }
+
+    private static String stepName(Long stepId) {
+        return "步骤-" + stepId;
     }
 
     private TaskVariableDTO buildTemplateVar(Long id, String name, TaskVariableTypeEnum type, String defaultValue) {
@@ -469,6 +476,60 @@ class OpenApiJobPlanV4ResourceImplTest {
         assertThat(data.getCreateTime()).isEqualTo(savedPlan.getCreateTime() * 1000L);
         assertThat(data.getNeedUpdate()).isTrue();
         assertThat(data.getScopeType()).isEqualTo(SCOPE_TYPE);
+    }
+
+    @Test
+    @DisplayName("预检概要里启用的步骤展示步骤名称、一行一个，而不是审批人看不懂的步骤 ID")
+    void dryRunSummary_enableSteps_showStepNames() {
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID))
+            .thenReturn(buildTemplate(Arrays.asList(101L, 102L, 103L), null));
+
+        V4CreateJobPlanRequest request = buildBaseRequest();
+        request.setEnableSteps(Arrays.asList(101L, 103L));
+
+        ResolvedSummary summary = resource.createJobPlan(USERNAME, APP_CODE, true, request).getDryRunSummary();
+
+        assertThat(summaryFields(summary))
+            .containsEntry("enable_steps", stepName(101L) + "\n" + stepName(103L));
+        assertThat(summaryFields(summary))
+            .as("只启用了部分步骤时不能注明「全部」")
+            .doesNotContainKey("enable_steps_all");
+    }
+
+    @Test
+    @DisplayName("启用的是全部模板步骤时换用带「全部」注明的标签")
+    void dryRunSummary_allStepsEnabled_useAllLabel() {
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID))
+            .thenReturn(buildTemplate(Arrays.asList(101L, 102L), null));
+
+        V4CreateJobPlanRequest request = buildBaseRequest();
+        request.setEnableSteps(null);
+
+        ResolvedSummary summary = resource.createJobPlan(USERNAME, APP_CODE, true, request).getDryRunSummary();
+
+        assertThat(summaryFields(summary))
+            .containsEntry("enable_steps_all", stepName(101L) + "\n" + stepName(102L))
+            .doesNotContainKey("enable_steps");
+    }
+
+    @Test
+    @DisplayName("步骤名称缺失时退回步骤 ID，整行不能变空")
+    void dryRunSummary_stepNameMissing_fallbackToId() {
+        TaskTemplateInfoDTO template = buildTemplate(Collections.singletonList(101L), null);
+        template.getStepList().get(0).setName(null);
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID)).thenReturn(template);
+
+        ResolvedSummary summary =
+            resource.createJobPlan(USERNAME, APP_CODE, true, buildBaseRequest()).getDryRunSummary();
+
+        assertThat(summaryFields(summary)).containsEntry("enable_steps_all", "101");
+    }
+
+    private Map<String, String> summaryFields(ResolvedSummary summary) {
+        return summary.getFields().stream()
+            .filter(field -> field.getValue() != null)
+            .collect(Collectors.toMap(ResolvedSummary.ResolvedField::getLabel,
+                ResolvedSummary.ResolvedField::getValue));
     }
 
     @Test

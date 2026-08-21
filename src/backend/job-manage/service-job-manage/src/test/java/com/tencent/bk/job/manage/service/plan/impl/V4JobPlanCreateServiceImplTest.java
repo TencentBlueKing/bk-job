@@ -124,6 +124,9 @@ class V4JobPlanCreateServiceImplTest {
         assertThat(result.getName()).isEqualTo(PLAN_NAME);
         assertThat(result.getCreator()).isEqualTo(USERNAME);
         assertThat(result.getEnableStepList()).containsExactly(STEP_ID);
+        // 概要要按名称展示启用的步骤，模板步骤随预检结果带回，不能让上层再查一次模板
+        assertThat(result.getStepList()).isNotEmpty();
+        assertThat(result.getStepList().get(0).getId()).isEqualTo(STEP_ID);
     }
 
     @Test
