@@ -31,6 +31,7 @@ import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * 作业执行鉴权服务
@@ -168,5 +169,19 @@ public interface ExecuteAuthService {
      */
     AuthResult batchAuthAccountExecutable(String username, AppResourceScope appResourceScope,
                                           Collection<Long> accountIds);
+
+    /**
+     * 文件源查看权限批量鉴权。
+     * <p>
+     * 只返回鉴权结果而不抛异常，便于调用方与账号、主机的鉴权结果合并成一次权限申请。
+     *
+     * @param username           用户名
+     * @param appResourceScope   业务范围
+     * @param fileSourceIdToName 文件源ID → 别名。别名由调用方带入，避免触发 ResourceNameQueryService 回查
+     * @return 鉴权结果
+     */
+    AuthResult batchAuthViewFileSource(String username,
+                                       AppResourceScope appResourceScope,
+                                       Map<Integer, String> fileSourceIdToName);
 
 }
