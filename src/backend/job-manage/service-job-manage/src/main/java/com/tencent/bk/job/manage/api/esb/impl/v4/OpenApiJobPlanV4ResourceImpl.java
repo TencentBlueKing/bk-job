@@ -94,9 +94,10 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
     /**
      * 启用的步骤按<b>名称</b>逐行给出，一行一个步骤：一串步骤 ID 审批人完全看不出这个方案会跑什么。
      * <p>
-     * 换行由渲染侧转成表格单元格内的 {@code <br>}，此处只管按行拼。<b>步骤不做条数截断</b>：
-     * 条数上限就是模板的步骤数（人工编排出来的，不会像文件源那样上千条），而截掉几个步骤名恰好
-     * 截掉的是本行唯一要说明的事。启用的是全部模板步骤时换用带「全部」注明的标签，省得审批人自己去数
+     * 此处只管按行拼，渲染侧认得这个字段名并把它摘出概要表格、单独成章节逐行列出（表格单元格塞不下换行）。
+     * <b>步骤不做条数截断</b>：条数上限就是模板的步骤数（人工编排出来的，不会像文件源那样上千条），
+     * 而截掉几个步骤名恰好截掉的是本行唯一要说明的事。启用的是全部模板步骤时换用带「全部」注明的标签，
+     * 省得审批人自己去数
      */
     private void putEnableStepsField(ResolvedSummary summary, TaskPlanInfoDTO plan) {
         List<Long> enableStepIds = plan.getEnableStepList();

@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -55,8 +56,11 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
- * 默认实现：把审批任务渲染成一份 Markdown，依次为标题、操作概要表格、脚本内容代码块、
- * 原始参数 JSON 代码块。
+ * 默认实现：把审批任务渲染成一份 Markdown，依次为标题、操作概要表格、逐行展示的字段列表、
+ * 脚本内容代码块、原始参数 JSON 代码块。
+ * <p>
+ * <b>只用最基础的 Markdown 语法</b>：审批渠道的渲染器不允许内联 HTML，凡是靠 {@code <br>} 之类标签
+ * 排版的写法都会被原样展示给审批人。
  * <p>
  * <b>逐步骤的解析结果不渲染</b>：单据铺得越长，审批人越容易一路划到底直接点通过。步骤解析结果
  * 仍完整记录在 approval_task.resolved_summary 里备查，正文只从中汇总出"以什么身份上机""文件从哪来、
@@ -87,6 +91,14 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     private static final String FIELD_FILE_TARGET_NAME = "file_target_name";
 
     /**
+     * 值由下游按行拼好、需要逐行展示的字段。
+     * <p>
+     * <b>这类字段不能塞进表格单元格</b>：审批渠道的 Markdown 渲染器不允许内联 HTML，{@code <br>} 会
+     * 原样吐出来；而单元格里放真实换行会把表格结构从该行起切断。因此表格里只报条数，明细另起章节用列表逐行列出
+     */
+    private static final Set<String> MULTI_LINE_FIELDS = buildMultiLineFields();
+
+    /**
      * 值是枚举名、需要翻译成人话的操作级字段：字段名 -> 取值文案的 i18n key 前缀。
      * <p>
      * <b>刻意做成白名单而不是"所有字段都试着翻译一下"</b>：概要里的字段值大多是自由值（定时规则、
@@ -112,6 +124,13 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         prefixes.put("target_status", "value.cronStatus.");
         prefixes.put("operation", "value.operation.");
         return Collections.unmodifiableMap(prefixes);
+    }
+
+    private static Set<String> buildMultiLineFields() {
+        Set<String> fields = new LinkedHashSet<>();
+        fields.add("enable_steps");
+        fields.add("enable_steps_all");
+        return Collections.unmodifiableSet(fields);
     }
 
     public DefaultApprovalContentRenderer(MessageI18nService i18nService,
@@ -146,6 +165,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         StringBuilder content = new StringBuilder();
         appendHeading(content, 1, title);
         appendSummary(content, task, operationType, app, summary, riskLevel);
+        appendMultiLineFields(content, summary);
 
         // 脚本正文与原始参数出自同一份脱敏后的参数：脚本被摘出去单独展示，参数里只留占位符
         List<PlainTextBlock> scriptBlocks = new ArrayList<>();
@@ -442,8 +462,59 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         }
         for (ResolvedSummary.ResolvedField field : fields) {
             String fieldLabel = prefixed(labelPrefix, resolvedFieldLabel(field.getLabel()));
-            putRow(rows, fieldLabel, resolvedFieldValue(field.getLabel(), field.getValue()), field.isHighlight());
+            putRow(rows, fieldLabel, summarizeFieldValue(field), field.isHighlight());
         }
+    }
+
+    /**
+     * 逐行展示的字段在表格里只报条数，明细由 {@link #appendMultiLineFields} 另起章节列出
+     */
+    private String summarizeFieldValue(ResolvedSummary.ResolvedField field) {
+        if (MULTI_LINE_FIELDS.contains(field.getLabel())) {
+            return labelWithArgs("value.itemCount", splitLines(field.getValue()).size());
+        }
+        return resolvedFieldValue(field.getLabel(), field.getValue());
+    }
+
+    /**
+     * 逐行展示的字段各自成章节，用无序列表一行一条。
+     * <p>
+     * 走列表而不是表格单元格，是因为审批渠道的 Markdown 渲染器不允许内联 HTML：{@code <br>} 会被原样展示，
+     * 而单元格里放真实换行会切断表格。<b>此处不做条数截断</b>：条数上限是人工编排出来的步骤数，
+     * 截掉几行恰好截掉的是本章节唯一要说明的事
+     */
+    private void appendMultiLineFields(StringBuilder content, ResolvedSummary summary) {
+        if (CollectionUtils.isEmpty(summary.getFields())) {
+            return;
+        }
+        for (ResolvedSummary.ResolvedField field : summary.getFields()) {
+            if (!MULTI_LINE_FIELDS.contains(field.getLabel())) {
+                continue;
+            }
+            List<String> items = splitLines(field.getValue());
+            if (items.isEmpty()) {
+                continue;
+            }
+            appendHeading(content, 2, resolvedFieldLabel(field.getLabel()));
+            appendList(content, items);
+        }
+    }
+
+    private List<String> splitLines(String value) {
+        if (StringUtils.isBlank(value)) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(value.split("\\R"))
+            .map(String::trim)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toList());
+    }
+
+    private void appendList(StringBuilder content, List<String> items) {
+        for (String item : items) {
+            content.append("- ").append(item).append(LINE_SEPARATOR);
+        }
+        content.append(LINE_SEPARATOR);
     }
 
     /**
@@ -511,13 +582,14 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     }
 
     /**
-     * 表格单元格里的竖线会切断列，换行会把一行截成两行：前者转义，后者换成 {@code <br>}
+     * 表格单元格里的竖线会切断列，换行会把一行截成两行、整张表从该行起散架：前者转义，后者压成空格。
+     * <p>
+     * <b>不能换成 {@code <br>}</b>：审批渠道的 Markdown 渲染器不允许内联 HTML，标签会原样展示给审批人。
+     * 本就需要逐行展示的字段走 {@link #appendMultiLineFields} 的列表章节，不进单元格
      */
     private String escapeTableCell(String value) {
         return value.replace("|", "\\|")
-            .replace("\r\n", "<br>")
-            .replace("\n", "<br>")
-            .replace("\r", "<br>");
+            .replaceAll("\\R", " ");
     }
 
     private String bold(String text) {

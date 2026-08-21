@@ -402,6 +402,47 @@ class DefaultApprovalContentRendererTest {
         assertThat(content).doesNotContain("task.approval.content.value.cron_expression");
     }
 
+    @ParameterizedTest(name = "字段 {0} 的明细单独成章节")
+    @DisplayName("启用的步骤逐行列进独立章节，表格里只报条数：单元格塞不下换行")
+    @ValueSource(strings = {"enable_steps", "enable_steps_all"})
+    void givenMultiLineFieldThenRenderAsListSection(String fieldLabel) {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.CREATE_JOB_PLAN.name());
+        summary.setName("发布方案");
+        summary.addField("job_template_id", "300");
+        summary.addField(fieldLabel, "停止服务\n分发安装包\n启动服务");
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
+
+        String heading = "## task.approval.content.field." + fieldLabel;
+        assertThat(tableRow(content, "content.field." + fieldLabel))
+            .contains("task.approval.content.value.itemCount")
+            .as("步骤名进了单元格，要么带出 <br>，要么把表格从该行起切断")
+            .doesNotContain("停止服务");
+        assertThat(sectionOf(content, heading))
+            .as("明细走无序列表，一行一个步骤名")
+            .contains("- 停止服务\n- 分发安装包\n- 启动服务");
+        assertThat(indexOf(content, SECTION_SUMMARY)).isLessThan(indexOf(content, heading));
+    }
+
+    @Test
+    @DisplayName("正文里不出现内联 HTML：审批渠道的渲染器会把标签原样展示给审批人")
+    void givenValueWithNewLineThenNoInlineHtml() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.CREATE_JOB_PLAN.name());
+        summary.setName("发布\n方案");
+        summary.addField("enable_steps", "停止服务\n启动服务");
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
+
+        assertThat(content).doesNotContain("<br>");
+        assertThat(tableRow(content, "content.name"))
+            .as("普通字段里混进的换行压成空格，不能把表格切断")
+            .contains("发布 方案");
+    }
+
     @Test
     @DisplayName("目标状态缺文案时原样展示枚举名，不能让整行变空")
     void givenCronStatusI18nMissingThenFallbackToEnumName() {
