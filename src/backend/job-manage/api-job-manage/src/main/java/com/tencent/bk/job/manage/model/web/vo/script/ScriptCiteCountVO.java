@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.script;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,11 +34,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("脚本引用次数统计")
+@Schema(description = "脚本引用次数统计")
 public class ScriptCiteCountVO {
-    @ApiModelProperty("模板引用次数")
+    @Schema(description = "模板引用次数")
     private Integer templateCiteCount;
 
-    @ApiModelProperty("执行方案引用次数")
+    @Schema(description = "执行方案引用次数")
     private Integer taskPlanCiteCount;
 }

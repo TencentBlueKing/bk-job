@@ -61,9 +61,9 @@ apply plugin: "application"
 mainClassName = "com.tencent.bk.job.upgrader.Upgrader"
 
 shadowJar {
-    classifier = null
     zip64 true
 }
+
 task copyToRelease(type: Copy) {
     from("build/libs") {
         include("**/upgrader-*.jar")
@@ -72,5 +72,6 @@ task copyToRelease(type: Copy) {
     outputs.upToDateWhen { false }
 }
 
+copyToRelease.dependsOn jar
 copyToRelease.dependsOn shadowJar
 build.dependsOn copyToRelease

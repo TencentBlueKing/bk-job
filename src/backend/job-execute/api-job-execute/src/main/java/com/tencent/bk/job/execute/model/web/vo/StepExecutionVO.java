@@ -30,63 +30,62 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("步骤实例执行情况")
+@Schema(description = "步骤实例执行情况")
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class StepExecutionVO {
-    @ApiModelProperty("步骤实例ID")
+    @Schema(description = "步骤实例ID")
     private Long stepInstanceId;
 
-    @ApiModelProperty(value = "重试次数", hidden = true)
+    @Schema(description = "重试次数", hidden = true)
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
         explain = "使用 executeCount 参数替换。发布完成后可以删除")
     private Integer retryCount;
 
-    @ApiModelProperty("执行次数,默认为0")
+    @Schema(description = "执行次数,默认为0")
     private Integer executeCount;
-    @ApiModelProperty("步骤名称")
+    @Schema(description = "步骤名称")
     private String name;
-    @ApiModelProperty("步骤类型,1-脚本，2-文件，3-人工确认")
+    @Schema(description = "步骤类型,1-脚本，2-文件，3-人工确认")
     private Integer type;
-    @ApiModelProperty("人工确认信息")
+    @Schema(description = "人工确认信息")
     private String confirmMessage;
-    @ApiModelProperty("人工确认理由")
+    @Schema(description = "人工确认理由")
     private String confirmReason;
-    @ApiModelProperty("通知方式")
+    @Schema(description = "通知方式")
     private List<String> notifyChannelNameList;
-    @ApiModelProperty("确认人")
+    @Schema(description = "确认人")
     private List<String> userList;
-    @ApiModelProperty("确认角色")
+    @Schema(description = "确认角色")
     private List<String> roleNameList;
-    @ApiModelProperty("步骤操作人")
+    @Schema(description = "步骤操作人")
     private String operator;
-    @ApiModelProperty("总耗时")
+    @Schema(description = "总耗时")
     @JsonSerialize(using = DecimalFormatJsonSerializer.class)
     private Long totalTime;
-    @ApiModelProperty("步骤状态,1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常，10-强制终止中，11-强制终止成功，12-强制终止失败")
+    @Schema(description = "步骤状态,1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常，10-强制终止中，11-强制终止成功，12-强制终止失败")
     private Integer status;
-    @ApiModelProperty("步骤状态描述")
+    @Schema(description = "步骤状态描述")
     private String statusDesc;
-    @ApiModelProperty("开始时间")
+    @Schema(description = "开始时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long startTime;
-    @ApiModelProperty("结束时间")
+    @Schema(description = "结束时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long endTime;
-    @ApiModelProperty("是否当前执行步骤")
+    @Schema(description = "是否当前执行步骤")
     private boolean currentStepRunning;
-    @ApiModelProperty("是否最后一个步骤")
+    @Schema(description = "是否最后一个步骤")
     private Boolean isLastStep;
-    @ApiModelProperty("滚动执行批次总数;如果非滚动执行，那么该值为空")
+    @Schema(description = "滚动执行批次总数;如果非滚动执行，那么该值为空")
     private Integer totalBatch;
-    @ApiModelProperty("滚动执行当前执行批次;如果非滚动执行，那么该值为空")
+    @Schema(description = "滚动执行当前执行批次;如果非滚动执行，那么该值为空")
     private Integer currentBatch;
-    @ApiModelProperty("滚动配置名称")
+    @Schema(description = "滚动配置名称")
     private String rollingConfigName;
 }

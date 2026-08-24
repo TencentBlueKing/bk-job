@@ -26,17 +26,16 @@ package com.tencent.bk.job.crontab.model;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("全局变量VO")
+@Schema(description = "全局变量VO")
 public class CronJobVariableVO {
     /**
      * 全局变量 id
      */
-    @ApiModelProperty(value = "ID", required = true)
+    @Schema(description = "ID", required = true)
     private Long id;
 
     /**
@@ -46,13 +45,13 @@ public class CronJobVariableVO {
      *
      * @see TaskVariableTypeEnum
      */
-    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码", required = true)
+    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码", required = true)
     private Integer type;
 
     /**
      * 全局变量名称
      */
-    @ApiModelProperty(value = "变量名称", required = true)
+    @Schema(description = "变量名称", required = true)
     private String name;
 
     /**
@@ -60,7 +59,7 @@ public class CronJobVariableVO {
      * <p>
      * 命名空间，字符串，密码从该字段获取值，type 为 1 2 4 时必填
      */
-    @ApiModelProperty("字符变量值，命名空间，字符串，密码从该字段获取值，type 为 1 2 4 时必填")
+    @Schema(description = "字符变量值，命名空间，字符串，密码从该字段获取值，type 为 1 2 4 时必填")
     private String value;
 
     /**
@@ -68,6 +67,6 @@ public class CronJobVariableVO {
      * <p>
      * 当变量类型为主机列表时，从该字段取值，type 为 3 时必填
      */
-    @ApiModelProperty("主机列表值，当变量类型为主机列表时，从该字段取值，type 为 3 时必填")
+    @Schema(description = "主机列表值，当变量类型为主机列表时，从该字段取值，type 为 3 时必填")
     private TaskTargetVO targetValue;
 }

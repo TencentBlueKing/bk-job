@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,23 +37,23 @@ import java.util.List;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("消息通知配置页面模板")
+@Schema(description = "消息通知配置页面模板")
 @Data
 public class PageTemplateVO {
 
-    @ApiModelProperty("触发方式列表")
+    @Schema(description = "触发方式列表")
     private List<TriggerTypeVO> triggerTypeList;
 
-    @ApiModelProperty("资源类型列表")
+    @Schema(description = "资源类型列表")
     private List<ResourceTypeVO> resourceTypeList;
 
-    @ApiModelProperty("角色列表")
+    @Schema(description = "角色列表")
     private List<RoleVO> roleList;
 
-    @ApiModelProperty("执行状态列表")
+    @Schema(description = "执行状态列表")
     private List<ExecuteStatusVO> executeStatusList;
 
-    @ApiModelProperty("可用通知渠道列表")
+    @Schema(description = "可用通知渠道列表")
     private List<NotifyChannelVO> availableNotifyChannelList;
 
 }

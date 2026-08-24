@@ -24,17 +24,16 @@
 
 package com.tencent.bk.job.manage.model.web.request.app;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("收藏业务")
+@Schema(description = "收藏业务")
 public class FavorAppReq {
 
-    @ApiModelProperty(value = "要收藏的资源范围类型", required = true)
+    @Schema(description = "要收藏的资源范围类型", required = true)
     private String scopeType;
 
-    @ApiModelProperty(value = "要收藏的资源范围ID", required = true)
+    @Schema(description = "要收藏的资源范围ID", required = true)
     private String scopeId;
 }

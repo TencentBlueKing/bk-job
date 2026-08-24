@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -33,9 +32,9 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Data
-@ApiModel("全局设置-平台设置")
+@Schema(description = "全局设置-平台设置")
 public class PlatformInfoVO extends TitleFooterVO {
-    @ApiModelProperty("助手链接")
+    @Schema(description = "助手链接")
     private String helperContactLink;
 
     public PlatformInfoVO(TitleFooterVO titleFooterVO) {

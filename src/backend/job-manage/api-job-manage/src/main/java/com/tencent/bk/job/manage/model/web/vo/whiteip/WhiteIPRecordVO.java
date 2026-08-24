@@ -26,8 +26,7 @@ package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,35 +38,35 @@ import java.util.List;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("IP白名单")
+@Schema(description = "IP白名单")
 @Data
 public class WhiteIPRecordVO {
-    @ApiModelProperty("IP白名单ID")
+    @Schema(description = "IP白名单ID")
     private Long id;
-    @ApiModelProperty("云区域ID")
+    @Schema(description = "云区域ID")
     private Long cloudAreaId;
 
-    @ApiModelProperty("主机列表")
+    @Schema(description = "主机列表")
     private List<WhiteIPHostVO> hostList;
-    @ApiModelProperty("生效范围")
+    @Schema(description = "生效范围")
     private List<ActionScopeVO> actionScopeList;
 
-    @ApiModelProperty(value = "是否对所有资源范围生效，默认为false")
+    @Schema(description = "是否对所有资源范围生效，默认为false")
     private boolean allScope = false;
 
-    @ApiModelProperty("生效的资源范围列表")
+    @Schema(description = "生效的资源范围列表")
     private List<ScopeVO> scopeList;
 
-    @ApiModelProperty("备注")
+    @Schema(description = "备注")
     private String remark;
-    @ApiModelProperty("创建人")
+    @Schema(description = "创建人")
     private String creator;
-    @ApiModelProperty("创建时间")
+    @Schema(description = "创建时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long createTime;
-    @ApiModelProperty("最后一次更新人")
+    @Schema(description = "最后一次更新人")
     private String lastModifier;
-    @ApiModelProperty("最后一次更新时间")
+    @Schema(description = "最后一次更新时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
 }

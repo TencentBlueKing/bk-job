@@ -49,7 +49,6 @@ import com.tencent.bk.job.manage.model.tables.Host;
 import com.tencent.bk.job.manage.model.tables.HostTopo;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.BatchBindStep;

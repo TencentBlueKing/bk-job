@@ -29,54 +29,53 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("步骤执行详情")
+@Schema(description = "步骤执行详情")
 @Data
 public class StepExecutionDetailV2VO {
-    @ApiModelProperty("步骤实例ID")
+    @Schema(description = "步骤实例ID")
     private Long stepInstanceId;
-    @ApiModelProperty("执行次数,默认为0")
+    @Schema(description = "执行次数,默认为0")
     private Integer executeCount;
-    @ApiModelProperty("步骤执行是否结束")
+    @Schema(description = "步骤执行是否结束")
     private boolean finished;
-    @ApiModelProperty("步骤名称")
+    @Schema(description = "步骤名称")
     private String name;
-    @ApiModelProperty("开始时间")
+    @Schema(description = "开始时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long startTime;
-    @ApiModelProperty("结束时间")
+    @Schema(description = "结束时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long endTime;
-    @ApiModelProperty("总耗时")
+    @Schema(description = "总耗时")
     @JsonSerialize(using = DecimalFormatJsonSerializer.class)
     private Long totalTime;
-    @ApiModelProperty("步骤状态,1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常" +
+    @Schema(description = "步骤状态,1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常" +
         "，10-强制终止中，11-强制终止成功，12-强制终止失败，13-确认终止，14-被丢弃，15-滚动等待")
     private Integer status;
-    @ApiModelProperty("步骤状态描述")
+    @Schema(description = "步骤状态描述")
     private String statusDesc;
-    @ApiModelProperty("任务执行结果分组")
+    @Schema(description = "任务执行结果分组")
     private List<ExecutionResultGroupV2VO> resultGroups;
-    @ApiModelProperty("是否是作业中最后一个步骤")
+    @Schema(description = "是否是作业中最后一个步骤")
     private Boolean isLastStep;
-    @ApiModelProperty("步骤类型，1-脚本，2-文件，3-人工确认")
+    @Schema(description = "步骤类型，1-脚本，2-文件，3-人工确认")
     private Integer type;
     /**
      * 步骤执行模式
      *
      * @see com.tencent.bk.job.execute.common.constants.StepRunModeEnum
      */
-    @ApiModelProperty("步骤执行模式。1-单次全量执行(非滚动步骤)；2-滚动全量执行(滚动步骤)；3-滚动分批执行(滚动步骤)")
+    @Schema(description = "步骤执行模式。1-单次全量执行(非滚动步骤)；2-滚动全量执行(滚动步骤)；3-滚动分批执行(滚动步骤)")
     private Integer runMode;
-    @ApiModelProperty("步骤包含的滚动任务;如果非滚动步骤，那么该值为空")
+    @Schema(description = "步骤包含的滚动任务;如果非滚动步骤，那么该值为空")
     private List<RollingStepBatchTaskVO> rollingTasks;
 
-    @ApiModelProperty("步骤使用的执行对象类型，1-主机，2-容器")
+    @Schema(description = "步骤使用的执行对象类型，1-主机，2-容器")
     private ExecuteObjectTypeEnum executeObjectType;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)

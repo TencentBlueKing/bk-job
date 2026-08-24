@@ -353,7 +353,7 @@ public class StartupController {
         try {
             V1EndpointsList endpointsList = api.listNamespacedEndpoints(namespace, null, null,
                 null, nameFieldSelector, null, null,
-                null, null, null, null);
+                null, null, null, null, null);
             List<V1Endpoints> endPoints = endpointsList.getItems();
             if (CollectionUtils.isEmpty(endPoints)) {
                 log.warn(
@@ -507,7 +507,7 @@ public class StartupController {
             V1PodList v1PodList = api.listNamespacedPod(
                 namespace, null, null, null,
                 null, labelSelector, null, null,
-                null, null, null
+                null, null, null, null
             );
             List<V1Pod> podList = v1PodList.getItems();
             log.info("{} pod found for {}/{}", podList.size(), namespace, serviceName);
@@ -530,7 +530,7 @@ public class StartupController {
             V1ServiceList v1ServiceList = api.listNamespacedService(
                 namespace, null, null, null,
                 buildFieldSelectorByResourceName(serviceName), null, null, null,
-                null, null, null
+                null, null, null, null
             );
             List<V1Service> serviceList = v1ServiceList.getItems();
             if (CollectionUtils.isEmpty(serviceList)) {

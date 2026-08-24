@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.manage.model.web.request.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("设置启用通知渠道请求数据")
+@Schema(description = "设置启用通知渠道请求数据")
 public class SetAvailableNotifyChannelReq {
-    @ApiModelProperty(value = "逗号分隔的多个渠道code", required = true)
+    @Schema(description = "逗号分隔的多个渠道code", required = true)
     private String channelCodeStr;
 }

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway.model.req.inner;
 
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,21 +36,21 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @Data
 public class UpdateFileSourceTaskReq {
-    @ApiModelProperty(value = "ID")
+    @Schema(description = "ID")
     String fileSourceTaskId;
-    @ApiModelProperty(value = "文件路径（含bucketName）")
+    @Schema(description = "文件路径（含bucketName）")
     String filePath;
-    @ApiModelProperty(value = "文件下载到机器上的真实路径")
+    @Schema(description = "文件下载到机器上的真实路径")
     String downloadPath;
-    @ApiModelProperty(value = "任务文件状态", required = true)
+    @Schema(description = "任务文件状态", required = true)
     TaskStatusEnum status;
-    @ApiModelProperty(value = "文件大小（字节）", required = true)
+    @Schema(description = "文件大小（字节）", required = true)
     private Long fileSize;
-    @ApiModelProperty(value = "速度", required = true)
+    @Schema(description = "速度", required = true)
     private String speed;
-    @ApiModelProperty(value = "进度", required = true)
+    @Schema(description = "进度", required = true)
     private Integer progress;
-    @ApiModelProperty(value = "日志内容", required = true)
+    @Schema(description = "日志内容", required = true)
     private String content;
 
     public void setContent(String content) {

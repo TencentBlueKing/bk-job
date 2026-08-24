@@ -24,32 +24,31 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("任务步骤信息")
+@Schema(description = "任务步骤信息")
 public class ServiceTaskStepDTO {
 
-    @ApiModelProperty("步骤 ID 仅在更新、删除时填写")
+    @Schema(description = "步骤 ID 仅在更新、删除时填写")
     private Long id;
 
-    @ApiModelProperty("步骤类型 1-脚本 2-文件 3-人工确认")
+    @Schema(description = "步骤类型 1-脚本 2-文件 3-人工确认")
     private Integer type;
 
-    @ApiModelProperty("步骤名称")
+    @Schema(description = "步骤名称")
     private String name;
 
-    @ApiModelProperty("脚本步骤信息")
+    @Schema(description = "脚本步骤信息")
     private ServiceTaskScriptStepDTO scriptStepInfo;
 
-    @ApiModelProperty("文件步骤信息")
+    @Schema(description = "文件步骤信息")
     private ServiceTaskFileStepDTO fileStepInfo;
 
-    @ApiModelProperty("审批步骤信息")
+    @Schema(description = "审批步骤信息")
     private ServiceTaskApprovalStepDTO approvalStepInfo;
 
-    @ApiModelProperty(value = "是否启用 0-未启用 1-启用")
+    @Schema(description = "是否启用 0-未启用 1-启用")
     private Integer enable;
 }

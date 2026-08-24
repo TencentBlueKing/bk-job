@@ -82,7 +82,7 @@ public class IamAutoConfiguration {
     public AuthHelper authHelper(IamConfiguration iamConfiguration,
                                  TokenService tokenService,
                                  PolicyService policyService) {
-        return new AuthHelper(tokenService, policyService, iamConfiguration);
+        return new AuthHelper(tokenService, policyService, null, iamConfiguration);
     }
 
     @Bean

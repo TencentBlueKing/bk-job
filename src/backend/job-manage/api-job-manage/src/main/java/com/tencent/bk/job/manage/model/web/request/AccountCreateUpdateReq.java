@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.util.json.SkipLogFields;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
 import org.hibernate.validator.constraints.Range;
@@ -34,62 +33,62 @@ import org.hibernate.validator.constraints.Range;
 import java.util.List;
 
 @Data
-@ApiModel("账号创建、更新请求")
+@Schema(description = "账号创建、更新请求")
 @ToString(exclude = {"password", "dbPassword"})
 public class AccountCreateUpdateReq {
     /**
      * 账号ID
      */
-    @ApiModelProperty(value = "账号ID ID", hidden = true)
+    @Schema(description = "账号ID ID", hidden = true)
     private Long id;
     /**
      * 帐号名称
      */
-    @ApiModelProperty(value = "帐号名称", required = true)
+    @Schema(description = "帐号名称", required = true)
     private String account;
 
-    @ApiModelProperty(value = "账号类型，新建的时候需要传入；1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2")
+    @Schema(description = "账号类型，新建的时候需要传入；1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2")
     private Integer type;
 
-    @ApiModelProperty(value = "账号用途，新建的时候需要传入；1-系统账号，2-数据库账号")
+    @Schema(description = "账号用途，新建的时候需要传入；1-系统账号，2-数据库账号")
     private Integer category;
 
     /**
      * 所属用户
      */
-    @ApiModelProperty(value = "所属用户")
+    @Schema(description = "所属用户")
     private List<String> grantees;
 
     /**
      * 备注
      */
-    @ApiModelProperty(value = "备注")
+    @Schema(description = "备注")
     private String remark;
 
     /**
      * 系统类型，Linux / Windows
      */
-    @ApiModelProperty(value = "系统类型")
+    @Schema(description = "系统类型")
     private String os;
 
     /**
      * 别名，当重名时会让用户填写，不允许修改，并且最后会与os合并在一起生成一个标识性的
      */
-    @ApiModelProperty(value = "别名")
+    @Schema(description = "别名")
     private String alias;
 
-    @ApiModelProperty(value = "系统账号的密码(Windows)")
+    @Schema(description = "系统账号的密码(Windows)")
     @SkipLogFields
     private String password;
 
-    @ApiModelProperty(value = "DB端口,创建/更新DB账号的时候必传")
+    @Schema(description = "DB端口,创建/更新DB账号的时候必传")
     @Range(min = 1, max = 65535, message = "{validation.constraints.InvalidPort.message}")
     private Integer dbPort;
 
-    @ApiModelProperty(value = "DB账号关联的系统账号,创建/更新DB账号的时候必传")
+    @Schema(description = "DB账号关联的系统账号,创建/更新DB账号的时候必传")
     private Long dbSystemAccountId;
 
-    @ApiModelProperty(value = "DB账号的密码,创建/更新DB账号的时候必传")
+    @Schema(description = "DB账号的密码,创建/更新DB账号的时候必传")
     @SkipLogFields
     private String dbPassword;
 
@@ -97,6 +96,6 @@ public class AccountCreateUpdateReq {
      * 系统账号密码/DB账号密码传输过程中的加密算法
      * 若有值表示密码是密文传输，将使用该算法对系统账号密码/DB账号密码进行解密，如果没有值则表示明文传输
      */
-    @ApiModelProperty(value = "加密算法")
+    @Schema(description = "加密算法")
     private String algorithm;
 }

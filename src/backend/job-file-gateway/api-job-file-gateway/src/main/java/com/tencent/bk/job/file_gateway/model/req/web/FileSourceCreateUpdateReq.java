@@ -31,85 +31,84 @@ import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
 import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.file_gateway.validate.ValidFileSourceInfo;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-@ApiModel("文件源创建、更新请求")
+@Schema(description = "文件源创建、更新请求")
 public class FileSourceCreateUpdateReq {
 
     /**
      * 文件源Code
      */
-    @ApiModelProperty(value = "文件源Code", required = true)
+    @Schema(description = "文件源Code", required = true)
     @NotBlankField(fieldName = "code")
     private String code;
     /**
      * 文件源别名
      */
-    @ApiModelProperty(value = "文件源名称", required = true)
+    @Schema(description = "文件源名称", required = true)
     @NotBlankField(fieldName = "alias")
     private String alias;
 
-    @ApiModelProperty(value = "存储类型", required = true)
+    @Schema(description = "存储类型", required = true)
     @NotBlankField(fieldName = "storageType")
     private String storageType;
 
-    @ApiModelProperty(value = "文件源类型Code", required = true)
+    @Schema(description = "文件源类型Code", required = true)
     @NotBlankField(fieldName = "fileSourceTypeCode")
     private String fileSourceTypeCode;
     /**
      * 文件源信息Map
      */
-    @ApiModelProperty(value = "文件源信息Map")
+    @Schema(description = "文件源信息Map")
     @ValidFileSourceInfo
     private Map<String, Object> fileSourceInfoMap;
     /**
      * 是否为公共文件源
      */
-    @ApiModelProperty(value = "是否为公共文件源", required = true)
+    @Schema(description = "是否为公共文件源", required = true)
     private Boolean publicFlag;
     /**
      * 共享的资源范围列表
      */
-    @ApiModelProperty(value = "共享的资源范围列表", required = true)
+    @Schema(description = "共享的资源范围列表", required = true)
     private List<ResourceScope> sharedScopeList;
     /**
      * 是否共享到全业务
      */
-    @ApiModelProperty(value = "是否共享到全业务", required = true)
+    @Schema(description = "是否共享到全业务", required = true)
     private Boolean shareToAllApp;
     /**
      * 文件源凭证Id
      */
-    @ApiModelProperty(value = "文件源凭证Id", required = true)
+    @Schema(description = "文件源凭证Id", required = true)
     @NotBlankField(fieldName = "credentialId")
     private String credentialId;
     /**
      * 文件前缀
      */
-    @ApiModelProperty(value = "文件前缀：后台自动生成UUID传${UUID}，自定义字符串直接传")
+    @Schema(description = "文件前缀：后台自动生成UUID传${UUID}，自定义字符串直接传")
     private String filePrefix;
     /**
      * 接入点选择范围
      */
-    @ApiModelProperty(value = "接入点选择范围:APP/PUBLIC/ALL，分别为业务私有接入点/公共接入点/全部", required = true)
+    @Schema(description = "接入点选择范围:APP/PUBLIC/ALL，分别为业务私有接入点/公共接入点/全部", required = true)
     @NotBlankField(fieldName = "workerSelectScope")
     private String workerSelectScope;
     /**
      * 接入点选择模式
      */
-    @ApiModelProperty(value = "接入点选择模式：AUTO/MANUAL，分别为自动/手动", required = true)
+    @Schema(description = "接入点选择模式：AUTO/MANUAL，分别为自动/手动", required = true)
     @NotBlankField(fieldName = "workerSelectMode")
     private String workerSelectMode;
     /**
      * 接入点Id
      */
-    @ApiModelProperty(value = "接入点Id，手动选择时传入，自动选择不传")
+    @Schema(description = "接入点Id，手动选择时传入，自动选择不传")
     private Long workerId;
 
     /**

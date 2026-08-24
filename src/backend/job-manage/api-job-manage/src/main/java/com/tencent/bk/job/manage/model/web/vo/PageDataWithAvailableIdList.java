@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo;
 
 import com.tencent.bk.job.common.model.PageData;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,7 +38,7 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class PageDataWithAvailableIdList<DataType, IdType> extends PageData<DataType> {
-    @ApiModelProperty(value = "可用的资源Id列表")
+    @Schema(description = "可用的资源Id列表")
     private List<IdType> availableIdList;
 
     public PageDataWithAvailableIdList(PageData<DataType> pageData, List<IdType> availableIdList) {

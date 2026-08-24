@@ -53,14 +53,13 @@ public class CustomScriptTemplateDAOImpl implements CustomScriptTemplateDAO {
 
     @Override
     public List<ScriptTemplateDTO> listCustomScriptTemplate(String username) {
-        Result result = ctx.select(TB.USERNAME, TB.SCRIPT_LANGUAGE, TB.SCRIPT_CONTENT).from(TB)
+        Result<? extends Record> result = ctx.select(TB.USERNAME, TB.SCRIPT_LANGUAGE, TB.SCRIPT_CONTENT).from(TB)
             .where(TB.USERNAME.eq(username))
             .fetch();
         List<ScriptTemplateDTO> scriptTemplates = new ArrayList<>();
         if (result.size() != 0) {
-            result.map(record -> {
+            result.forEach(record -> {
                 scriptTemplates.add(extractScriptTemplate(record));
-                return null;
             });
         }
         return scriptTemplates;

@@ -25,13 +25,13 @@
 package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @Data
-@ApiModel("账号删除请求")
+@Schema(description = "账号删除请求")
 public class EsbDeleteAccountV3Req extends EsbAppScopeReq {
 
     /**

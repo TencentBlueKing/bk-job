@@ -1,0 +1,3 @@
+com.tencent.bk.job.common.consul.config.JobApplicationAvailabilityAutoConfiguration
+com.tencent.bk.job.common.consul.config.JobConsulAutoConfiguration
+com.tencent.bk.job.common.consul.config.GracefulShutdownAutoConfiguration

@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.file.worker.model.req;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,13 +34,13 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel
+@Schema
 public class StopTasksReq {
 
-    @ApiModelProperty(value = "任务Id列表", required = true)
+    @Schema(description = "任务Id列表", required = true)
     private List<String> taskIdList;
 
-    @ApiModelProperty(value = "停止模式", required = true)
+    @Schema(description = "停止模式", required = true)
     private Integer taskCommand;
 
 }

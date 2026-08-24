@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,11 +34,11 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("组合条件表达式")
+@Schema(description = "组合条件表达式")
 public class CompositeExpression {
 
-    @ApiModelProperty("计算类型")
+    @Schema(description = "计算类型")
     OperationEnum operation;
-    @ApiModelProperty("参与计算的表达式列表")
+    @Schema(description = "参与计算的表达式列表")
     List<Expression> expressions;
 }

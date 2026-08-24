@@ -28,57 +28,56 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Range;
 
 @Data
-@ApiModel("任务脚本步骤信息")
+@Schema(description = "任务脚本步骤信息")
 @Slf4j
 public class TaskScriptStepVO {
 
-    @ApiModelProperty(value = "脚本类型 1-本地脚本 2-引用业务脚本 3-引用公共脚本")
+    @Schema(description = "脚本类型 1-本地脚本 2-引用业务脚本 3-引用公共脚本")
     private Integer scriptSource;
 
-    @ApiModelProperty("脚本 ID")
+    @Schema(description = "脚本 ID")
     private String scriptId;
 
-    @ApiModelProperty("脚本版本 ID")
+    @Schema(description = "脚本版本 ID")
     private Long scriptVersionId;
 
-    @ApiModelProperty("脚本内容")
+    @Schema(description = "脚本内容")
     private String content;
 
-    @ApiModelProperty("脚本语言")
+    @Schema(description = "脚本语言")
     private Integer scriptLanguage;
 
-    @ApiModelProperty("脚本参数")
+    @Schema(description = "脚本参数")
     private String scriptParam;
 
-    @ApiModelProperty("脚本超时时间")
+    @Schema(description = "脚本超时时间")
     @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
         message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Long timeout;
 
-    @ApiModelProperty("执行账户")
+    @Schema(description = "执行账户")
     private Long account;
 
-    @ApiModelProperty("执行账户名称")
+    @Schema(description = "执行账户名称")
     private String accountName;
 
-    @ApiModelProperty("执行目标")
+    @Schema(description = "执行目标")
     private TaskTargetVO executeTarget;
 
-    @ApiModelProperty("敏感参数")
+    @Schema(description = "敏感参数")
     private Integer secureParam;
 
-    @ApiModelProperty("脚本状态 0 - 正常 1 - 需要更新 2 - 被禁用")
+    @Schema(description = "脚本状态 0 - 正常 1 - 需要更新 2 - 被禁用")
     private Integer status;
 
-    @ApiModelProperty("忽略错误 0 - 不忽略 1 - 忽略")
+    @Schema(description = "忽略错误 0 - 不忽略 1 - 忽略")
     private Integer ignoreError;
 
     public void validate(boolean isCreate) throws InvalidParamException {

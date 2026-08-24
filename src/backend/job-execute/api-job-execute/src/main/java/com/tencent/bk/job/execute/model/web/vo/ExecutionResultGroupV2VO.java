@@ -24,24 +24,23 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("执行结果分组")
+@Schema(description = "执行结果分组")
 public class ExecutionResultGroupV2VO {
-    @ApiModelProperty("执行结果")
+    @Schema(description = "执行结果")
     private Integer resultType;
-    @ApiModelProperty("执行结果描述")
+    @Schema(description = "执行结果描述")
     private String resultTypeDesc;
-    @ApiModelProperty("用户通过job_success/job_fail自定义的结果分类tag")
+    @Schema(description = "用户通过job_success/job_fail自定义的结果分类tag")
     private String tag;
-    @ApiModelProperty("执行对象对应的任务执行情况")
+    @Schema(description = "执行对象对应的任务执行情况")
     private List<ExecuteObjectTaskVO> tasks;
-    @ApiModelProperty("结果分组下的执行对象任务数")
+    @Schema(description = "结果分组下的执行对象任务数")
     private int taskSize;
 
 }

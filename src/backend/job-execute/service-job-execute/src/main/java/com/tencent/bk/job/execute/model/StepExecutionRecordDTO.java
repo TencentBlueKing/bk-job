@@ -24,19 +24,18 @@
 
 package com.tencent.bk.job.execute.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("步骤执行记录")
+@Schema(description = "步骤执行记录")
 @Data
 public class StepExecutionRecordDTO {
-    @ApiModelProperty(value = "步骤实例ID")
+    @Schema(description = "步骤实例ID")
     private Long stepInstanceId;
 
-    @ApiModelProperty(value = "重试次数")
+    @Schema(description = "重试次数")
     private Integer retryCount;
 
-    @ApiModelProperty(value = "执行记录创建时间")
+    @Schema(description = "执行记录创建时间")
     private Long createTime;
 }

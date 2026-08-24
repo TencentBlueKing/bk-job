@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.logsvr.model.service;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -33,19 +32,19 @@ import java.util.List;
 /**
  * 批量保存执行日志请求
  */
-@ApiModel("批量保存执行日志请求")
+@Schema(description = "批量保存执行日志请求")
 @Data
 public class ServiceBatchSaveLogRequest {
     /**
      * 作业实例创建时间
      */
-    @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
+    @Schema(description = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
     private String jobCreateDate;
 
     /**
      * 执行日志
      */
-    @ApiModelProperty(value = "执行日志", required = true)
+    @Schema(description = "执行日志", required = true)
     private List<ServiceExecuteObjectLogDTO> logs;
 
     /**

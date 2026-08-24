@@ -259,7 +259,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         }
 
         if (result.size() > 0) {
-            result.into(record -> tasks.add(extract(record)));
+            result.forEach(record -> tasks.add(extract(record)));
         }
         return tasks;
     }

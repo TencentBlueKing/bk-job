@@ -62,7 +62,8 @@ public class GseV1AutoConfiguration {
      */
     @Bean("gseServer")
     @ConditionalOnProperty(name = "gse.server.discovery.type", havingValue = ZOOKEEPER_SERVER_TYPE)
-    public GseServer gseServer(GseV1Properties gseV1Properties, CuratorFramework curatorFramework) {
+    public GseServer zookeeperDiscoveredGseServer(GseV1Properties gseV1Properties,
+                                                  CuratorFramework curatorFramework) {
         return new GseZkServer(gseV1Properties, curatorFramework);
     }
 

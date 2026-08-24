@@ -24,27 +24,26 @@
 
 package com.tencent.bk.job.file.worker.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("Bucket信息")
+@Schema(description = "Bucket信息")
 @Data
 public class BucketDTO {
     /**
      * 名称
      */
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
+    @Schema(description = "创建时间")
     private Long createDate;
     /**
      * 访问权限
      */
-    @ApiModelProperty("Bucket中文件访问权限")
+    @Schema(description = "Bucket中文件访问权限")
     private String xCosAcl;
 }
 

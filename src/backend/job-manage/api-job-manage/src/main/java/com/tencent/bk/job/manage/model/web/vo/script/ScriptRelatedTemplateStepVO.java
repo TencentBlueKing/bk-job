@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.script;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,28 +35,28 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@ApiModel("引用脚本的作业模板与步骤")
+@Schema(description = "引用脚本的作业模板与步骤")
 public class ScriptRelatedTemplateStepVO {
-    @ApiModelProperty("脚本id")
+    @Schema(description = "脚本id")
     private String scriptId;
-    @ApiModelProperty("步骤引用的脚本版本ID")
+    @Schema(description = "步骤引用的脚本版本ID")
     private Long scriptVersionId;
-    @ApiModelProperty("步骤引用的脚本版本号")
+    @Schema(description = "步骤引用的脚本版本号")
     private String scriptVersion;
-    @ApiModelProperty("脚本名称")
+    @Schema(description = "脚本名称")
     private String scriptName;
-    @ApiModelProperty("步骤ID")
+    @Schema(description = "步骤ID")
     private Long stepId;
-    @ApiModelProperty("步骤名称")
+    @Schema(description = "步骤名称")
     private String stepName;
-    @ApiModelProperty("脚本状态")
+    @Schema(description = "脚本状态")
     private Integer scriptStatus;
-    @ApiModelProperty("脚本状态描述")
+    @Schema(description = "脚本状态描述")
     private String scriptStatusDesc;
-    @ApiModelProperty("作业模板ID")
+    @Schema(description = "作业模板ID")
     private Long templateId;
-    @ApiModelProperty("作业模板名称")
+    @Schema(description = "作业模板名称")
     private String templateName;
-    @ApiModelProperty("是否有模板编辑权限")
+    @Schema(description = "是否有模板编辑权限")
     private boolean canEdit;
 }

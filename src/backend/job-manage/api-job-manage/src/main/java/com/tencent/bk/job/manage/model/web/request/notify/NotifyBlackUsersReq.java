@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.manage.model.web.request.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("通知黑名单请求数据")
+@Schema(description = "通知黑名单请求数据")
 public class NotifyBlackUsersReq {
-    @ApiModelProperty(value = "逗号分隔的多个用户名", required = true)
+    @Schema(description = "逗号分隔的多个用户名", required = true)
     private String usersStr;
 }

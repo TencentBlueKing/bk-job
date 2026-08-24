@@ -30,6 +30,7 @@ dependencies {
     api project(":commons:common-security")
     api project(":job-file-worker-sdk:api-job-file-worker-sdk")
     api "org.springframework.boot:spring-boot-starter-web"
+    api "jakarta.servlet:jakarta.servlet-api"
     api "ch.qos.logback:logback-core"
     api "ch.qos.logback:logback-classic"
     api "org.slf4j:slf4j-api"
@@ -38,7 +39,7 @@ dependencies {
     api group: 'org.apache.thrift', name: 'libthrift'
     api "commons-io:commons-io"
     api "commons-codec:commons-codec"
-    api 'io.springfox:springfox-boot-starter'
+    api 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
     api 'net.coobird:thumbnailator:0.4.14'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.commons:commons-lang3'

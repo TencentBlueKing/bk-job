@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,18 +37,18 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("标签个数信息")
+@Schema(description = "标签个数信息")
 public class TagCountVO {
 
-    @ApiModelProperty("总数")
+    @Schema(description = "总数")
     private Long total;
 
-    @ApiModelProperty("未分类")
+    @Schema(description = "未分类")
     private Long unclassified;
 
-    @ApiModelProperty("待更新")
+    @Schema(description = "待更新")
     private Long needUpdate;
 
-    @ApiModelProperty("标签关联个数")
+    @Schema(description = "标签关联个数")
     private Map<Long, Long> tagCount;
 }

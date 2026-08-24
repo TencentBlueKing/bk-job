@@ -28,39 +28,38 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@ApiModel("执行对象执行日志")
+@Schema(description = "执行对象执行日志")
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ServiceExecuteObjectLogDTO {
     /**
      * 作业步骤实例ID
      */
-    @ApiModelProperty("步骤实例ID")
+    @Schema(description = "步骤实例ID")
     private Long stepInstanceId;
 
     /**
      * 执行次数
      */
-    @ApiModelProperty("执行次数")
+    @Schema(description = "执行次数")
     private Integer executeCount;
 
     /**
      * 滚动执行批次
      */
-    @ApiModelProperty("滚动执行批次")
+    @Schema(description = "滚动执行批次")
     private Integer batch;
 
     /**
      * 云区域ID:ipv4
      */
-    @ApiModelProperty(value = "云区域ID:ipv4")
+    @Schema(description = "云区域ID:ipv4")
     @JsonProperty("ip")
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
@@ -69,7 +68,7 @@ public class ServiceExecuteObjectLogDTO {
     /**
      * 云区域ID:ipv6
      */
-    @ApiModelProperty(value = "云区域ID:ipv6")
+    @Schema(description = "云区域ID:ipv6")
     @JsonProperty("ipv6")
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
@@ -80,19 +79,19 @@ public class ServiceExecuteObjectLogDTO {
      */
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
-    @ApiModelProperty(value = "主机ID")
+    @Schema(description = "主机ID")
     private Long hostId;
 
     /**
      * 执行对象ID
      */
-    @ApiModelProperty("执行对象ID")
+    @Schema(description = "执行对象ID")
     private String executeObjectId;
 
     /**
      * 脚本日志内容
      */
-    @ApiModelProperty(value = "脚本日志内容，保存日志的时候需要传入,查询日志的时候该字段无效")
+    @Schema(description = "脚本日志内容，保存日志的时候需要传入,查询日志的时候该字段无效")
     @JsonProperty("scriptLog")
     private ServiceExecuteObjectScriptLogDTO scriptLog;
 

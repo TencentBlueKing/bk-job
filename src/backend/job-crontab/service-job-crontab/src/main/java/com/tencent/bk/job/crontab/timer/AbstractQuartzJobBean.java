@@ -31,12 +31,12 @@ import com.tencent.bk.job.crontab.metrics.CronMetricsConstants;
 import com.tencent.bk.job.crontab.metrics.ScheduleMeasureService;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.lang.NonNull;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.ScopedSpan;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.ScopedSpan;
+import io.micrometer.tracing.Tracer;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.time.Instant;
@@ -71,7 +71,7 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
     public abstract String name();
 
     @Override
-    protected void executeInternal(@NotNull JobExecutionContext context) {
+    protected void executeInternal(@NonNull JobExecutionContext context) {
         scheduleMeasureService.recordCronScheduleDelay(name(), context);
         ScopedSpan span = tracer.startScopedSpan("executeCronJob");
         JobContextUtil.setRequestId(span.context().traceId());

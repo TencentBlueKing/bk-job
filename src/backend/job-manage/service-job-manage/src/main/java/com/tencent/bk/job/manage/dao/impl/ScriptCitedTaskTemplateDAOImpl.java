@@ -146,10 +146,10 @@ public class ScriptCitedTaskTemplateDAOImpl implements ScriptCitedTaskTemplateDA
             .where(T_TASK_TEMPLATE_STEP_SCRIPT.SCRIPT_ID.eq(scriptId))
             .and(T_TASK_TEMPLATE.IS_DELETED.eq(UByte.valueOf(0)));
         try {
-            Result result = query.fetch();
+            Result<? extends Record> result = query.fetch();
             List<ScriptCitedTaskTemplateDTO> relatedTemplates = new ArrayList<>();
             if (result.size() > 0) {
-                result.into(record -> relatedTemplates.add(extract(record)));
+                result.forEach(record -> relatedTemplates.add(extract(record)));
             }
             return getDistinctRelatedTemplates(relatedTemplates);
         } catch (Exception e) {
@@ -176,10 +176,10 @@ public class ScriptCitedTaskTemplateDAOImpl implements ScriptCitedTaskTemplateDA
             .and(T_TASK_TEMPLATE_STEP_SCRIPT.SCRIPT_VERSION_ID.eq(JooqDataTypeUtil.buildULong(scriptVersionId)))
             .and(T_TASK_TEMPLATE.IS_DELETED.eq(UByte.valueOf(0)));
         try {
-            Result result = query.fetch();
+            Result<? extends Record> result = query.fetch();
             List<ScriptCitedTaskTemplateDTO> relatedTemplates = new ArrayList<>();
             if (result.size() > 0) {
-                result.into(record -> relatedTemplates.add(extract(record)));
+                result.forEach(record -> relatedTemplates.add(extract(record)));
             }
             return getDistinctRelatedTemplates(relatedTemplates);
         } catch (Exception e) {

@@ -27,8 +27,7 @@ package com.tencent.bk.job.manage.model.web.vo.task;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,17 +39,17 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("云区域信息")
+@Schema(description = "云区域信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
 public class CloudAreaInfoVO {
     /**
      * 云区域 ID
      */
-    @ApiModelProperty(value = "云区域 ID", required = true)
+    @Schema(description = "云区域 ID", required = true)
     private Long id;
 
-    @ApiModelProperty("云区域名称")
+    @Schema(description = "云区域名称")
     private String name;
 
     public void validate(boolean isCreate) throws InvalidParamException {

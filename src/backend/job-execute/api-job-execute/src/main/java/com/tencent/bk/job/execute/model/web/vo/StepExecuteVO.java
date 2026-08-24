@@ -24,17 +24,16 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("作业步骤下发结果")
+@Schema(description = "作业步骤下发结果")
 public class StepExecuteVO {
-    @ApiModelProperty("作业实例ID")
+    @Schema(description = "作业实例ID")
     private Long taskInstanceId;
-    @ApiModelProperty("步骤实例ID")
+    @Schema(description = "步骤实例ID")
     private Long stepInstanceId;
-    @ApiModelProperty("步骤名称")
+    @Schema(description = "步骤名称")
     private String stepName;
 }

@@ -24,35 +24,34 @@
 
 package com.tencent.bk.job.execute.model.op.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * 回调地址白名单 VO
  */
 @Data
-@ApiModel("回调地址白名单")
+@Schema(description = "回调地址白名单")
 public class CallbackUrlWhitelistVO {
 
-    @ApiModelProperty("白名单 ID")
+    @Schema(description = "白名单 ID")
     private Long id;
 
-    @ApiModelProperty("允许的回调地址 baseUrl 前缀")
+    @Schema(description = "允许的回调地址 baseUrl 前缀")
     private String baseUrl;
 
-    @ApiModelProperty("备注说明")
+    @Schema(description = "备注说明")
     private String description;
 
-    @ApiModelProperty("创建人")
+    @Schema(description = "创建人")
     private String creator;
 
-    @ApiModelProperty("最近修改人")
+    @Schema(description = "最近修改人")
     private String lastModifyUser;
 
-    @ApiModelProperty("创建时间")
+    @Schema(description = "创建时间")
     private String createTime;
 
-    @ApiModelProperty("最近修改时间")
+    @Schema(description = "最近修改时间")
     private String lastModifyTime;
 }

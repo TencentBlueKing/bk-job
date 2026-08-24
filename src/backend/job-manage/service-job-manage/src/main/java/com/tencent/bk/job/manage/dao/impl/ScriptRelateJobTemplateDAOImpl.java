@@ -64,7 +64,7 @@ public class ScriptRelateJobTemplateDAOImpl implements ScriptRelateJobTemplateDA
             .where(T_SCRIPT_STEP.SCRIPT_ID.eq(scriptId))
             .and(T_SCRIPT_STEP.TEMPLATE_ID.isNotNull())
             .asTable("t2");
-        Result result = ctx.select(NESTED_T_TASK_TEMPLATE_STEP_SCRIPT.fields())
+        Result<? extends Record> result = ctx.select(NESTED_T_TASK_TEMPLATE_STEP_SCRIPT.fields())
             .select(T_TASK_TEMPLATE_STEP.NAME.as("step_name"), T_TASK_TEMPLATE.NAME.as("template_name"),
                 T_TASK_TEMPLATE.APP_ID)
             .from(NESTED_T_TASK_TEMPLATE_STEP_SCRIPT)
@@ -79,7 +79,7 @@ public class ScriptRelateJobTemplateDAOImpl implements ScriptRelateJobTemplateDA
             .fetch();
 
         List<ScriptSyncTemplateStepDTO> templateSteps = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             ScriptSyncTemplateStepDTO templateStep = extract(record);
             if (templateStep != null) {
                 templateSteps.add(templateStep);

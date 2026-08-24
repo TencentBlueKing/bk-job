@@ -325,31 +325,40 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-        val query = dslContext.select(
-            tWhiteIPRecord.ID.as(KEY_ID),
-            DSL.max(tApplication.APP_NAME).as(KEY_APP_NAME),
-            DSL.max(tApplication.APP_TYPE).as(KEY_APP_TYPE),
-            DSL.max(tWhiteIPRecord.REMARK).as(KEY_REMARK),
-            DSL.max(tWhiteIPRecord.CREATOR).as(KEY_CREATOR),
-            DSL.max(tWhiteIPRecord.CREATE_TIME).as(KEY_CREATE_TIME),
-            DSL.max(tWhiteIPRecord.LAST_MODIFY_USER).as(KEY_LAST_MODIFY_USER),
-            DSL.max(tWhiteIPRecord.LAST_MODIFY_TIME).as(KEY_LAST_MODIFY_TIME),
-            DSL.max(tWhiteIPIP.CLOUD_AREA_ID).as(KEY_CLOUD_AREA_ID),
-            DSL.groupConcat(tWhiteIPAppRel.APP_ID).as(KEY_APP_ID_LIST),
-            DSL.groupConcat(tWhiteIPIP.IP).as(KEY_IP_LIST),
-            DSL.groupConcat(tActionScope.ID).as(KEY_ACTION_SCOPE_ID_LIST)
-        ).from(tWhiteIPRecord)
-            .join(tWhiteIPIP).on(tWhiteIPRecord.ID.eq(tWhiteIPIP.RECORD_ID))
-            .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
-            .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
-            .join(tWhiteIPAppRel).on(tWhiteIPRecord.ID.eq(tWhiteIPAppRel.RECORD_ID))
-            .leftJoin(tApplication).on(tWhiteIPAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
-            .where(conditions)
-            .groupBy(tWhiteIPRecord.ID)
-            .orderBy(orderFields)
-            .limit(start, length);
-        LOG.info(query.getSQL(ParamType.INLINED));
-        val records = query.fetch();
+        val records = dslContext.transactionResult(configuration -> {
+            DSLContext ctx = configuration.dsl();
+            ctx.execute("SET @t = @@group_concat_max_len");
+            ctx.execute("SET @@group_concat_max_len = 102400");
+            val query = ctx.select(
+                tWhiteIPRecord.ID.as(KEY_ID),
+                DSL.max(tApplication.APP_NAME).as(KEY_APP_NAME),
+                DSL.max(tApplication.APP_TYPE).as(KEY_APP_TYPE),
+                DSL.max(tWhiteIPRecord.REMARK).as(KEY_REMARK),
+                DSL.max(tWhiteIPRecord.CREATOR).as(KEY_CREATOR),
+                DSL.max(tWhiteIPRecord.CREATE_TIME).as(KEY_CREATE_TIME),
+                DSL.max(tWhiteIPRecord.LAST_MODIFY_USER).as(KEY_LAST_MODIFY_USER),
+                DSL.max(tWhiteIPRecord.LAST_MODIFY_TIME).as(KEY_LAST_MODIFY_TIME),
+                DSL.max(tWhiteIPIP.CLOUD_AREA_ID).as(KEY_CLOUD_AREA_ID),
+                DSL.groupConcat(tWhiteIPAppRel.APP_ID).as(KEY_APP_ID_LIST),
+                DSL.groupConcat(tWhiteIPIP.IP).as(KEY_IP_LIST),
+                DSL.groupConcat(tActionScope.ID).as(KEY_ACTION_SCOPE_ID_LIST)
+            ).from(tWhiteIPRecord)
+                .join(tWhiteIPIP).on(tWhiteIPRecord.ID.eq(tWhiteIPIP.RECORD_ID))
+                .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
+                .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
+                .join(tWhiteIPAppRel).on(tWhiteIPRecord.ID.eq(tWhiteIPAppRel.RECORD_ID))
+                .leftJoin(tApplication).on(tWhiteIPAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
+                .where(conditions)
+                .groupBy(tWhiteIPRecord.ID)
+                .orderBy(orderFields)
+                .limit(start, length);
+            LOG.info(query.getSQL(ParamType.INLINED));
+            try {
+                return query.fetch();
+            } finally {
+                ctx.execute("SET @@group_concat_max_len = @t");
+            }
+        });
         if (records.size() > 0) {
             return records.map(record -> {
                 val actionScopeIdListStr = (String) record.get(KEY_ACTION_SCOPE_ID_LIST);

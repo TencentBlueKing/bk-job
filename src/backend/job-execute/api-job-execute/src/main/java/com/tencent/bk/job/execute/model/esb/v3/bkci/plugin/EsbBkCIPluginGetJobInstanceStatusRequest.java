@@ -29,8 +29,8 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * 根据作业实例 ID 查询作业执行状态请求

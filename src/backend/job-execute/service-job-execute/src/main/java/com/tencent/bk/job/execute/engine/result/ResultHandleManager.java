@@ -34,8 +34,8 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -205,7 +205,7 @@ public class ResultHandleManager implements SmartLifecycle {
     /**
      * 消费者是否处于运行状态
      *
-     * @param worker 消费者
+     * @param worker 娑堣垂鑰?
      * @return 是否运行
      */
     private boolean isWorkerActive(TaskWorker worker) {

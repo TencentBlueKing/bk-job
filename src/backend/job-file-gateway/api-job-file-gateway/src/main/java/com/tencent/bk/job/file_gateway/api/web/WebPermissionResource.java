@@ -28,9 +28,9 @@ import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.file_gateway.model.req.web.OperationPermissionReq;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api(tags = {"job-file-gateway:web:Permission"})
+@Tag(name = "job-file-gateway:web:Permission")
 @RequestMapping("/web/permission/fileGateway")
 @RestController
 @WebAPI
@@ -51,13 +51,13 @@ public interface WebPermissionResource {
      * @param req      操作鉴权请求
      * @return 权限申请URL
      */
-    @ApiOperation(value = "获取权限申请URL", produces = "application/json")
+    @Operation(summary = "获取权限申请URL")
     @PostMapping("/apply-url")
     Response<String> getApplyUrl(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("权限检查请求")
+        @Parameter(description = "权限检查请求")
         @RequestBody
             OperationPermissionReq req
     );
@@ -69,13 +69,13 @@ public interface WebPermissionResource {
      * @param req      操作鉴权请求
      * @return
      */
-    @ApiOperation(value = "检查操作权限", produces = "application/json")
+    @Operation(summary = "检查操作权限")
     @PostMapping("/check")
     Response<AuthResultVO> checkOperationPermission(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("权限检查请求")
+        @Parameter(description = "权限检查请求")
         @RequestBody
             OperationPermissionReq req
     );
@@ -91,25 +91,25 @@ public interface WebPermissionResource {
      * @param returnPermissionDetail 是否返回详细的权限信息
      * @return 鉴权结果
      */
-    @ApiOperation(value = "检查操作权限", produces = "application/json")
+    @Operation(summary = "检查操作权限")
     @GetMapping("/check")
     Response<AuthResultVO> checkOperationPermission(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @RequestParam(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @RequestParam(value = "scopeId")
             String scopeId,
-        @ApiParam("操作ID,取值为: [file_source/view,file_source/create,file_source/edit,file_source/delete]")
+        @Parameter(description = "操作ID,取值为: [file_source/view,file_source/create,file_source/edit,file_source/delete]")
         @RequestParam(value = "operation")
             String operation,
-        @ApiParam(value = "资源ID,比如文件源ID;对于部分不需要资源ID的操作(新建),不需要传参")
+        @Parameter(description = "资源ID,比如文件源ID;对于部分不需要资源ID的操作(新建),不需要传参")
         @RequestParam(value = "resourceId", required = false)
             String resourceId,
-        @ApiParam(value = "是否返回详细的权限信息(依赖的权限，申请URL)。默认为false")
+        @Parameter(description = "是否返回详细的权限信息(依赖的权限，申请URL)。默认为false")
         @RequestParam(value = "returnPermissionDetail", required = false)
             Boolean returnPermissionDetail
     );

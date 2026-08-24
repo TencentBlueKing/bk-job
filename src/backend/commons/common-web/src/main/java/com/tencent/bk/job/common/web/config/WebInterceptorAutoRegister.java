@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Map;
@@ -44,6 +45,14 @@ public class WebInterceptorAutoRegister implements WebMvcConfigurer {
 
     public WebInterceptorAutoRegister(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        // Spring Framework 6.0+ 默认关闭了 trailing slash matching，
+        //启用以保持向后兼容，避免前端/客户端 URL 带尾部斜杠时返回 404
+        configurer.setUseTrailingSlashMatch(true);
     }
 
     @Override

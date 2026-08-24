@@ -25,27 +25,26 @@
 package com.tencent.bk.job.manage.model.inner;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("主机信息")
+@Schema(description = "主机信息")
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ServiceHostInfoDTO {
 
-    @ApiModelProperty("服务器ID")
+    @Schema(description = "服务器ID")
     private Long hostId;
 
-    @ApiModelProperty("主机IPv4")
+    @Schema(description = "主机IPv4")
     private String ip;
 
-    @ApiModelProperty("主机ipv6")
+    @Schema(description = "主机ipv6")
     private String ipv6;
 
-    @ApiModelProperty("云区域ID")
+    @Schema(description = "云区域ID")
     private Long cloudAreaId;
 
-    @ApiModelProperty("业务ID")
+    @Schema(description = "业务ID")
     private Long appId;
 }

@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -33,12 +32,12 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@ApiModel("执行方案同步信息")
+@Schema(description = "执行方案同步信息")
 public class TaskPlanSyncInfoVO {
 
-    @ApiModelProperty("模版信息")
+    @Schema(description = "模版信息")
     private TaskTemplateVO templateInfo;
 
-    @ApiModelProperty("执行方案信息")
+    @Schema(description = "执行方案信息")
     private TaskPlanVO planInfo;
 }

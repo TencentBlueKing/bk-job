@@ -26,28 +26,27 @@ package com.tencent.bk.job.manage.model.web.request.notify;
 
 import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("触发方式对应策略")
+@Schema(description = "触发方式对应策略")
 public class TriggerPolicy {
 
-    @ApiModelProperty(value = "操作（资源）类型Code列表", required = true)
+    @Schema(description = "操作（资源）类型Code列表", required = true)
     private TriggerTypeEnum triggerType;
 
-    @ApiModelProperty(value = "操作（资源）类型Code列表", required = true)
+    @Schema(description = "操作（资源）类型Code列表", required = true)
     private List<ResourceTypeEnum> resourceTypeList;
 
-    @ApiModelProperty(value = "业务角色（通知对象）Code列表", required = true)
+    @Schema(description = "业务角色（通知对象）Code列表", required = true)
     private List<String> roleList;
 
-    @ApiModelProperty(value = "额外通知人列表", required = true)
+    @Schema(description = "额外通知人列表", required = true)
     private List<String> extraObserverList;
 
-    @ApiModelProperty(value = "任务状态对应的通知渠道列表", required = true)
+    @Schema(description = "任务状态对应的通知渠道列表", required = true)
     private List<ResourceStatusChannel> resourceStatusChannelList;
 }

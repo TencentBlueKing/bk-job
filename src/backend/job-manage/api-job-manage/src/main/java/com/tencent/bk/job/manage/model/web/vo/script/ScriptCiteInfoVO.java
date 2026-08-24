@@ -26,8 +26,7 @@ package com.tencent.bk.job.manage.model.web.vo.script;
 
 import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTaskPlanVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTemplateVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,11 +38,11 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("脚本被引信息")
+@Schema(description = "脚本被引信息")
 public class ScriptCiteInfoVO {
-    @ApiModelProperty("引用脚本的模板信息")
+    @Schema(description = "引用脚本的模板信息")
     private List<ScriptCitedTemplateVO> citedTemplateList;
 
-    @ApiModelProperty("引用脚本的执行方案信息")
+    @Schema(description = "引用脚本的执行方案信息")
     private List<ScriptCitedTaskPlanVO> citedTaskPlanList;
 }

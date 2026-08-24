@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,17 +34,17 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("Agent统计数据")
+@Schema(description = "Agent统计数据")
 @Data
 public class AgentStatistics {
 
-    @ApiModelProperty("正常数")
+    @Schema(description = "正常数")
     private int aliveCount;
 
-    @ApiModelProperty("异常数")
+    @Schema(description = "异常数")
     private int notAliveCount;
 
-    @ApiModelProperty("总数")
+    @Schema(description = "总数")
     private int totalCount;
 
     public AgentStatistics(int aliveCount, int notAliveCount) {

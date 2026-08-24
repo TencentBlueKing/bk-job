@@ -26,7 +26,7 @@ package com.tencent.bk.job.file_gateway.model.resp.inner;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * 文件下载日志
  */
-@ApiModel("单个文件的一条下载日志")
+@Schema(description = "单个文件的一条下载日志")
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)

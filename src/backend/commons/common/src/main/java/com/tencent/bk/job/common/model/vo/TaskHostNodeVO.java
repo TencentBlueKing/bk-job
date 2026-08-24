@@ -30,8 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,18 +40,18 @@ import java.util.Collections;
 import java.util.List;
 
 @Data
-@ApiModel("主机节点信息")
+@Schema(description = "主机节点信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
 public class TaskHostNodeVO {
 
-    @ApiModelProperty("主机列表")
+    @Schema(description = "主机列表")
     private List<HostInfoVO> hostList;
 
-    @ApiModelProperty("拓扑节点 ID")
+    @Schema(description = "拓扑节点 ID")
     private List<TargetNodeVO> nodeList;
 
-    @ApiModelProperty("动态分组")
+    @Schema(description = "动态分组")
     private List<DynamicGroupIdWithMeta> dynamicGroupList;
 
     public void validate() throws InvalidParamException {

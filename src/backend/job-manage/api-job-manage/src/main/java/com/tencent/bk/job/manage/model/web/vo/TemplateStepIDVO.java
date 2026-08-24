@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -34,11 +33,11 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@ApiModel("模板步骤ID")
+@Schema(description = "模板步骤ID")
 public class TemplateStepIDVO {
-    @ApiModelProperty(value = "作业模板ID", required = true)
+    @Schema(description = "作业模板ID", required = true)
     private Long templateId;
-    @ApiModelProperty(value = "作业模板步骤ID", required = true)
+    @Schema(description = "作业模板步骤ID", required = true)
     private Long stepId;
 
     public TemplateStepIDVO(Long templateId, Long stepId) {

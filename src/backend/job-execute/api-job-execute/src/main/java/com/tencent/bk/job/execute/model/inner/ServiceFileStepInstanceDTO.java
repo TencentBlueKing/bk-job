@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.execute.model.inner;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("文件步骤实例")
+@Schema(description = "文件步骤实例")
 @Data
 public class ServiceFileStepInstanceDTO {
 

@@ -24,17 +24,16 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("CheckBoxEnable")
+@Schema(description = "CheckBoxEnable")
 @Data
 public class CheckBoxEnable {
 
-    @ApiModelProperty("是否enable的取值，优先使用，若为空则通过rely表达式计算判断是否enable")
+    @Schema(description = "是否enable的取值，优先使用，若为空则通过rely表达式计算判断是否enable")
     private Boolean value;
 
-    @ApiModelProperty("enable所要满足的条件")
+    @Schema(description = "enable所要满足的条件")
     private CompositeExpression rely;
 }

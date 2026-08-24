@@ -45,6 +45,10 @@ public class JobConstants {
      */
     public static final String DEFAULT_SYSTEM_USER_ADMIN = "admin";
     /**
+     * 默认租户ID，用于兼容新版iam-sdk对租户参数与请求头的要求
+     */
+    public static final String DEFAULT_TENANT_ID = "default";
+    /**
      * 默认云区域ID
      */
     public static final long DEFAULT_CLOUD_AREA_ID = 0L;

@@ -66,15 +66,15 @@ public class OperationLogDAOImpl implements OperationLogDAO {
 
     @Override
     public List<OperationLogDTO> listOperationLog(long taskInstanceId) {
-        Result result = ctx.select(TABLE.ID, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR, TABLE.CREATE_TIME
-            , TABLE.DETAIL)
+        Result<? extends Record> result = ctx.select(TABLE.ID, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR,
+                TABLE.CREATE_TIME, TABLE.DETAIL)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .orderBy(TABLE.CREATE_TIME.desc())
             .fetch();
         List<OperationLogDTO> opLogs = new ArrayList<>();
         if (result.size() > 0) {
-            result.into(record -> {
+            result.forEach(record -> {
                 opLogs.add(extractInfo(record));
             });
         }

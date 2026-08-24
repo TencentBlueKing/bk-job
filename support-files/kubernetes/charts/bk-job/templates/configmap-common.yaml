@@ -17,16 +17,6 @@ data:
           name: {{ .Values.job.security.actuator.user.name }}
           password: {{ .Values.job.security.actuator.user.password }}
           roles: ENDPOINT_ADMIN
-      sleuth:
-        otel:
-          exporter:
-            enabled: {{ .Values.job.trace.report.enabled }}
-            otlp:
-              endpoint: {{ .Values.job.trace.report.pushUrl }}
-          resource:
-            bkDataToken: {{ .Values.job.trace.report.secureKey }}
-          config:
-            traceIdRatioBased: {{ .Values.job.trace.report.ratio }}
       {{- include "job.rabbitmq.sslConfig" . | nindent 6 }}
     bk:
       bkDomain: {{ .Values.global.bkDomain }}
@@ -105,6 +95,10 @@ data:
     bkNotice:
       enabled: {{ .Values.bkNotice.enabled }}
     job:
+      tracing:
+        exporter:
+          enabled: {{ .Values.job.trace.report.enabled }}
+        bk-data-token: {{ .Values.job.trace.report.secureKey }}
       security:
         service:
           enabled: {{ .Values.job.security.enabled }}
@@ -173,9 +167,22 @@ data:
         repo: {{ .Values.localFile.artifactory.repo }}
       expire-delete: {{ .Values.localFile.expireDelete }}
       expire-days: {{ .Values.localFile.expireDays }}
+    springdoc:
+      swagger-ui:
+        config-url: /${spring.application.name}/v3/api-docs/swagger-config
+        url: /${spring.application.name}/v3/api-docs
+        disable-swagger-default-url: true
     swagger:
       url: {{ .Values.swagger.url }}
     management:
+      tracing:
+        sampling:
+          probability: {{ .Values.job.trace.report.ratio }}
+      {{- if .Values.job.trace.report.pushUrl }}
+      otlp:
+        tracing:
+          endpoint: {{ .Values.job.trace.report.pushUrl }}
+      {{- end }}
       metrics:
         tags:
           application: ${spring.application.name}

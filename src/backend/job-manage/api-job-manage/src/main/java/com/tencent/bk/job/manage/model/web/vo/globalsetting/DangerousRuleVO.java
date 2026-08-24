@@ -29,8 +29,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,33 +39,33 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("高危语句规则")
+@Schema(description = "高危语句规则")
 public class DangerousRuleVO {
-    @ApiModelProperty("高危语句规则Id")
+    @Schema(description = "高危语句规则Id")
     private Long id;
-    @ApiModelProperty("表达式")
+    @Schema(description = "表达式")
     private String expression;
-    @ApiModelProperty("脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)")
+    @Schema(description = "脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)")
     private List<Byte> scriptTypeList;
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     private String description;
-    @ApiModelProperty("顺序：小的在上方")
+    @Schema(description = "顺序：小的在上方")
     private Integer order;
-    @ApiModelProperty("动作")
+    @Schema(description = "动作")
     private Integer action;
-    @ApiModelProperty("启用状态,1:启用,2:停止")
+    @Schema(description = "启用状态,1:启用,2:停止")
     private Integer status;
-    @ApiModelProperty("创建人")
+    @Schema(description = "创建人")
     private String creator;
     @JsonSerialize(using = LongTimestampSerializer.class)
     @JsonDeserialize(using = LongTimestampDeserializer.class)
-    @ApiModelProperty("创建时间")
+    @Schema(description = "创建时间")
     private Long createTime;
-    @ApiModelProperty("最近更新人")
+    @Schema(description = "最近更新人")
     private String lastModifier;
     @JsonSerialize(using = LongTimestampSerializer.class)
     @JsonDeserialize(using = LongTimestampDeserializer.class)
-    @ApiModelProperty("最近更新时间")
+    @Schema(description = "最近更新时间")
     private Long lastModifyTime;
 
     public EsbDangerousRuleV3DTO toEsbDangerousRuleV3DTO() {

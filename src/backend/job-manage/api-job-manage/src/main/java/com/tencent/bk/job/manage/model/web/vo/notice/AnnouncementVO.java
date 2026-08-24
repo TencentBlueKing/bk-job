@@ -26,8 +26,7 @@ package com.tencent.bk.job.manage.model.web.vo.notice;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.notice.model.AnnouncementDTO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,28 +35,28 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("公告内容")
+@Schema(description = "公告内容")
 @Data
 public class AnnouncementVO {
 
-    @ApiModelProperty("ID")
+    @Schema(description = "ID")
     private Long id;
 
-    @ApiModelProperty("标题")
+    @Schema(description = "标题")
     private String title;
 
-    @ApiModelProperty("内容")
+    @Schema(description = "内容")
     private String content;
 
-    @ApiModelProperty("公告类型: event(活动通知)/announce(平台公告)")
+    @Schema(description = "公告类型: event(活动通知)/announce(平台公告)")
     @JsonProperty("announce_type")
     private String announceType;
 
-    @ApiModelProperty("开始时间")
+    @Schema(description = "开始时间")
     @JsonProperty("start_time")
     private String startTime;
 
-    @ApiModelProperty("结束时间")
+    @Schema(description = "结束时间")
     @JsonProperty("end_time")
     private String endTime;
 

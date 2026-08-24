@@ -26,8 +26,7 @@ package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -36,16 +35,16 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@ApiModel("云区域信息")
+@Schema(description = "云区域信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CloudAreaInfoVO {
     /**
      * 云区域 ID
      */
-    @ApiModelProperty(value = "云区域 ID", required = true)
+    @Schema(description = "云区域 ID", required = true)
     private Long id;
 
-    @ApiModelProperty("云区域名称")
+    @Schema(description = "云区域名称")
     private String name;
 
     public CloudAreaInfoVO(Long id, String name) {

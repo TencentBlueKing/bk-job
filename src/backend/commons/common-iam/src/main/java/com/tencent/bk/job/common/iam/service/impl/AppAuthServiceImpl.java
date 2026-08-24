@@ -62,6 +62,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_TENANT_ID;
+
 @Slf4j
 public class AppAuthServiceImpl extends BasicAuthService implements AppAuthService {
     private final AuthHelper authHelper;
@@ -98,7 +100,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     public AuthResult auth(String username,
                            String actionId,
                            AppResourceScope appResourceScope) {
-        boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstanceWithPath(appResourceScope));
+        boolean isAllowed = authHelper.isAllowed(
+            DEFAULT_TENANT_ID, username, actionId, buildInstanceWithPath(appResourceScope));
         if (isAllowed) {
             return AuthResult.pass();
         } else {
@@ -196,7 +199,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
         return authHelper.isAllowed(
-            username, actionId,
+            DEFAULT_TENANT_ID, username, actionId,
             buildAppResourceScopeInstanceList(appResourceScope, resourceType, resourceIdList));
     }
 
@@ -206,7 +209,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                          AppResourceScope appResourceScope,
                                          List<PermissionResource> resources) {
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
-        List<String> allowResourceIds = authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+        List<String> allowResourceIds = authHelper.isAllowed(
+            DEFAULT_TENANT_ID, username, actionId, buildInstanceList(resources));
         List<String> notAllowResourceIds =
             resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
                 .map(PermissionResource::getResourceId).collect(Collectors.toList());
@@ -224,7 +228,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   String actionId,
                                   AppResourceScope appResourceScope,
                                   List<PermissionResource> resourceList) {
-        return authHelper.isAllowed(username, actionId, buildInstanceList(resourceList));
+        return authHelper.isAllowed(DEFAULT_TENANT_ID, username, actionId, buildInstanceList(resourceList));
     }
 
     @Override
@@ -236,7 +240,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
 
         ActionDTO action = new ActionDTO();
         action.setId(ActionId.ACCESS_BUSINESS);
-        ExpressionDTO expression = policyService.getPolicyByAction(username, action, null);
+        ExpressionDTO expression = policyService.getPolicyByAction(DEFAULT_TENANT_ID, username, action, null);
         if (ExpressionOperationEnum.ANY == expression.getOperator()) {
             result.setAny(true);
         } else {

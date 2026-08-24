@@ -46,7 +46,7 @@ public class BusinessAuthHelper extends AuthHelper {
 
     public BusinessAuthHelper(TokenService tokenService, PolicyService policyService,
                               IamConfiguration iamConfiguration) {
-        super(tokenService, policyService, iamConfiguration);
+        super(tokenService, policyService, null, iamConfiguration);
     }
 
     private InstanceDTO buildAppResourceScopeInstance(AppResourceScope appResourceScope) {

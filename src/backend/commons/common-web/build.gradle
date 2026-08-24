@@ -28,6 +28,7 @@ dependencies {
     api project(':commons:common-iam')
     api project(':commons:common-audit')
     api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-aop'
     api 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.google.guava:guava'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

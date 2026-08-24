@@ -29,10 +29,9 @@ import com.tencent.bk.job.common.aidev.impl.BkOpenAIClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.sleuth.SpanNamer;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -51,14 +50,12 @@ public class AIDevAutoConfiguration {
 
     @Bean
     public BkOpenAIClient bkOpenAIClient(Tracer tracer,
-                                         SpanNamer spanNamer,
                                          MeterRegistry meterRegistry,
                                          AppProperties appProperties,
                                          CustomPaasLoginProperties customPaasLoginProperties,
                                          BkApiGatewayProperties bkApiGatewayProperties) {
         return new BkOpenAIClient(
             tracer,
-            spanNamer,
             meterRegistry,
             appProperties,
             customPaasLoginProperties,

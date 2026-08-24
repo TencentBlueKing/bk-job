@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class CheckServerValidator implements ConstraintValidator<CheckServer, EsbServerV3DTO> {
     @Override

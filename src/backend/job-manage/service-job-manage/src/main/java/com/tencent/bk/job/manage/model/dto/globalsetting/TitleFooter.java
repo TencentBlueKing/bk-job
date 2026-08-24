@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.dto.globalsetting;
 
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -36,12 +36,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TitleFooter {
-    @ApiModelProperty("Title固定头文字")
+    @Schema(description = "Title固定头文字")
     private String titleHead;
-    @ApiModelProperty("Title分隔符")
+    @Schema(description = "Title分隔符")
     private String titleSeparator;
-    @ApiModelProperty("Footer第一行联系方式等内容，Markdown格式")
+    @Schema(description = "Footer第一行联系方式等内容，Markdown格式")
     private String footerLink;
-    @ApiModelProperty("Footer第二行copyright内容，Markdown格式")
+    @Schema(description = "Footer第二行copyright内容，Markdown格式")
     private String footerCopyRight;
 }

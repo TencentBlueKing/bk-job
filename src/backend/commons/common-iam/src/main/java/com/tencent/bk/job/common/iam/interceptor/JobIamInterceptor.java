@@ -31,16 +31,21 @@ import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
+
+import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_TENANT_ID;
+import static com.tencent.bk.sdk.iam.constants.HttpHeader.KEY_BK_TENANT_ID;
 
 @Slf4j
 @JobInterceptor(pathPatterns = {"/iam/api/v1/resources/**"},
     order = InterceptorOrder.Init.CHECK_VALID)
-public class JobIamInterceptor extends HandlerInterceptorAdapter {
+public class JobIamInterceptor implements HandlerInterceptor {
 
     private final AuthHelper authHelper;
 
@@ -54,7 +59,7 @@ public class JobIamInterceptor extends HandlerInterceptorAdapter {
         if (!shouldFilter(request)) {
             return true;
         }
-        return authHelper.validRequest(request);
+        return authHelper.validRequest(new DefaultTenantRequestWrapper(request));
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
@@ -66,5 +71,21 @@ public class JobIamInterceptor extends HandlerInterceptorAdapter {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
                            ModelAndView modelAndView) {
+    }
+
+    private static class DefaultTenantRequestWrapper extends HttpServletRequestWrapper {
+
+        DefaultTenantRequestWrapper(HttpServletRequest request) {
+            super(request);
+        }
+
+        @Override
+        public String getHeader(String name) {
+            String value = super.getHeader(name);
+            if (KEY_BK_TENANT_ID.equalsIgnoreCase(name) && StringUtils.isBlank(value)) {
+                return DEFAULT_TENANT_ID;
+            }
+            return value;
+        }
     }
 }

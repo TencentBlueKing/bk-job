@@ -30,15 +30,15 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.util.json.SkipLogFields;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
 import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 @Data
-@ApiModel("账号创建请求")
+@Schema(description = "账号创建请求")
 @ToString(exclude = {"password"})
 public class EsbCreateAccountV3Req extends EsbAppScopeReq {
 

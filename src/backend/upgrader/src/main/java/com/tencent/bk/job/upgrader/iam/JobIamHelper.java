@@ -81,7 +81,7 @@ public class JobIamHelper {
     }
 
     public AuthHelper authHelper() {
-        return new AuthHelper(tokenService(), policyService(), iamConfiguration());
+        return new AuthHelper(tokenService(), policyService(), null, iamConfiguration());
     }
 
     public BusinessAuthHelper businessAuthHelper() {

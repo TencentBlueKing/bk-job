@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo;
 
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -35,21 +34,21 @@ import java.util.List;
  * @since 9/12/2019 20:25
  */
 @Data
-@ApiModel("节点信息")
+@Schema(description = "节点信息")
 public class NodeInfoVO {
 
-    @ApiModelProperty("节点 ID")
+    @Schema(description = "节点 ID")
     private Long id;
 
-    @ApiModelProperty("节点名称")
+    @Schema(description = "节点名称")
     private String name;
 
-    @ApiModelProperty("节点类型")
+    @Schema(description = "节点类型")
     private String nodeType;
 
-    @ApiModelProperty("节点包含的 IP 列表")
+    @Schema(description = "节点包含的 IP 列表")
     private List<String> ipList;
 
-    @ApiModelProperty("节点内主机状态信息")
+    @Schema(description = "节点内主机状态信息")
     private List<HostInfoVO> ipListStatus;
 }

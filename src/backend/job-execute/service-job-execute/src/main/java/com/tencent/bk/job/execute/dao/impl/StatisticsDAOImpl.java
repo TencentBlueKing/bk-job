@@ -31,7 +31,6 @@ import com.tencent.bk.job.execute.model.tables.Statistics;
 import com.tencent.bk.job.execute.model.tables.records.StatisticsRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.Configuration;
