@@ -26,6 +26,29 @@ manageConfig:
     #    account: deploy
 ```
 
+2. JDBC 连接参数默认增加 `rewriteBatchedStatements=true`，恢复批量写入优化；涉及内置/外置 MariaDB、定时任务独立数据库及备份归档数据库配置
+```yaml
+mariadb:
+  connection:
+    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
+externalMariaDB:
+  connection:
+    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
+crontabConfig:
+  database:
+    connection:
+      properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
+backupConfig:
+  archive:
+    mariadb:
+      connection:
+        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
+    execute:
+      mariadb:
+        connection:
+          properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
+```
+
 ## 0.9.1
 1. 新增外部系统（GSE、CMDB、IAM、BK-Login、BK-User）重试配置，采用指数退避策略
 ```yaml
