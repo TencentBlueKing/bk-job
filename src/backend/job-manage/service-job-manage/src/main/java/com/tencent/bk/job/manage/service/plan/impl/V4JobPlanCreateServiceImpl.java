@@ -132,6 +132,9 @@ public class V4JobPlanCreateServiceImpl implements V4JobPlanCreateService {
             // 与真实创建时 TaskPlanInfoDTO#buildPlanInfo 的填法一致：stepList 是方案的全部步骤，
             // enableStepList 是其中启用的那些
             planInfoDTO.setStepList(template.getStepList());
+            // 概要要列出方案生效的全部变量，未覆盖的也得带上模板默认值，因此这里复用真实创建的合并逻辑，
+            // 把 variableList 从"本次覆盖项"换成"合并后的全部方案变量"。纯内存计算，不落库
+            TaskPlanInfoDTO.fillPlanVariablesFromTemplate(planInfoDTO, template);
             return planInfoDTO;
         }
 

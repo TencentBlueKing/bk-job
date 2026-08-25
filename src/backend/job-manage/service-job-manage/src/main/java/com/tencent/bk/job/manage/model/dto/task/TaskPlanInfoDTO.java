@@ -284,7 +284,13 @@ public class TaskPlanInfoDTO {
         });
     }
 
-    private static void fillPlanVariablesFromTemplate(TaskPlanInfoDTO planInfo, TaskTemplateInfoDTO templateInfo) {
+    /**
+     * 把作业模板的全部变量填进执行方案，请求里给了值的用请求值覆盖。
+     * <p>
+     * 审批预检也调这里拿"方案建出来之后实际生效的全部变量"去拼审批概要，因此本方法不得夹带写操作：
+     * 另写一份合并逻辑，迟早会出现单据上展示一套值、放行后落库另一套值
+     */
+    public static void fillPlanVariablesFromTemplate(TaskPlanInfoDTO planInfo, TaskTemplateInfoDTO templateInfo) {
         Map<Long, TaskVariableDTO> requestVariableMap = new ConcurrentHashMap<>();
         if (CollectionUtils.isNotEmpty(planInfo.getVariableList())) {
             planInfo.getVariableList()

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.plan.impl;
 
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -37,7 +38,9 @@ import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
@@ -45,6 +48,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,6 +78,8 @@ class V4JobPlanCreateServiceImplTest {
     private static final Long TEMPLATE_ID = 1000L;
     private static final Long STEP_ID = 101L;
     private static final String PLAN_NAME = "my-plan";
+    private static final String VAR_ASSIGNED = "version";
+    private static final String VAR_NOT_ASSIGNED = "port";
 
     private TaskPlanService planService;
     private TaskTemplateService templateService;
@@ -127,6 +134,24 @@ class V4JobPlanCreateServiceImplTest {
         // 概要要按名称展示启用的步骤，模板步骤随预检结果带回，不能让上层再查一次模板
         assertThat(result.getStepList()).isNotEmpty();
         assertThat(result.getStepList().get(0).getId()).isEqualTo(STEP_ID);
+    }
+
+    @Test
+    @DisplayName("dryRun=true：带回合并后的全部方案变量，本次未覆盖的也带上模板默认值")
+    void dryRun_mergesTemplateVariables() {
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID)).thenReturn(buildTemplateWithVariables());
+        V4CreateJobPlanRequest request = buildRequest();
+        V4JobPlanVariableItem assignedVar = new V4JobPlanVariableItem();
+        assignedVar.setName(VAR_ASSIGNED);
+        assignedVar.setValue("v2.0.0");
+        request.setVariables(Collections.singletonList(assignedVar));
+
+        TaskPlanInfoDTO result = service.createJobPlan(operator, request, true);
+
+        // 审批概要要列出方案实际会拿什么参数去跑：只带请求里的那一个，沿用默认值的变量在单据上就消失了
+        assertThat(result.getVariableList()).hasSize(2);
+        assertThat(variableValue(result, VAR_ASSIGNED)).isEqualTo("v2.0.0");
+        assertThat(variableValue(result, VAR_NOT_ASSIGNED)).isEqualTo("8080");
     }
 
     @Test
@@ -188,6 +213,31 @@ class V4JobPlanCreateServiceImplTest {
         request.setName(PLAN_NAME);
         request.setEnableSteps(Collections.singletonList(STEP_ID));
         return request;
+    }
+
+    private TaskTemplateInfoDTO buildTemplateWithVariables() {
+        TaskTemplateInfoDTO template = buildTemplate();
+        template.setVariableList(new ArrayList<>(Arrays.asList(
+            templateVariable(1L, VAR_ASSIGNED, "v1.0.0"),
+            templateVariable(2L, VAR_NOT_ASSIGNED, "8080"))));
+        return template;
+    }
+
+    private TaskVariableDTO templateVariable(Long id, String name, String defaultValue) {
+        TaskVariableDTO variable = new TaskVariableDTO();
+        variable.setId(id);
+        variable.setName(name);
+        variable.setType(TaskVariableTypeEnum.STRING);
+        variable.setDefaultValue(defaultValue);
+        return variable;
+    }
+
+    private String variableValue(TaskPlanInfoDTO plan, String name) {
+        return plan.getVariableList().stream()
+            .filter(variable -> name.equals(variable.getName()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("未找到变量：" + name))
+            .getDefaultValue();
     }
 
     private TaskTemplateInfoDTO buildTemplate() {

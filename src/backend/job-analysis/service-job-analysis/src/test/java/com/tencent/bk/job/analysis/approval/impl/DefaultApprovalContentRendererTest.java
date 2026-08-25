@@ -28,6 +28,7 @@ import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalRiskLevelEnum;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayMasker;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalParamsCryptorRegistry;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalParamsCryptorTestSupport;
@@ -90,8 +91,11 @@ class DefaultApprovalContentRendererTest {
     private static final String SECTION_SUMMARY = "## task.approval.content.section.summary";
     private static final String SECTION_SCRIPT = "## task.approval.content.section.scriptContent";
     private static final String SECTION_RAW_PARAMS = "## task.approval.content.section.rawParams";
+    private static final String SECTION_GLOBAL_VARS = "## task.approval.content.section.globalVars";
     private static final String TABLE_HEADER =
         "| task.approval.content.table.item | task.approval.content.table.value |";
+    private static final String VAR_TABLE_HEADER = "| task.approval.content.table.varName |"
+        + " task.approval.content.table.varType | task.approval.content.table.varValue |";
 
     private static final String TRANSFER_MODE = "transfer_mode";
     private static final String FILE_SOURCE_LIST = "file_source_list";
@@ -122,10 +126,14 @@ class DefaultApprovalContentRendererTest {
         app.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, "2"));
         when(appService.getApp(anyLong())).thenReturn(app);
 
-        // i18n 替身原样回显 key，便于断言"用了哪个文案"而不依赖具体译文
+        // i18n 替身原样回显 key，便于断言"用了哪个文案"而不依赖具体译文；
+        // 带参文案把参数拼在 key 后面，否则主机清单这类"文案里只有参数才是关键信息"的行断言不到东西
         i18nService = mock(MessageI18nService.class);
         when(i18nService.getI18n(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
-        when(i18nService.getI18nWithArgs(anyString(), any())).thenAnswer(invocation -> invocation.getArgument(0));
+        // 匹配整个变长实参数组而不是 any()：Mockito 5 的 any() 在变长位置只匹配一个实参，
+        // 主机清单这类带两个参数的文案会漏配成 null
+        when(i18nService.getI18nWithArgs(anyString(), any(Object[].class)))
+            .thenAnswer(invocation -> echoKeyWithArgs(invocation.getArguments()));
 
         cryptorSupport = new ApprovalParamsCryptorTestSupport();
         cryptorSupport.givenPlanVars(PLAN_ID,
@@ -134,7 +142,8 @@ class DefaultApprovalContentRendererTest {
         cryptoService = new ApprovalParamsCryptoServiceImpl(
             new ApprovalParamsCryptorRegistry(cryptorSupport.allCryptors()));
 
-        renderer = new DefaultApprovalContentRenderer(i18nService, appService, cryptoService);
+        renderer = new DefaultApprovalContentRenderer(i18nService, appService, cryptoService,
+            new ApprovalDisplayMasker(i18nService));
     }
 
     @Test
@@ -656,10 +665,162 @@ class DefaultApprovalContentRendererTest {
     }
 
     @Test
+    @DisplayName("全局变量逐个列进独立章节，概要表格里只报条数：变量是这次操作拿什么参数去跑的直接答案")
+    void givenGlobalVarsThenRenderAsOwnSection() {
+        ResolvedSummary summary = planSummaryWithGlobalVars();
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
+
+        assertThat(tableRow(content, "content.field.global_vars"))
+            .contains("task.approval.content.value.itemCount(4)");
+        String section = sectionOf(content, SECTION_GLOBAL_VARS);
+        assertThat(section)
+            .as("变量、类型、取值三列对照，审批人才看得出哪个变量指向了哪批机器")
+            .contains(VAR_TABLE_HEADER + "\n| --- | --- | --- |");
+        assertThat(section)
+            .contains("| version | task.approval.content.value.varType.STRING | v1.2.3 |")
+            .contains("task.approval.content.value.varType.EXECUTE_OBJECT_LIST");
+        assertThat(indexOf(content, SECTION_SUMMARY)).isLessThan(indexOf(content, SECTION_GLOBAL_VARS));
+    }
+
+    @Test
+    @DisplayName("主机变量台数不超上限时逐台列出：具体是哪批机器，审批人得看得见")
+    void givenHostVarWithinLimitThenListHosts() {
+        ResolvedSummary summary = planSummaryWithGlobalVars();
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
+
+        assertThat(tableRow(content, "| target_hosts |"))
+            .contains("task.approval.content.value.varHostList(3,0:10.0.0.1; 0:10.0.0.2; 0:10.0.0.3)");
+    }
+
+    @Test
+    @DisplayName("主机变量台数超过上限时只报台数：上千台逐台列出只会让人直接划到底放行")
+    void givenHostVarOverLimitThenOnlyShowCount() {
+        ResolvedSummary summary = planSummaryWithGlobalVars();
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
+
+        assertThat(tableRow(content, "batch_hosts"))
+            .contains("task.approval.content.value.varHostCount(" + (ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT + 1)
+                + ")")
+            .as("超上限的变量不该再逐台列出")
+            .doesNotContain("0:10.1.0.1");
+    }
+
+    @Test
+    @DisplayName("动态分组与拓扑节点算不出台数，只报个数")
+    void givenDynamicTargetVarThenShowEntryCount() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.CREATE_JOB_PLAN.name());
+        ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();
+        globalVar.setName("dynamic_hosts");
+        globalVar.setType("EXECUTE_OBJECT_LIST");
+        globalVar.setDynamicGroupCount(2);
+        globalVar.setTopoNodeCount(3);
+        globalVar.setContainerCount(4);
+        summary.addGlobalVar(globalVar);
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
+
+        assertThat(tableRow(content, "dynamic_hosts"))
+            .contains("task.approval.content.value.varDynamicGroupCount(2)")
+            .contains("task.approval.content.value.varTopoNodeCount(3)")
+            .contains("task.approval.content.value.varContainerCount(4)");
+    }
+
+    @Test
+    @DisplayName("密文变量只出占位符：概要以明文落库，真实取值不该出现在任何一处")
+    void givenCipherVarThenOnlyShowMask() {
+        ResolvedSummary summary = planSummaryWithGlobalVars();
+
+        ApprovalContent rendered = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "db_password")).contains("******");
+        assertContentFreeOfSecrets(rendered);
+    }
+
+    @Test
+    @DisplayName("沿用现值的变量加前缀并沉底：同一个取值是本次改成这样还是一直如此，审批结论可能完全不同")
+    void givenNotAssignedVarThenPrefixedAndSunkToBottom() {
+        ResolvedSummary summary = planSummaryWithGlobalVars();
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
+
+        List<String> varNames = globalVarRowNames(content);
+        assertThat(varNames)
+            .endsWith("task.approval.content.value.varNotAssignedPrefix batch_hosts");
+        assertThat(varNames)
+            .as("本次指定的变量保持原有相对顺序")
+            .containsSubsequence("version", "target_hosts", "db_password");
+    }
+
+    @Test
+    @DisplayName("变量取值为空时不留空单元格，给出「未设置取值」")
+    void givenVarWithoutValueThenShowNoValueHint() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.SAVE_CRON.name());
+        ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();
+        globalVar.setName("empty_var");
+        globalVar.setType("STRING");
+        summary.addGlobalVar(globalVar);
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.SAVE_CRON, summary, null)).getApprovalContent();
+
+        assertThat(tableRow(content, "empty_var")).contains("task.approval.content.value.varNoValue");
+    }
+
+    @Test
+    @DisplayName("没有全局变量时不出章节，也不在概要里留空行")
+    void givenNoGlobalVarThenNoSection() {
+        String content = renderer.render(scriptTask(buildFullSummary(), true)).getApprovalContent();
+
+        assertThat(content)
+            .doesNotContain(SECTION_GLOBAL_VARS)
+            .doesNotContain("content.field.global_vars");
+    }
+
+    @Test
+    @DisplayName("主机变量台数计入风险等级：创建执行方案没有执行对象总数，影响面全在变量里")
+    void givenHostVarCountThenRaiseRiskLevel() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.CREATE_JOB_PLAN.name());
+        summary.addGlobalVar(hostVar("target_hosts", "10.0.0.", 101, true));
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
+
+        assertThat(tableRow(content, "riskLevel")).contains(ApprovalRiskLevelEnum.HIGH.getNameI18nKey());
+    }
+
+    @Test
+    @DisplayName("与执行对象总数取较大值而非相加：启动执行方案时主机变量已被算进执行对象总数")
+    void givenHostVarAndExecuteObjectsThenTakeMaxNotSum() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN.name());
+        summary.setTotalExecuteObjectCount(100);
+        summary.addGlobalVar(hostVar("target_hosts", "10.0.0.", 100, true));
+
+        String content = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN, summary, null)).getApprovalContent();
+
+        assertThat(tableRow(content, "riskLevel"))
+            .as("相加会把同一批机器算两次，把中危误判成高危")
+            .contains(ApprovalRiskLevelEnum.MEDIUM.getNameI18nKey());
+    }
+
+    @Test
     @DisplayName("参数渲染失败时概要仍然可用，只在参数章节给出提示")
     void givenParamsDecryptFailThenKeepSummaryUsable() {
         DefaultApprovalContentRenderer failingRenderer = new DefaultApprovalContentRenderer(
-            i18nService, appService, new FailingParamsCryptoService());
+            i18nService, appService, new FailingParamsCryptoService(), new ApprovalDisplayMasker(i18nService));
 
         ApprovalContent rendered = failingRenderer.render(scriptTask(buildFullSummary(), true));
 
@@ -687,6 +848,22 @@ class DefaultApprovalContentRendererTest {
     }
 
     /**
+     * 把 key 与参数一起回显，形如 {@code key(参数1,参数2)}
+     */
+    private static String echoKeyWithArgs(Object[] invocationArgs) {
+        List<Object> args = new ArrayList<>();
+        for (int i = 1; i < invocationArgs.length; i++) {
+            if (invocationArgs[i] instanceof Object[]) {
+                args.addAll(Arrays.asList((Object[]) invocationArgs[i]));
+            } else {
+                args.add(invocationArgs[i]);
+            }
+        }
+        return invocationArgs[0] + "(" + args.stream().map(String::valueOf)
+            .collect(Collectors.joining(",")) + ")";
+    }
+
+    /**
      * 正文任何一处都不得出现密码明文或密文
      */
     private void assertContentFreeOfSecrets(ApprovalContent rendered) {
@@ -703,6 +880,61 @@ class DefaultApprovalContentRendererTest {
         int start = indexOf(content, heading);
         int end = content.indexOf("\n## ", start + heading.length());
         return end < 0 ? content.substring(start) : content.substring(start, end);
+    }
+
+    /**
+     * 一份"该有的变量形态都有"的创建执行方案概要：普通变量 + 台数在上限内的主机变量 +
+     * 密文变量 + 沿用现值且台数超上限的主机变量
+     */
+    private ResolvedSummary planSummaryWithGlobalVars() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.CREATE_JOB_PLAN.name());
+        summary.setName("发布流程-灰度");
+        summary.addField("job_template_id", "1000");
+
+        ResolvedSummary.ResolvedGlobalVar stringVar = new ResolvedSummary.ResolvedGlobalVar();
+        stringVar.setName("version");
+        stringVar.setType("STRING");
+        stringVar.setValue("v1.2.3");
+        stringVar.setAssigned(true);
+        summary.addGlobalVar(stringVar);
+
+        summary.addGlobalVar(hostVar("target_hosts", "10.0.0.", 3, true));
+
+        ResolvedSummary.ResolvedGlobalVar cipherVar = new ResolvedSummary.ResolvedGlobalVar();
+        cipherVar.setName("db_password");
+        cipherVar.setType("CIPHER");
+        cipherVar.setAssigned(true);
+        summary.addGlobalVar(cipherVar);
+
+        summary.addGlobalVar(hostVar("batch_hosts", "10.1.0.",
+            ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT + 1, false));
+        return summary;
+    }
+
+    private ResolvedSummary.ResolvedGlobalVar hostVar(String name,
+                                                      String ipPrefix,
+                                                      int hostCount,
+                                                      boolean assigned) {
+        ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();
+        globalVar.setName(name);
+        globalVar.setType("EXECUTE_OBJECT_LIST");
+        globalVar.setAssigned(assigned);
+        for (int i = 1; i <= hostCount; i++) {
+            globalVar.addHost((long) i, "0:" + ipPrefix + i);
+        }
+        return globalVar;
+    }
+
+    /**
+     * 按渲染顺序取出全局变量表格各行的变量名，用于校验沿用现值的行是否沉底
+     */
+    private List<String> globalVarRowNames(String content) {
+        return Arrays.stream(sectionOf(content, SECTION_GLOBAL_VARS).split("\n"))
+            .filter(line -> line.startsWith("|"))
+            .map(line -> line.split("\\|")[1].trim())
+            .filter(name -> !"---".equals(name) && !name.endsWith("table.varName"))
+            .collect(Collectors.toList());
     }
 
     /**

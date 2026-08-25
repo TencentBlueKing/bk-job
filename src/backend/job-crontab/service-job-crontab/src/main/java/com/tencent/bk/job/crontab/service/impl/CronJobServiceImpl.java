@@ -324,6 +324,7 @@ public class CronJobServiceImpl implements CronJobService {
         // ============ dryRun 预检返回点 ============
         // 此行之上不得新增写操作，理由同 doCreateCronJobInfo 的返回点注释
         if (dryRun) {
+            fillUnchangedFieldsForApproval(cronJobInfo, originCron);
             return cronJobInfo;
         }
 
@@ -394,6 +395,29 @@ public class CronJobServiceImpl implements CronJobService {
         } catch (TaskExecuteAuthFailedException e) {
             log.error("Error while pre auth cron execute!", e);
             throw e;
+        }
+    }
+
+    /**
+     * 把本次更新未涉及、实际会沿用原值的字段补进预检结果，供审批单据展示。
+     * <p>
+     * 更新接口允许只传要改的字段，{@link com.tencent.bk.job.crontab.dao.CronJobDAO#updateCronJobById} 对没传的
+     * 字段不做更新。审批单据要展示的是<b>更新之后实际生效的样子</b>，因此这里把沿用原值的字段补齐，
+     * 否则单据上会打出 null，审批人会读成"这次把执行方案清空了"。
+     * <p>
+     * <b>只在预检返回路径上调用</b>：真实更新路径必须保持"没传就不更新"，补齐后再落库等于把原值又写一遍，
+     * 白白扩大更新面
+     */
+    private void fillUnchangedFieldsForApproval(CronJobInfoDTO cronJobInfo, CronJobInfoDTO originCron) {
+        if (cronJobInfo.getTaskPlanId() == null || cronJobInfo.getTaskPlanId() <= 0) {
+            cronJobInfo.setTaskPlanId(originCron.getTaskPlanId());
+            cronJobInfo.setTaskTemplateId(originCron.getTaskTemplateId());
+        }
+        if (StringUtils.isBlank(cronJobInfo.getName())) {
+            cronJobInfo.setName(originCron.getName());
+        }
+        if (CollectionUtils.isEmpty(cronJobInfo.getVariableValue())) {
+            cronJobInfo.setVariableValue(originCron.getVariableValue());
         }
     }
 

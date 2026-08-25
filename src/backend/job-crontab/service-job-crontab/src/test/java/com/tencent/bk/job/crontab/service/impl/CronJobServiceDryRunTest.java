@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -33,6 +34,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
+import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.mq.CrontabMQEventDispatcher;
 import com.tencent.bk.job.crontab.service.CustomNotifyPolicyService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
@@ -50,6 +52,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -201,6 +205,28 @@ class CronJobServiceDryRunTest {
         assertThat(result).isNotNull();
     }
 
+    @Test
+    @DisplayName("预检更新：本次没传的执行方案与变量取值按原值补齐，单据上不能打出 null")
+    void dryRunUpdate_fillsUnchangedFieldsForApproval() {
+        CronJobInfoDTO originCron = buildCronJobInfo(CRON_JOB_ID);
+        originCron.setVariableValue(Collections.singletonList(buildVariable("version", "v1.2.3")));
+        when(cronJobDAO.getCronJobById(CRON_JOB_ID)).thenReturn(originCron);
+        // 更新接口允许只传要改的字段，这里只改了定时规则
+        CronJobInfoDTO updateReq = new CronJobInfoDTO();
+        updateReq.setId(CRON_JOB_ID);
+        updateReq.setAppId(APP_ID);
+        updateReq.setName(CRON_NAME);
+        updateReq.setCronExpression("0 0 3 * * ?");
+
+        CronJobInfoDTO result = service.dryRunUpdateCronJobInfo(operator, updateReq);
+
+        assertThat(result.getTaskPlanId())
+            .as("单据展示的是更新之后实际生效的样子，沿用原值的执行方案不能变成 null")
+            .isEqualTo(PLAN_ID);
+        assertThat(result.getVariableValue()).hasSize(1);
+        assertThat(result.getVariableValue().get(0).getValue()).isEqualTo("v1.2.3");
+    }
+
     // ========================================================================
     // 启停定时任务
     // ========================================================================
@@ -248,6 +274,14 @@ class CronJobServiceDryRunTest {
 
         assertThatThrownBy(() -> service.dryRunChangeCronJobEnableStatus(operator, APP_ID, CRON_JOB_ID, true))
             .isInstanceOf(NotFoundException.class);
+    }
+
+    private CronJobVariableDTO buildVariable(String name, String value) {
+        CronJobVariableDTO variable = new CronJobVariableDTO();
+        variable.setName(name);
+        variable.setType(TaskVariableTypeEnum.STRING);
+        variable.setValue(value);
+        return variable;
     }
 
     private CronJobInfoDTO buildCronJobInfo(Long id) {

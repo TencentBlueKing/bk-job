@@ -57,6 +57,7 @@ import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.job.manage.service.plan.PlanGlobalVarSummaryBuilder;
 import com.tencent.bk.job.manage.service.plan.impl.V4JobPlanCreateServiceImpl;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import org.junit.jupiter.api.AfterEach;
@@ -136,7 +137,8 @@ class OpenApiJobPlanV4ResourceImplTest {
                 appScopeMappingService,
                 tenantHostService
             ),
-            appScopeMappingService
+            appScopeMappingService,
+            new PlanGlobalVarSummaryBuilder(tenantHostService)
         );
         JobContextUtil.setUser(testUser);
     }
@@ -523,6 +525,40 @@ class OpenApiJobPlanV4ResourceImplTest {
             resource.createJobPlan(USERNAME, APP_CODE, true, buildBaseRequest()).getDryRunSummary();
 
         assertThat(summaryFields(summary)).containsEntry("enable_steps_all", "101");
+    }
+
+    @Test
+    @DisplayName("预检概要列出生效的全部全局变量：本次未覆盖的也带上模板默认值并标为沿用")
+    void dryRunSummary_globalVars_listAllEffectiveVars() {
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID)).thenReturn(buildTemplate(
+            Collections.singletonList(101L),
+            new ArrayList<>(Arrays.asList(
+                buildTemplateVar(10L, "TARGET_DIR", TaskVariableTypeEnum.STRING, "/tmp"),
+                buildTemplateVar(11L, "VERSION", TaskVariableTypeEnum.STRING, "v1.0.0")))));
+        V4JobPlanVariableItem item = new V4JobPlanVariableItem();
+        item.setName("TARGET_DIR");
+        item.setValue("/data/release");
+        V4CreateJobPlanRequest request = buildBaseRequest();
+        request.setVariables(Collections.singletonList(item));
+
+        ResolvedSummary summary = resource.createJobPlan(USERNAME, APP_CODE, true, request).getDryRunSummary();
+
+        assertThat(summary.getGlobalVars()).hasSize(2);
+        ResolvedSummary.ResolvedGlobalVar assigned = globalVar(summary, "TARGET_DIR");
+        assertThat(assigned.getAssigned()).isTrue();
+        assertThat(assigned.getValue()).isEqualTo("/data/release");
+        ResolvedSummary.ResolvedGlobalVar notAssigned = globalVar(summary, "VERSION");
+        assertThat(notAssigned.getAssigned())
+            .as("沿用模板默认值的变量照样会被执行，只列本次改的等于让审批人蒙着眼放行")
+            .isFalse();
+        assertThat(notAssigned.getValue()).isEqualTo("v1.0.0");
+    }
+
+    private ResolvedSummary.ResolvedGlobalVar globalVar(ResolvedSummary summary, String name) {
+        return summary.getGlobalVars().stream()
+            .filter(globalVar -> name.equals(globalVar.getName()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("概要里没有变量：" + name));
     }
 
     private Map<String, String> summaryFields(ResolvedSummary summary) {

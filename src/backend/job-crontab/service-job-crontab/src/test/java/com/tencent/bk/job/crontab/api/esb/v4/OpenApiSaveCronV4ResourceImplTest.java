@@ -33,6 +33,7 @@ import com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.esb.v4.req.V4SaveCronRequest;
 import com.tencent.bk.job.crontab.model.esb.v4.resp.V4CronJobDTO;
+import com.tencent.bk.job.crontab.service.CronGlobalVarSummaryBuilder;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.V4SaveCronRequestConverter;
 import org.junit.jupiter.api.AfterEach;
@@ -77,6 +78,8 @@ class OpenApiSaveCronV4ResourceImplTest {
 
     private V4SaveCronRequestConverter requestConverter;
 
+    private CronGlobalVarSummaryBuilder globalVarSummaryBuilder;
+
     private OpenApiSaveCronV4ResourceImpl resource;
 
     @BeforeEach
@@ -85,7 +88,8 @@ class OpenApiSaveCronV4ResourceImplTest {
         requestConverter = mock(V4SaveCronRequestConverter.class);
         when(requestConverter.convert(any(), any())).thenAnswer(invocation ->
             buildCronJobInfo(invocation.getArgument(0, V4SaveCronRequest.class)));
-        resource = new OpenApiSaveCronV4ResourceImpl(cronJobService, requestConverter);
+        globalVarSummaryBuilder = mock(CronGlobalVarSummaryBuilder.class);
+        resource = new OpenApiSaveCronV4ResourceImpl(cronJobService, requestConverter, globalVarSummaryBuilder);
         // 操作人由网关鉴权后经拦截器写入上下文，实现类只从上下文取
         JobContextUtil.setUser(new User("tenant_a", USERNAME, USERNAME));
     }
@@ -112,6 +116,25 @@ class OpenApiSaveCronV4ResourceImplTest {
         // 新增时还没有定时任务 ID，概要里不该出现
         assertThat(summaryFields(summary)).doesNotContainKey("cron_id");
         verify(cronJobService, never()).createCronJobInfo(any(), any());
+    }
+
+    @Test
+    @DisplayName("预检概要带上全局变量：定时任务到点就拿这套变量去跑")
+    void givenDryRunThenFillGlobalVars() {
+        when(cronJobService.dryRunCreateCronJobInfo(any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
+        doAnswer(invocation -> {
+            ResolvedSummary summary = invocation.getArgument(0, ResolvedSummary.class);
+            ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();
+            globalVar.setName("version");
+            summary.addGlobalVar(globalVar);
+            return null;
+        }).when(globalVarSummaryBuilder).fillGlobalVars(any(), any(), any());
+
+        EsbV4Response<V4CronJobDTO> response = callSaveCron(baseCreateRequest(), true);
+
+        verify(globalVarSummaryBuilder).fillGlobalVars(any(), any(), any());
+        assertThat(response.getDryRunSummary().getGlobalVars()).hasSize(1);
     }
 
     @Test

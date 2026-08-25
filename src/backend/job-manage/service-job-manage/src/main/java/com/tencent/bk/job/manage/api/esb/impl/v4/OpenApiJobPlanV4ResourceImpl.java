@@ -40,6 +40,8 @@ import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
+import com.tencent.bk.job.manage.service.plan.PlanGlobalVarSummaryBuilder;
 import com.tencent.bk.job.manage.service.plan.V4JobPlanCreateService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,21 +49,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
 
     private final V4JobPlanCreateService jobPlanCreateService;
     private final AppScopeMappingService appScopeMappingService;
+    private final PlanGlobalVarSummaryBuilder globalVarSummaryBuilder;
 
     @Autowired
     public OpenApiJobPlanV4ResourceImpl(V4JobPlanCreateService jobPlanCreateService,
-                                        AppScopeMappingService appScopeMappingService) {
+                                        AppScopeMappingService appScopeMappingService,
+                                        PlanGlobalVarSummaryBuilder globalVarSummaryBuilder) {
         this.jobPlanCreateService = jobPlanCreateService;
         this.appScopeMappingService = appScopeMappingService;
+        this.globalVarSummaryBuilder = globalVarSummaryBuilder;
     }
 
     @Override
@@ -75,20 +83,40 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         boolean isDryRun = Boolean.TRUE.equals(dryRun);
         TaskPlanInfoDTO plan = jobPlanCreateService.createJobPlan(user, request, isDryRun);
         if (isDryRun) {
-            return EsbV4Response.dryRunSuccess(buildSummary(plan));
+            return EsbV4Response.dryRunSuccess(buildSummary(plan, request, user.getTenantId()));
         }
         return EsbV4Response.success(toOpenApiV4JobPlanDTO(request.getAppId(), username, plan));
     }
 
-    private ResolvedSummary buildSummary(TaskPlanInfoDTO plan) {
+    private ResolvedSummary buildSummary(TaskPlanInfoDTO plan, V4CreateJobPlanRequest request, String tenantId) {
         ResolvedSummary summary = new ResolvedSummary();
         summary.setName(plan.getName());
         summary.addField("job_template_id", String.valueOf(plan.getTemplateId()));
         putEnableStepsField(summary, plan);
-        if (CollectionUtils.isNotEmpty(plan.getVariableList())) {
-            summary.addField("variable_count", String.valueOf(plan.getVariableList().size()));
-        }
+        // 预检返回的 variableList 已是合并后的全部方案变量，未被本次请求赋值的那些标为沿用模板默认值
+        globalVarSummaryBuilder.fillGlobalVars(summary, plan.getVariableList(), assignedVarNames(request), tenantId);
         return summary;
+    }
+
+    /**
+     * 本次请求真正给出了取值的变量名。
+     * <p>
+     * 声明了 follow_template、或压根没带取值的，最终生效的仍是模板默认值，不算本次指定
+     */
+    private Set<String> assignedVarNames(V4CreateJobPlanRequest request) {
+        if (CollectionUtils.isEmpty(request.getVariables())) {
+            return Collections.emptySet();
+        }
+        Set<String> names = new HashSet<>();
+        for (V4JobPlanVariableItem item : request.getVariables()) {
+            if (item == null || item.isFollowTemplate()) {
+                continue;
+            }
+            if (item.getValue() != null || item.getExecuteTarget() != null) {
+                names.add(item.getName());
+            }
+        }
+        return names;
     }
 
     /**

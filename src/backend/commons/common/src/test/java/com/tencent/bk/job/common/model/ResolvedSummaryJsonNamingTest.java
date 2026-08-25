@@ -56,6 +56,7 @@ class ResolvedSummaryJsonNamingTest {
         assertSnakeCaseFieldNames(ResolvedSummary.ResolvedStep.class, root.get("steps").get(0));
         assertSnakeCaseFieldNames(ResolvedSummary.ResolvedExecuteObject.class,
             root.get("steps").get(0).get("execute_objects").get(0));
+        assertSnakeCaseFieldNames(ResolvedSummary.ResolvedGlobalVar.class, root.get("global_vars").get(0));
     }
 
     @Test
@@ -154,6 +155,17 @@ class ResolvedSummaryJsonNamingTest {
             new ResolvedSummary.ResolvedExecuteObject("HOST", 1L, "0:127.0.0.1")));
         step.addField("目标路径", "/tmp/");
         summary.addStep(step);
+
+        ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();
+        globalVar.setName("target_hosts");
+        globalVar.setType("EXECUTE_OBJECT_LIST");
+        globalVar.setValue("v1.2.3");
+        globalVar.setAssigned(true);
+        globalVar.addHost(1L, "0:127.0.0.1");
+        globalVar.setDynamicGroupCount(1);
+        globalVar.setTopoNodeCount(2);
+        globalVar.setContainerCount(3);
+        summary.addGlobalVar(globalVar);
 
         return summary;
     }

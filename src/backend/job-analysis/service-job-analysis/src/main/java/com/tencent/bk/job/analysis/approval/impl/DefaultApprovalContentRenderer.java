@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.tencent.bk.job.analysis.approval.ApprovalContentRenderer;
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
+import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayMasker;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams.PlainTextBlock;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
@@ -91,6 +92,21 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     private static final String FIELD_FILE_TARGET_NAME = "file_target_name";
 
     /**
+     * 全局变量章节在概要表格里对应的引导行字段名
+     */
+    private static final String FIELD_GLOBAL_VARS = "global_vars";
+
+    /**
+     * 主机类变量的类型枚举名，取值形态与其余类型不同（走主机清单而不是 value）
+     */
+    private static final String VAR_TYPE_EXECUTE_OBJECT_LIST = "EXECUTE_OBJECT_LIST";
+
+    /**
+     * 密文类变量的类型枚举名。这类变量的取值不进概要，渲染成占位符
+     */
+    private static final String VAR_TYPE_CIPHER = "CIPHER";
+
+    /**
      * 值由下游按行拼好、需要逐行展示的字段。
      * <p>
      * <b>这类字段不能塞进表格单元格</b>：审批渠道的 Markdown 渲染器不允许内联 HTML，{@code <br>} 会
@@ -118,6 +134,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     private final MessageI18nService i18nService;
     private final CommonAppService appService;
     private final ApprovalParamsCryptoService paramsCryptoService;
+    private final ApprovalDisplayMasker displayMasker;
 
     private static Map<String, String> buildEnumValueI18nPrefixes() {
         Map<String, String> prefixes = new HashMap<>();
@@ -135,10 +152,12 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
 
     public DefaultApprovalContentRenderer(MessageI18nService i18nService,
                                           CommonAppService appService,
-                                          ApprovalParamsCryptoService paramsCryptoService) {
+                                          ApprovalParamsCryptoService paramsCryptoService,
+                                          ApprovalDisplayMasker displayMasker) {
         this.i18nService = i18nService;
         this.appService = appService;
         this.paramsCryptoService = paramsCryptoService;
+        this.displayMasker = displayMasker;
     }
 
     @Override
@@ -166,6 +185,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         appendHeading(content, 1, title);
         appendSummary(content, task, operationType, app, summary, riskLevel);
         appendMultiLineFields(content, summary);
+        appendGlobalVars(content, summary);
 
         // 脚本正文与原始参数出自同一份脱敏后的参数：脚本被摘出去单独展示，参数里只留占位符
         List<PlainTextBlock> scriptBlocks = new ArrayList<>();
@@ -205,6 +225,10 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         putFileFieldRow(rows, summary, FIELD_FILE_TARGET_NAME);
         putTransferModeRow(rows, defaultRows, summary);
         putResolvedFields(rows, summary.getFields(), StringUtils.EMPTY);
+        if (CollectionUtils.isNotEmpty(summary.getGlobalVars())) {
+            putRow(rows, resolvedFieldLabel(FIELD_GLOBAL_VARS),
+                labelWithArgs("value.itemCount", summary.getGlobalVars().size()), false);
+        }
         if (summary.getTotalExecuteObjectCount() != null) {
             putRow(rows, label("totalExecuteObjectCount"),
                 String.valueOf(summary.getTotalExecuteObjectCount()), false);
@@ -223,7 +247,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         rows.addAll(defaultRows);
 
         appendHeading(content, 2, label("section.summary"));
-        appendTable(content, rows);
+        appendTable(content, Arrays.asList(label("table.item"), label("table.value")), rows);
     }
 
     /**
@@ -290,10 +314,16 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     }
 
     /**
-     * 风险等级只是给审批人的提示强度，不参与放行校验
+     * 风险等级只是给审批人的提示强度，不参与放行校验。
+     * <p>
+     * 主机类全局变量的台数一并计入：创建执行方案、保存定时任务没有执行对象总数，影响面全在变量里，
+     * 不计入的话一个指向上千台机器的方案会被判成低风险。<b>与执行对象总数取较大值而不是相加</b>：
+     * 启动执行方案时主机变量已被解析进步骤目标、计入了执行对象总数，相加会把同一批机器算两次
      */
     private ApprovalRiskLevelEnum resolveRiskLevel(ResolvedSummary summary) {
-        int count = summary.getTotalExecuteObjectCount() == null ? 0 : summary.getTotalExecuteObjectCount();
+        int executeObjectCount =
+            summary.getTotalExecuteObjectCount() == null ? 0 : summary.getTotalExecuteObjectCount();
+        int count = Math.max(executeObjectCount, summary.totalGlobalVarHostCount());
         if (Boolean.TRUE.equals(summary.getDangerousRuleMatched())
             || count > ApprovalRiskLevelEnum.HIGH_RISK_EXECUTE_OBJECT_COUNT) {
             return ApprovalRiskLevelEnum.HIGH;
@@ -500,6 +530,87 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         }
     }
 
+    /**
+     * 全局变量章节：一行一个变量，列出变量名、类型与生效取值。
+     * <p>
+     * 变量是"这次操作到底拿什么参数去跑"的直接答案，因此<b>全部变量都要列出</b>，包括本次没指定、
+     * 沿用现有配置的那些——沿用来的取值一样会被执行，只列本次改动的等于让审批人蒙着眼放行。
+     * 沿用现值的行加前缀并统一沉底，与概要表格里默认值行的处理一致。
+     * <p>
+     * 主机类变量的取值可能是上千台机器，超过 {@link ResolvedSummary#MAX_GLOBAL_VAR_HOST_COUNT} 台时
+     * 下游只回带台数，此处相应只报总数
+     */
+    private void appendGlobalVars(StringBuilder content, ResolvedSummary summary) {
+        if (CollectionUtils.isEmpty(summary.getGlobalVars())) {
+            return;
+        }
+        List<TableRow> rows = new ArrayList<>();
+        List<TableRow> notAssignedRows = new ArrayList<>();
+        for (ResolvedSummary.ResolvedGlobalVar globalVar : summary.getGlobalVars()) {
+            boolean assigned = !Boolean.FALSE.equals(globalVar.getAssigned());
+            String name = escapeTableCell(StringUtils.defaultString(globalVar.getName()));
+            (assigned ? rows : notAssignedRows).add(new TableRow(
+                assigned ? name : prefixed(label("value.varNotAssignedPrefix"), name),
+                varTypeName(globalVar.getType()),
+                escapeTableCell(describeGlobalVarValue(globalVar))
+            ));
+        }
+        rows.addAll(notAssignedRows);
+
+        appendHeading(content, 2, label("section.globalVars"));
+        appendTable(content,
+            Arrays.asList(label("table.varName"), label("table.varType"), label("table.varValue")), rows);
+    }
+
+    /**
+     * 变量取值的展示：主机类变量按台数/清单描述，密文类只出占位符，其余原样展示
+     */
+    private String describeGlobalVarValue(ResolvedSummary.ResolvedGlobalVar globalVar) {
+        if (VAR_TYPE_CIPHER.equals(globalVar.getType())) {
+            return displayMasker.mask();
+        }
+        if (VAR_TYPE_EXECUTE_OBJECT_LIST.equals(globalVar.getType())) {
+            return describeGlobalVarTarget(globalVar);
+        }
+        return StringUtils.isBlank(globalVar.getValue()) ? label("value.varNoValue") : globalVar.getValue();
+    }
+
+    /**
+     * 主机类变量的取值：台数在上限内时连同主机清单一起给出，超出只报台数；
+     * 动态分组与拓扑节点算不出台数，只报个数，实际机器在放行时才解析（概要表格里另有一行动态目标提示）
+     */
+    private String describeGlobalVarTarget(ResolvedSummary.ResolvedGlobalVar globalVar) {
+        List<String> parts = new ArrayList<>();
+        Integer hostCount = globalVar.getHostCount();
+        if (CollectionUtils.isNotEmpty(globalVar.getHosts())) {
+            parts.add(labelWithArgs("value.varHostList", globalVar.getHosts().size(),
+                String.join(ResolvedSummary.ITEM_SEPARATOR, globalVar.getHosts())));
+        } else if (hostCount != null && hostCount > 0) {
+            parts.add(labelWithArgs("value.varHostCount", hostCount));
+        }
+        if (globalVar.getDynamicGroupCount() != null && globalVar.getDynamicGroupCount() > 0) {
+            parts.add(labelWithArgs("value.varDynamicGroupCount", globalVar.getDynamicGroupCount()));
+        }
+        if (globalVar.getTopoNodeCount() != null && globalVar.getTopoNodeCount() > 0) {
+            parts.add(labelWithArgs("value.varTopoNodeCount", globalVar.getTopoNodeCount()));
+        }
+        if (globalVar.getContainerCount() != null && globalVar.getContainerCount() > 0) {
+            parts.add(labelWithArgs("value.varContainerCount", globalVar.getContainerCount()));
+        }
+        return parts.isEmpty() ? label("value.varNoValue") : String.join(ResolvedSummary.ITEM_SEPARATOR, parts);
+    }
+
+    /**
+     * 变量类型的枚举名对审批人是天书，翻译成人话；缺文案时原样展示，与 {@link #transferModeName} 同构
+     */
+    private String varTypeName(String varType) {
+        if (StringUtils.isBlank(varType)) {
+            return StringUtils.EMPTY;
+        }
+        String translated = tryGetI18n(I18N_PREFIX + "value.varType." + varType);
+        return translated == null ? varType : translated;
+    }
+
     private List<String> splitLines(String value) {
         if (StringUtils.isBlank(value)) {
             return Collections.emptyList();
@@ -541,13 +652,23 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         rows.add(new TableRow(highlight ? bold(label) : label, highlight ? bold(cellValue) : cellValue));
     }
 
-    private void appendTable(StringBuilder content, List<TableRow> rows) {
-        content.append("| ").append(label("table.item")).append(" | ").append(label("table.value"))
-            .append(" |").append(LINE_SEPARATOR)
-            .append("| --- | --- |").append(LINE_SEPARATOR);
+    private void appendTable(StringBuilder content, List<String> headers, List<TableRow> rows) {
+        appendTableLine(content, headers);
+        List<String> separators = new ArrayList<>(headers.size());
+        for (int i = 0; i < headers.size(); i++) {
+            separators.add("---");
+        }
+        appendTableLine(content, separators);
         for (TableRow row : rows) {
-            content.append("| ").append(row.label).append(" | ").append(row.value)
-                .append(" |").append(LINE_SEPARATOR);
+            appendTableLine(content, row.cells);
+        }
+        content.append(LINE_SEPARATOR);
+    }
+
+    private void appendTableLine(StringBuilder content, List<String> cells) {
+        content.append("|");
+        for (String cell : cells) {
+            content.append(' ').append(StringUtils.defaultString(cell)).append(" |");
         }
         content.append(LINE_SEPARATOR);
     }
@@ -674,17 +795,14 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     }
 
     /**
-     * 概要表格的一行
+     * 表格的一行，单元格个数与表头一致
      */
     private static class TableRow {
 
-        private final String label;
+        private final List<String> cells;
 
-        private final String value;
-
-        TableRow(String label, String value) {
-            this.label = label;
-            this.value = value;
+        TableRow(String... cells) {
+            this.cells = Arrays.asList(cells);
         }
     }
 }

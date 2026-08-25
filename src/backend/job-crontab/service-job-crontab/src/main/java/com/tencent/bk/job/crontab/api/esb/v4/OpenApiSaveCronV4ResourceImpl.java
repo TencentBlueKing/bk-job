@@ -38,6 +38,7 @@ import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.esb.v4.V4CronStatusEnum;
 import com.tencent.bk.job.crontab.model.esb.v4.req.V4SaveCronRequest;
 import com.tencent.bk.job.crontab.model.esb.v4.resp.V4CronJobDTO;
+import com.tencent.bk.job.crontab.service.CronGlobalVarSummaryBuilder;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.V4SaveCronRequestConverter;
 import com.tencent.bk.job.crontab.util.CronExpressionUtil;
@@ -51,12 +52,15 @@ public class OpenApiSaveCronV4ResourceImpl implements OpenApiSaveCronV4Resource 
 
     private final CronJobService cronJobService;
     private final V4SaveCronRequestConverter requestConverter;
+    private final CronGlobalVarSummaryBuilder globalVarSummaryBuilder;
 
     @Autowired
     public OpenApiSaveCronV4ResourceImpl(CronJobService cronJobService,
-                                         V4SaveCronRequestConverter requestConverter) {
+                                         V4SaveCronRequestConverter requestConverter,
+                                         CronGlobalVarSummaryBuilder globalVarSummaryBuilder) {
         this.cronJobService = cronJobService;
         this.requestConverter = requestConverter;
+        this.globalVarSummaryBuilder = globalVarSummaryBuilder;
     }
 
     @Override
@@ -78,7 +82,7 @@ public class OpenApiSaveCronV4ResourceImpl implements OpenApiSaveCronV4Resource 
             CronJobInfoDTO checked = update
                 ? cronJobService.dryRunUpdateCronJobInfo(operator, cronJobInfo)
                 : cronJobService.dryRunCreateCronJobInfo(operator, cronJobInfo);
-            return EsbV4Response.dryRunSuccess(buildSummary(checked, update));
+            return EsbV4Response.dryRunSuccess(buildSummary(checked, update, operator));
         }
 
         CronJobInfoDTO saved = update
@@ -93,7 +97,7 @@ public class OpenApiSaveCronV4ResourceImpl implements OpenApiSaveCronV4Resource 
      * 定时规则按<b>用户提交的 UNIX 形态</b>展示：{@link CronJobInfoDTO#getCronExpression()} 里存的是
      * 转换后的 Quartz 表达式，审批人核对的应当是自己传进来的那一串
      */
-    private ResolvedSummary buildSummary(CronJobInfoDTO cronJobInfo, boolean update) {
+    private ResolvedSummary buildSummary(CronJobInfoDTO cronJobInfo, boolean update, User operator) {
         ResolvedSummary summary = new ResolvedSummary();
         summary.setName(cronJobInfo.getName());
         summary.addField("operation", update ? "UPDATE" : "CREATE");
@@ -106,6 +110,8 @@ public class OpenApiSaveCronV4ResourceImpl implements OpenApiSaveCronV4Resource 
         summary.addField("execute_time",
             cronJobInfo.getExecuteTime() == null ? null : String.valueOf(cronJobInfo.getExecuteTime()));
         summary.addField("execute_time_zone", cronJobInfo.getExecuteTimeZone());
+        // 定时任务到点就会拿这套变量去跑，全部变量都要展示，主机类变量的台数还要计入风险等级判定
+        globalVarSummaryBuilder.fillGlobalVars(summary, cronJobInfo, operator);
         return summary;
     }
 

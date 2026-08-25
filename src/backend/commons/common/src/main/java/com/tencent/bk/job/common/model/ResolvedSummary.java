@@ -60,6 +60,23 @@ public class ResolvedSummary {
     public static final String ITEM_SEPARATOR = "; ";
 
     /**
+     * 主机类全局变量逐台列出的台数上限，超出只保留总数。
+     * <p>
+     * 少量主机逐台列出，审批人才看得出这次到底动哪几台；上百台逐台列出只会把单据铺成一堵墙，
+     * 反而让人直接划到底放行，此时台数本身已足够判断影响面
+     */
+    public static final int MAX_GLOBAL_VAR_HOST_COUNT = 10;
+
+    /**
+     * 全局变量取值在概要里保留的最大字符数，超出截断。
+     * <p>
+     * 关联数组、索引数组类变量的取值可能很长，而概要要整份落库进 approval_task.resolved_summary
+     */
+    public static final int MAX_GLOBAL_VAR_VALUE_LENGTH = 512;
+
+    private static final String TRUNCATED_SUFFIX = "…";
+
+    /**
      * 操作类型，取值见 job-analysis 的 ApprovalOperationTypeEnum
      */
     @JsonProperty("operation_type")
@@ -107,6 +124,16 @@ public class ResolvedSummary {
     @JsonProperty("defaults_applied")
     private List<ResolvedField> defaultsApplied;
 
+    /**
+     * 本次操作生效的全局变量，含未在请求中指定、沿用执行方案/作业模板默认值的那些。
+     * <p>
+     * <b>全部变量都要列出</b>：只列请求里传的那几个，审批人无法判断这个方案实际会拿什么参数去跑。
+     * 主机类变量的台数计入风险等级判定，因此即便台数超过 {@link #MAX_GLOBAL_VAR_HOST_COUNT}
+     * 不再逐台列出，{@link ResolvedGlobalVar#hostCount} 也必须如实带回
+     */
+    @JsonProperty("global_vars")
+    private List<ResolvedGlobalVar> globalVars;
+
     public void addField(String label, String value) {
         if (value == null) {
             return;
@@ -129,6 +156,32 @@ public class ResolvedSummary {
             defaultsApplied = new ArrayList<>();
         }
         defaultsApplied.add(new ResolvedField(label, value));
+    }
+
+    public void addGlobalVar(ResolvedGlobalVar globalVar) {
+        if (globalVar == null) {
+            return;
+        }
+        if (globalVars == null) {
+            globalVars = new ArrayList<>();
+        }
+        globalVars.add(globalVar);
+    }
+
+    /**
+     * 全部主机类变量的主机台数合计，供风险等级判定使用。动态分组与拓扑节点算不出台数，不计入
+     */
+    public int totalGlobalVarHostCount() {
+        if (globalVars == null) {
+            return 0;
+        }
+        int total = 0;
+        for (ResolvedGlobalVar globalVar : globalVars) {
+            if (globalVar.getHostCount() != null) {
+                total += globalVar.getHostCount();
+            }
+        }
+        return total;
     }
 
     /**
@@ -167,6 +220,116 @@ public class ResolvedSummary {
             this.label = label;
             this.value = value;
             this.highlight = highlight;
+        }
+    }
+
+    /**
+     * 一个生效的全局变量。
+     * <p>
+     * <b>密文类型变量的取值一律不带</b>：本概要以明文落库，取值只在参数快照里加密保存，渲染侧对密文
+     * 变量出占位符即可。主机类变量的取值走 {@link #addHost}，其余类型走 {@link #setValue}。
+     */
+    @Data
+    public static class ResolvedGlobalVar {
+
+        /**
+         * 变量名
+         */
+        @JsonProperty("name")
+        private String name;
+
+        /**
+         * 变量类型，取值见 TaskVariableTypeEnum 的枚举名
+         */
+        @JsonProperty("type")
+        private String type;
+
+        /**
+         * 非主机类变量的取值。密文类型不带，超长按 {@link #MAX_GLOBAL_VAR_VALUE_LENGTH} 截断
+         */
+        @JsonProperty("value")
+        private String value;
+
+        /**
+         * 本次请求是否显式指定了该变量的取值。
+         * <p>
+         * 为 false 表示取值沿用现有配置（作业模板默认值、执行方案默认值或定时任务原有取值），
+         * 单据要把这件事标出来：同一个取值是"本次改成这样"还是"一直就是这样"，审批结论可能完全不同
+         */
+        @JsonProperty("assigned")
+        private Boolean assigned;
+
+        /**
+         * 主机类变量解析出的主机，形如 云区域ID:IP；台数超过 {@link #MAX_GLOBAL_VAR_HOST_COUNT} 时为空
+         */
+        @JsonProperty("hosts")
+        private List<String> hosts;
+
+        /**
+         * 主机类变量的静态主机台数，无论是否逐台列出都如实带回
+         */
+        @JsonProperty("host_count")
+        private Integer hostCount;
+
+        /**
+         * 主机类变量里动态分组的个数。实际主机在放行时才解析，台数算不出来
+         */
+        @JsonProperty("dynamic_group_count")
+        private Integer dynamicGroupCount;
+
+        /**
+         * 主机类变量里拓扑节点的个数。实际主机在放行时才解析，台数算不出来
+         */
+        @JsonProperty("topo_node_count")
+        private Integer topoNodeCount;
+
+        /**
+         * 主机类变量里容器的个数
+         */
+        @JsonProperty("container_count")
+        private Integer containerCount;
+
+        /**
+         * 手写 setter 让截断成为绕不过去的不变式：调用方各写一遍必然有人漏掉，
+         * 而单个变量取值就能把整份概要撑到落库失败
+         */
+        public void setValue(String value) {
+            if (value != null && value.length() > MAX_GLOBAL_VAR_VALUE_LENGTH) {
+                this.value = value.substring(0, MAX_GLOBAL_VAR_VALUE_LENGTH) + TRUNCATED_SUFFIX;
+                return;
+            }
+            this.value = value;
+        }
+
+        /**
+         * 逐台累计主机。台数超过上限后清掉已收集的清单、只留总数，
+         * <b>上限判断收在这里</b>，免得各下游各写一份判断而写出不一致的单据
+         *
+         * @param hostId  主机 ID，cloudIp 为空时用它兜底展示
+         * @param cloudIp 云区域ID:IP，审批人真正看得懂的那个值
+         */
+        public void addHost(Long hostId, String cloudIp) {
+            String display = hostDisplay(hostId, cloudIp);
+            if (display == null) {
+                // 既无 IP 又无主机 ID，展示不了也数不清，不计入台数
+                return;
+            }
+            hostCount = hostCount == null ? 1 : hostCount + 1;
+            if (hostCount > MAX_GLOBAL_VAR_HOST_COUNT) {
+                hosts = null;
+                return;
+            }
+            if (hosts == null) {
+                hosts = new ArrayList<>();
+            }
+            hosts.add(display);
+        }
+
+        private String hostDisplay(Long hostId, String cloudIp) {
+            if (cloudIp != null && !cloudIp.trim().isEmpty()) {
+                return cloudIp.trim();
+            }
+            return hostId == null ? null : "host_id:" + hostId;
         }
     }
 
