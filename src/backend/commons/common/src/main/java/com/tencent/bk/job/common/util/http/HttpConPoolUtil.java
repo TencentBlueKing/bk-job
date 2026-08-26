@@ -66,6 +66,8 @@ public class HttpConPoolUtil {
             .setConnectionTimeToLive(80, TimeUnit.SECONDS).evictExpiredConnections()
             .evictIdleConnections(60, TimeUnit.SECONDS).disableAutomaticRetries().disableAuthCaching()
             .disableCookieManagement().setMaxConnPerRoute(500).setMaxConnTotal(1000)
+            // 禁止自动跟随跳转：避免回调地址通过白名单校验后，再被 3xx 重定向到内网地址造成 SSRF
+            .disableRedirectHandling()
             .setSSLSocketFactory(JobHttpSslSocketFactory.create(true));
         HTTP_CLIENT = httpClientBuilder.build();
     }
