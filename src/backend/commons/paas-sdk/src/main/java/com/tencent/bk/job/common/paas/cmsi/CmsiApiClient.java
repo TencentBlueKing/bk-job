@@ -41,8 +41,10 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -67,8 +69,16 @@ public class CmsiApiClient extends BkApiClient {
     public CmsiApiClient(EsbProperties esbProperties,
                          AppProperties appProperties,
                          MeterRegistry meterRegistry) {
+        this(esbProperties, appProperties, meterRegistry,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_CMSI));
+    }
+
+    public CmsiApiClient(EsbProperties esbProperties,
+                         AppProperties appProperties,
+                         MeterRegistry meterRegistry,
+                         boolean sslVerifyEnabled) {
         super(meterRegistry, ESB_CMSI_API, esbProperties.getService().getUrl(),
-            HttpHelperFactory.getDefaultHttpHelper());
+            HttpHelperFactory.getDefaultHttpHelper(sslVerifyEnabled));
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }

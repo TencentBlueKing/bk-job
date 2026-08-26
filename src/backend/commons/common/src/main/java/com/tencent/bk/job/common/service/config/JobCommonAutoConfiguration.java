@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.context.JobContextThreadLocalAccessor;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.context.ThreadLocalAccessor;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.tracing.Tracer;
@@ -40,6 +42,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -48,6 +51,7 @@ import org.springframework.context.annotation.Lazy;
 @Slf4j
 @Configuration(proxyBeanMethods = false)
 @Import({JobCommonConfig.class, BkConfig.class})
+@EnableConfigurationProperties(JobHttpSslVerifyProperties.class)
 public class JobCommonAutoConfiguration {
     @Bean("applicationContextRegister")
     @Lazy(false)
@@ -56,8 +60,10 @@ public class JobCommonAutoConfiguration {
     }
 
     @Bean
-    HttpConfigSetter httpConfigSetter(@Autowired MeterRegistry meterRegistry) {
+    HttpConfigSetter httpConfigSetter(@Autowired MeterRegistry meterRegistry,
+                                      JobHttpSslVerifyProperties sslVerifyProperties) {
         HttpHelperFactory.setMeterRegistry(meterRegistry);
+        JobHttpSslVerifyConfig.setProperties(sslVerifyProperties);
         log.info("meterRegistry for HttpHelperFactory init");
         return new HttpConfigSetter();
     }

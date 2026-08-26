@@ -35,20 +35,14 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.ConnectionConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -71,17 +65,9 @@ public class HttpConPoolUtil {
             // to respond
             .setConnectionTimeToLive(80, TimeUnit.SECONDS).evictExpiredConnections()
             .evictIdleConnections(60, TimeUnit.SECONDS).disableAutomaticRetries().disableAuthCaching()
-            .disableCookieManagement().setMaxConnPerRoute(500).setMaxConnTotal(1000);
-
-        CloseableHttpClient tmp;
-        try {
-            tmp = httpClientBuilder.setSSLSocketFactory(new SSLConnectionSocketFactory(
-                SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build())).build();
-        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-            log.error("Init http client error", e);
-            tmp = httpClientBuilder.build();
-        }
-        HTTP_CLIENT = tmp;
+            .disableCookieManagement().setMaxConnPerRoute(500).setMaxConnTotal(1000)
+            .setSSLSocketFactory(JobHttpSslSocketFactory.create(true));
+        HTTP_CLIENT = httpClientBuilder.build();
     }
 
     /**

@@ -79,7 +79,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                               PolicyService policyService,
                               JobIamProperties jobIamProperties,
                               EsbProperties esbProperties,
-                              MeterRegistry meterRegistry) {
+                              MeterRegistry meterRegistry,
+                              boolean sslVerifyEnabled) {
         this.authHelper = authHelper;
         this.businessAuthHelper = businessAuthHelper;
         this.policyService = policyService;
@@ -87,7 +88,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         this.iamClient = new EsbIamClient(
             meterRegistry,
             new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
-            esbProperties);
+            esbProperties,
+            sslVerifyEnabled);
     }
 
     @Override

@@ -57,7 +57,7 @@ public class JobGatewayBootApplication {
 
     private final NettyWebServerFactoryCustomizer nettyWebServerFactoryCustomizer;
 
-    @Value("${server.http.enabled}")
+    @Value("${server.http.enabled:false}")
     private Boolean httpEnabled;
 
     @Value("${server.http.port:}")

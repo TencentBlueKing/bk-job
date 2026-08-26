@@ -22,35 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config;
+package com.tencent.bk.job.common.util.http;
 
-import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+/**
+ * Job 通过 HTTP 调用的外部系统，用于按系统区分 HTTPS 证书校验开关
+ */
+public enum ExternalSystemEnum {
 
-@Configuration(proxyBeanMethods = false)
-@Slf4j
-public class CmsiAutoConfiguration {
-
-    @Bean
-    public CmsiApiClient cmsiApiClient(AppProperties appProperties,
-                                       EsbProperties esbProperties,
-                                       JobHttpSslVerifyProperties sslVerifyProperties,
-                                       ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
-        log.info("Init CmsiApiClient");
-        return new CmsiApiClient(
-            esbProperties,
-            appProperties,
-            meterRegistryObjectProvider.getIfAvailable(),
-            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_CMSI)
-        );
-    }
-
+    /**
+     * 管控平台 GSE
+     */
+    GSE,
+    /**
+     * 配置平台 CMDB
+     */
+    CMDB,
+    /**
+     * 权限中心 IAM
+     */
+    IAM,
+    /**
+     * 统一登录 BK-Login
+     */
+    BK_LOGIN,
+    /**
+     * 用户管理 BK-User
+     */
+    BK_USER,
+    /**
+     * 制品库 BK-Repo
+     */
+    BK_REPO,
+    /**
+     * 消息通知中心 BK-Notice
+     */
+    BK_NOTICE,
+    /**
+     * 蓝鲸消息管理 CMSI（通过 ESB 发送通知消息）
+     */
+    BK_CMSI,
+    /**
+     * 蓝鲸 AI 开发平台 BK-AIDev
+     */
+    BK_AI_DEV
 }

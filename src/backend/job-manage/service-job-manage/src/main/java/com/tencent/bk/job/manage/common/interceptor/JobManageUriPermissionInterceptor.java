@@ -75,7 +75,7 @@ public class JobManageUriPermissionInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String username = JobContextUtil.getUsername();
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
 
         //仅超级管理员可使用管理相关接口
         if (pathMatcher.match(URI_PATTERN_NOTIFY_BLACKLIST, uri)) {

@@ -67,10 +67,17 @@ public class UserMgrApiClient extends BkApiClient {
     public UserMgrApiClient(EsbProperties esbProperties,
                             AppProperties appProperties,
                             MeterRegistry meterRegistry) {
+        this(esbProperties, appProperties, meterRegistry, true);
+    }
+
+    public UserMgrApiClient(EsbProperties esbProperties,
+                            AppProperties appProperties,
+                            MeterRegistry meterRegistry,
+                            boolean sslVerifyEnabled) {
         super(meterRegistry,
             ESB_USER_MANAGE_API,
             esbProperties.getService().getUrl(),
-            HttpHelperFactory.getRetryableHttpHelper(),
+            HttpHelperFactory.getRetryableHttpHelper(sslVerifyEnabled),
             EsbLang.EN
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),

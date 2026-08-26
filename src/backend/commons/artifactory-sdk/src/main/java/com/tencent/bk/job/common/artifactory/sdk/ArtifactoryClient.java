@@ -58,10 +58,12 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.http.HttpRequest;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -115,14 +117,25 @@ public class ArtifactoryClient {
     private final String password;
     private final MeterRegistry meterRegistry;
 
-    private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
-    private final HttpHelper longHttpHelper = HttpHelperFactory.getLongRetryableHttpHelper();
+    private final HttpHelper httpHelper;
+    private final HttpHelper longHttpHelper;
 
     public ArtifactoryClient(String baseUrl, String username, String password, MeterRegistry meterRegistry) {
+        this(baseUrl, username, password, meterRegistry,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_REPO));
+    }
+
+    public ArtifactoryClient(String baseUrl,
+                             String username,
+                             String password,
+                             MeterRegistry meterRegistry,
+                             boolean sslVerifyEnabled) {
         this.baseUrl = StringUtil.removeSuffix(baseUrl, "/");
         this.username = username;
         this.password = password;
         this.meterRegistry = meterRegistry;
+        this.httpHelper = HttpHelperFactory.getDefaultHttpHelper(sslVerifyEnabled);
+        this.longHttpHelper = HttpHelperFactory.getLongRetryableHttpHelper(sslVerifyEnabled);
     }
 
     private String getCompleteUrl(String url) {

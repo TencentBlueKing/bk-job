@@ -85,7 +85,7 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
         // 只拦截web/service/esb的API请求
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }

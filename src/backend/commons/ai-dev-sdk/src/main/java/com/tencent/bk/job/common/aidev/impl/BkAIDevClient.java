@@ -45,8 +45,10 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import org.apache.commons.collections4.CollectionUtils;
@@ -64,20 +66,31 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
     private final AppProperties appProperties;
     private final BkApiGatewayProperties.ApiGwConfig bkAIDevConfig;
     private final CustomPaasLoginProperties customPaasLoginProperties;
+    private final boolean sslVerifyEnabled;
 
     public BkAIDevClient(MeterRegistry meterRegistry,
                          AppProperties appProperties,
                          CustomPaasLoginProperties customPaasLoginProperties,
                          BkApiGatewayProperties bkApiGatewayProperties) {
+        this(meterRegistry, appProperties, customPaasLoginProperties, bkApiGatewayProperties,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_AI_DEV));
+    }
+
+    public BkAIDevClient(MeterRegistry meterRegistry,
+                         AppProperties appProperties,
+                         CustomPaasLoginProperties customPaasLoginProperties,
+                         BkApiGatewayProperties bkApiGatewayProperties,
+                         boolean sslVerifyEnabled) {
         super(
             meterRegistry,
             CommonMetricNames.BK_AI_DEV_API,
             getBkAIDevUrlSafely(bkApiGatewayProperties),
-            HttpHelperFactory.getDefaultHttpHelper()
+            HttpHelperFactory.getDefaultHttpHelper(sslVerifyEnabled)
         );
         this.appProperties = appProperties;
         this.bkAIDevConfig = bkApiGatewayProperties.getBkAIDev();
         this.customPaasLoginProperties = customPaasLoginProperties;
+        this.sslVerifyEnabled = sslVerifyEnabled;
     }
 
     private static String getBkAIDevUrlSafely(BkApiGatewayProperties bkApiGatewayProperties) {
@@ -190,7 +203,7 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
                 .setIdempotent(idempotent)
                 .build();
             return requestApiAndWrapResponse(requestInfo, typeReference,
-                HttpHelperFactory.getLongRetryableHttpHelper());
+                HttpHelperFactory.getLongRetryableHttpHelper(sslVerifyEnabled));
         } catch (Exception e) {
             throw new BkAIDevException(e, ErrorCode.BK_AI_DEV_API_DATA_ERROR, null);
         } finally {

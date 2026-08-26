@@ -61,8 +61,15 @@ public class StandardLoginClient extends BkApiClient implements ILoginClient {
     private final AppProperties appProperties;
 
     public StandardLoginClient(EsbProperties esbProperties, AppProperties appProperties, MeterRegistry meterRegistry) {
+        this(esbProperties, appProperties, meterRegistry, true);
+    }
+
+    public StandardLoginClient(EsbProperties esbProperties,
+                               AppProperties appProperties,
+                               MeterRegistry meterRegistry,
+                               boolean sslVerifyEnabled) {
         super(meterRegistry, ESB_BK_LOGIN_API, esbProperties.getService().getUrl(),
-            HttpHelperFactory.getDefaultHttpHelper());
+            HttpHelperFactory.getDefaultHttpHelper(sslVerifyEnabled));
         this.appProperties = appProperties;
     }
 

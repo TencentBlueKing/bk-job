@@ -51,12 +51,17 @@ import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_TENANT_ID;
 public class IamHttpClientServiceImpl implements HttpClientService {
 
     private final String DEFAULT_CHARSET = "UTF-8";
-    private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final HttpHelper httpHelper;
     private final IamConfiguration iamConfiguration;
 
     public IamHttpClientServiceImpl(IamConfiguration iamConfiguration) {
+        this(iamConfiguration, true);
+    }
+
+    public IamHttpClientServiceImpl(IamConfiguration iamConfiguration, boolean sslVerifyEnabled) {
         this.iamConfiguration = iamConfiguration;
-        log.debug("IamHttpClientServiceImpl init");
+        this.httpHelper = HttpHelperFactory.getDefaultHttpHelper(sslVerifyEnabled);
+        log.debug("IamHttpClientServiceImpl init, sslVerifyEnabled={}", sslVerifyEnabled);
     }
 
     @Override
