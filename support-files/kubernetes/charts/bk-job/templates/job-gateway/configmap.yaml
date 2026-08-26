@@ -115,14 +115,6 @@ data:
                     - StripPrefix=1
                     - AddWebLangHeader
 
-                - id: job-file-gateway-remote
-                  uri: lb://job-file-gateway
-                  predicates:
-                    - Path= /job-file-gateway/remote/**
-                  filters:
-                    - AuthorizeRemote
-                    - StripPrefix=1
-
                 - id: job-manage-esb
                   uri: lb://job-manage
                   predicates:
@@ -257,14 +249,6 @@ data:
                     - CsrfCheck
                     - StripPrefix=1
                     - AddWebLangHeader
-
-                - id: job-file-gateway-remote
-                  uri: lb://job-assemble
-                  predicates:
-                    - Path= /job-file-gateway/remote/**
-                  filters:
-                    - AuthorizeRemote
-                    - StripPrefix=1
 
                 - id: job-esb
                   uri: lb://job-assemble

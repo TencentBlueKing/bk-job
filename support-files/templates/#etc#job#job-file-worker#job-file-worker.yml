@@ -25,5 +25,5 @@ job:
   # 文件网关
   file-gateway:
     api:
-      # API根地址
-      root-url: __BK_JOB_API_PUBLIC_URL__/job-file-gateway
+      # API根地址，直连文件网关，不经过job-gateway
+      root-url: http://job-file-gateway.service.consul:__BK_JOB_FILE_GATEWAY_SERVER_PORT__
