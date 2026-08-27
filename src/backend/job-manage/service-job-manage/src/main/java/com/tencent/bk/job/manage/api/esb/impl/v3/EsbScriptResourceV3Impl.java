@@ -180,6 +180,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
         ScriptQuery scriptQuery = buildListPageScriptQuery(request);
 
+        // 设计如此：脚本列表只返回元数据，不返回脚本内容，因此不需要鉴 VIEW_SCRIPT 单个资源查看权限
         PageData<ScriptDTO> pageScripts = scriptService.listPageScript(scriptQuery);
         setOnlineScriptVersionInfo(pageScripts.getData());
 
