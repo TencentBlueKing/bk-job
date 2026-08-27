@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -138,6 +139,8 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     @Override
+    // 该方法直接调用 POST 实现，自调用不经过 Spring 代理，切面不会生效，因此审计注解必须在此重复声明
+    @AuditEntry(actionId = ActionId.MANAGE_CRON)
     public EsbResp<EsbCronInfoV3DTO> getCronDetail(String username,
                                                    String appCode,
                                                    Long bizId,
@@ -160,6 +163,8 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
                                                                          EsbGetCronListV3Request request) {
         if (request.validate()) {
             if (request.getId() != null && request.getId() > 0) {
+                // 有id参数，直接通过id查询
+                // 返回时会把详细信息抹除，只返回概览，因此无需鉴对这个定时任务的view权限
                 CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
                 cronJobInfoById.setVariableValue(null);
                 List<EsbCronInfoV3DTO> data = Collections
@@ -370,14 +375,25 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_CRON)
     public EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(String username,
                                                             String appCode,
-                                                            EsbGetCronDetailV3Request request) {
-        if (request.validate()) {
-            CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
-            return EsbResp.buildSuccessResp(CronJobInfoDTO.toEsbCronInfoV3(cronJobInfoById));
-        } else {
+                                                            @AuditRequestBody EsbGetCronDetailV3Request request) {
+        if (!request.validate()) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
+        AuthResult authResult = cronAuthService.authManageCron(
+            JobContextUtil.getUser(),
+            new AppResourceScope(request.getScopeType(), request.getScopeId(), request.getAppId()),
+            request.getId(),
+            null
+        );
+        authResult.denyIfNoPermission();
+
+        CronJobInfoDTO cronJobInfo = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
+        if (cronJobInfo == null) {
+            throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
+        }
+        return EsbResp.buildSuccessResp(CronJobInfoDTO.toEsbCronInfoV3(cronJobInfo));
     }
 }
