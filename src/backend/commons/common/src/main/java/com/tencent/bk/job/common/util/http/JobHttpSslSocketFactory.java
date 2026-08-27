@@ -22,35 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config;
+package com.tencent.bk.job.common.util.http;
 
-import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.ssl.SSLContexts;
 
-@Configuration(proxyBeanMethods = false)
+import javax.net.ssl.SSLContext;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+
+/**
+ * 创建 Apache HttpClient 4.x SSL 套接字工厂
+ */
 @Slf4j
-public class CmsiAutoConfiguration {
+public final class JobHttpSslSocketFactory {
 
-    @Bean
-    public CmsiApiClient cmsiApiClient(AppProperties appProperties,
-                                       EsbProperties esbProperties,
-                                       JobHttpSslVerifyProperties sslVerifyProperties,
-                                       ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
-        log.info("Init CmsiApiClient");
-        return new CmsiApiClient(
-            esbProperties,
-            appProperties,
-            meterRegistryObjectProvider.getIfAvailable(),
-            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_CMSI)
-        );
+    private JobHttpSslSocketFactory() {
     }
 
+    /**
+     * @param sslVerifyEnabled true 使用 JVM 默认信任库并校验主机名；false 关闭证书与主机名校验
+     */
+    public static SSLConnectionSocketFactory create(boolean sslVerifyEnabled) {
+        if (sslVerifyEnabled) {
+            return SSLConnectionSocketFactory.getSocketFactory();
+        }
+        try {
+            log.warn("HTTPS certificate verification is disabled, connections are vulnerable to MITM");
+            SSLContext sslContext = SSLContexts.custom()
+                .loadTrustMaterial(null, (chain, authType) -> true)
+                .build();
+            return new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
+            throw new IllegalStateException("Fail to create insecure SSL socket factory", e);
+        }
+    }
 }

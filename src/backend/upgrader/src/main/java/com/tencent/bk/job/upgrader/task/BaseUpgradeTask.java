@@ -36,6 +36,8 @@ import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.http.BaseHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpRequest;
+import com.tencent.bk.job.common.util.http.JobHttpSslSocketFactory;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.client.JobClient;
@@ -45,29 +47,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.ConnectionConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.ssl.SSLContexts;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 
 @Slf4j
 public abstract class BaseUpgradeTask implements IUpgradeTask {
 
     private Properties properties;
-    private static final HttpHelper HTTP_HELPER;
-
-    static {
-        HTTP_HELPER = new BaseHttpHelper(getHttpClient());
-    }
+    private static volatile HttpHelper HTTP_HELPER;
 
     BaseUpgradeTask() {
 
@@ -129,7 +121,7 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
         headers[1] = new BasicHeader("Content-Type", "application/json");
 
         try {
-            String respStr = HTTP_HELPER.requestForSuccessResp(
+            String respStr = getHttpHelper().requestForSuccessResp(
                     HttpRequest.builder(HttpMethodEnum.POST, url).setStringEntity(content).setHeaders(headers).build())
                 .getEntity();
             log.info("Post {}, content: {}, response: {}", url, content, respStr);
@@ -207,6 +199,20 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
         return this.getClass().getAnnotation(UpgradeTask.class).priority();
     }
 
+    private static HttpHelper getHttpHelper() {
+        HttpHelper helper = HTTP_HELPER;
+        if (helper == null) {
+            synchronized (BaseUpgradeTask.class) {
+                helper = HTTP_HELPER;
+                if (helper == null) {
+                    helper = new BaseHttpHelper(getHttpClient());
+                    HTTP_HELPER = helper;
+                }
+            }
+        }
+        return helper;
+    }
+
     private static CloseableHttpClient getHttpClient() {
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
             .setDefaultConnectionConfig(
@@ -221,21 +227,8 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
                     .setSocketTimeout(43200000)
                     .build()
             )
-            .disableAutomaticRetries();
-
-        CloseableHttpClient httpClient;
-        try {
-            httpClient = httpClientBuilder.setSSLSocketFactory(
-                new SSLConnectionSocketFactory(
-                    SSLContexts.custom()
-                        .loadTrustMaterial(null, new TrustSelfSignedStrategy())
-                        .build()
-                )
-            ).build();
-        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-            log.error("Set ssl config error", e);
-            httpClient = httpClientBuilder.build();
-        }
-        return httpClient;
+            .disableAutomaticRetries()
+            .setSSLSocketFactory(JobHttpSslSocketFactory.create(JobHttpSslVerifyConfig.isGlobalVerifyEnabled()));
+        return httpClientBuilder.build();
     }
 }

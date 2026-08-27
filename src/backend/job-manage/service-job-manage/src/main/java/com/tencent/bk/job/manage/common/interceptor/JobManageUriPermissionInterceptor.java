@@ -47,20 +47,14 @@ import jakarta.servlet.http.HttpServletResponse;
 @Slf4j
 @Component
 @JobInterceptor(pathPatterns = {
-    "/web/whiteIP/**",
     "/web/notify/users/blacklist",
     "/web/globalSettings/**",
-    "/web/public_script/**",
-    "/web/public_tag/**",
     "/web/serviceInfo/**",
     "/web/dangerousRule/**"},
     order = InterceptorOrder.AUTH.AUTH_COMMON)
 public class JobManageUriPermissionInterceptor implements HandlerInterceptor {
-    private final String URI_PATTERN_WHITE_IP = "/web/whiteIP/**";
     private final String URI_PATTERN_NOTIFY_BLACKLIST = "/web/notify/users/blacklist";
     private final String URI_PATTERN_GLOBAL_SETTINGS = "/web/globalSettings/**";
-    private final String URI_PATTERN_PUBLIC_SCRIPT = "/web/public_script/**";
-    private final String URI_PATTERN_PUBLIC_TAG = "/web/public_tag/**";
     private final String URI_PATTERN_SERVICE_INFO = "/web/serviceInfo/**";
     private final String URI_PATTERN_DANGEROUS_RULE = "/web/dangerousRule/**";
     private final AuthService authService;
@@ -75,7 +69,7 @@ public class JobManageUriPermissionInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String username = JobContextUtil.getUsername();
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
 
         //仅超级管理员可使用管理相关接口
         if (pathMatcher.match(URI_PATTERN_NOTIFY_BLACKLIST, uri)) {

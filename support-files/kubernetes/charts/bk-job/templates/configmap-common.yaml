@@ -121,6 +121,10 @@ data:
         sm2-private-key: {{.Values.job.encrypt.sm2PrivateKey}}
       web:
         url: {{ include "job.web.url" . }}
+      http:
+        ssl:
+          verify:
+            {{- toYaml .Values.job.http.ssl.verify | nindent 12 }}
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
     cmdb:

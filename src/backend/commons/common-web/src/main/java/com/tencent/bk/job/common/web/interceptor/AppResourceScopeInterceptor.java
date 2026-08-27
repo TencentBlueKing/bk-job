@@ -85,7 +85,7 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
         // 只拦截web/service/esb的API请求
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
@@ -99,7 +99,9 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
         AppResourceScope appResourceScope = null;
         switch (requestSource) {
             case WEB:
-                appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
+                // 必须使用 getServletPath()：getRequestURI() 未解码且含 context-path，
+                // scopeId 被百分号编码时正则会匹配失败，导致 scope 为空而跳过业务鉴权
+                appResourceScope = parseAppResourceScopeFromPath(request.getServletPath());
                 log.debug("Scope from path:{}", appResourceScope);
                 break;
             case ESB:

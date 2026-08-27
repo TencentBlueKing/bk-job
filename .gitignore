@@ -38,3 +38,4 @@ tests/openapi/bin/
 
 # Claude Code
 .claude/
+.codegraph

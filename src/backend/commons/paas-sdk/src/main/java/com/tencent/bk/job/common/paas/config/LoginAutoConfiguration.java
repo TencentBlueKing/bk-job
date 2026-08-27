@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.paas.login.CustomLoginClient;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
 import com.tencent.bk.job.common.paas.login.StandardLoginClient;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -46,9 +48,13 @@ public class LoginAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "true")
-    public ILoginClient customLoginClient(@Autowired LoginConfiguration loginConfiguration) {
+    public ILoginClient customLoginClient(@Autowired LoginConfiguration loginConfiguration,
+                                          JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init CustomLoginClient");
-        return new CustomLoginClient(loginConfiguration.getCustomLoginApiUrl());
+        return new CustomLoginClient(
+            loginConfiguration.getCustomLoginApiUrl(),
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_LOGIN)
+        );
     }
 
     @Bean
@@ -56,13 +62,15 @@ public class LoginAutoConfiguration {
     @Primary
     public ILoginClient standardLoginClient(AppProperties appProperties,
                                             EsbProperties esbProperties,
+                                            JobHttpSslVerifyProperties sslVerifyProperties,
                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
 
         log.info("Init StandardLoginClient");
         return new StandardLoginClient(
             esbProperties,
             appProperties,
-            meterRegistryObjectProvider.getIfAvailable()
+            meterRegistryObjectProvider.getIfAvailable(),
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_LOGIN)
         );
     }
 }

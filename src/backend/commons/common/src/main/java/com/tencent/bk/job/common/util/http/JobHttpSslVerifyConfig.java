@@ -22,43 +22,51 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.filter.remote;
+package com.tencent.bk.job.common.util.http;
 
-import com.tencent.bk.job.gateway.config.LicenseConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Component;
 
 /**
- * 用户token校验
+ * HTTP 客户端证书校验开关的静态入口，供无法注入 Spring Bean 的场景（静态工厂、升级工具等）使用。
+ * <p>
+ * 配置来源为 {@code job.http.ssl.verify}，默认所有系统都校验证书。
  */
 @Slf4j
-@Component
-public class AuthorizeRemoteGatewayFilterFactory
-    extends AbstractGatewayFilterFactory<AuthorizeRemoteGatewayFilterFactory.Config> {
+public final class JobHttpSslVerifyConfig {
 
-    private final LicenseConfig bkConfig;
+    private static volatile JobHttpSslVerifyProperties properties = new JobHttpSslVerifyProperties();
 
-    @Autowired
-    public AuthorizeRemoteGatewayFilterFactory(LicenseConfig bkConfig) {
-        super(Config.class);
-        this.bkConfig = bkConfig;
+    private JobHttpSslVerifyConfig() {
     }
 
-    @Override
-    public GatewayFilter apply(Config config) {
-        return (exchange, chain) -> {
-            ServerHttpRequest request = exchange.getRequest();
-            // TODO:Worker远程调用的单独校验
-            return chain.filter(exchange.mutate().request(request).build());
-        };
+    public static void setProperties(JobHttpSslVerifyProperties sslVerifyProperties) {
+        if (sslVerifyProperties == null) {
+            return;
+        }
+        properties = sslVerifyProperties;
+        log.info("job.http.ssl.verify={}", sslVerifyProperties);
     }
 
-    static class Config {
-
+    /**
+     * 仅设置全局开关，用于只能读取扁平化配置的场景（如升级工具）
+     */
+    public static void setGlobalVerifyEnabled(boolean enabled) {
+        JobHttpSslVerifyProperties sslVerifyProperties = new JobHttpSslVerifyProperties();
+        sslVerifyProperties.setEnabled(enabled);
+        setProperties(sslVerifyProperties);
     }
 
+    public static boolean isGlobalVerifyEnabled() {
+        return properties.isEnabled();
+    }
+
+    /**
+     * 解析指定外部系统是否校验证书，系统级未配置时继承全局配置
+     *
+     * @param system 外部系统
+     * @return true 表示校验证书
+     */
+    public static boolean isVerifyEnabled(ExternalSystemEnum system) {
+        return properties.isVerifyEnabled(system);
+    }
 }

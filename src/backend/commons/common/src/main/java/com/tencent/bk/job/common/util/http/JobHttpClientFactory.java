@@ -24,26 +24,18 @@
 
 package com.tencent.bk.job.common.util.http;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
-import org.apache.http.ssl.SSLContexts;
 
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Job http client 工厂
  */
-@Slf4j
 public class JobHttpClientFactory {
     /**
      * 创建 HttpClient
@@ -76,7 +68,8 @@ public class JobHttpClientFactory {
             retryHandler,
             (httpClientBuilder) -> {
                 // do nothing
-            });
+            },
+            true);
     }
 
     public static CloseableHttpClient createHttpClient(int connRequestTimeout,
@@ -88,6 +81,34 @@ public class JobHttpClientFactory {
                                                        boolean allowRetry,
                                                        HttpRequestRetryHandler retryHandler,
                                                        HttpClientCustomizer customizer) {
+        return createHttpClient(
+            connRequestTimeout,
+            connTimeout,
+            socketTimeout,
+            maxConnPerRoute,
+            maxConnTotal,
+            timeToLive,
+            allowRetry,
+            retryHandler,
+            customizer,
+            true);
+    }
+
+    /**
+     * 创建 HttpClient
+     *
+     * @param sslVerifyEnabled 是否校验 HTTPS 证书，默认 true
+     */
+    public static CloseableHttpClient createHttpClient(int connRequestTimeout,
+                                                       int connTimeout,
+                                                       int socketTimeout,
+                                                       int maxConnPerRoute,
+                                                       int maxConnTotal,
+                                                       int timeToLive,
+                                                       boolean allowRetry,
+                                                       HttpRequestRetryHandler retryHandler,
+                                                       HttpClientCustomizer customizer,
+                                                       boolean sslVerifyEnabled) {
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
             .setDefaultRequestConfig(
                 RequestConfig.custom()
@@ -110,16 +131,7 @@ public class JobHttpClientFactory {
             }
         }
 
-        LayeredConnectionSocketFactory sslSocketFactory = null;
-        try {
-            sslSocketFactory = new SSLConnectionSocketFactory(
-                SSLContexts.custom()
-                    .loadTrustMaterial(null, new TrustSelfSignedStrategy())
-                    .build()
-            );
-        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-            log.error("Create HttpClient exception", e);
-        }
+        LayeredConnectionSocketFactory sslSocketFactory = JobHttpSslSocketFactory.create(sslVerifyEnabled);
         httpClientBuilder.setConnectionManager(
             JobHttpClientConnectionManagerFactory.createWatchableConnectionManager(
                 maxConnPerRoute,

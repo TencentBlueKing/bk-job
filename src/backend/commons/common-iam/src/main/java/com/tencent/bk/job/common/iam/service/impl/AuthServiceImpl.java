@@ -81,12 +81,22 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                            EsbProperties esbProperties,
                            MessageI18nService i18nService,
                            MeterRegistry meterRegistry) {
+        this(authHelper, iamConfiguration, esbProperties, i18nService, meterRegistry, true);
+    }
+
+    public AuthServiceImpl(AuthHelper authHelper,
+                           IamConfiguration iamConfiguration,
+                           EsbProperties esbProperties,
+                           MessageI18nService i18nService,
+                           MeterRegistry meterRegistry,
+                           boolean sslVerifyEnabled) {
         this.authHelper = authHelper;
         this.i18nService = i18nService;
         this.iamClient = new EsbIamClient(
             meterRegistry,
             new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
-            esbProperties);
+            esbProperties,
+            sslVerifyEnabled);
     }
 
     @Override

@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.aidev.impl.BkAIDevClient;
 import com.tencent.bk.job.common.aidev.impl.BkOpenAIClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +46,15 @@ public class AIDevAutoConfiguration {
     public BkAIDevClient bkAIDevClient(MeterRegistry meterRegistry,
                                        AppProperties appProperties,
                                        CustomPaasLoginProperties customPaasLoginProperties,
-                                       BkApiGatewayProperties bkApiGatewayProperties) {
-        return new BkAIDevClient(meterRegistry, appProperties, customPaasLoginProperties, bkApiGatewayProperties);
+                                       BkApiGatewayProperties bkApiGatewayProperties,
+                                       JobHttpSslVerifyProperties sslVerifyProperties) {
+        return new BkAIDevClient(
+            meterRegistry,
+            appProperties,
+            customPaasLoginProperties,
+            bkApiGatewayProperties,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_AI_DEV)
+        );
     }
 
     @Bean

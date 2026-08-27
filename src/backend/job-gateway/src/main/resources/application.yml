@@ -10,7 +10,7 @@ spring:
         webflux:
           httpclient:
             ssl:
-              use-insecure-trust-manager: true
+              use-insecure-trust-manager: false
           discovery:
             locator:
               enabled: false

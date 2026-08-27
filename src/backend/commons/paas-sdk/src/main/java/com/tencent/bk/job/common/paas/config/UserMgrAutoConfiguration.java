@@ -27,6 +27,8 @@ package com.tencent.bk.job.common.paas.config;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -40,9 +42,15 @@ public class UserMgrAutoConfiguration {
     @Bean
     public UserMgrApiClient userMgrApiClient(AppProperties appProperties,
                                              EsbProperties esbProperties,
-                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                             JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init UserMgrApiClient");
-        return new UserMgrApiClient(esbProperties, appProperties, meterRegistryObjectProvider.getIfAvailable());
+        return new UserMgrApiClient(
+            esbProperties,
+            appProperties,
+            meterRegistryObjectProvider.getIfAvailable(),
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_USER)
+        );
     }
 
 }
