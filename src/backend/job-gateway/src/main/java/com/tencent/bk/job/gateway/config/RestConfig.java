@@ -24,17 +24,17 @@
 
 package com.tencent.bk.job.gateway.config;
 
+import com.tencent.bk.job.common.util.http.JobHttpSslSocketFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +45,6 @@ import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
 import java.util.List;
 
 @Slf4j
@@ -53,7 +52,9 @@ import java.util.List;
 public class RestConfig {
     @Bean
     @ConditionalOnMissingBean({RestOperations.class, RestTemplate.class})
-    public RestTemplate restTemplate() {
+    public RestTemplate restTemplate(
+        @Value("${job.http.ssl.verify.enabled:true}") boolean sslVerifyEnabled
+    ) {
         HttpComponentsClientHttpRequestFactory factory = new
             HttpComponentsClientHttpRequestFactory();
         factory.setConnectionRequestTimeout(10000);
@@ -61,14 +62,7 @@ public class RestConfig {
         factory.setReadTimeout(10000);
         // https
         try {
-            SSLContextBuilder builder = new SSLContextBuilder();
-            builder.loadTrustMaterial(null, (X509Certificate[] x509Certificates, String s) -> true);
-            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
-                builder.build(),
-                null,
-                null,
-                NoopHostnameVerifier.INSTANCE
-            );
+            SSLConnectionSocketFactory socketFactory = JobHttpSslSocketFactory.create(sslVerifyEnabled);
             Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", new PlainConnectionSocketFactory())
                 .register("https", socketFactory).build();

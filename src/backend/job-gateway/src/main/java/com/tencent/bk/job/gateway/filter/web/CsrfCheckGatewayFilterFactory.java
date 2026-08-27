@@ -26,7 +26,6 @@ package com.tencent.bk.job.gateway.filter.web;
 
 import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import com.tencent.bk.job.common.util.RequestUtil;
-import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.gateway.common.consts.HeaderConsts;
 import com.tencent.bk.job.gateway.common.util.UrlUtil;
 import com.tencent.bk.job.gateway.config.CsrfCheckProperties;
@@ -37,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -46,12 +44,13 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -117,7 +116,6 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
                 "Empty csrfToken from header, request={}",
                 tryToGetRequestDesc(request)
             );
-            tryToLogRequestBody(request);
             return false;
         }
         String csrfTokenFromCookie = RequestUtil.getCookieValue(request, COOKIE_CSRF_KEY_NAME);
@@ -130,88 +128,79 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
                 "Invalid csrfToken, not match with csrfKey from cookie, request={}",
                 tryToGetRequestDesc(request)
             );
-            tryToLogRequestBody(request);
             return false;
         }
         return true;
     }
 
     /**
-     * 尝试获取请求描述
+     * 尝试获取请求描述。仅记录方法、路径、是否缺 CSRF 头，并对 Cookie/Authorization 做脱敏。
      *
      * @param request 请求
      * @return 请求描述
      */
-    @SuppressWarnings("StringBufferReplaceableByString")
     private String tryToGetRequestDesc(ServerHttpRequest request) {
         if (request == null) {
             return "null";
         }
-        int maxLength = 2048;
         try {
-            StringBuilder builder = new StringBuilder();
-            builder.append("[");
-            builder.append("uri=").append(request.getURI()).append(",");
-            builder.append("headers=").append(getHeadersDesc(request));
-            builder.append("]");
-            String requestDesc = builder.toString();
-            return StringUtil.substring(requestDesc, maxLength);
+            HttpMethod method = request.getMethod();
+            String methodName = method != null ? method.name() : "null";
+            URI uri = request.getURI();
+            String path = uri != null ? uri.getPath() : "null";
+            boolean csrfHeaderMissing = StringUtils.isBlank(
+                RequestUtil.getHeaderValue(request, HEADER_CSRF_TOKEN_NAME)
+            );
+            boolean csrfCookieMissing = StringUtils.isBlank(
+                RequestUtil.getCookieValue(request, COOKIE_CSRF_KEY_NAME)
+            );
+            return "[method=" + methodName
+                + ", path=" + path
+                + ", csrfHeaderMissing=" + csrfHeaderMissing
+                + ", csrfCookieMissing=" + csrfCookieMissing
+                + ", headers=" + getRedactedHeadersDesc(request)
+                + "]";
         } catch (Throwable t) {
             log.warn("tryToGetRequestDesc error", t);
-            return StringUtil.substring(request.toString(), maxLength);
+            return "unavailable";
         }
     }
 
     /**
-     * 尝试打印请求体
-     *
-     * @param request 请求
-     */
-    private void tryToLogRequestBody(ServerHttpRequest request) {
-        try {
-            getBodyDesc(request)
-                .doOnNext(bodyDesc -> {
-                    // 处理请求体描述
-                    log.info("body=" + bodyDesc);
-                })
-                .doOnError(error -> {
-                    // 处理错误
-                    log.warn("getBodyDesc error", error);
-                })
-                // 订阅以触发处理
-                .subscribe();
-        } catch (Throwable t) {
-            log.error("tryToLogRequestBody error", t);
-        }
-    }
-
-    /**
-     * 获取请求体描述
-     *
-     * @param request 请求
-     * @return 请求体描述
-     */
-    private Mono<String> getBodyDesc(ServerHttpRequest request) {
-        Flux<DataBuffer> body = request.getBody();
-        // 获取第一个 DataBuffer并转换为字符串
-        return body
-            .map(dataBuffer -> {
-                byte[] bytes = new byte[dataBuffer.readableByteCount()];
-                dataBuffer.read(bytes);
-                return new String(bytes, StandardCharsets.UTF_8);
-            })
-            .next();
-    }
-
-    /**
-     * 获取请求头描述
+     * 获取脱敏后的请求头描述
      *
      * @param request 请求
      * @return 请求头描述
      */
-    private String getHeadersDesc(ServerHttpRequest request) {
+    private String getRedactedHeadersDesc(ServerHttpRequest request) {
         HttpHeaders headers = request.getHeaders();
-        return headers.toString();
+        if (headers == null || headers.isEmpty()) {
+            return "[]";
+        }
+        HttpHeaders redacted = new HttpHeaders();
+        headers.forEach((name, values) -> {
+            if (isSensitiveHeader(name)) {
+                redacted.put(name, Collections.nCopies(values.size(), "***"));
+            } else {
+                redacted.put(name, values);
+            }
+        });
+        return redacted.toString();
+    }
+
+    private boolean isSensitiveHeader(String name) {
+        if (name == null) {
+            return false;
+        }
+        String lower = name.toLowerCase(Locale.ROOT);
+        return "cookie".equals(lower)
+            || "set-cookie".equals(lower)
+            || "authorization".equals(lower)
+            || "proxy-authorization".equals(lower)
+            || lower.contains("token")
+            || lower.contains("auth")
+            || lower.contains("secret")
+            || lower.contains("password");
     }
 
     /**

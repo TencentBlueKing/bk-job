@@ -58,7 +58,7 @@ public class JobIamInterceptor extends HandlerInterceptorAdapter {
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
         return uri.startsWith("/iam/api/v1/resources/");
     }
 

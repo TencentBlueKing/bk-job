@@ -43,9 +43,11 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.WatchableHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -135,7 +137,7 @@ public class BaseCmdbApiClient {
                                 CmdbConfig cmdbConfig,
                                 MeterRegistry meterRegistry,
                                 String lang) {
-        WatchableHttpHelper httpHelper = HttpHelperFactory.getLongRetryableHttpHelper();
+        WatchableHttpHelper httpHelper = longRetryableHttpHelper();
         this.esbCmdbApiClient = new BkApiClient(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             esbProperties.getService().getUrl(),
@@ -157,6 +159,12 @@ public class BaseCmdbApiClient {
             appProperties.getCode(), appProperties.getSecret(), "admin");
     }
 
+
+    protected WatchableHttpHelper longRetryableHttpHelper() {
+        return HttpHelperFactory.getLongRetryableHttpHelper(
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
+        );
+    }
 
     protected <T extends EsbReq> T makeCmdbBaseReq(Class<T> reqClass) {
         return EsbReq.buildRequest(reqClass, cmdbSupplierAccount);

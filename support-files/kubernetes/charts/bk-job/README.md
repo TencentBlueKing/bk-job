@@ -110,6 +110,16 @@ bitnami/rabbitmq
 | `job.security.actuator.user.name`    | actuator管理账号    | `actuator_name`       |
 | `job.security.actuator.user.password`    | actuator管理密码    | `actuator_password`       |
 | `job.encrypt.password`    | 加密DB密码/凭证的对称密钥    | `encrypt_password`       |
+| `job.http.ssl.verify.enabled`    | 全局是否校验调用外部系统的 HTTPS 证书，默认开启。`systems` 下未单独配置的系统继承该值    | `true`       |
+| `job.http.ssl.verify.systems.gse`    | 调用 GSE 时是否校验证书，留空则继承全局配置    | `true`       |
+| `job.http.ssl.verify.systems.cmdb`    | 调用 CMDB 时是否校验证书，留空则继承全局配置    | `true`       |
+| `job.http.ssl.verify.systems.iam`    | 调用 IAM 时是否校验证书，留空则继承全局配置    | `true`       |
+| `job.http.ssl.verify.systems.bkLogin`    | 调用 BK-Login 时是否校验证书，留空则继承全局配置    | `true`       |
+| `job.http.ssl.verify.systems.bkUser`    | 调用 BK-User 时是否校验证书，留空则继承全局配置    | `true`       |
+| `job.http.ssl.verify.systems.bkRepo`    | 调用制品库 BK-Repo 时是否校验证书，留空则继承全局配置    | `true`       |
+| `job.http.ssl.verify.systems.bkNotice`    | 调用消息通知中心 BK-Notice 时是否校验证书，留空则继承全局配置    | `true`       |
+| `job.http.ssl.verify.systems.bkCmsi`    | 调用蓝鲸消息管理 CMSI 时是否校验证书，留空则继承全局配置    | `true`       |
+| `job.http.ssl.verify.systems.bkAiDev`    | 调用蓝鲸 AI 开发平台时是否校验证书，留空则继承全局配置    | `true`       |
 | `job.migration.iamModel.enabled`    | 是否开启权限模型migration    | `true`       |
 | `job.migration.mysqlSchema.enabled`    | 是否开启Mysql数据库结构migration    | `true`       |
 | `job.web.domain` | 主站域名（前端与Web API使用）    | `job.example.com`       |
@@ -152,10 +162,6 @@ bitnami/rabbitmq
 | `gatewayConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `gatewayConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
 | `gatewayConfig.ingress.annotations.nginx.ingress.kubernetes.io/proxy-body-size` | 最大请求体限制    | `10240m`       |
-| `gatewayConfig.server.ssl.keystore.base64Content` | job-gateway开启https时使用的p12证书keystore单行base64编码内容    | `见values文件`       |
-| `gatewayConfig.server.ssl.keystore.password` | job-gateway开启https时使用的keystore的密码    | `mLnuob1**4D74c@F`       |
-| `gatewayConfig.server.ssl.truststore.base64Content` | job-gateway开启https时使用的p12证书truststore单行base64编码内容    | `见values文件`       |
-| `gatewayConfig.server.ssl.truststore.password` | job-gateway开启https时使用的truststore的密码    | `mLnuob1**4D74c@F`       |
 | `gatewayConfig.jvmOptions` | 运行时JVM参数    | `-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC`       |
 
 ### Job-Manage配置
