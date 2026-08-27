@@ -63,18 +63,20 @@ public class JobAnalysisUriPermissionInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String uri = request.getRequestURI();
-        if (pathMatcher.match(URI_PATTERN_WEB_STATISTICS, uri)) {
-            AuthResult authResult = authService.auth(
-                JobContextUtil.getUser(),
-                ActionId.DASHBOARD_VIEW,
-                ResourceTypeEnum.DASHBOARD_VIEW,
-                AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID,
-                null
-            );
-            if (!authResult.isPass()) {
-                throw new PermissionDeniedException(authResult);
-            }
+        // 使用 getServletPath()（已解码、不含 context-path），避免 getRequestURI() 百分号编码绕过鉴权
+        String uri = request.getServletPath();
+        if (!pathMatcher.match(URI_PATTERN_WEB_STATISTICS, uri)) {
+            return true;
+        }
+        AuthResult authResult = authService.auth(
+            JobContextUtil.getUser(),
+            ActionId.DASHBOARD_VIEW,
+            ResourceTypeEnum.DASHBOARD_VIEW,
+            AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID,
+            null
+        );
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return true;
     }

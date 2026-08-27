@@ -74,6 +74,33 @@ job:
     service:
       private-key-base64: __BK_JOB_SECURITY_PRIVATE_KEY_BASE64__
       public-key-base64: __BK_JOB_SECURITY_PUBLIC_KEY_BASE64__
+  # 调用外部系统时的 HTTPS 证书校验配置，所有系统的开关集中在此处配置
+  http:
+    ssl:
+      verify:
+        # 全局是否校验证书，默认开启。systems 下未单独配置的系统继承该值
+        enabled: true
+        # 各外部系统单独的证书校验开关，留空表示继承上面的全局配置。
+        # 仅在对接自签名证书等特殊场景下才关闭，关闭后该系统的调用存在被中间人攻击的风险
+        systems:
+          # 管控平台 GSE
+          gse: true
+          # 配置平台 CMDB
+          cmdb: true
+          # 权限中心 IAM
+          iam: true
+          # 统一登录 BK-Login
+          bkLogin: true
+          # 用户管理 BK-User
+          bkUser: true
+          # 制品库 BK-Repo
+          bkRepo: true
+          # 消息通知中心 BK-Notice
+          bkNotice: true
+          # 蓝鲸消息管理 CMSI
+          bkCmsi: true
+          # 蓝鲸 AI 开发平台 BK-AIDev
+          bkAiDev: true
   {% if job_edition == "ee" -%}
   edition: ee
   {% endif -%}

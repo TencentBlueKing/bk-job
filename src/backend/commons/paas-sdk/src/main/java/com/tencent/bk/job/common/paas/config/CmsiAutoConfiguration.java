@@ -37,6 +37,8 @@ import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockCmsiApiD
 import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockCmsiApiEnable;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -56,14 +58,16 @@ public class CmsiAutoConfiguration {
                                        BkApiGatewayProperties apiGatewayProperties,
                                        ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
                                        TenantEnvService tenantEnvService,
-                                       IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                                       IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                       JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init cmsiApiGwClient");
         return new CmsiApiGwClient(
             apiGatewayProperties,
             appProperties,
             meterRegistryObjectProvider.getIfAvailable(),
             tenantEnvService,
-            virtualAdminAccountProvider
+            virtualAdminAccountProvider,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_CMSI)
         );
     }
 
@@ -74,14 +78,16 @@ public class CmsiAutoConfiguration {
                                        EsbProperties esbProperties,
                                        ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
                                        CmsiApiProperties cmsiApiProperties,
-                                       TenantEnvService tenantEnvService) {
+                                       TenantEnvService tenantEnvService,
+                                       JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init cmsiEsbClient");
         return new CmsiEsbClient(
             esbProperties,
             appProperties,
             meterRegistryObjectProvider.getIfAvailable(),
             cmsiApiProperties,
-            tenantEnvService
+            tenantEnvService,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_CMSI)
         );
     }
 

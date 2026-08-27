@@ -58,7 +58,7 @@ public class JobGatewayBootApplication {
 
     private final GatewayWebServerFactoryCustomizer gatewayWebServerFactoryCustomizer;
 
-    @Value("${server.http.enabled}")
+    @Value("${server.http.enabled:false}")
     private Boolean httpEnabled;
 
     @Value("${server.http.port:}")

@@ -106,14 +106,6 @@ data:
                     - StripPrefix=1
                     - AddWebLangHeader
 
-                - id: job-file-gateway-remote
-                  uri: lb://job-file-gateway
-                  predicates:
-                    - Path= /job-file-gateway/remote/**
-                  filters:
-                    - AuthorizeRemote
-                    - StripPrefix=1
-
                 - id: job-manage-esb
                   uri: lb://job-manage
                   predicates:
@@ -417,14 +409,6 @@ data:
                     - StripPrefix=1
                     - AddWebLangHeader
 
-                - id: job-file-gateway-remote
-                  uri: lb://job-assemble
-                  predicates:
-                    - Path= /job-file-gateway/remote/**
-                  filters:
-                    - AuthorizeRemote
-                    - StripPrefix=1
-
                 - id: job-esb
                   uri: lb://job-assemble
                   predicates:
@@ -486,18 +470,11 @@ data:
           get:
             failPolicy: {{ .Values.bkApiGatewayConfig.jwtPublicKey.failPolicy | default "retry" }}
     server:
-      port: {{ .Values.gatewayConfig.containerPort.https }}
+      port: {{ .Values.gatewayConfig.containerPort.http }}
       http:
-        enabled: true
-        port: {{ .Values.gatewayConfig.containerPort.http }}
+        enabled: false
       ssl:
-        enabled: true
-        key-store-type: PKCS12
-        key-store: "file:/data/job/cert/job_server.p12"
-        key-store-password: ${keystore.password}
-        key-alias: job_server.p12
-        trust-store: "file:/data/job/cert/job_server.truststore"
-        trust-store-password: ${truststore.password}
+        enabled: false
     management:
       server:
         port: {{ .Values.gatewayConfig.containerPort.management }}

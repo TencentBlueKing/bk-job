@@ -26,6 +26,7 @@ package com.tencent.bk.job.upgrader;
 
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
@@ -280,6 +281,11 @@ public class Upgrader {
         } else {
             log.warn("Config file is empty");
             return;
+        }
+
+        String sslVerifyEnabled = properties.getProperty("job.http.ssl.verify.enabled");
+        if (StringUtils.isNotBlank(sslVerifyEnabled)) {
+            JobHttpSslVerifyConfig.setGlobalVerifyEnabled(Boolean.parseBoolean(sslVerifyEnabled.trim()));
         }
 
         List<Triple<Class<? extends Object>, String, Integer>> upgradeTaskList =

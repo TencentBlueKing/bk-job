@@ -50,8 +50,10 @@ import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +94,8 @@ public class GseV2ApiClient extends BkApiV1Client implements IGseClient {
                 60,
                 true,
                 new JobHttpRequestRetryHandler(),
-                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor()),
+                JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.GSE)
             ),
             tenantEnvService
         );

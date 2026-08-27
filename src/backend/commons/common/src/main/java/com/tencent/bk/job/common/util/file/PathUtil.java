@@ -24,9 +24,55 @@
 
 package com.tencent.bk.job.common.util.file;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
+import java.io.IOException;
 
 public class PathUtil {
+
+    /**
+     * 将相对路径拼接到 baseDir 下，并保证拼接结果未越出 baseDir。
+     * 相对路径中若含有 ..、绝对路径等可穿越的内容，抛出 InvalidParamException。
+     *
+     * @param baseDirPath   允许访问的根目录
+     * @param relativePaths 逐级拼接的相对路径，可以是单个路径分量，也可以是含分隔符的多级路径
+     * @return 位于 baseDir 之内的目标文件
+     */
+    public static File resolveSafely(String baseDirPath, String... relativePaths) {
+        if (StringUtils.isBlank(baseDirPath)) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+        }
+        File baseDir = new File(baseDirPath);
+        File target = baseDir;
+        for (String relativePath : relativePaths) {
+            if (StringUtils.isBlank(relativePath)) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+            }
+            target = new File(target, relativePath);
+        }
+        if (!isInsideBaseDir(baseDir, target)) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+        }
+        return target;
+    }
+
+    private static boolean isInsideBaseDir(File baseDir, File target) {
+        try {
+            String basePath = baseDir.getCanonicalPath();
+            String targetPath = target.getCanonicalPath();
+            if (basePath.equals(targetPath)) {
+                return true;
+            }
+            String basePrefix = basePath.endsWith(File.separator) ? basePath : basePath + File.separator;
+            return targetPath.startsWith(basePrefix);
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     public static String joinFilePath(String path1, String path2) {
         if (path1 == null) return path2;
         if (path2 == null) return path1;
