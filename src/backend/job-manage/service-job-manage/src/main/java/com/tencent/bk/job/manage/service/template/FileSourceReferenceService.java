@@ -22,39 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.model.dto;
+package com.tencent.bk.job.manage.service.template;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 
 /**
- * 文件源
+ * 校验作业模板中引用的第三方文件源
  */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class FileSourceBasicInfoDTO {
+public interface FileSourceReferenceService {
+
     /**
-     * id
+     * 校验作业模板文件步骤引用的第三方文件源（fileType = 3）对该业务可用、且操作者对本业务的文件源有查看权限，
+     * 不满足则抛异常。模板未引用第三方文件源时直接返回，不发起任何查询。
+     *
+     * @param user             操作者
+     * @param taskTemplateInfo 待保存的作业模板，须已带上步骤信息
+     * @param create           是否为新建。更新时会放行原模板已引用的已禁用文件源
      */
-    private Integer id;
-    /**
-     * appId
-     */
-    private Long appId;
-    /**
-     * 文件源标识
-     */
-    private String code;
-    /**
-     * 文件源别名
-     */
-    private String alias;
-    /**
-     * 是否启用
-     */
-    private Boolean enable;
+    void validateReferencedFileSources(User user, TaskTemplateInfoDTO taskTemplateInfo, boolean create);
 }

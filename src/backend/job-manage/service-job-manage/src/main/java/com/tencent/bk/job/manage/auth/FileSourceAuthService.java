@@ -22,39 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.model.dto;
+package com.tencent.bk.job.manage.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+
+import java.util.Map;
 
 /**
- * 文件源
+ * 文件源相关操作鉴权接口
  */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class FileSourceBasicInfoDTO {
+public interface FileSourceAuthService {
+
     /**
-     * id
+     * 资源范围下批量查看文件源鉴权
+     *
+     * @param user               用户
+     * @param appResourceScope   资源范围
+     * @param fileSourceIdToName 文件源ID与别名，别名由调用方查询可用性时一并带回，避免鉴权失败时回查资源名
+     * @return 鉴权结果
      */
-    private Integer id;
-    /**
-     * appId
-     */
-    private Long appId;
-    /**
-     * 文件源标识
-     */
-    private String code;
-    /**
-     * 文件源别名
-     */
-    private String alias;
-    /**
-     * 是否启用
-     */
-    private Boolean enable;
+    AuthResult batchAuthViewFileSource(User user,
+                                       AppResourceScope appResourceScope,
+                                       Map<Integer, String> fileSourceIdToName);
 }
