@@ -22,45 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.assemble;
+package com.tencent.bk.job.execute.service;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.SqlConfig;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import redis.embedded.RedisServer;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
 
-import java.io.IOException;
+import java.util.List;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test.properties")
-@SqlConfig(encoding = "utf-8")
-public class BootIntegrationTest {
-    private static RedisServer redisServer;
+/**
+ * 校验作业中引用的第三方文件源对当前业务是否可用
+ */
+public interface FileSourceReferenceService {
 
-    @BeforeAll
-    public static void init() throws IOException {
-        redisServer = RedisServer.builder()
-            .port(6379)
-            .setting("maxmemory 128M") //maxheap 128M
-            .build();
-        redisServer.start();
-    }
-
-    @AfterAll
-    public static void tearDown() throws IOException {
-        redisServer.stop();
-    }
-
-//    @Test
-//    @DisplayName("测试 job-assemble 启动")
-//    public void bootTest() {
-//        // do nothing
-//    }
+    /**
+     * 校验文件步骤引用的第三方文件源（fileType = 3）对指定业务均可用，不可用则抛异常。
+     * <p>
+     * 返回批量查询结果供调用方复用（后续的 view_file_source 鉴权需要其中的 ownerAppId 与 alias），
+     * 整个请求只发起一次跨服务查询。未引用第三方文件源时返回空列表且不发起查询。
+     *
+     * @param appId          当前业务ID
+     * @param fileSourceList 文件步骤的源文件配置
+     * @return 被引用的文件源的可用性查询结果
+     */
+    List<ServiceFileSourceAvailabilityDTO> validateReferencedFileSources(long appId,
+                                                                         List<FileSourceDTO> fileSourceList);
 }

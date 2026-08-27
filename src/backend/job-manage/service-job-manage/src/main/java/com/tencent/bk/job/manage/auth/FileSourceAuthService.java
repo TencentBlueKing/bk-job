@@ -22,45 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.assemble;
+package com.tencent.bk.job.manage.auth;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.SqlConfig;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import redis.embedded.RedisServer;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
-import java.io.IOException;
+import java.util.Map;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test.properties")
-@SqlConfig(encoding = "utf-8")
-public class BootIntegrationTest {
-    private static RedisServer redisServer;
+/**
+ * 文件源相关操作鉴权接口
+ */
+public interface FileSourceAuthService {
 
-    @BeforeAll
-    public static void init() throws IOException {
-        redisServer = RedisServer.builder()
-            .port(6379)
-            .setting("maxmemory 128M") //maxheap 128M
-            .build();
-        redisServer.start();
-    }
-
-    @AfterAll
-    public static void tearDown() throws IOException {
-        redisServer.stop();
-    }
-
-//    @Test
-//    @DisplayName("测试 job-assemble 启动")
-//    public void bootTest() {
-//        // do nothing
-//    }
+    /**
+     * 资源范围下批量查看文件源鉴权
+     *
+     * @param username           用户名
+     * @param appResourceScope   资源范围
+     * @param fileSourceIdToName 文件源ID与别名，别名由调用方查询可用性时一并带回，避免鉴权失败时回查资源名
+     * @return 鉴权结果
+     */
+    AuthResult batchAuthViewFileSource(String username,
+                                       AppResourceScope appResourceScope,
+                                       Map<Integer, String> fileSourceIdToName);
 }

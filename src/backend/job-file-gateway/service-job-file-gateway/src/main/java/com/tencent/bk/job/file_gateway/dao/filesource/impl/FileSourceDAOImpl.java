@@ -37,6 +37,7 @@ import com.tencent.bk.job.file_gateway.util.JooqTypeUtil;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -49,8 +50,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Repository
@@ -309,6 +313,25 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
             defaultTable.ID.in(ids)
         ).fetch();
         return records.map(this::convertRecordToBasicInfoDto);
+    }
+
+    @Override
+    public Set<Integer> listFileSourceIdsInAppScope(Long appId, Collection<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Collections.emptySet();
+        }
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.ID.in(ids));
+        // 归属业务自己那一行共享记录在保存文件源时无条件写入，故归属业务也能由 share 条件命中，
+        // 与已有的 listAvailableFileSource 口径保持一致
+        conditions.add(tableFileSourceShare.APP_ID.eq(appId).or(defaultTable.SHARE_TO_ALL_APP.eq(true)));
+        val records = dslContext.selectDistinct(defaultTable.ID)
+            .from(defaultTable)
+            .join(tableFileSourceShare)
+            .on(defaultTable.ID.eq(tableFileSourceShare.FILE_SOURCE_ID))
+            .where(conditions)
+            .fetch();
+        return new HashSet<>(records.map(record -> record.get(defaultTable.ID)));
     }
 
     @Override
@@ -627,6 +650,7 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
         fileSourceBasicInfoDTO.setAppId(record.get(defaultTable.APP_ID));
         fileSourceBasicInfoDTO.setCode(record.get(defaultTable.CODE));
         fileSourceBasicInfoDTO.setAlias(record.get(defaultTable.ALIAS));
+        fileSourceBasicInfoDTO.setEnable(record.get(defaultTable.ENABLE));
         return fileSourceBasicInfoDTO;
     }
 }

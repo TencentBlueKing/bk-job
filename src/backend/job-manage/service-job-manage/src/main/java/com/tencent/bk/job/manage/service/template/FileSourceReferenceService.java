@@ -22,45 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.assemble;
+package com.tencent.bk.job.manage.service.template;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.SqlConfig;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import redis.embedded.RedisServer;
+import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 
-import java.io.IOException;
+/**
+ * 校验作业模板中引用的第三方文件源
+ */
+public interface FileSourceReferenceService {
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test.properties")
-@SqlConfig(encoding = "utf-8")
-public class BootIntegrationTest {
-    private static RedisServer redisServer;
-
-    @BeforeAll
-    public static void init() throws IOException {
-        redisServer = RedisServer.builder()
-            .port(6379)
-            .setting("maxmemory 128M") //maxheap 128M
-            .build();
-        redisServer.start();
-    }
-
-    @AfterAll
-    public static void tearDown() throws IOException {
-        redisServer.stop();
-    }
-
-//    @Test
-//    @DisplayName("测试 job-assemble 启动")
-//    public void bootTest() {
-//        // do nothing
-//    }
+    /**
+     * 校验作业模板文件步骤引用的第三方文件源（fileType = 3）对该业务可用、且操作者对本业务的文件源有查看权限，
+     * 不满足则抛异常。模板未引用第三方文件源时直接返回，不发起任何查询。
+     *
+     * @param username         操作者用户名
+     * @param taskTemplateInfo 待保存的作业模板，须已带上步骤信息
+     * @param create           是否为新建。更新时会放行原模板已引用的已禁用文件源
+     */
+    void validateReferencedFileSources(String username, TaskTemplateInfoDTO taskTemplateInfo, boolean create);
 }

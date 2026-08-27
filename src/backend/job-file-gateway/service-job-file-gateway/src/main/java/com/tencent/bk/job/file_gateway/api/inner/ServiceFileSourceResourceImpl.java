@@ -27,22 +27,36 @@ package com.tencent.bk.job.file_gateway.api.inner;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
 public class ServiceFileSourceResourceImpl implements ServiceFileSourceResource {
 
     private final FileSourceService fileSourceService;
+    private final FileSourceDAO fileSourceDAO;
 
     @Autowired
-    public ServiceFileSourceResourceImpl(FileSourceService fileSourceService) {
+    public ServiceFileSourceResourceImpl(FileSourceService fileSourceService,
+                                         FileSourceDAO fileSourceDAO) {
         this.fileSourceService = fileSourceService;
+        this.fileSourceDAO = fileSourceDAO;
     }
 
     @Override
@@ -67,5 +81,34 @@ public class ServiceFileSourceResourceImpl implements ServiceFileSourceResource 
     public InternalResponse<Boolean> existsFileSourceUsingCredential(Long appId, String credentialId) {
         boolean result = fileSourceService.existsFileSourceUsingCredential(appId, credentialId);
         return InternalResponse.buildSuccessResp(result);
+    }
+
+    @Override
+    public InternalResponse<List<ServiceFileSourceAvailabilityDTO>> checkFileSourceAvailability(
+        Long appId,
+        List<Integer> fileSourceIdList
+    ) {
+        if (CollectionUtils.isEmpty(fileSourceIdList)) {
+            return InternalResponse.buildSuccessResp(Collections.emptyList());
+        }
+        Set<Integer> idSet = new HashSet<>(fileSourceIdList);
+        // 两次查询：一次拿归属/别名/启用状态，一次拿业务可见范围，合起来让调用方能区分三种失败原因
+        Map<Integer, FileSourceBasicInfoDTO> basicInfoMap =
+            fileSourceDAO.listFileSourceByIds(idSet)
+                .stream()
+                .collect(Collectors.toMap(FileSourceBasicInfoDTO::getId, basicInfo -> basicInfo));
+        Set<Integer> idsInAppScope = fileSourceDAO.listFileSourceIdsInAppScope(appId, idSet);
+        List<ServiceFileSourceAvailabilityDTO> resultList = new ArrayList<>(idSet.size());
+        for (Integer id : idSet) {
+            FileSourceBasicInfoDTO basicInfo = basicInfoMap.get(id);
+            resultList.add(new ServiceFileSourceAvailabilityDTO(
+                id,
+                idsInAppScope.contains(id),
+                basicInfo == null ? null : basicInfo.getAppId(),
+                basicInfo == null ? null : basicInfo.getAlias(),
+                basicInfo == null ? null : basicInfo.getEnable()
+            ));
+        }
+        return InternalResponse.buildSuccessResp(resultList);
     }
 }

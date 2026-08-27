@@ -13,6 +13,7 @@ BUILD_BACKEND=0
 BUILD_MIGRATION=0
 BUILD_STARTUP_CONTROLLER=0
 BUILD_SYNC_BK_API_GATEWAY=0
+BUILD_CONFIG_WATCHER=0
 BUILD_MODULES=()
 BUILD_BACKEND_MODULES=()
 VERSION=latest
@@ -44,7 +45,8 @@ Usage:
             [ --migration           [Optional] Build migration image ]
             [ --startup-controller  [Optional] Build startup-controller image ]
             [ --sync-bk-api-gateway [Optional] Build sync-bk-api-gateway image ]
-			[ -m, --modules         [Optional] Build specified module images, modules are separated by commas. values:job-frontend,job-migration,job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-file-gateway,job-file-worker,job-assemble. Example: job-manage,job-execute ]
+            [ --config-watcher      [Optional] Build job-config-watcher image if it does not exist in the target registry (tag is read from values.yaml k8sConfigWatcherConfig.image.tag) ]
+			[ -m, --modules         [Optional] Build specified module images, modules are separated by commas. values:job-frontend,job-migration,job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-file-gateway,job-file-worker,job-assemble,job-config-watcher. Example: job-manage,job-execute ]
             [ -v, --version         [Optional] Image tag, default latest ]
             [ -p, --push            [Optional] Push the image to the docker remote repository, not push by default ]
             [ -r, --registry        [Optional] docker repository, default docker.io ]
@@ -106,16 +108,21 @@ while (( $# > 0 )); do
             BUILD_ALL=0
             BUILD_STARTUP_CONTROLLER=1
             ;;
+        --config-watcher )
+            BUILD_ALL=0
+            BUILD_CONFIG_WATCHER=1
+            ;;
         -m | --modules )
 		    shift
             BUILD_ALL=0
-			BUILD_FRONTEND=0
+		    BUILD_FRONTEND=0
             BUILD_BACKEND=0
-			BUILD_MIGRATION=0
-			BUILD_SYNC_BK_API_GATEWAY=0
-			BUILD_STARTUP_CONTROLLER=0
-			modules_str=$1
-			BUILD_MODULES=(${modules_str//,/ })
+		    BUILD_MIGRATION=0
+		    BUILD_SYNC_BK_API_GATEWAY=0
+		    BUILD_STARTUP_CONTROLLER=0
+		    BUILD_CONFIG_WATCHER=0
+		    modules_str=$1
+		    BUILD_MODULES=(${modules_str//,/ })
             ;;
         -v | --version )
             shift
@@ -274,11 +281,76 @@ build_startup_controller_image(){
     TOOL_NAME="k8s-startup-controller"
     $BACKEND_DIR/gradlew -p $BACKEND_DIR/job-tools clean :job-tools:$TOOL_NAME:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     rm -rf tmp/startup_controller/*
-    cp $BACKEND_DIR/release/$TOOL_NAME-$VERSION.jar tmp/startup_controller/$TOOL_NAME.jar
+    cp $BACKEND_DIR/release/$TOOL_NAME-$VERSION-all.jar tmp/startup_controller/$TOOL_NAME.jar
     cp startup-controller/startup.sh tmp/startup_controller/
     docker build -f startup-controller/startupController.Dockerfile -t $REGISTRY/job-tools-$TOOL_NAME:$VERSION tmp/startup_controller --network=host
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/job-tools-$TOOL_NAME:$VERSION
+    fi
+}
+
+# Parse job-config-watcher image tag from values.yaml (k8sConfigWatcherConfig.image.tag)
+get_config_watcher_tag() {
+    local values_file="$ROOT_DIR/support-files/kubernetes/charts/bk-job/values.yaml"
+    if [[ ! -f "$values_file" ]]; then
+        log "values.yaml not found: $values_file"
+        return 1
+    fi
+    local tag
+    tag=$(awk '
+        /^k8sConfigWatcherConfig:/ { in_root=1; next }
+        in_root && /^[A-Za-z]/ { in_root=0 }
+        in_root && /^[[:space:]]{2}image:/ { in_image=1; next }
+        in_image && /^[[:space:]]{2}[A-Za-z]/ { in_image=0 }
+        in_image && /^[[:space:]]{4}tag:/ {
+            sub(/^[[:space:]]{4}tag:[[:space:]]*/, "", $0)
+            gsub(/"/, "", $0)
+            gsub(/[[:space:]]+$/, "", $0)
+            print $0
+            exit
+        }
+    ' "$values_file")
+    if [[ -z "$tag" ]]; then
+        log "Failed to parse k8sConfigWatcherConfig.image.tag from values.yaml"
+        return 1
+    fi
+    echo "$tag"
+}
+
+# Check whether the target image exists in the remote registry (same registry as backend)
+remote_image_exists() {
+    local image_ref="$1"
+    # Prefer docker manifest inspect (no pull). Fallback to skopeo if available.
+    if docker manifest inspect "$image_ref" >/dev/null 2>&1; then
+        return 0
+    fi
+    if command -v skopeo >/dev/null 2>&1; then
+        if skopeo inspect "docker://$image_ref" >/dev/null 2>&1; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# Build job-config-watcher image if it does not exist in the remote registry
+build_config_watcher_image() {
+    local tag
+    tag=$(get_config_watcher_tag) || return 1
+    local image_ref="$REGISTRY/job-config-watcher:$tag"
+    log "Checking whether ${image_ref} exists in registry..."
+    if remote_image_exists "$image_ref"; then
+        log "[job-config-watcher:${tag}] already exists in registry, skip build."
+        return 0
+    fi
+    log "[job-config-watcher:${tag}] not found in registry, start building..."
+    local dockerfile="$WORKING_DIR/backend/config-watcher.Dockerfile"
+    if [[ ! -f "$dockerfile" ]]; then
+        log "Dockerfile not found: $dockerfile"
+        return 1
+    fi
+    docker build -f "$dockerfile" -t "$image_ref" "$WORKING_DIR/backend" --network=host
+    if [[ $PUSH -eq 1 ]] ; then
+        docker push "$image_ref"
     fi
 }
 
@@ -331,6 +403,9 @@ fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_STARTUP_CONTROLLER -eq 1 ]] ; then
     build_startup_controller_image
 fi
+if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 || $BUILD_CONFIG_WATCHER -eq 1 ]] ; then
+    build_config_watcher_image
+fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
     build_backend_modules "${BACKENDS[*]}"
 fi
@@ -347,6 +422,8 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 		    build_sync_bk_api_gateway_image
 	    elif [[ "$MODULE" == "startup-controller" ]]; then
 		    build_startup_controller_image
+	    elif [[ "$MODULE" == "job-config-watcher" ]]; then
+		    build_config_watcher_image
 		elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
             BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
 		fi
