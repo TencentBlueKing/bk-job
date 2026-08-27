@@ -108,6 +108,8 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         baseSearchCondition.setStart(request.getStart());
         baseSearchCondition.setLength(request.getLength());
 
+        // 设计如此：本接口只返回作业实例概览，不返回步骤详情与执行日志，
+        // 因此不需要鉴 VIEW_HISTORY 查看权限，业务级 access_business 校验已足够。
         PageData<TaskInstanceDTO> pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
         return EsbResp.buildSuccessResp(convertToEsbTaskInstancePageData(pageData));
     }
