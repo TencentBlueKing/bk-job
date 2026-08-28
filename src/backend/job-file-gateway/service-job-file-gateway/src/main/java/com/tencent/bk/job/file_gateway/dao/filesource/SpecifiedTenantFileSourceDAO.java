@@ -22,39 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.model.dto;
+package com.tencent.bk.job.file_gateway.dao.filesource;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
- * 文件源
+ * 由调用方显式指定租户的文件源DAO。
  */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class FileSourceBasicInfoDTO {
+public interface SpecifiedTenantFileSourceDAO {
+
     /**
-     * id
+     * 按指定租户与 ID 批量查询文件源基本信息，不做业务范围过滤。
+     * 查不到的 ID 不会出现在结果中。
      */
-    private Integer id;
+    List<FileSourceBasicInfoDTO> listFileSourceBasicInfoByIds(String tenantId, Collection<Integer> ids);
+
     /**
-     * appId
+     * 从给定的 ID 中筛出在指定业务可见范围内的文件源 ID：
+     * 同租户，且「归属该业务/已显式共享给该业务」「已共享给所有业务」二者之一成立。
+     * 不过滤启用状态，由调用方结合 enable 判定最终可用性。
      */
-    private Long appId;
-    /**
-     * 文件源标识
-     */
-    private String code;
-    /**
-     * 文件源别名
-     */
-    private String alias;
-    /**
-     * 是否启用
-     */
-    private Boolean enable;
+    Set<Integer> listFileSourceIdsInAppScope(String tenantId, Long appId, Collection<Integer> ids);
+
 }
