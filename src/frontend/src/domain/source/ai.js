@@ -30,7 +30,7 @@ import ModuleBase from './module-base';
 class Ai extends ModuleBase {
   constructor() {
     super();
-    this.module = '/job-analysis/web/ai/';
+    this.module = '/job-analysis/web/ai';
   }
 
   getAnalyzeError(params, payload = {}) {
