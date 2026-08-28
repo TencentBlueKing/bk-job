@@ -137,13 +137,6 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         executeAuthService.authViewTaskInstance(username, new AppResourceScope(taskInstance.getAppId()), taskInstance);
     }
 
-    @Override
-    public TaskInstanceDTO getTaskInstanceDetail(long taskInstanceId) {
-        TaskInstanceDTO taskInstance = getTaskInstance(taskInstanceId);
-        fillStepAndVariable(taskInstance);
-        return taskInstance;
-    }
-
     private void fillStepAndVariable(TaskInstanceDTO taskInstance) {
         taskInstance.setStepInstances(stepInstanceService.listStepInstanceByTaskInstanceId(taskInstance.getId()));
         taskInstance.setVariables(taskInstanceVariableService.getByTaskInstanceId(taskInstance.getId()));
