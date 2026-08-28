@@ -50,14 +50,6 @@ public interface TaskInstanceService {
     /**
      * 获取作业实例详情-包含步骤信息和全局变量信息
      *
-     * @param taskInstanceId 作业实例 ID
-     * @return 作业实例
-     */
-    TaskInstanceDTO getTaskInstanceDetail(long taskInstanceId);
-
-    /**
-     * 获取作业实例详情-包含步骤信息和全局变量信息
-     *
      * @param username       用户名
      * @param appId          业务 ID
      * @param taskInstanceId 作业实例 ID

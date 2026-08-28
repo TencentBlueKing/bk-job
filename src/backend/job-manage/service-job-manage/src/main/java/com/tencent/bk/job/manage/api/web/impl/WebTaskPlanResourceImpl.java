@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -61,7 +62,6 @@ import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.service.CronJobService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
-import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +95,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     private final CronJobService cronJobService;
     private final TemplateAuthService templateAuthService;
     private final PlanAuthService planAuthService;
-    private final HostService hostService;
+    private final BusinessAuthService businessAuthService;
 
     @Autowired
     public WebTaskPlanResourceImpl(TaskPlanService planService,
@@ -104,14 +104,14 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                                    CronJobService cronJobService,
                                    TemplateAuthService templateAuthService,
                                    PlanAuthService planAuthService,
-                                   HostService hostService) {
+                                   BusinessAuthService businessAuthService) {
         this.planService = planService;
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.cronJobService = cronJobService;
         this.templateAuthService = templateAuthService;
         this.planAuthService = planAuthService;
-        this.hostService = hostService;
+        this.businessAuthService = businessAuthService;
     }
 
     @Override
@@ -485,6 +485,9 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             .map(Long::valueOf)
             .filter(id -> id > 0)
             .collect(Collectors.toList());
+        // 设计如此：本接口只返回执行方案元数据，不返回步骤与变量，因此不需要鉴 VIEW_JOB_PLAN 查看权限，
+        // 业务级 access_business 校验已足够。参见 processPlanPermission：无查看权限时并不剔除方案，
+        // 只置 canView=false 并抹掉 variableList，即列表基本信息本身是业务内可见的。
         List<TaskPlanInfoDTO> taskPlanInfoList = planService.listPlanBasicInfoByIds(
             appResourceScope.getAppId(),
             planIdList
@@ -591,18 +594,32 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             planId));
     }
 
+    /**
+     * 第三方深链 job_url/api_plan/{planId} 的解析器：把执行方案 ID 换成资源范围，供前端跳转到详情页。
+     * URL 中不含资源范围，拦截器无法据此做业务级鉴权，因此必须用方案自身的 appId 自行鉴权。
+     */
     @Override
     public Response<TaskPlanVO> getPlanBasicInfoById(String username, Long planId) {
         if (planId == null || planId <= 0) {
-            return Response.buildSuccessResp(null);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskPlanInfoDTO taskPlanInfo = planService.getTaskPlanById(planId);
-        if (taskPlanInfo != null) {
-            taskPlanInfo.setStepList(null);
-            taskPlanInfo.setVariableList(null);
-            return Response.buildSuccessResp(TaskPlanInfoDTO.toVO(taskPlanInfo));
+        if (taskPlanInfo == null) {
+            throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
-        return Response.buildSuccessResp(null);
+        AuthResult authAccAppResult = businessAuthService.authAccessBusiness(
+            username, new AppResourceScope(taskPlanInfo.getAppId()));
+        if (!authAccAppResult.isPass()) {
+            // 调用方只提供了 planId，业务归属是后端反查出来的，直接抛出鉴权结果会把业务 ID 与业务名
+            // 回显给一个对该业务零权限的调用方。因此只保留缺失的动作，丢弃其中的业务资源实例。
+            AuthResult genericResult = AuthResult.fail();
+            genericResult.addRequiredPermission(ActionId.ACCESS_BUSINESS, null);
+            throw new PermissionDeniedException(genericResult);
+        }
+        // 显式置空详情信息（步骤列表、变量列表），只返回基础信息，因此无需鉴VIEW权限
+        taskPlanInfo.setStepList(null);
+        taskPlanInfo.setVariableList(null);
+        return Response.buildSuccessResp(TaskPlanInfoDTO.toVO(taskPlanInfo));
     }
 
     @Override
