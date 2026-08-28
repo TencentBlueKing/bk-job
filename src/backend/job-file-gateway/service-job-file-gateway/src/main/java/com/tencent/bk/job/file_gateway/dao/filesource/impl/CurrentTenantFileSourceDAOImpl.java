@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Record;
 import org.jooq.conf.ParamType;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -459,14 +458,5 @@ public class CurrentTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl implem
             return result.get(defaultTable.ID);
         }
         return null;
-    }
-
-    private FileSourceBasicInfoDTO convertRecordToBasicInfoDto(Record record) {
-        FileSourceBasicInfoDTO fileSourceBasicInfoDTO = new FileSourceBasicInfoDTO();
-        fileSourceBasicInfoDTO.setId(record.get(defaultTable.ID));
-        fileSourceBasicInfoDTO.setAppId(record.get(defaultTable.APP_ID));
-        fileSourceBasicInfoDTO.setCode(record.get(defaultTable.CODE));
-        fileSourceBasicInfoDTO.setAlias(record.get(defaultTable.ALIAS));
-        return fileSourceBasicInfoDTO;
     }
 }
