@@ -53,6 +53,7 @@ import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -727,5 +728,45 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         }).collect(Collectors.toList());
         return appAuthService.batchAuthResources(username, ActionId.USE_ACCOUNT, appResourceScope,
             accountResources);
+    }
+
+    @Override
+    public AuthResult batchAuthViewFileSource(String username,
+                                              AppResourceScope appResourceScope,
+                                              Map<Integer, String> fileSourceIdToName) {
+        if (MapUtils.isEmpty(fileSourceIdToName)) {
+            return AuthResult.pass();
+        }
+        List<String> idList = fileSourceIdToName.keySet().stream()
+            .map(String::valueOf)
+            .collect(Collectors.toList());
+        Set<String> allowedIdSet = new HashSet<>(appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE,
+            appResourceScope, ResourceTypeEnum.FILE_SOURCE, idList));
+
+        List<PermissionResource> deniedResources = new ArrayList<>();
+        fileSourceIdToName.forEach((fileSourceId, fileSourceName) -> {
+            String idStr = fileSourceId.toString();
+            if (allowedIdSet.contains(idStr)) {
+                return;
+            }
+            PermissionResource resource = new PermissionResource();
+            resource.setSystemId(SystemId.JOB);
+            resource.setResourceId(idStr);
+            resource.setResourceType(ResourceTypeEnum.FILE_SOURCE);
+            // 别名由上游查询时一并带回，此处不再回查：job-execute 的 ResourceNameQueryService 不认识 FILE_SOURCE
+            resource.setResourceName(StringUtils.isNotEmpty(fileSourceName) ? fileSourceName : idStr);
+            resource.setPathInfo(buildAppScopePath(appResourceScope));
+            deniedResources.add(resource);
+        });
+        if (deniedResources.isEmpty()) {
+            return AuthResult.pass();
+        }
+
+        AuthResult authResult = AuthResult.fail();
+        authResult.addRequiredPermissions(ActionId.VIEW_FILE_SOURCE, deniedResources);
+        if (log.isDebugEnabled()) {
+            log.debug("Auth view file source, authResult:{}", authResult);
+        }
+        return authResult;
     }
 }
