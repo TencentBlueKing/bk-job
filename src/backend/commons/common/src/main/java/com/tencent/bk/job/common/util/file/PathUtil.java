@@ -30,6 +30,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class PathUtil {
 
@@ -42,35 +45,37 @@ public class PathUtil {
      * @return 位于 baseDir 之内的目标文件
      */
     public static File resolveSafely(String baseDirPath, String... relativePaths) {
-        if (StringUtils.isBlank(baseDirPath)) {
+        if (StringUtils.isBlank(baseDirPath) || relativePaths == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
         }
-        File baseDir = new File(baseDirPath);
-        File target = baseDir;
+
+        Path basePath = Paths.get(baseDirPath).toAbsolutePath().normalize();
+        if (Files.exists(basePath)) {
+            try {
+                // 目录已存在时解析符号链接；目录不存在时允许上层后续创建。
+                basePath = basePath.toRealPath();
+            } catch (IOException e) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+            }
+        }
+
+        Path targetPath = basePath;
         for (String relativePath : relativePaths) {
             if (StringUtils.isBlank(relativePath)) {
                 throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
             }
-            target = new File(target, relativePath);
-        }
-        if (!isInsideBaseDir(baseDir, target)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
-        }
-        return target;
-    }
 
-    private static boolean isInsideBaseDir(File baseDir, File target) {
-        try {
-            String basePath = baseDir.getCanonicalPath();
-            String targetPath = target.getCanonicalPath();
-            if (basePath.equals(targetPath)) {
-                return true;
+            Path relative = Paths.get(relativePath);
+            if (relative.isAbsolute() || relativePath.contains("..")) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
             }
-            String basePrefix = basePath.endsWith(File.separator) ? basePath : basePath + File.separator;
-            return targetPath.startsWith(basePrefix);
-        } catch (IOException e) {
-            return false;
+
+            targetPath = targetPath.resolve(relative).normalize();
+            if (!targetPath.startsWith(basePath)) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+            }
         }
+        return targetPath.toFile();
     }
 
     public static String joinFilePath(String path1, String path2) {

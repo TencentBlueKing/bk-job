@@ -43,7 +43,8 @@ class PathUtilTest {
         File single = PathUtil.resolveSafely(baseDir, "a1b2c3d4e5f6");
         assertThat(single.getParentFile()).isEqualTo(tempDir.toFile());
 
-        File multiLevel = PathUtil.resolveSafely(baseDir, "import" + File.separator + "admin", "task.json");
+        File multiLevel = PathUtil.resolveSafely(baseDir, "import" + File.separator + "admin" + File.separator +
+            "task.json");
         assertThat(multiLevel.getPath())
             .isEqualTo(tempDir.resolve("import").resolve("admin").resolve("task.json").toString());
     }
@@ -58,6 +59,10 @@ class PathUtilTest {
             .isInstanceOf(InvalidParamException.class);
         assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, "import", ".." + File.separator + ".."))
             .isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, tempDir.resolve("outside.txt").toString()))
+            .isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, "unsafe..txt"))
+            .isInstanceOf(InvalidParamException.class);
     }
 
     @Test
@@ -68,5 +73,16 @@ class PathUtilTest {
             .isInstanceOf(InvalidParamException.class);
         assertThatThrownBy(() -> PathUtil.resolveSafely("", "a.txt"))
             .isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> PathUtil.resolveSafely(tempDir.toString(), (String[]) null))
+            .isInstanceOf(InvalidParamException.class);
+    }
+
+    @Test
+    void resolveSafelyAcceptsMissingBaseDir(@TempDir Path tempDir) {
+        Path missingBaseDir = tempDir.resolve("missing");
+
+        File target = PathUtil.resolveSafely(missingBaseDir.toString(), "subdir", "a.txt");
+
+        assertThat(target.toPath()).isEqualTo(missingBaseDir.resolve("subdir").resolve("a.txt"));
     }
 }
