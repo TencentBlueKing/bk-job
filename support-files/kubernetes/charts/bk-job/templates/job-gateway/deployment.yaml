@@ -83,6 +83,9 @@ spec:
             - name: http
               containerPort: {{ .Values.gatewayConfig.containerPort.http }}
               protocol: TCP
+            - name: https
+              containerPort: {{ .Values.gatewayConfig.containerPort.https }}
+              protocol: TCP
             - name: management
               containerPort: {{ .Values.gatewayConfig.containerPort.management }}
               protocol: TCP
@@ -92,6 +95,12 @@ spec:
           volumeMounts:
             - name: job-storage
               mountPath: {{ .Values.persistence.localStorage.path }}
+            - name: job-gateway-tls-certs
+              mountPath: /data/job/cert
+              readOnly: true
+            - name: job-gateway-tls-password
+              mountPath: /etc/secrets
+              readOnly: true
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
@@ -101,6 +110,22 @@ spec:
         - name: job-storage
           persistentVolumeClaim:
             claimName: {{ include "job.storage.pvc.name" . }}
+        - name: job-gateway-tls-certs
+          secret:
+            secretName: {{ printf "%s-gateway-%s" (include "common.names.fullname" .) "tls-cert" }}
+            items:
+              - key: job_server.p12
+                path: job_server.p12
+              - key: job_server.truststore
+                path: job_server.truststore
+        - name: job-gateway-tls-password
+          secret:
+            secretName: {{ printf "%s-gateway-%s" (include "common.names.fullname" .) "tls-cert" }}
+            items:
+              - key: keystore.password
+                path: keystore.password
+              - key: truststore.password
+                path: truststore.password
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}
