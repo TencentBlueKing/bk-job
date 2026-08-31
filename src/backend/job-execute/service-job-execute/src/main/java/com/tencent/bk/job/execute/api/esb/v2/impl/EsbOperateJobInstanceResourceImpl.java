@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -49,6 +50,8 @@ public class EsbOperateJobInstanceResourceImpl implements EsbOperateJobInstanceR
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_operate_job_instance"})
+    // 取作业实例时会记录 VIEW_HISTORY 审计动作，缺少 @AuditEntry 时该事件不会落库
+    @AuditEntry
     public EsbResp<EsbJobExecuteDTO> operateJobInstance(String username,
                                                         String appCode,
                                                         EsbOperateJobInstanceRequest request) {

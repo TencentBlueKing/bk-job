@@ -41,7 +41,8 @@ public interface ImportJobDAO {
     String insertImportJob(ImportJobInfoDTO importJobInfo);
 
     /**
-     * 根据导入任务 ID 拉取导入任务信息
+     * 根据导入任务 ID 拉取导入任务信息。<b>不做 creator 校验</b>，
+     * 归属校验由 {@code ImportJobService.getImportInfoById(String, Long, String)} 负责。
      *
      * @param appId 业务 ID
      * @param jobId 任务 ID

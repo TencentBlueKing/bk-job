@@ -40,10 +40,22 @@ public interface TaskInstanceService {
 
     long addTaskInstance(TaskInstanceDTO taskInstance);
 
+    /**
+     * 按业务查询作业实例。只校验实例归属，<b>不做用户级鉴权</b>，仅供内部调用；
+     * 外部入口（Web / ESB）请用带 username 的重载。
+     */
     TaskInstanceDTO getTaskInstance(long appId, long taskInstanceId) throws NotFoundException;
 
+    /**
+     * 按 ID 查询作业实例。<b>既不校验归属也不鉴权</b>，仅供引擎内部调用；
+     * 外部入口（Web / ESB）请用带 username 的重载，否则调用者可访问任意业务的实例。
+     */
     TaskInstanceDTO getTaskInstance(long taskInstanceId) throws NotFoundException;
 
+    /**
+     * 按 (调用者, 业务) 查询作业实例：校验归属 + 用户级鉴权（非执行人要求 VIEW_HISTORY）+ 审计。
+     * 外部入口读取或操作作业实例时应统一走这个重载。
+     */
     TaskInstanceDTO getTaskInstance(String username, long appId, long taskInstanceId)
         throws NotFoundException, PermissionDeniedException;
 

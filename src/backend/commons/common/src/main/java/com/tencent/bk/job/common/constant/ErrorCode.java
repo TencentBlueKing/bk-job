@@ -399,11 +399,21 @@ public class ErrorCode {
     // 业务网关 start
     // 业务网关 end
 
+    // ==================================== 备份服务 ================================================//
+    /*
+     * 备份服务（job-backup）相关错误码，号段为 1249xxx。
+     * 该服务负责作业模板、执行方案等资源的导入/导出（备份与恢复），
+     * 涵盖与制品库交互、导入/导出任务生命周期管理等场景。
+     */
     // 备份服务 start
     // 从制品库获取节点信息失败
     public static final int FAIL_TO_GET_NODE_INFO_FROM_ARTIFACTORY = 1249001;
     // 从制品库下载文件失败
     public static final int FAIL_TO_DOWNLOAD_NODE_FROM_ARTIFACTORY = 1249002;
+    // 导出任务不存在
+    public static final int EXPORT_JOB_NOT_EXIST = 1249004;
+    // 导入任务不存在
+    public static final int IMPORT_JOB_NOT_EXIST = 1249005;
     // 备份服务 end
 
     // ======= 系统错误-公共组件错误 =======//

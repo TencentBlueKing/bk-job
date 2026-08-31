@@ -116,6 +116,23 @@ public class ImportJobServiceImpl implements ImportJobService {
     }
 
     @Override
+    public ImportJobInfoDTO getImportInfoById(String username, Long appId, String jobId) {
+        ImportJobInfoDTO importJob = importJobDAO.getImportJobById(appId, jobId);
+        if (!isJobCreator(username, importJob)) {
+            log.warn("Import job not belong to user, appId={}, jobId={}, username={}", appId, jobId, username);
+            return null;
+        }
+        return importJob;
+    }
+
+    /**
+     * 判断导入任务是否由该用户创建。任务不存在时同样返回 false，让调用方按「不存在」统一处理。
+     */
+    private boolean isJobCreator(String username, ImportJobInfoDTO importJob) {
+        return importJob != null && importJob.getCreator() != null && importJob.getCreator().equals(username);
+    }
+
+    @Override
     public List<ImportJobInfoDTO> getCurrentJobByUser(String username, Long appId) {
         return importJobDAO.getImportJobByUser(appId, username);
     }
@@ -276,6 +293,11 @@ public class ImportJobServiceImpl implements ImportJobService {
     @Override
     public Boolean checkPassword(String username, Long appId, String jobId, String password) {
         ImportJobInfoDTO importInfo = importJobDAO.getImportJobById(appId, jobId);
+        // 必须先校验归属再解密：否则他人可拿自己的密码去撞库解密，并把对方任务改成 WRONG_PASSWORD、删掉原加密文件
+        if (!isJobCreator(username, importInfo)) {
+            log.warn("Import job not belong to user, appId={}, jobId={}, username={}", appId, jobId, username);
+            return false;
+        }
         if (BackupJobStatusEnum.NEED_PASSWORD == importInfo.getStatus()
             || BackupJobStatusEnum.WRONG_PASSWORD == importInfo.getStatus()) {
             String fileName = importInfo.getFileName();
