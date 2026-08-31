@@ -309,7 +309,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                         + File.separator + username
                         + File.separator + id
                         + File.separator + originalFileName;
-                    File file = new File(storageService.getStoragePath() + filePath);
+                    File file = storageService.getFile(filePath);
                     try {
                         log.debug("begin to upload to artifactory:{}", filePath);
                         artifactoryClient.uploadGenericFile(

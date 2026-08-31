@@ -142,7 +142,7 @@ public class ExportJobExecutor {
         this.backupFileCryptoService = backupFileCryptoService;
         this.exportJobExecutor = exportJobExecutor;
 
-        File storageDirectory = new File(storageService.getStoragePath().concat(JOB_EXPORT_FILE_PREFIX));
+        File storageDirectory = storageService.getFile(JOB_EXPORT_FILE_PREFIX);
         checkDirectory(storageDirectory);
 
     }
@@ -164,12 +164,11 @@ public class ExportJobExecutor {
     }
 
     private void saveToArtifactory(String fileName) {
-        String fullPath = storageService.getStoragePath().concat(fileName);
         String project = artifactoryHelper.getJobRealProject();
         String repo = backupStorageConfig.getBackupRepo();
-        File file = new File(fullPath);
+        File file = storageService.getFile(fileName);
         artifactoryClient.uploadGenericFile(project, repo, fileName, file);
-        log.info("{} uploaded to {}:{}:{}", fullPath, project, repo, fileName);
+        log.info("{} uploaded to {}:{}:{}", file.getPath(), project, repo, fileName);
     }
 
     private void processExportJob(String jobId) {
@@ -229,8 +228,7 @@ public class ExportJobExecutor {
             if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(backupStorageConfig.getStorageBackend())) {
                 saveToArtifactory(fileName);
                 // 删除本地临时文件
-                String fullPath = storageService.getStoragePath().concat(fileName);
-                File tmpFile = new File(fullPath);
+                File tmpFile = storageService.getFile(fileName);
                 FileUtils.deleteQuietly(tmpFile);
                 FileUtil.deleteEmptyDirectory(tmpFile.getParentFile());
             }
@@ -364,7 +362,7 @@ public class ExportJobExecutor {
     private File generateFile(ExportJobInfoDTO exportInfo, String backupInfoString) {
         logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
             i18nService.getI18n(LogMessage.START_PACKAGE));
-        File outputFile = new File(storageService.getStoragePath().concat(getExportFilePath(exportInfo)));
+        File outputFile = storageService.getFile(getExportFilePath(exportInfo));
         checkDirectory(outputFile.getParentFile());
         FileOutputStream fos = null;
         try {
@@ -381,8 +379,7 @@ public class ExportJobExecutor {
                 }
             }
         }
-        File uploadFileDirectory =
-            new File(storageService.getStoragePath().concat(getExportLocalUploadFilePath(exportInfo)));
+        File uploadFileDirectory = storageService.getFile(getExportLocalUploadFilePath(exportInfo));
         File zipFile = ZipUtil.zip(outputFile.getPath() + ".zip", outputFile, uploadFileDirectory);
         try {
             FileUtils.deleteQuietly(outputFile);
@@ -567,8 +564,7 @@ public class ExportJobExecutor {
     private void processLocalFile(ExportJobInfoDTO exportInfo, JobBackupInfoDTO jobBackupInfo) {
         logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
             i18nService.getI18n(LogMessage.PROCESS_LOCAL_FILE));
-        File uploadFileDirectory =
-            new File(storageService.getStoragePath().concat(getExportLocalUploadFilePath(exportInfo)));
+        File uploadFileDirectory = storageService.getFile(getExportLocalUploadFilePath(exportInfo));
         checkDirectory(uploadFileDirectory);
 
         Map<Long, List<String>> templateFileList = new HashMap<>(jobBackupInfo.getTemplateDetailInfoMap().size());

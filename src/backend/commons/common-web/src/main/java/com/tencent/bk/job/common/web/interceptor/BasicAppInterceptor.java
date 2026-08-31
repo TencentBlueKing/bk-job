@@ -97,7 +97,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
         // 只拦截web/service/esb的API请求
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
@@ -149,7 +149,9 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
     public class WebAppParser implements AppParser {
         @Override
         public BasicApp parseApp(HttpServletRequest request) {
-            ResourceScope resourceScope = parseResourceScopeFromURI(request.getRequestURI());
+            // 必须使用 getServletPath()：getRequestURI() 未解码且含 context-path，
+            // scopeId 被百分号编码时正则会匹配失败，导致 scope 为空而跳过业务鉴权
+            ResourceScope resourceScope = parseResourceScopeFromURI(request.getServletPath());
             if (resourceScope != null) {
                 return appService.getApp(resourceScope);
             }
@@ -270,7 +272,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
         @Override
         public BasicApp parseApp(HttpServletRequest request) {
             // 优先从 path 解析
-            Long appId = parseAppIdFromPath(request.getRequestURI());
+            Long appId = parseAppIdFromPath(request.getServletPath());
             if (appId == null) {
                 // 从 QueryParam解析
                 appId = parseAppIdFromQueryParam(request);

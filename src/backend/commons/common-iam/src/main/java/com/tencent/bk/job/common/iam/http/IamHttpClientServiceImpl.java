@@ -51,15 +51,22 @@ import java.util.List;
 @Slf4j
 public class IamHttpClientServiceImpl implements HttpClientService {
 
-    private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final HttpHelper httpHelper;
     private final IamConfiguration iamConfiguration;
     protected final IVirtualAdminAccountProvider virtualAdminAccountProvider;
 
     public IamHttpClientServiceImpl(IamConfiguration iamConfiguration,
                                     IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+        this(iamConfiguration, virtualAdminAccountProvider, true);
+    }
+
+    public IamHttpClientServiceImpl(IamConfiguration iamConfiguration,
+                                    IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                    boolean sslVerifyEnabled) {
         this.iamConfiguration = iamConfiguration;
         this.virtualAdminAccountProvider = virtualAdminAccountProvider;
-        log.debug("IamHttpClientServiceImpl init");
+        this.httpHelper = HttpHelperFactory.getDefaultHttpHelper(sslVerifyEnabled);
+        log.debug("IamHttpClientServiceImpl init, sslVerifyEnabled={}", sslVerifyEnabled);
     }
 
     @Override

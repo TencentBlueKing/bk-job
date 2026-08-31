@@ -50,7 +50,9 @@ import com.tencent.bk.job.common.paas.model.cmsi.req.SendWxV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.resp.ApiGwCmsiChannelResp;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -83,12 +85,23 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
                            MeterRegistry meterRegistry,
                            TenantEnvService tenantEnvService,
                            IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+        this(bkApiGatewayProperties, appProperties, meterRegistry, tenantEnvService, virtualAdminAccountProvider,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_CMSI));
+    }
+
+    public CmsiApiGwClient(BkApiGatewayProperties bkApiGatewayProperties,
+                           AppProperties appProperties,
+                           MeterRegistry meterRegistry,
+                           TenantEnvService tenantEnvService,
+                           IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                           boolean sslVerifyEnabled) {
         super(
             meterRegistry,
             ESB_CMSI_API,
             bkApiGatewayProperties.getCmsi().getUrl(),
             HttpHelperFactory.createHttpHelper(
-                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor()),
+                sslVerifyEnabled
             ),
             tenantEnvService
         );
