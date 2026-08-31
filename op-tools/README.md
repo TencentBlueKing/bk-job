@@ -149,3 +149,34 @@ cd service-rsa-keypair
 python generate_service_rsa_keys.py
 python generate_service_rsa_keys.py --bits 2048 --pretty
 ```
+
+### 8.生成job-gateway开启HTTPS所需的证书（Helm values）
+
+#### 代码位置
+gateway-tls-cert
+
+#### 功能简介
+
+生成一套自签名证书材料并输出单行 JSON 到标准输出，用于填写 `values.yaml` 中的 `gatewayConfig.server.ssl.*` 这 4 个配置项。
+
+输出的 4 个值分别为：
+
+- `gatewayConfig.server.ssl.p12.base64Content`：PKCS12 格式 keystore 的单行 base64 编码内容，含服务端私钥、服务端证书与自签名 CA 证书
+- `gatewayConfig.server.ssl.keystore.password`：上述 keystore 的口令，默认随机生成
+- `gatewayConfig.server.ssl.truststore.base64Content`：JKS 格式 truststore 的单行 base64 编码内容，含上述自签名 CA 证书，条目别名为 `ca`
+- `gatewayConfig.server.ssl.truststore.password`：上述 truststore 的口令，默认随机生成
+
+服务端证书默认签发给主机名 `bk-job-gateway` 与 `localhost`，若客户端会校验主机名，需通过 `--san` 指定实际访问的域名或 IP。
+
+> python 环境: python3.6+
+
+#### 执行
+
+```shell
+pip install cryptography
+cd gateway-tls-cert
+# 生成证书，口令随机生成
+python generate_gateway_tls_cert.py --pretty
+# 指定实际访问的域名与 IP
+python generate_gateway_tls_cert.py --san bk-job-gateway --san 127.0.0.1 --days 3650
+```

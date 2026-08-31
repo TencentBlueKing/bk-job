@@ -1,15 +1,18 @@
 # chart values 更新日志
 
 ## 0.9.6
-1. job-gateway 仅开放 HTTP 端口，移除默认内置的 p12/truststore 证书与明文口令
+1. job-gateway 开启 https 所需的证书与口令不再内置默认值，需使用 `op-tools/gateway-tls-cert/generate_gateway_tls_cert.py` 生成后填入
 ```yaml
 gatewayConfig:
-  containerPort:
-    http: 9802
-    management: 19876
-  service:
-    port:
-      http: 80
+  server:
+    ssl:
+      p12:
+        base64Content: ""
+      keystore:
+        password: ""
+      truststore:
+        base64Content: ""
+        password: ""
 ```
 2. 调用外部系统的 HTTPS 证书校验默认开启，开关集中在 `job.http.ssl.verify` 一处配置
 ```yaml
