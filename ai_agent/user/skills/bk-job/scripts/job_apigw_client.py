@@ -28,6 +28,11 @@ PowerShell 用户注意：传递 JSON 参数时，推荐用文件方式避免转
 网关与页面 URL:
     从技能根目录 config.yaml 读取 apigw_base_url、job_base_url（部署技能包时修改 config.yaml，不读环境变量）
 
+多租户:
+    租户 ID 优先级：`--bk-tenant-id`（CLI 按次指定） > `config.yaml` 中的 `bk_tenant_id`（部署默认值） > `default`。
+    脚本将其作为 HTTP 请求头 `X-Bk-Tenant-Id` 传给 APIGW；同一作业平台环境下需跨租户操作时，
+    智能体应先向用户确认租户 ID，再通过 `--bk-tenant-id <ID>` 按次覆盖。
+
 跨平台与中文输出:
     启动时会将 stdout/stderr 设为 UTF-8，减轻 Windows 控制台中文乱码；与 macOS/Linux 兼容。
     作业执行历史查询回溯天数硬上限见常量 MAX_JOB_HISTORY_LOOKBACK_DAYS（当前 31 天）。
@@ -467,9 +472,12 @@ def load_skill_config() -> Dict[str, str]:
     raw = _load_flat_yaml(config_path)
     apigw_base_url = str(raw.get("apigw_base_url") or "").strip().rstrip("/")
     job_base_url = str(raw.get("job_base_url") or "").strip().rstrip("/")
+    # 多租户：config.yaml 未配置 bk_tenant_id 时默认 "default"，兼容非多租户环境
+    bk_tenant_id = str(raw.get("bk_tenant_id") or "").strip() or "default"
     _SKILL_CONFIG_CACHE = {
         "apigw_base_url": apigw_base_url,
         "job_base_url": job_base_url,
+        "bk_tenant_id": bk_tenant_id,
     }
     return _SKILL_CONFIG_CACHE
 
@@ -491,6 +499,40 @@ def get_job_base_url() -> Optional[str]:
     """作业平台 Web 根 URL（非 APIGW），用于拼接任务详情页链接；未配置时返回 None。"""
     base = load_skill_config()["job_base_url"]
     return base or None
+
+
+# 进程级租户 ID 覆盖：由 main() 解析 --bk-tenant-id 后写入，优先级高于 config.yaml。
+_CLI_TENANT_ID_OVERRIDE: Optional[str] = None
+
+
+def set_cli_tenant_id(cli_tenant: Optional[str]) -> None:
+    """将 --bk-tenant-id 的值写入进程级覆盖（空字符串/None 不生效）。"""
+    global _CLI_TENANT_ID_OVERRIDE
+    if cli_tenant is None:
+        _CLI_TENANT_ID_OVERRIDE = None
+        return
+    val = str(cli_tenant).strip()
+    _CLI_TENANT_ID_OVERRIDE = val or None
+
+
+def resolve_tenant_id() -> str:
+    """
+    解析本次请求应使用的租户 ID。
+
+    优先级：
+      1. --bk-tenant-id（CLI 入参，智能体按用户当轮指定传入）
+      2. config.yaml 中的 bk_tenant_id（部署默认租户）
+      3. "default"（兼容非多租户环境）
+    """
+    if _CLI_TENANT_ID_OVERRIDE:
+        return _CLI_TENANT_ID_OVERRIDE
+    cfg_tenant = (load_skill_config().get("bk_tenant_id") or "").strip()
+    return cfg_tenant or "default"
+
+
+def get_bk_tenant_id() -> str:
+    """兼容旧名称，内部转发到 resolve_tenant_id()。"""
+    return resolve_tenant_id()
 
 
 def build_job_instance_page_url(job_base_url: str, job_instance_id: Any) -> Optional[str]:
@@ -615,10 +657,13 @@ def print_scope_json(
 
 
 def auth_header(token: str) -> Dict[str, str]:
+    # X-Bk-Tenant-Id：按 --bk-tenant-id > config.yaml > "default" 的优先级解析，
+    # 同一作业平台环境下可按次切换租户。
     return {
         "Accept": "application/json",
         "Content-Type": "application/json",
         "X-Bkapi-Authorization": json.dumps({"access_token": token}, separators=(",", ":")),
+        "X-Bk-Tenant-Id": resolve_tenant_id(),
     }
 
 
@@ -1918,6 +1963,15 @@ def main() -> None:
         help="蓝鲸用户态 access_token；不传时依次尝试 ai-hub 命令（imate）与环境变量 BK_JOB_ACCESS_TOKEN",
     )
     parser.add_argument(
+        "--bk-tenant-id",
+        default=None,
+        help=(
+            "多租户环境下的租户 ID（作为 HTTP 头 X-Bk-Tenant-Id 传给 APIGW）；"
+            "优先级：本参数 > config.yaml 的 bk_tenant_id > default。"
+            "同一作业平台环境下跨租户操作时，按用户指定的租户按次传入。"
+        ),
+    )
+    parser.add_argument(
         "--no-business-memory",
         action="store_true",
         help="不在 JSON 输出中附加 _business_memory 字段",
@@ -2412,6 +2466,8 @@ def main() -> None:
     p_ml.set_defaults(func=cmd_memory_load)
 
     args = parser.parse_args()
+    # 将 --bk-tenant-id 写入进程级覆盖，供 auth_header 走三级优先级解析
+    set_cli_tenant_id(getattr(args, "bk_tenant_id", None))
     args.func(args)
 
 

@@ -1,7 +1,7 @@
 ---
 name: bk-job
 description: 经 APIGW 调用蓝鲸作业平台（BK-Job）开放接口：查搜定时任务、作业模板、执行方案与作业执行历史、实例状态日志，创建执行方案、新建与启停定时任务，到指定机器快速执行脚本，分发文件到目标机器（仅服务器/本地文件），查主机拓扑与执行账号。含写操作确认门禁、先选业务范围、先查主机与账号等规范。当用户提及作业平台、业务、业务集、蓝鲸作业、定时任务、cron、执行方案、作业模板、job_plan、job_instance、执行历史、快速执行脚本、fast_execute_script、文件分发、fast_transfer_file、主机、搜索主机、执行账号、bk_scope、APIGW 调用作业接口时使用。不适用于 Web 界面操作、非 APIGW 调用及 CMDB、监控等其它蓝鲸产品。
-compatibility: 依赖 Python 3（标准库即可）；访问令牌优先经 imate 的 ai-hub 命令获取，回退环境变量 BK_JOB_ACCESS_TOKEN；API 网关与页面根 URL 在技能根目录 config.yaml 中配置，部署时修改该文件即可。
+compatibility: 依赖 Python 3（标准库即可）；访问令牌优先经 imate 的 ai-hub 命令获取，回退环境变量 BK_JOB_ACCESS_TOKEN；API 网关与页面根 URL、多租户默认 bk_tenant_id 均在技能根目录 config.yaml 中配置；同环境跨租户时可通过 --bk-tenant-id 入参按次覆盖（优先级：CLI > config.yaml > default），部署时修改该文件即可。
 metadata: {"version":"1.0.0","bk_skill_code":"bk-job","openclaw":{"displayName":"蓝鲸作业平台","requires":{"env":["BK_JOB_ACCESS_TOKEN"]},"primaryEnv":"BK_JOB_ACCESS_TOKEN"}}
 ---
 
@@ -17,7 +17,7 @@ metadata: {"version":"1.0.0","bk_skill_code":"bk-job","openclaw":{"displayName":
 
 ## 前置检查
 
-1. **URL 配置**：脚本从 [`config.yaml`](config.yaml) 读 `apigw_base_url` 与 `job_base_url`，**不读环境变量**。
+1. **URL 与租户配置**：脚本从 [`config.yaml`](config.yaml) 读 `apigw_base_url`、`job_base_url` 与可选的 `bk_tenant_id`，**不读环境变量**。**租户 ID 优先级：`--bk-tenant-id` 入参 > `config.yaml` 的 `bk_tenant_id` > `default`**；同一作业平台环境需跨租户时，**上下文/业务记忆未明确租户 ID 则先向用户确认**，确认后给脚本传 `--bk-tenant-id <ID>`（**勿凭空猜租户 ID**）。
 2. **访问令牌**：脚本按 `--access-token` → `ai-hub`（imate）→ `BK_JOB_ACCESS_TOKEN` 自动获取，**智能体勿自行取令牌或回显**。见 [鉴权手册](references/manuals/environment-and-auth.md)。
 3. **资源范围**：无 `bk_scope` 上下文且无业务记忆时，先用 `list-authorized-scopes` 列出有权限的业务/业务集供选择，**勿擅自猜 `bk_scope_id`**；选定后可沉淀业务记忆（写入须确认）。
 
@@ -29,6 +29,7 @@ metadata: {"version":"1.0.0","bk_skill_code":"bk-job","openclaw":{"displayName":
 - **文件分发仅两种源**：只支持「服务器文件」与「本地文件」；第三方文件源（如 COS）未提供接口，**不要**给该选项，脚本会拒绝。
 - **列表先查一页**：默认 `--length 20` 并用 `--keyword` 缩小，`total > length` 时先说明「本页 N 条，共 M 条」再问翻页；大列表用 jq 过滤，**勿把整页 JSON 贴进对话**。见 [列举与分析](references/manuals/listing-and-token-efficient-analysis.md)。
 - **对用户输出**：不叙述调脚本/调 API 过程，表格化交付结论；同一轮内不得既给摘要又真实执行。
+- **回答须声明当前租户**：无论查询还是写操作，回答中都需显式给出本次请求实际生效的租户 ID 及其来源（`--bk-tenant-id` 入参 / `config.yaml` / `default`），便于用户核对是否是他期望的租户。接口返回 4xx、资源不存在或列表为空时，除给出常规排查建议外，**附带一句**「本次请求的是租户 `<X>` 下的资源，如与预期不符可通过 `--bk-tenant-id` 指定」，供用户自行判断，不预设租户错配即是原因。
 - **临时文件只放技能 `tmp/`**：内联 JSON 在 PowerShell 易转义失败，改用 `--*-file` 入参；这类中间文件一律写 `tmp/`，**操作触发后即清**（本地文件上传成功即清，避免占满磁盘），且**只许清 `tmp/` 内容**，严禁删其它路径。见 [临时文件](references/manuals/temp-files.md)。
 - **让用户选择优先用选项卡**：`ai-hub-ask-user-input` 可用且候选 ≤8 时用它发结构化选项（确认门禁用 `confirm` 类型），否则表格呈现；候选过多先收敛再选。见 [交互选择](references/manuals/interactive-choice.md)。
 - **主机变量结构因接口而异**：`plan-create` 与 `plan-execute`/`cron-save` 字段名不同，组装前先查手册差异表。
