@@ -20,6 +20,10 @@ spec:
       port: {{ .Values.gatewayConfig.service.port.http }}
       targetPort: {{ .Values.gatewayConfig.containerPort.http }}
       protocol: TCP
+    - name: https
+      port: {{ .Values.gatewayConfig.service.port.https }}
+      targetPort: {{ .Values.gatewayConfig.containerPort.https }}
+      protocol: TCP
     - name: management
       port: {{ .Values.gatewayConfig.containerPort.management }}
       targetPort: {{ .Values.gatewayConfig.containerPort.management }}
