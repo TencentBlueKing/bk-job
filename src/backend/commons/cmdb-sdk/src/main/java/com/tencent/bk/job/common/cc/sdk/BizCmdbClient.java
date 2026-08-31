@@ -127,7 +127,6 @@ import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.Utils;
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -1384,7 +1383,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             req,
             new TypeReference<EsbResp<ResourceWatchResult<HostEventDetail>>>() {
             },
-            HttpHelperFactory.getLongRetryableHttpHelper());
+            longRetryableHttpHelper());
         return esbResp.getData();
     }
 
@@ -1403,7 +1402,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             req,
             new TypeReference<EsbResp<ResourceWatchResult<HostRelationEventDetail>>>() {
             },
-            HttpHelperFactory.getLongRetryableHttpHelper());
+            longRetryableHttpHelper());
         return esbResp.getData();
     }
 
@@ -1423,7 +1422,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             req,
             new TypeReference<EsbResp<ResourceWatchResult<BizEventDetail>>>() {
             },
-            HttpHelperFactory.getLongRetryableHttpHelper());
+            longRetryableHttpHelper());
         return esbResp.getData();
     }
 

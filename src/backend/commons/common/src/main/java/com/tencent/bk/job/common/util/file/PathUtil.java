@@ -24,9 +24,60 @@
 
 package com.tencent.bk.job.common.util.file;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class PathUtil {
+
+    /**
+     * 将相对路径拼接到 baseDir 下，并保证拼接结果未越出 baseDir。
+     * 相对路径中若含有 ..、绝对路径等可穿越的内容，抛出 InvalidParamException。
+     *
+     * @param baseDirPath   允许访问的根目录
+     * @param relativePaths 逐级拼接的相对路径，可以是单个路径分量，也可以是含分隔符的多级路径
+     * @return 位于 baseDir 之内的目标文件
+     */
+    public static File resolveSafely(String baseDirPath, String... relativePaths) {
+        if (StringUtils.isBlank(baseDirPath) || relativePaths == null) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+        }
+
+        Path basePath = Paths.get(baseDirPath).toAbsolutePath().normalize();
+        if (Files.exists(basePath)) {
+            try {
+                // 目录已存在时解析符号链接；目录不存在时允许上层后续创建。
+                basePath = basePath.toRealPath();
+            } catch (IOException e) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+            }
+        }
+
+        Path targetPath = basePath;
+        for (String relativePath : relativePaths) {
+            if (StringUtils.isBlank(relativePath)) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+            }
+
+            Path relative = Paths.get(relativePath);
+            if (relative.isAbsolute() || relativePath.contains("..")) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+            }
+
+            targetPath = targetPath.resolve(relative).normalize();
+            if (!targetPath.startsWith(basePath)) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+            }
+        }
+        return targetPath.toFile();
+    }
+
     public static String joinFilePath(String path1, String path2) {
         if (path1 == null) return path2;
         if (path2 == null) return path1;

@@ -7,9 +7,10 @@ spring:
     web:
       filter-order: 0
   cloud:
-    ssl:
-      useInsecureTrustManager: true
     gateway:
+      httpclient:
+        ssl:
+          use-insecure-trust-manager: false
       discovery:
         locator:
           enabled: false

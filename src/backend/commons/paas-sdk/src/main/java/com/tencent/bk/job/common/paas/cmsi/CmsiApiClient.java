@@ -43,8 +43,10 @@ import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
 import com.tencent.bk.job.common.paas.model.SendVoiceReq;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -76,12 +78,22 @@ public class CmsiApiClient extends BkApiClient {
                          AppProperties appProperties,
                          MeterRegistry meterRegistry,
                          CmsiApiProperties cmsiApiProperties) {
+        this(esbProperties, appProperties, meterRegistry, cmsiApiProperties,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_CMSI));
+    }
+
+    public CmsiApiClient(EsbProperties esbProperties,
+                         AppProperties appProperties,
+                         MeterRegistry meterRegistry,
+                         CmsiApiProperties cmsiApiProperties,
+                         boolean sslVerifyEnabled) {
         super(
             meterRegistry,
             ESB_CMSI_API,
             esbProperties.getService().getUrl(),
             HttpHelperFactory.createHttpHelper(
-                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor()),
+                sslVerifyEnabled
             )
         );
         this.uriSendVoice = cmsiApiProperties.getVoice().getUri();

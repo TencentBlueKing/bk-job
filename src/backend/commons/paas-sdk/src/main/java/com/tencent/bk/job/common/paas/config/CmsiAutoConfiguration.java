@@ -27,6 +27,8 @@ package com.tencent.bk.job.common.paas.config;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -43,13 +45,15 @@ public class CmsiAutoConfiguration {
     public CmsiApiClient cmsiApiClient(AppProperties appProperties,
                                        EsbProperties esbProperties,
                                        ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                       CmsiApiProperties cmsiApiProperties) {
+                                       CmsiApiProperties cmsiApiProperties,
+                                       JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init CmsiApiClient");
         return new CmsiApiClient(
             esbProperties,
             appProperties,
             meterRegistryObjectProvider.getIfAvailable(),
-            cmsiApiProperties
+            cmsiApiProperties,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_CMSI)
         );
     }
 

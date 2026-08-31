@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.runner;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.util.http.JobHttpSslSocketFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.gateway.config.LicenseConfig;
 import com.tencent.bk.job.gateway.model.LicenseCheckResultDTO;
@@ -41,6 +42,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -48,13 +50,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -69,53 +66,32 @@ public class LicenseCheckRunner implements CommandLineRunner, ApplicationContext
 
     private CloseableHttpClient httpClient;
 
+    @Value("${job.http.ssl.verify.enabled:true}")
+    private boolean sslVerifyEnabled;
+
     public LicenseCheckRunner(LicenseConfig bkConfig) {
         this.bkConfig = bkConfig;
     }
 
     @PostConstruct
-    public void init() throws Exception {
+    public void init() {
         if (httpClient == null) {
-            X509TrustManager tm = new X509TrustManager() {
-                @Override
-                public void checkClientTrusted(X509Certificate[] xcs, String string) {
-                }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] xcs, String string) {
-                }
-
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-            };
-
-            HostnameVerifier hostnameVerifier = (arg0, arg1) -> true;
-
-            try {
-                SSLContext ctx = SSLContext.getInstance("SSL");
-                ctx.init(null, new TrustManager[]{tm}, null);
-
-                httpClient = HttpClientBuilder.create()
-                    .setDefaultConnectionConfig(
-                        ConnectionConfig.custom()
-                            .setBufferSize(8192)
-                            .setCharset(org.apache.http.Consts.UTF_8)
-                            .build())
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                        .setConnectionRequestTimeout(15000)
-                        .setConnectTimeout(15000)
-                        .setSocketTimeout(15000).build())
-                    .setConnectionTimeToLive(180, TimeUnit.SECONDS)
-                    .disableAutomaticRetries()
-                    .disableAuthCaching()
-                    .disableCookieManagement().setSSLContext(ctx)
-                    .setSSLHostnameVerifier(hostnameVerifier).build();
-            } catch (Exception e) {
-                log.error("Init license check http client fail", e);
-                throw e;
-            }
+            httpClient = HttpClientBuilder.create()
+                .setDefaultConnectionConfig(
+                    ConnectionConfig.custom()
+                        .setBufferSize(8192)
+                        .setCharset(org.apache.http.Consts.UTF_8)
+                        .build())
+                .setDefaultRequestConfig(RequestConfig.custom()
+                    .setConnectionRequestTimeout(15000)
+                    .setConnectTimeout(15000)
+                    .setSocketTimeout(15000).build())
+                .setConnectionTimeToLive(180, TimeUnit.SECONDS)
+                .disableAutomaticRetries()
+                .disableAuthCaching()
+                .disableCookieManagement()
+                .setSSLSocketFactory(JobHttpSslSocketFactory.create(sslVerifyEnabled))
+                .build();
         }
     }
 

@@ -1,0 +1,2 @@
+org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration=\
+com.tencent.bk.job.gateway.config.ManagementContextSecurityConfiguration
