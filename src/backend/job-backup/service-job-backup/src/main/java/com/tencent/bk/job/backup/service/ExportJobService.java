@@ -41,13 +41,25 @@ public interface ExportJobService {
     String startExport(ExportJobInfoDTO exportJobInfoDTO);
 
     /**
-     * 按任务 ID 拉导出任务信息
+     * 按任务 ID 拉导出任务信息。<b>不做创建者校验</b>，仅供 {@code ExportJobExecutor}
+     * 等内部调用（执行器以 {@code appId = -1} 跨业务取任务）；外部入口请用带 username 的重载。
      *
      * @param appId 业务 ID
      * @param jobId 任务 ID
      * @return 导出任务信息
      */
     ExportJobInfoDTO getExportInfo(Long appId, String jobId);
+
+    /**
+     * 按任务 ID 拉导出任务信息，并校验任务归属：非本人创建的任务按「不存在」处理（返回 null）。
+     * 导出包含用户自选的作业内容，是用户私有资源，业务权限不足以授权访问他人的任务。
+     *
+     * @param username 用户名
+     * @param appId    业务 ID
+     * @param jobId    任务 ID
+     * @return 导出任务信息，任务不存在或非本人创建时返回 null
+     */
+    ExportJobInfoDTO getExportInfo(String username, Long appId, String jobId);
 
     /**
      * 按用户拉正在运行的导出任务

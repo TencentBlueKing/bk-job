@@ -540,6 +540,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     @Override
     @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
         type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
+    // 取作业实例时会记录 VIEW_HISTORY 审计动作，缺少 @AuditEntry 时该事件不会落库。
+    // 本方法委托 doStepOperationV2 属类内自调用，不经过 Spring 代理，
+    // 拿不到 V2 上的切面，故两个方法都要标
+    @AuditEntry
     public Response<StepOperationVO> doStepOperation(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
@@ -553,6 +557,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    // 取作业实例时会记录 VIEW_HISTORY 审计动作，缺少 @AuditEntry 时该事件不会落库
+    @AuditEntry
     public Response<StepOperationVO> doStepOperationV2(String username,
                                                        AppResourceScope appResourceScope,
                                                        String scopeType,
@@ -575,6 +581,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    // 取作业实例时会记录 VIEW_HISTORY 审计动作，缺少 @AuditEntry 时该事件不会落库
+    @AuditEntry
     public Response terminateJob(String username,
                                  AppResourceScope appResourceScope,
                                  String scopeType,
