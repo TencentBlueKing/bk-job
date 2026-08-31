@@ -67,6 +67,17 @@ public class ExportJobServiceImpl implements ExportJobService {
     }
 
     @Override
+    public ExportJobInfoDTO getExportInfo(String username, Long appId, String jobId) {
+        ExportJobInfoDTO exportJob = exportJobDAO.getExportJobById(appId, jobId);
+        // 任务不存在与非本人创建返回同样的结果，避免暴露任务是否存在
+        if (exportJob == null || exportJob.getCreator() == null || !exportJob.getCreator().equals(username)) {
+            log.warn("Export job not belong to user, appId={}, jobId={}, username={}", appId, jobId, username);
+            return null;
+        }
+        return exportJob;
+    }
+
+    @Override
     public List<ExportJobInfoDTO> getCurrentJobByUser(String username, Long appId) {
         return exportJobDAO.getExportJobByUser(appId, username);
     }

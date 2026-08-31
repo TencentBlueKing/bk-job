@@ -41,9 +41,10 @@ public interface ExportJobDAO {
     String insertExportJob(ExportJobInfoDTO exportJobInfo);
 
     /**
-     * 根据导出任务 ID 拉取导出任务信息
+     * 根据导出任务 ID 拉取导出任务信息。<b>不做 creator 校验</b>，
+     * 归属校验由 {@code ExportJobService.getExportInfo(String, Long, String)} 负责。
      *
-     * @param appId 业务 ID
+     * @param appId 业务 ID，传 -1 表示不限业务（供执行器跨业务取任务）
      * @param jobId 任务 ID
      * @return 导出任务信息
      */

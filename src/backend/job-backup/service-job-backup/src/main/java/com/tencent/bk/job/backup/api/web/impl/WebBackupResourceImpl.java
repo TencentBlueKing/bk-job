@@ -51,6 +51,7 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -153,14 +154,14 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                                 String scopeId,
                                                 String jobId) {
         Long appId = appResourceScope.getAppId();
-        ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appId, jobId);
+        ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(username, appId, jobId);
         if (exportInfo != null) {
             List<LogEntityDTO> exportLog = logService.getExportLogById(appId, jobId);
             ExportInfoVO exportInfoVO = ExportJobInfoDTO.toVO(exportInfo);
             exportInfoVO.setLog(exportLog.stream().map(LogEntityDTO::toVO).collect(Collectors.toList()));
             return Response.buildSuccessResp(exportInfoVO);
         }
-        throw new InternalException("Not found", ErrorCode.INTERNAL_ERROR);
+        throw new NotFoundException(ErrorCode.EXPORT_JOB_NOT_EXIST);
     }
 
     private Pair<Long, StreamingResponseBody> getFileSizeAndStreamFromNFS(
@@ -213,7 +214,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                                                String scopeType,
                                                                String scopeId,
                                                                String jobId) {
-        ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appResourceScope.getAppId(), jobId);
+        ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(username, appResourceScope.getAppId(), jobId);
         if (exportInfo != null) {
             if (BackupJobStatusEnum.ALL_SUCCESS.equals(exportInfo.getStatus())) {
                 Pair<Long, StreamingResponseBody> fileInfoPair;
@@ -252,7 +253,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                             String scopeType,
                                             String scopeId,
                                             String jobId) {
-        ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appResourceScope.getAppId(), jobId);
+        ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(username, appResourceScope.getAppId(), jobId);
         if (exportInfo != null) {
             if (BackupJobStatusEnum.ALL_SUCCESS.equals(exportInfo.getStatus())) {
                 exportInfo.setStatus(BackupJobStatusEnum.FINISHED);
@@ -271,7 +272,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                          String scopeType,
                                          String scopeId,
                                          String jobId) {
-        ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appResourceScope.getAppId(), jobId);
+        ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(username, appResourceScope.getAppId(), jobId);
         if (exportInfo != null) {
             exportInfo.setStatus(BackupJobStatusEnum.CANCEL);
             exportInfo.setFileName(null);
@@ -390,14 +391,14 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                                 String scopeId,
                                                 String jobId) {
         Long appId = appResourceScope.getAppId();
-        ImportJobInfoDTO importInfo = importJobService.getImportInfoById(appId, jobId);
+        ImportJobInfoDTO importInfo = importJobService.getImportInfoById(username, appId, jobId);
         if (importInfo != null) {
             List<LogEntityDTO> importLog = logService.getImportLogById(appId, jobId);
             ImportInfoVO importInfoVO = ImportJobInfoDTO.toVO(importInfo);
             importInfoVO.setLog(importLog.stream().map(LogEntityDTO::toVO).collect(Collectors.toList()));
             return Response.buildSuccessResp(importInfoVO);
         }
-        throw new InternalException("Not Found", ErrorCode.INTERNAL_ERROR);
+        throw new NotFoundException(ErrorCode.IMPORT_JOB_NOT_EXIST);
     }
 
     @Override

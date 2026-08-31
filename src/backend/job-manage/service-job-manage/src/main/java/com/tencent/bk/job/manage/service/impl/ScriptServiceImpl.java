@@ -437,7 +437,14 @@ public class ScriptServiceImpl implements ScriptService {
         content = EventContentConstants.VIEW_SCRIPT
     )
     public ScriptDTO getByScriptIdAndVersion(User user, Long appId, String scriptId, String version) {
-        return scriptManager.getByScriptIdAndVersion(appId, scriptId, version);
+        authViewScript(user, appId, scriptId);
+        ScriptDTO script = scriptManager.getByScriptIdAndVersion(appId, scriptId, version);
+
+        ActionAuditContext.current()
+            .setInstanceId(scriptId)
+            .setInstanceName(script.getName());
+
+        return script;
     }
 
     @Override

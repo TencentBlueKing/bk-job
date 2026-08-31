@@ -81,10 +81,10 @@ public class FileSourceShareDAOImpl implements FileSourceShareDAO {
             sql = insertFileSourceShareQuery.getSQL(ParamType.INLINED);
             insertFileSourceShareQuery.execute();
             sharedAppIdList.remove(fileSourceDTO.getAppId());
-            // 插入新数据
-            if (fileSourceDTO.getPublicFlag()) {
+            // 插入新数据。publicFlag / shareToAllApp 可能为 null，按 false 处理
+            if (Boolean.TRUE.equals(fileSourceDTO.getPublicFlag())) {
                 // 共享Worker
-                if (!fileSourceDTO.getShareToAllApp() && !sharedAppIdList.isEmpty()) {
+                if (!Boolean.TRUE.equals(fileSourceDTO.getShareToAllApp()) && !sharedAppIdList.isEmpty()) {
                     insertFileSourceShareQuery = dslContext.insertInto(tableFileSourceShare,
                         tableFileSourceShare.FILE_SOURCE_ID,
                         tableFileSourceShare.APP_ID
