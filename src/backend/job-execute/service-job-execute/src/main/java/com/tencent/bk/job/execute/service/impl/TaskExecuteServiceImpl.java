@@ -1135,6 +1135,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkStepInstance(taskInstance, stepInstanceList);
             watch.stop();
 
+            // 校验引用的第三方文件源对当前业务可用。
+            // 必须放在 skipAuth 判断之外：定时任务等 skipAuth = true 的路径同样不允许引用越权的文件源
+            watch.start("validateFileSourceReference");
+            validateReferencedFileSources(taskInstance.getAppId(), stepInstanceList);
+            watch.stop();
+
             if (!executeParam.isSkipAuth()) {
                 watch.start("auth-execute-job");
                 authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), jobPlan, stepInstanceList,
@@ -1181,6 +1187,23 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 log.warn("createTaskInstanceForTask is slow, statistics: {}", watch.prettyPrint());
             }
         }
+    }
+
+    /**
+     * 汇总各文件分发步骤引用的第三方文件源，校验它们对当前业务可用，不可用则抛异常。
+     * 文件源 ID 在下游按 LinkedHashSet 去重，多个步骤引用同一文件源也只发起一次跨服务查询。
+     */
+    private void validateReferencedFileSources(long appId, List<StepInstanceDTO> stepInstanceList) {
+        if (CollectionUtils.isEmpty(stepInstanceList)) {
+            return;
+        }
+        List<FileSourceDTO> referencedFileSources = new ArrayList<>();
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
+                referencedFileSources.addAll(stepInstance.getFileSourceList());
+            }
+        }
+        fileSourceReferenceService.validateReferencedFileSources(appId, referencedFileSources);
     }
 
     private void standardizeStepDynamicGroupId(List<StepInstanceDTO> stepInstanceList) {
@@ -1522,6 +1545,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 检查步骤
         checkStepInstance(taskInstance, stepInstanceList);
+
+        // 原实例执行时文件源可能还在共享范围内，重做时要按当前范围重新校验
+        validateReferencedFileSources(appId, stepInstanceList);
 
         authRedoJob(operator, appId, originTaskInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
 
@@ -1972,7 +1998,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         log.info("Operate step, appId:{}, stepInstanceId:{}, operator:{}, operation:{}", appId, stepInstanceId,
             operator, operation.getValue());
         StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(appId, stepInstanceId);
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+        // 必须按 (调用者, 业务) 取作业实例：非本人执行的实例要鉴 VIEW_HISTORY。
+        // getStepInstanceDetail 只校验了 appId，缺了这一步业务内任意用户都能操作他人的作业步骤
+        TaskInstanceDTO taskInstance =
+            taskInstanceService.getTaskInstance(operator, appId, stepInstance.getTaskInstanceId());
 
         int executeCount = stepInstance.getExecuteCount();
         switch (operation) {
@@ -2295,11 +2324,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public void terminateJob(String username, Long appId, Long taskInstanceId) {
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
-            log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
+        // 必须按 (调用者, 业务) 取实例：不属于该业务时抛 TASK_INSTANCE_NOT_EXIST，
+        // 非本人执行的实例还会鉴 VIEW_HISTORY，避免业务内任意用户终止他人作业
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(username, appId, taskInstanceId);
         terminateJob(username, taskInstance);
     }
 
@@ -2332,7 +2359,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                 TaskOperationEnum operation) throws ServiceException {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
             taskInstanceId, operator, operation.getValue());
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
+        // 必须按 (调用者, 业务) 取实例：不属于该业务时抛 TASK_INSTANCE_NOT_EXIST，
+        // 非本人执行的实例还会鉴 VIEW_HISTORY。用裸 taskInstanceId 取会让调用者操作任意业务的实例
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(operator, appId, taskInstanceId);
         switch (operation) {
             case TERMINATE_JOB:
                 terminateJob(operator, taskInstance);

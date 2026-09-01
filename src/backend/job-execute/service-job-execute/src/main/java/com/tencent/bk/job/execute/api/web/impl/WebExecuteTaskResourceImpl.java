@@ -531,6 +531,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    // 取作业实例时会记录 VIEW_HISTORY 审计动作，缺少 @AuditEntry 时该事件不会落库
+    @AuditEntry
     public Response<StepOperationVO> doStepOperation(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
@@ -551,6 +553,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    // 取作业实例时会记录 VIEW_HISTORY 审计动作，缺少 @AuditEntry 时该事件不会落库
+    @AuditEntry
     public Response terminateJob(String username,
                                  AppResourceScope appResourceScope,
                                  String scopeType,
