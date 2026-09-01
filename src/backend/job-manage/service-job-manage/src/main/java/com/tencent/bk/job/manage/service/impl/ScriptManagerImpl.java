@@ -66,6 +66,7 @@ import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.job.manage.service.template.impl.TemplateScriptStatusUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -371,7 +372,7 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     private void checkScriptReferenced(ScriptDTO script) {
-        if (isScriptReferenced(script.getId(), script.getScriptVersionId())) {
+        if (isScriptReferenced(script.getTenantId(), script.getId(), script.getScriptVersionId())) {
             throw new FailedPreconditionException(ErrorCode.DELETE_REF_SCRIPT_FAIL);
         }
     }
@@ -631,10 +632,13 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public List<ScriptSyncTemplateStepDTO> listScriptSyncTemplateSteps(Long appId, String scriptId) {
+    public List<ScriptSyncTemplateStepDTO> listScriptSyncTemplateSteps(String tenantId, Long appId, String scriptId) {
         // 检查脚本
         ScriptDTO syncScript = scriptDAO.getScriptByScriptId(scriptId);
         checkScriptInApp(appId, syncScript);
+        if (!checkScriptInTenant(tenantId, syncScript)) {
+            return Collections.emptyList();
+        }
 
         List<ScriptSyncTemplateStepDTO> templateSteps =
             scriptRelateJobTemplateDAO.listScriptRelatedJobTemplateSteps(scriptId);
@@ -737,7 +741,8 @@ public class ScriptManagerImpl implements ScriptManager {
             }
         });
 
-        List<ScriptSyncTemplateStepDTO> scriptRelatedTemplateSteps = listScriptSyncTemplateSteps(appId, scriptId);
+        List<ScriptSyncTemplateStepDTO> scriptRelatedTemplateSteps = listScriptSyncTemplateSteps(
+            user.getTenantId(), appId, scriptId);
         Map<Long, ScriptSyncTemplateStepDTO> stepMap = new HashMap<>();
         scriptRelatedTemplateSteps.forEach(step -> stepMap.put(step.getStepId(), step));
         fillSyncResultDetail(syncScriptVersionId, syncResults, stepMap);
@@ -746,7 +751,10 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public Integer getScriptTemplateCiteCount(String scriptId, Long scriptVersionId) {
+    public Integer getScriptTemplateCiteCount(String tenantId, String scriptId, Long scriptVersionId) {
+        if (!checkScriptInTenant(tenantId, scriptId)) {
+            return 0;
+        }
         if (scriptVersionId == null) {
             return scriptCitedTaskTemplateDAO.countScriptCitedTaskTemplate(scriptId);
         } else {
@@ -755,7 +763,10 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public Integer getScriptTaskPlanCiteCount(String scriptId, Long scriptVersionId) {
+    public Integer getScriptTaskPlanCiteCount(String tenantId, String scriptId, Long scriptVersionId) {
+        if (!checkScriptInTenant(tenantId, scriptId)) {
+            return 0;
+        }
         if (scriptVersionId == null) {
             return scriptRelateTaskPlanDAO.countScriptRelatedTaskPlan(scriptId);
         } else {
@@ -763,9 +774,50 @@ public class ScriptManagerImpl implements ScriptManager {
         }
     }
 
+    /**
+     * 校验脚本是否属于指定租户，用于按脚本ID查询引用信息前的入口校验，避免跨租户读取。
+     * 引用关系不会跨租户产生，因此校验通过后按脚本ID查询即可，无需在引用查询中再做租户过滤。
+     *
+     * @param tenantId 租户ID，为空表示不做校验（内部调用场景）
+     * @param scriptId 脚本ID
+     * @return 脚本属于该租户返回 true
+     */
+    private boolean checkScriptInTenant(String tenantId, String scriptId) {
+        if (StringUtils.isBlank(tenantId)) {
+            return true;
+        }
+        return checkScriptInTenant(tenantId, scriptDAO.getScriptByScriptId(scriptId));
+    }
+
+    /**
+     * 校验脚本是否属于指定租户
+     *
+     * @param tenantId 租户ID，为空表示不做校验（内部调用场景）
+     * @param script   脚本
+     * @return 脚本属于该租户返回 true
+     */
+    private boolean checkScriptInTenant(String tenantId, ScriptDTO script) {
+        if (StringUtils.isBlank(tenantId)) {
+            return true;
+        }
+        if (script == null) {
+            return false;
+        }
+        if (!tenantId.equals(script.getTenantId())) {
+            log.info("Script is not in tenant, scriptId: {}, tenantId: {}, scriptTenantId: {}",
+                script.getId(), tenantId, script.getTenantId());
+            return false;
+        }
+        return true;
+    }
+
     @Override
-    public List<ScriptCitedTaskTemplateDTO> getScriptCitedTemplates(String scriptId,
+    public List<ScriptCitedTaskTemplateDTO> getScriptCitedTemplates(String tenantId,
+                                                                    String scriptId,
                                                                     Long scriptVersionId) {
+        if (!checkScriptInTenant(tenantId, scriptId)) {
+            return Collections.emptyList();
+        }
         List<ScriptCitedTaskTemplateDTO> scriptCitedTaskTemplateDTOList;
         if (scriptVersionId == null) {
             scriptCitedTaskTemplateDTOList = scriptCitedTaskTemplateDAO.listScriptCitedTaskTemplate(scriptId);
@@ -783,8 +835,12 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public List<ScriptCitedTaskPlanDTO> getScriptCitedTaskPlans(String scriptId,
+    public List<ScriptCitedTaskPlanDTO> getScriptCitedTaskPlans(String tenantId,
+                                                                String scriptId,
                                                                 Long scriptVersionId) {
+        if (!checkScriptInTenant(tenantId, scriptId)) {
+            return Collections.emptyList();
+        }
         List<ScriptRelatedTaskPlanDTO> scriptRelatedTaskPlanDTOList;
         if (scriptVersionId == null) {
             scriptRelatedTaskPlanDTOList = scriptRelateTaskPlanDAO.listScriptRelatedTaskPlan(scriptId);
@@ -929,10 +985,10 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public boolean isScriptReferenced(String scriptId, Long scriptVersionId) {
-        int citeCount = getScriptTemplateCiteCount(scriptId, scriptVersionId);
+    public boolean isScriptReferenced(String tenantId, String scriptId, Long scriptVersionId) {
+        int citeCount = getScriptTemplateCiteCount(tenantId, scriptId, scriptVersionId);
         if (citeCount == 0) {
-            citeCount = getScriptTaskPlanCiteCount(scriptId, scriptVersionId);
+            citeCount = getScriptTaskPlanCiteCount(tenantId, scriptId, scriptVersionId);
         }
         if (citeCount > 0 && scriptVersionId != null) {
             ScriptDTO scriptVersion = getScriptVersion(scriptVersionId);

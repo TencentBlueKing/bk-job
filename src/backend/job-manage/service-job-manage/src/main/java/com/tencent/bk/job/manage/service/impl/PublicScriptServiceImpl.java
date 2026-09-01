@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -182,7 +183,10 @@ public class PublicScriptServiceImpl implements PublicScriptService {
     }
 
     @Override
-    public List<ScriptDTO> listScriptVersion(String scriptId) {
+    public List<ScriptDTO> listScriptVersion(String tenantId, String scriptId) {
+        if (getScript(tenantId, scriptId) == null) {
+            return Collections.emptyList();
+        }
         return scriptManager.listScriptVersion(PUBLIC_APP_ID, scriptId);
     }
 

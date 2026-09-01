@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
@@ -181,14 +182,15 @@ public class BaseWebScriptResource {
     }
 
     protected void setScriptCiteCount(List<ScriptVO> scriptVOS) {
+        String tenantId = JobContextUtil.getTenantId();
         for (ScriptVO scriptVO : scriptVOS) {
             String scriptId = scriptVO.getId();
             Long scriptVersionId = scriptVO.getScriptVersionId();
             Integer taskTemplateCiteCount = scriptManager.getScriptTemplateCiteCount(
-                scriptId, scriptVersionId);
+                tenantId, scriptId, scriptVersionId);
             scriptVO.setRelatedTaskTemplateNum(taskTemplateCiteCount);
             Integer taskPlanCiteCount = scriptManager.getScriptTaskPlanCiteCount(
-                scriptId, scriptVersionId);
+                tenantId, scriptId, scriptVersionId);
             scriptVO.setRelatedTaskPlanNum(taskPlanCiteCount);
         }
     }
@@ -225,21 +227,23 @@ public class BaseWebScriptResource {
     }
 
     protected ScriptCiteCountVO getScriptCiteCountOfAllScript(String scriptId, Long scriptVersionId) {
-        Integer templateCiteCount = scriptManager.getScriptTemplateCiteCount(scriptId, scriptVersionId);
-        Integer taskPlanCiteCount = scriptManager.getScriptTaskPlanCiteCount(scriptId, scriptVersionId);
+        String tenantId = JobContextUtil.getTenantId();
+        Integer templateCiteCount = scriptManager.getScriptTemplateCiteCount(tenantId, scriptId, scriptVersionId);
+        Integer taskPlanCiteCount = scriptManager.getScriptTaskPlanCiteCount(tenantId, scriptId, scriptVersionId);
         return new ScriptCiteCountVO(templateCiteCount, taskPlanCiteCount);
     }
 
     protected ScriptCiteInfoVO getScriptCiteInfoOfAllScript(String scriptId, Long scriptVersionId) {
+        String tenantId = JobContextUtil.getTenantId();
         List<ScriptCitedTaskTemplateDTO> citedTemplateList = scriptManager.getScriptCitedTemplates(
-            scriptId, scriptVersionId);
+            tenantId, scriptId, scriptVersionId);
         if (citedTemplateList == null) {
             citedTemplateList = Collections.emptyList();
         }
         List<ScriptCitedTemplateVO> citedTemplateVOList =
             citedTemplateList.parallelStream().map(ScriptCitedTaskTemplateDTO::toVO).collect(Collectors.toList());
         List<ScriptCitedTaskPlanDTO> citedTaskPlanList = scriptManager.getScriptCitedTaskPlans(
-            scriptId, scriptVersionId);
+            tenantId, scriptId, scriptVersionId);
         if (citedTaskPlanList == null) {
             citedTaskPlanList = Collections.emptyList();
         }
@@ -310,7 +314,8 @@ public class BaseWebScriptResource {
     protected List<ScriptSyncTemplateStepDTO> getSyncTemplateSteps(Long appId,
                                                                    String scriptId,
                                                                    Long scriptVersionId) {
-        List<ScriptSyncTemplateStepDTO> steps = scriptManager.listScriptSyncTemplateSteps(appId, scriptId);
+        List<ScriptSyncTemplateStepDTO> steps = scriptManager.listScriptSyncTemplateSteps(
+            JobContextUtil.getTenantId(), appId, scriptId);
         if (CollectionUtils.isEmpty(steps)) {
             return Collections.emptyList();
         }
