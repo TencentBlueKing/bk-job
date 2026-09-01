@@ -127,11 +127,6 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                 // 网关从ESB JWT中解析出的Username最高优先级
                 username = request.getHeader(JobCommonHeaders.USERNAME);
                 log.debug("username from gateway:{}", username);
-                // QueryString/Body中的Username次优先
-                if (StringUtils.isBlank(username)) {
-                    username = parseUsernameFromQueryStringOrBody(request);
-                    log.debug("username from query/body:{}", username);
-                }
                 break;
         }
         String displayName = tryToGetDisplayName(tenantId, username);
