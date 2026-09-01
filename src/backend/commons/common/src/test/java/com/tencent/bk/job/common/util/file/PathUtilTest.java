@@ -47,6 +47,16 @@ class PathUtilTest {
             "task.json");
         assertThat(multiLevel.getPath())
             .isEqualTo(tempDir.resolve("import").resolve("admin").resolve("task.json").toString());
+
+        // 存量数据中的文件路径以分隔符开头，语义上仍是相对存储根目录的路径
+        File leadingSeparator = PathUtil.resolveSafely(baseDir, File.separator + "import" + File.separator + "admin"
+            + File.separator + "task.json");
+        assertThat(leadingSeparator.getPath())
+            .isEqualTo(tempDir.resolve("import").resolve("admin").resolve("task.json").toString());
+
+        // 文件名中间的 .. 不构成路径穿越
+        File dotsInFileName = PathUtil.resolveSafely(baseDir, "task..json");
+        assertThat(dotsInFileName.getPath()).isEqualTo(tempDir.resolve("task..json").toString());
     }
 
     @Test
@@ -59,10 +69,16 @@ class PathUtilTest {
             .isInstanceOf(InvalidParamException.class);
         assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, "import", ".." + File.separator + ".."))
             .isInstanceOf(InvalidParamException.class);
-        assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, tempDir.resolve("outside.txt").toString()))
-            .isInstanceOf(InvalidParamException.class);
-        assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, "unsafe..txt"))
-            .isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, File.separator + ".." + File.separator
+            + "outside.txt")).isInstanceOf(InvalidParamException.class);
+    }
+
+    @Test
+    void resolveSafelyKeepsAbsoluteLikePathInsideBaseDir(@TempDir Path tempDir) {
+        // 形如 /etc/passwd 的输入无法与存量相对路径区分，统一按 baseDir 下的相对路径处理，结果不会越出 baseDir
+        File target = PathUtil.resolveSafely(tempDir.toString(), File.separator + "etc" + File.separator + "passwd");
+
+        assertThat(target.toPath()).isEqualTo(tempDir.resolve("etc").resolve("passwd"));
     }
 
     @Test

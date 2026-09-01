@@ -41,7 +41,8 @@ public class PathUtil {
      * 相对路径中若含有 ..、绝对路径等可穿越的内容，抛出 InvalidParamException。
      *
      * @param baseDirPath   允许访问的根目录
-     * @param relativePaths 逐级拼接的相对路径，可以是单个路径分量，也可以是含分隔符的多级路径
+     * @param relativePaths 逐级拼接的相对路径，可以是单个路径分量，也可以是含分隔符的多级路径；
+     *                      以分隔符开头的路径按 baseDir 下的相对路径处理
      * @return 位于 baseDir 之内的目标文件
      */
     public static File resolveSafely(String baseDirPath, String... relativePaths) {
@@ -61,12 +62,13 @@ public class PathUtil {
 
         Path targetPath = basePath;
         for (String relativePath : relativePaths) {
-            if (StringUtils.isBlank(relativePath)) {
+            String pathWithoutLeadingSeparator = trimLeadingSeparator(relativePath);
+            if (StringUtils.isBlank(pathWithoutLeadingSeparator)) {
                 throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
             }
 
-            Path relative = Paths.get(relativePath);
-            if (relative.isAbsolute() || relativePath.contains("..")) {
+            Path relative = Paths.get(pathWithoutLeadingSeparator);
+            if (relative.isAbsolute() || containsParentDirName(relative)) {
                 throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
             }
 
@@ -76,6 +78,33 @@ public class PathUtil {
             }
         }
         return targetPath.toFile();
+    }
+
+    /**
+     * 去掉路径开头的分隔符。存量数据中的文件路径形如 /import/admin/xxx.json，
+     * 语义上是相对存储根目录的路径，而非文件系统的绝对路径。
+     */
+    private static String trimLeadingSeparator(String path) {
+        if (path == null) {
+            return null;
+        }
+        int index = 0;
+        while (index < path.length() && (path.charAt(index) == '/' || path.charAt(index) == '\\')) {
+            index++;
+        }
+        return path.substring(index);
+    }
+
+    /**
+     * 判断路径中是否存在 .. 分量。逐个分量比较，避免误判 a..b 这类合法文件名。
+     */
+    private static boolean containsParentDirName(Path path) {
+        for (Path name : path) {
+            if ("..".equals(name.toString())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static String joinFilePath(String path1, String path2) {
