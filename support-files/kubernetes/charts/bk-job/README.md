@@ -162,6 +162,10 @@ bitnami/rabbitmq
 | `gatewayConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `gatewayConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
 | `gatewayConfig.ingress.annotations.nginx.ingress.kubernetes.io/proxy-body-size` | 最大请求体限制    | `10240m`       |
+| `gatewayConfig.server.ssl.p12.base64Content` | job-gateway开启https时使用的p12证书keystore单行base64编码内容，无默认值，需用`op-tools/gateway-tls-cert`生成    | `""`       |
+| `gatewayConfig.server.ssl.keystore.password` | job-gateway开启https时使用的keystore的密码，无默认值，需用`op-tools/gateway-tls-cert`生成    | `""`       |
+| `gatewayConfig.server.ssl.truststore.base64Content` | job-gateway开启https时使用的证书truststore单行base64编码内容，无默认值，需用`op-tools/gateway-tls-cert`生成    | `""`       |
+| `gatewayConfig.server.ssl.truststore.password` | job-gateway开启https时使用的truststore的密码，无默认值，需用`op-tools/gateway-tls-cert`生成    | `""`       |
 | `gatewayConfig.jvmOptions` | 运行时JVM参数    | `-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC`       |
 
 ### Job-Manage配置
