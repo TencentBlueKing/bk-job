@@ -336,7 +336,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 这是本机制最危险的失效方式，TaskExecuteServiceDryRunTest 锁定了该性质。
             // 返回点之上唯一带写操作的校验是 checkAndSetScript 内的高危脚本检查，已按 dryRun 跳过落库。
             if (Boolean.TRUE.equals(fastTask.getDryRun())) {
-                fillDryRunResolvedResult(taskInstance, Collections.singletonList(stepInstance));
+                fillDryRunResolvedResult(taskInstance, Collections.singletonList(stepInstance), null);
                 return taskInstance;
             }
 
@@ -611,10 +611,20 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     /**
      * dryRun 返回前把解析结果挂到作业实例上，供上层组装审批单据所需的"实际影响面"。
      * 这里只做只读的执行对象提取，不产生任何写操作。
+     *
+     * @param variables 本次生效的全局变量（执行方案默认值与请求取值合并后的结果），
+     *                  快速执行脚本/分发文件没有全局变量，传 null。
+     *                  <b>不能只带请求里传的那几个</b>：沿用方案默认值的变量一样会被执行，
+     *                  单据要列全才谈得上审批
      */
-    private void fillDryRunResolvedResult(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
+    private void fillDryRunResolvedResult(TaskInstanceDTO taskInstance,
+                                          List<StepInstanceDTO> stepInstanceList,
+                                          Collection<TaskVariableDTO> variables) {
         taskInstance.setStepInstances(stepInstanceList);
         taskInstance.setAllHosts(taskInstanceExecuteObjectProcessor.extractHosts(stepInstanceList, null));
+        if (variables != null) {
+            taskInstance.setVariables(new ArrayList<>(variables));
+        }
     }
 
     private void addJobInstanceContext(TaskInstanceDTO taskInstance) {
@@ -1306,7 +1316,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 此行之上不得新增写操作，理由同 executeFastTaskInternal 的返回点注释；
             // 本链路的高危脚本检查在 batchCheckScriptMatchDangerousRule 内，已按 dryRun 跳过落库
             if (executeParam.isDryRun()) {
-                fillDryRunResolvedResult(taskInstance, stepInstanceList);
+                fillDryRunResolvedResult(taskInstance, stepInstanceList, finalVariableValueMap.values());
                 return taskInstance;
             }
 

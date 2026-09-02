@@ -26,16 +26,19 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -104,7 +107,7 @@ class ResolvedSummaryBuilderTest {
     }
 
     @Test
-    @DisplayName("文件分发步骤概要带出源文件、目标路径与传输模式")
+    @DisplayName("文件分发步骤概要带出源文件的账号、源机器与文件路径，以及目标路径与传输模式")
     void buildFileStepSummary() {
         FileSourceDTO fileSource = new FileSourceDTO();
         fileSource.setAccountAlias("root");
@@ -132,14 +135,21 @@ class ResolvedSummaryBuilderTest {
         ResolvedSummary.ResolvedStep step = summary.getSteps().get(0);
         assertThat(step.getHighRiskAccount()).isFalse();
         assertThat(fieldValue(step.getFields(), "file_target_path")).isEqualTo("/tmp/");
-        assertThat(fieldValue(step.getFields(), "file_source_list")).isEqualTo("root: /data/a.tar.gz");
+        assertThat(step.getFileSources()).hasSize(1);
+        ResolvedSummary.ResolvedFileSource resolvedFileSource = step.getFileSources().get(0);
+        assertThat(resolvedFileSource.getAccountAlias()).isEqualTo("root");
+        assertThat(resolvedFileSource.getFilePaths()).containsExactly("/data/a.tar.gz");
+        assertThat(resolvedFileSource.getHosts())
+            .as("从哪台机器取文件与取哪些文件同等重要，只给路径等于没说清来源")
+            .containsExactly("0:127.0.0.1");
+        assertThat(resolvedFileSource.getLocalUpload()).isFalse();
         // 强制模式会自动建目录并覆盖同名文件，后果远大于严格模式，必须在单据里说清
         assertThat(fieldValue(step.getFields(), "transfer_mode")).isEqualTo("FORCE");
         assertThat(summary.getDangerousRuleMatched()).isFalse();
     }
 
     @Test
-    @DisplayName("多个文件源按共用的条目分隔符拼接，单据渲染侧据此逐条截断")
+    @DisplayName("多个文件源逐个带回，单据渲染侧据此逐条展示与截断")
     void buildFileStepSummaryWithMultipleFileSources() {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setName("fast_file_step");
@@ -156,12 +166,16 @@ class ResolvedSummaryBuilderTest {
 
         ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
 
-        assertThat(fieldValue(summary.getSteps().get(0).getFields(), "file_source_list"))
-            .isEqualTo("root: /data/a.tar.gz" + ResolvedSummary.ITEM_SEPARATOR + "mysql: /data/b.tar.gz");
+        List<ResolvedSummary.ResolvedFileSource> fileSources = summary.getSteps().get(0).getFileSources();
+        assertThat(fileSources).hasSize(2);
+        assertThat(fileSources.get(0).getAccountAlias()).isEqualTo("root");
+        assertThat(fileSources.get(0).getFilePaths()).containsExactly("/data/a.tar.gz");
+        assertThat(fileSources.get(1).getAccountAlias()).isEqualTo("mysql");
+        assertThat(fileSources.get(1).getFilePaths()).containsExactly("/data/b.tar.gz");
     }
 
     @Test
-    @DisplayName("源文件没解析出账号时只列文件路径，不留下孤零零的连接符")
+    @DisplayName("源文件没解析出账号时只带文件路径，渲染侧据此不拼出孤零零的连接符")
     void buildFileStepSummaryWithoutFileSourceAccount() {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
@@ -175,8 +189,63 @@ class ResolvedSummaryBuilderTest {
 
         ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
 
-        assertThat(fieldValue(summary.getSteps().get(0).getFields(), "file_source_list"))
-            .isEqualTo("/data/a.tar.gz");
+        ResolvedSummary.ResolvedFileSource resolvedFileSource = summary.getSteps().get(0).getFileSources().get(0);
+        assertThat(resolvedFileSource.getAccountAlias()).isNull();
+        assertThat(resolvedFileSource.getFilePaths()).containsExactly("/data/a.tar.gz");
+    }
+
+    @Test
+    @DisplayName("本地上传的文件没有源机器与源账号，标出来才不会被当成漏填")
+    void buildLocalUploadFileSourceSummary() {
+        FileSourceDTO fileSource = new FileSourceDTO();
+        fileSource.setLocalUpload(true);
+        FileDetailDTO fileDetail = new FileDetailDTO();
+        fileDetail.setFilePath("/tmp/20260901/app.sh");
+        fileSource.setFiles(Collections.singletonList(fileDetail));
+
+        StepInstanceDTO stepInstance = new StepInstanceDTO();
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
+        stepInstance.setFileTargetPath("/tmp/");
+        stepInstance.setFileSourceList(Collections.singletonList(fileSource));
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+
+        ResolvedSummary.ResolvedFileSource resolvedFileSource =
+            ResolvedSummaryBuilder.build(taskInstance).getSteps().get(0).getFileSources().get(0);
+        assertThat(resolvedFileSource.getLocalUpload()).isTrue();
+        assertThat(resolvedFileSource.getHosts()).isNull();
+        assertThat(resolvedFileSource.getHostCount()).isNull();
+        assertThat(resolvedFileSource.getFilePaths()).containsExactly("/tmp/20260901/app.sh");
+    }
+
+    @Test
+    @DisplayName("源机器超过展示上限时只报台数：几十台源机器逐台列出会把源文件那行铺成一堵墙")
+    void buildFileSourceSummaryWithOverLimitHosts() {
+        int hostCount = ResolvedSummary.MAX_DISPLAY_ITEM_COUNT + 1;
+        Long[] hostIds = new Long[hostCount];
+        for (int i = 0; i < hostCount; i++) {
+            hostIds[i] = 200L + i;
+        }
+        FileSourceDTO fileSource = new FileSourceDTO();
+        fileSource.setAccountAlias("root");
+        fileSource.setServers(buildResolvedTarget(hostIds));
+        FileDetailDTO fileDetail = new FileDetailDTO();
+        fileDetail.setFilePath("/data/a.tar.gz");
+        fileSource.setFiles(Collections.singletonList(fileDetail));
+
+        StepInstanceDTO stepInstance = new StepInstanceDTO();
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
+        stepInstance.setFileTargetPath("/tmp/");
+        stepInstance.setFileSourceList(Collections.singletonList(fileSource));
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+
+        ResolvedSummary.ResolvedFileSource resolvedFileSource =
+            ResolvedSummaryBuilder.build(taskInstance).getSteps().get(0).getFileSources().get(0);
+        assertThat(resolvedFileSource.getHosts()).isNull();
+        assertThat(resolvedFileSource.getHostCount()).isEqualTo(hostCount);
     }
 
     @ParameterizedTest(name = "{0} 生效时概要里的分发模式为 {0}")
@@ -286,10 +355,173 @@ class ResolvedSummaryBuilderTest {
     }
 
     @Test
+    @DisplayName("脚本参数带进概要：同一份脚本，参数决定了这次到底干什么")
+    void buildScriptParamSummary() {
+        StepInstanceDTO stepInstance = buildScriptStep("--env=prod --force", false);
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+
+        ResolvedSummary.ResolvedStep step = ResolvedSummaryBuilder.build(taskInstance).getSteps().get(0);
+        assertThat(step.getScriptParam()).isEqualTo("--env=prod --force");
+        assertThat(step.getParamSensitive()).isFalse();
+    }
+
+    @Test
+    @DisplayName("敏感脚本参数只带标记不带取值：概要整份明文落库")
+    void buildSensitiveScriptParamSummary() {
+        StepInstanceDTO stepInstance = buildScriptStep("--token=secret", true);
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+
+        ResolvedSummary.ResolvedStep step = ResolvedSummaryBuilder.build(taskInstance).getSteps().get(0);
+        assertThat(step.getScriptParam()).isNull();
+        assertThat(step.getParamSensitive())
+            .as("取值不带但敏感标记要带，否则单据上看着像是这次执行不带参数")
+            .isTrue();
+    }
+
+    @Test
+    @DisplayName("没传脚本参数时不留敏感标记，免得单据上出一行空的敏感提示")
+    void buildSummaryWithoutScriptParam() {
+        StepInstanceDTO stepInstance = buildScriptStep(null, true);
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+
+        ResolvedSummary.ResolvedStep step = ResolvedSummaryBuilder.build(taskInstance).getSteps().get(0);
+        assertThat(step.getScriptParam()).isNull();
+        assertThat(step.getParamSensitive()).isNull();
+    }
+
+    @Test
+    @DisplayName("超长脚本参数被截断：单个取值就能把整份概要撑到落库失败")
+    void buildOverlongScriptParamSummary() {
+        StepInstanceDTO stepInstance =
+            buildScriptStep(StringUtils.repeat('a', ResolvedSummary.MAX_DISPLAY_VALUE_LENGTH + 100), false);
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+
+        ResolvedSummary.ResolvedStep step = ResolvedSummaryBuilder.build(taskInstance).getSteps().get(0);
+        assertThat(step.getScriptParam()).hasSize(ResolvedSummary.MAX_DISPLAY_VALUE_LENGTH + 1);
+    }
+
+    @Test
+    @DisplayName("启动执行方案列出全部生效变量，本次没传的标为沿用方案默认值")
+    void buildGlobalVarSummary() {
+        TaskInstanceDTO taskInstance = buildPlanTaskInstance(
+            stringVar(1L, "version", "v1.2.3"),
+            stringVar(2L, "port", "8080"));
+
+        ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance,
+            Collections.singleton("version"));
+
+        assertThat(summary.getGlobalVars()).hasSize(2);
+        assertThat(globalVar(summary, "version").getAssigned()).isTrue();
+        assertThat(globalVar(summary, "version").getValue()).isEqualTo("v1.2.3");
+        assertThat(globalVar(summary, "port").getAssigned())
+            .as("沿用方案默认值的变量不标注出来，审批人会以为这个值是本次改的")
+            .isFalse();
+        assertThat(globalVar(summary, "port").getValue()).isEqualTo("8080");
+    }
+
+    @Test
+    @DisplayName("密文变量只带变量名与类型，取值一律不进概要")
+    void buildCipherGlobalVarSummary() {
+        TaskVariableDTO cipherVar = stringVar(1L, "password", "P@ssw0rd");
+        cipherVar.setType(TaskVariableTypeEnum.CIPHER.getType());
+
+        ResolvedSummary summary = ResolvedSummaryBuilder.build(buildPlanTaskInstance(cipherVar),
+            Collections.singleton("password"));
+
+        assertThat(globalVar(summary, "password").getType()).isEqualTo(TaskVariableTypeEnum.CIPHER.name());
+        assertThat(globalVar(summary, "password").getValue()).isNull();
+    }
+
+    @Test
+    @DisplayName("主机类变量带出预检解析好的主机，不再回查 CMDB")
+    void buildHostGlobalVarSummary() {
+        TaskVariableDTO hostVar = new TaskVariableDTO();
+        hostVar.setId(1L);
+        hostVar.setName("target_hosts");
+        hostVar.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType());
+        hostVar.setExecuteTarget(buildResolvedTarget(101L, 102L));
+
+        ResolvedSummary summary = ResolvedSummaryBuilder.build(buildPlanTaskInstance(hostVar),
+            Collections.singleton("target_hosts"));
+
+        ResolvedSummary.ResolvedGlobalVar globalVar = globalVar(summary, "target_hosts");
+        assertThat(globalVar.getHosts()).containsExactly("0:127.0.0.1", "0:127.0.0.1");
+        assertThat(globalVar.getHostCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("变量里的动态分组同样打开「放行时重新解析」提示，不能被步骤目标的判定覆盖掉")
+    void buildDynamicGlobalVarSummary() {
+        ExecuteTargetDTO target = new ExecuteTargetDTO();
+        target.setDynamicServerGroups(Collections.singletonList(new DynamicServerGroupDTO("group-1")));
+        TaskVariableDTO hostVar = new TaskVariableDTO();
+        hostVar.setId(1L);
+        hostVar.setName("dynamic_hosts");
+        hostVar.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType());
+        hostVar.setExecuteTarget(target);
+
+        ResolvedSummary summary = ResolvedSummaryBuilder.build(buildPlanTaskInstance(hostVar),
+            Collections.singleton("dynamic_hosts"));
+
+        assertThat(globalVar(summary, "dynamic_hosts").getDynamicGroupCount()).isEqualTo(1);
+        assertThat(summary.getContainsDynamicTarget()).isTrue();
+    }
+
+    @Test
     @DisplayName("作业实例为空时返回空概要而非抛异常")
     void buildSummaryWithoutTaskInstance() {
         assertThat(ResolvedSummaryBuilder.build(null)).isNotNull();
         assertThat(ResolvedSummaryBuilder.build(new TaskInstanceDTO()).getSteps()).isNull();
+    }
+
+    private StepInstanceDTO buildScriptStep(String scriptParam, boolean secureParam) {
+        StepInstanceDTO stepInstance = new StepInstanceDTO();
+        stepInstance.setName("script_step");
+        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
+        stepInstance.setScriptParam(scriptParam);
+        stepInstance.setSecureParam(secureParam);
+        stepInstance.setTargetExecuteObjects(buildResolvedTarget(101L));
+        return stepInstance;
+    }
+
+    /**
+     * 启动执行方案的预检结果：步骤已解析，变量是方案默认值与请求取值合并后的全集
+     */
+    private TaskInstanceDTO buildPlanTaskInstance(TaskVariableDTO... variables) {
+        StepInstanceDTO stepInstance = new StepInstanceDTO();
+        stepInstance.setName("step_1");
+        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
+        stepInstance.setTargetExecuteObjects(buildResolvedTarget(101L));
+
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setPlanId(1000L);
+        taskInstance.setStepInstances(Collections.singletonList(stepInstance));
+        taskInstance.setVariables(Arrays.asList(variables));
+        return taskInstance;
+    }
+
+    private TaskVariableDTO stringVar(Long id, String name, String value) {
+        TaskVariableDTO variable = new TaskVariableDTO();
+        variable.setId(id);
+        variable.setName(name);
+        variable.setType(TaskVariableTypeEnum.STRING.getType());
+        variable.setValue(value);
+        return variable;
+    }
+
+    private ResolvedSummary.ResolvedGlobalVar globalVar(ResolvedSummary summary, String name) {
+        return summary.getGlobalVars().stream()
+            .filter(globalVar -> name.equals(globalVar.getName()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("概要里没有变量：" + name));
     }
 
     private FileSourceDTO buildFileSource(String accountAlias, Long hostId, String filePath) {

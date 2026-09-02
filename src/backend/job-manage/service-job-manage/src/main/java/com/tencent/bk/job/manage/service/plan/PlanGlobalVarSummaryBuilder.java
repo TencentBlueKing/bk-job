@@ -130,7 +130,7 @@ public class PlanGlobalVarSummaryBuilder {
         Set<Long> hostIdsToResolve = new HashSet<>();
         for (TaskTargetDTO target : targets) {
             List<ApplicationHostDTO> hosts = hostList(target);
-            if (CollectionUtils.isEmpty(hosts) || hosts.size() > ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT) {
+            if (CollectionUtils.isEmpty(hosts) || hosts.size() > ResolvedSummary.MAX_DISPLAY_ITEM_COUNT) {
                 continue;
             }
             for (ApplicationHostDTO host : hosts) {

@@ -219,7 +219,7 @@ public class CronGlobalVarSummaryBuilder {
         Set<Long> hostIdsToResolve = new HashSet<>();
         for (HostTarget hostTarget : hostTargets) {
             HostTargetValue value = hostTarget.value;
-            if (value == null || value.hosts.size() > ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT) {
+            if (value == null || value.hosts.size() > ResolvedSummary.MAX_DISPLAY_ITEM_COUNT) {
                 continue;
             }
             for (HostRef host : value.hosts) {

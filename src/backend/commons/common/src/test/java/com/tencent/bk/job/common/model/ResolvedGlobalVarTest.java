@@ -43,24 +43,24 @@ class ResolvedGlobalVarTest {
     @DisplayName("主机台数超过上限时清掉清单、只留总数")
     void hostListIsDroppedWhenExceedingLimit() {
         ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();
-        for (int i = 0; i <= ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT; i++) {
+        for (int i = 0; i <= ResolvedSummary.MAX_DISPLAY_ITEM_COUNT; i++) {
             globalVar.addHost((long) i, "0:127.0.0." + i);
         }
 
         assertThat(globalVar.getHosts()).isNull();
-        assertThat(globalVar.getHostCount()).isEqualTo(ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT + 1);
+        assertThat(globalVar.getHostCount()).isEqualTo(ResolvedSummary.MAX_DISPLAY_ITEM_COUNT + 1);
     }
 
     @Test
     @DisplayName("台数正好到上限时仍逐台列出")
     void hostListIsKeptAtLimit() {
         ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();
-        for (int i = 0; i < ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT; i++) {
+        for (int i = 0; i < ResolvedSummary.MAX_DISPLAY_ITEM_COUNT; i++) {
             globalVar.addHost((long) i, "0:127.0.0." + i);
         }
 
-        assertThat(globalVar.getHosts()).hasSize(ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT);
-        assertThat(globalVar.getHostCount()).isEqualTo(ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT);
+        assertThat(globalVar.getHosts()).hasSize(ResolvedSummary.MAX_DISPLAY_ITEM_COUNT);
+        assertThat(globalVar.getHostCount()).isEqualTo(ResolvedSummary.MAX_DISPLAY_ITEM_COUNT);
     }
 
     @Test
@@ -78,9 +78,9 @@ class ResolvedGlobalVarTest {
     @DisplayName("超长变量取值被截断")
     void overlongVarValueIsTruncated() {
         ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();
-        globalVar.setValue(StringUtils.repeat('a', ResolvedSummary.MAX_GLOBAL_VAR_VALUE_LENGTH + 100));
+        globalVar.setValue(StringUtils.repeat('a', ResolvedSummary.MAX_DISPLAY_VALUE_LENGTH + 100));
 
-        assertThat(globalVar.getValue()).hasSize(ResolvedSummary.MAX_GLOBAL_VAR_VALUE_LENGTH + 1);
+        assertThat(globalVar.getValue()).hasSize(ResolvedSummary.MAX_DISPLAY_VALUE_LENGTH + 1);
         assertThat(globalVar.getValue()).endsWith("…");
     }
 

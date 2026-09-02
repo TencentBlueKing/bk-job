@@ -60,19 +60,19 @@ public class ResolvedSummary {
     public static final String ITEM_SEPARATOR = "; ";
 
     /**
-     * 主机类全局变量逐台列出的台数上限，超出只保留总数。
+     * 逐条列出的上限，超出只保留总数。执行对象、主机类全局变量、文件源主机与源文件路径共用同一个阈值。
      * <p>
-     * 少量主机逐台列出，审批人才看得出这次到底动哪几台；上百台逐台列出只会把单据铺成一堵墙，
-     * 反而让人直接划到底放行，此时台数本身已足够判断影响面
+     * 少量逐条列出，审批人才看得出这次到底动哪几台；上百条逐条列出只会把单据铺成一堵墙，
+     * 反而让人直接划到底放行，此时总数本身已足够判断影响面
      */
-    public static final int MAX_GLOBAL_VAR_HOST_COUNT = 10;
+    public static final int MAX_DISPLAY_ITEM_COUNT = 10;
 
     /**
-     * 全局变量取值在概要里保留的最大字符数，超出截断。
+     * 单个取值（全局变量取值、脚本参数）在概要里保留的最大字符数，超出截断。
      * <p>
      * 关联数组、索引数组类变量的取值可能很长，而概要要整份落库进 approval_task.resolved_summary
      */
-    public static final int MAX_GLOBAL_VAR_VALUE_LENGTH = 512;
+    public static final int MAX_DISPLAY_VALUE_LENGTH = 512;
 
     private static final String TRUNCATED_SUFFIX = "…";
 
@@ -128,7 +128,7 @@ public class ResolvedSummary {
      * 本次操作生效的全局变量，含未在请求中指定、沿用执行方案/作业模板默认值的那些。
      * <p>
      * <b>全部变量都要列出</b>：只列请求里传的那几个，审批人无法判断这个方案实际会拿什么参数去跑。
-     * 主机类变量的台数计入风险等级判定，因此即便台数超过 {@link #MAX_GLOBAL_VAR_HOST_COUNT}
+     * 主机类变量的台数计入风险等级判定，因此即便台数超过 {@link #MAX_DISPLAY_ITEM_COUNT}
      * 不再逐台列出，{@link ResolvedGlobalVar#hostCount} 也必须如实带回
      */
     @JsonProperty("global_vars")
@@ -182,6 +182,46 @@ public class ResolvedSummary {
             }
         }
         return total;
+    }
+
+    /**
+     * 逐条累计时的封顶规则：超过 {@link #MAX_DISPLAY_ITEM_COUNT} 条就清掉清单只留总数。
+     * <p>
+     * 全局变量的主机、文件源的主机与源文件路径都按这条规则收口，<b>收在一处</b>，
+     * 免得几个持有清单的结构各写一份判断而写出不一致的单据
+     *
+     * @param items 已收集的清单，为空时按需新建
+     * @param count 累计到本条为止的总条数
+     */
+    private static List<String> appendItem(List<String> items, int count, String item) {
+        if (count > MAX_DISPLAY_ITEM_COUNT) {
+            return null;
+        }
+        List<String> result = items == null ? new ArrayList<>() : items;
+        result.add(item);
+        return result;
+    }
+
+    /**
+     * 主机在单据上的展示值：审批人真正看得懂的是 云区域ID:IP，没有 IP 时用主机 ID 兜底
+     *
+     * @return 两者都没有时返回 null，表示这台主机展示不了也数不清
+     */
+    private static String hostDisplay(Long hostId, String cloudIp) {
+        if (cloudIp != null && !cloudIp.trim().isEmpty()) {
+            return cloudIp.trim();
+        }
+        return hostId == null ? null : "host_id:" + hostId;
+    }
+
+    /**
+     * 按 {@link #MAX_DISPLAY_VALUE_LENGTH} 截断单个取值：单个取值就能把整份概要撑到落库失败
+     */
+    private static String truncateValue(String value) {
+        if (value != null && value.length() > MAX_DISPLAY_VALUE_LENGTH) {
+            return value.substring(0, MAX_DISPLAY_VALUE_LENGTH) + TRUNCATED_SUFFIX;
+        }
+        return value;
     }
 
     /**
@@ -245,7 +285,7 @@ public class ResolvedSummary {
         private String type;
 
         /**
-         * 非主机类变量的取值。密文类型不带，超长按 {@link #MAX_GLOBAL_VAR_VALUE_LENGTH} 截断
+         * 非主机类变量的取值。密文类型不带，超长按 {@link #MAX_DISPLAY_VALUE_LENGTH} 截断
          */
         @JsonProperty("value")
         private String value;
@@ -260,7 +300,7 @@ public class ResolvedSummary {
         private Boolean assigned;
 
         /**
-         * 主机类变量解析出的主机，形如 云区域ID:IP；台数超过 {@link #MAX_GLOBAL_VAR_HOST_COUNT} 时为空
+         * 主机类变量解析出的主机，形如 云区域ID:IP；台数超过 {@link #MAX_DISPLAY_ITEM_COUNT} 时为空
          */
         @JsonProperty("hosts")
         private List<String> hosts;
@@ -290,20 +330,14 @@ public class ResolvedSummary {
         private Integer containerCount;
 
         /**
-         * 手写 setter 让截断成为绕不过去的不变式：调用方各写一遍必然有人漏掉，
-         * 而单个变量取值就能把整份概要撑到落库失败
+         * 手写 setter 让截断成为绕不过去的不变式：调用方各写一遍必然有人漏掉
          */
         public void setValue(String value) {
-            if (value != null && value.length() > MAX_GLOBAL_VAR_VALUE_LENGTH) {
-                this.value = value.substring(0, MAX_GLOBAL_VAR_VALUE_LENGTH) + TRUNCATED_SUFFIX;
-                return;
-            }
-            this.value = value;
+            this.value = truncateValue(value);
         }
 
         /**
-         * 逐台累计主机。台数超过上限后清掉已收集的清单、只留总数，
-         * <b>上限判断收在这里</b>，免得各下游各写一份判断而写出不一致的单据
+         * 逐台累计主机，台数超过上限后清掉已收集的清单、只留总数
          *
          * @param hostId  主机 ID，cloudIp 为空时用它兜底展示
          * @param cloudIp 云区域ID:IP，审批人真正看得懂的那个值
@@ -315,21 +349,77 @@ public class ResolvedSummary {
                 return;
             }
             hostCount = hostCount == null ? 1 : hostCount + 1;
-            if (hostCount > MAX_GLOBAL_VAR_HOST_COUNT) {
-                hosts = null;
+            hosts = appendItem(hosts, hostCount, display);
+        }
+    }
+
+    /**
+     * 文件分发步骤的一个源文件。
+     * <p>
+     * <b>结构化而不是在下游拼成一句话</b>：源机器超过上限时要说的"共 N 台"、本地文件要标的"本地文件"
+     * 都是给人看的文案，而预检发生在调用方的语言环境、单据却按审批人的语言渲染，
+     * 在下游拼死等于把一种语言钉进快照
+     */
+    @Data
+    public static class ResolvedFileSource {
+
+        /**
+         * 取文件用的账号别名。本地文件没有账号
+         */
+        @JsonProperty("account_alias")
+        private String accountAlias;
+
+        /**
+         * 源机器，形如 云区域ID:IP；台数超过 {@link #MAX_DISPLAY_ITEM_COUNT} 时为空。本地文件没有源机器
+         */
+        @JsonProperty("hosts")
+        private List<String> hosts;
+
+        /**
+         * 源机器台数，无论是否逐台列出都如实带回
+         */
+        @JsonProperty("host_count")
+        private Integer hostCount;
+
+        /**
+         * 源文件路径，最多 {@link #MAX_DISPLAY_ITEM_COUNT} 条
+         */
+        @JsonProperty("file_paths")
+        private List<String> filePaths;
+
+        /**
+         * 源文件路径总数，超过上限时用于提示还有多少条没列出
+         */
+        @JsonProperty("file_path_count")
+        private Integer filePathCount;
+
+        /**
+         * 是否为本地上传的文件。这类文件没有源机器与源账号，单据上要标出来，否则会被当成漏填
+         */
+        @JsonProperty("local_upload")
+        private Boolean localUpload;
+
+        /**
+         * 逐台累计源机器，规则同 {@link ResolvedGlobalVar#addHost}
+         */
+        public void addHost(Long hostId, String cloudIp) {
+            String display = hostDisplay(hostId, cloudIp);
+            if (display == null) {
                 return;
             }
-            if (hosts == null) {
-                hosts = new ArrayList<>();
-            }
-            hosts.add(display);
+            hostCount = hostCount == null ? 1 : hostCount + 1;
+            hosts = appendItem(hosts, hostCount, display);
         }
 
-        private String hostDisplay(Long hostId, String cloudIp) {
-            if (cloudIp != null && !cloudIp.trim().isEmpty()) {
-                return cloudIp.trim();
+        /**
+         * 逐条累计源文件路径，超过上限后只留总数
+         */
+        public void addFilePath(String filePath) {
+            if (filePath == null || filePath.trim().isEmpty()) {
+                return;
             }
-            return hostId == null ? null : "host_id:" + hostId;
+            filePathCount = filePathCount == null ? 1 : filePathCount + 1;
+            filePaths = appendItem(filePaths, filePathCount, truncateValue(filePath.trim()));
         }
     }
 
@@ -382,6 +472,25 @@ public class ResolvedSummary {
         private String dangerousCheckSummary;
 
         /**
+         * 脚本参数。<b>调用方声明为敏感的参数一律不带</b>：概要以明文落库，
+         * 敏感与否见 {@link #paramSensitive}，渲染侧对敏感参数出占位符即可
+         */
+        @JsonProperty("script_param")
+        private String scriptParam;
+
+        /**
+         * 脚本参数是否被调用方声明为敏感参数
+         */
+        @JsonProperty("param_sensitive")
+        private Boolean paramSensitive;
+
+        /**
+         * 文件分发步骤的源文件
+         */
+        @JsonProperty("file_sources")
+        private List<ResolvedFileSource> fileSources;
+
+        /**
          * 本步骤解析出的执行对象总数
          */
         @JsonProperty("execute_object_count")
@@ -419,6 +528,23 @@ public class ResolvedSummary {
                 fields = new ArrayList<>();
             }
             fields.add(new ResolvedField(label, value));
+        }
+
+        /**
+         * 手写 setter 让截断成为绕不过去的不变式，同 {@link ResolvedGlobalVar#setValue}
+         */
+        public void setScriptParam(String scriptParam) {
+            this.scriptParam = truncateValue(scriptParam);
+        }
+
+        public void addFileSource(ResolvedFileSource fileSource) {
+            if (fileSource == null) {
+                return;
+            }
+            if (fileSources == null) {
+                fileSources = new ArrayList<>();
+            }
+            fileSources.add(fileSource);
         }
     }
 

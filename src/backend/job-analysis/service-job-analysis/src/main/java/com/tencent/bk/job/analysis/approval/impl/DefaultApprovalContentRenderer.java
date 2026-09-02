@@ -218,9 +218,11 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
             putRow(rows, label("name"), summary.getName(), false);
         }
         putRow(rows, label("accounts"), describeAccounts(summary), false);
+        // 同一份脚本，参数决定了这次到底干什么：是灰度还是全量、清的是哪个目录
+        putRow(rows, label("scriptParam"), describeScriptParams(summary), false);
         // 文件从哪来、落到哪、怎么落盘：执行方案的文件步骤定义在方案里而不在入参里，
         // 不在这里汇总出来，审批人在正文中就再也看不到这三件事
-        putFileFieldRow(rows, summary, FIELD_FILE_SOURCE_LIST);
+        putFileSourceRow(rows, summary);
         putFileFieldRow(rows, summary, FIELD_FILE_TARGET_PATH);
         putFileFieldRow(rows, summary, FIELD_FILE_TARGET_NAME);
         putTransferModeRow(rows, defaultRows, summary);
@@ -229,10 +231,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
             putRow(rows, resolvedFieldLabel(FIELD_GLOBAL_VARS),
                 labelWithArgs("value.itemCount", summary.getGlobalVars().size()), false);
         }
-        if (summary.getTotalExecuteObjectCount() != null) {
-            putRow(rows, label("totalExecuteObjectCount"),
-                String.valueOf(summary.getTotalExecuteObjectCount()), false);
-        }
+        putRow(rows, label("executeObjects"), describeExecuteObjects(summary), false);
         if (Boolean.TRUE.equals(summary.getDangerousRuleMatched())) {
             putRow(rows, label("dangerousRuleMatched"), label("value.dangerousRuleMatched"), true);
         }
@@ -374,6 +373,154 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
             }
         }
         return accounts.isEmpty() ? null : String.join(", ", accounts);
+    }
+
+    /**
+     * 执行对象：数量在上限内时逐个列出，超出只报总数。
+     * <p>
+     * "将影响哪几台机器"是审批人判断影响面的第一依据，只给一个数字等于让人凭空想象；
+     * 但上千台逐个列出只会把单据铺成一堵墙，反而让人直接划到底放行，此时总数本身已足够。
+     * <b>逐个列出的前提是清单完整</b>：概要里的执行对象清单本身按
+     * {@link ResolvedSummary#MAX_EXECUTE_OBJECT_COUNT} 截断过，与总数对不上时只报总数，
+     * 免得把截断后的一部分说成全部
+     */
+    private String describeExecuteObjects(ResolvedSummary summary) {
+        Integer totalCount = summary.getTotalExecuteObjectCount();
+        if (totalCount == null) {
+            return null;
+        }
+        List<String> displays = collectExecuteObjectDisplays(summary);
+        if (totalCount <= ResolvedSummary.MAX_DISPLAY_ITEM_COUNT && displays.size() == totalCount) {
+            return labelWithArgs("value.executeObjectList", totalCount,
+                String.join(ResolvedSummary.ITEM_SEPARATOR, displays));
+        }
+        return labelWithArgs("value.executeObjectCount", totalCount);
+    }
+
+    /**
+     * 各步骤的执行对象去重后合并，与总数的口径保持一致（总数也是跨步骤去重后的）
+     */
+    private List<String> collectExecuteObjectDisplays(ResolvedSummary summary) {
+        if (CollectionUtils.isEmpty(summary.getSteps())) {
+            return Collections.emptyList();
+        }
+        Set<String> displays = new LinkedHashSet<>();
+        for (ResolvedSummary.ResolvedStep step : summary.getSteps()) {
+            if (CollectionUtils.isEmpty(step.getExecuteObjects())) {
+                continue;
+            }
+            for (ResolvedSummary.ResolvedExecuteObject executeObject : step.getExecuteObjects()) {
+                if (StringUtils.isNotBlank(executeObject.getDisplay())) {
+                    displays.add(executeObject.getDisplay());
+                }
+            }
+        }
+        return new ArrayList<>(displays);
+    }
+
+    /**
+     * 脚本参数：同一份脚本，参数不同做的就是完全不同的事，因此与脚本内容一样是必须看到的。
+     * <p>
+     * <b>调用方声明为敏感的参数只出占位符</b>：它压根没进概要，这里连"取值为空"都不能说成没参数，
+     * 否则审批人会以为这次执行不带参数
+     */
+    private String describeScriptParams(ResolvedSummary summary) {
+        if (CollectionUtils.isEmpty(summary.getSteps())) {
+            return null;
+        }
+        Set<String> params = new LinkedHashSet<>();
+        for (ResolvedSummary.ResolvedStep step : summary.getSteps()) {
+            if (Boolean.TRUE.equals(step.getParamSensitive())) {
+                params.add(labelWithArgs("value.scriptParamSensitive", displayMasker.mask()));
+            } else if (StringUtils.isNotBlank(step.getScriptParam())) {
+                params.add(step.getScriptParam());
+            }
+        }
+        return joinWithLimit(new ArrayList<>(params));
+    }
+
+    /**
+     * 源文件：以什么身份、从哪台机器、取哪些文件。
+     * <p>
+     * 结构化的源文件由此处拼文案，<b>老单据的快照里源文件是下游拼好的一个字符串</b>，
+     * 按老方式原样展示，不能因为换了结构就让历史单据的这一行整个消失
+     */
+    private void putFileSourceRow(List<TableRow> rows, ResolvedSummary summary) {
+        List<String> items = collectFileSourceItems(summary);
+        if (items.isEmpty()) {
+            putFileFieldRow(rows, summary, FIELD_FILE_SOURCE_LIST);
+            return;
+        }
+        putRow(rows, resolvedFieldLabel(FIELD_FILE_SOURCE_LIST), joinWithLimit(items), false);
+    }
+
+    private List<String> collectFileSourceItems(ResolvedSummary summary) {
+        if (CollectionUtils.isEmpty(summary.getSteps())) {
+            return Collections.emptyList();
+        }
+        Set<String> items = new LinkedHashSet<>();
+        for (ResolvedSummary.ResolvedStep step : summary.getSteps()) {
+            if (CollectionUtils.isEmpty(step.getFileSources())) {
+                continue;
+            }
+            for (ResolvedSummary.ResolvedFileSource fileSource : step.getFileSources()) {
+                String item = describeFileSource(fileSource);
+                if (StringUtils.isNotBlank(item)) {
+                    items.add(item);
+                }
+            }
+        }
+        return new ArrayList<>(items);
+    }
+
+    /**
+     * 一个源文件形如 {@code root@0:127.0.0.9: /data/a.tar.gz}；
+     * 本地文件没有源机器与源账号，标成本地文件，否则会被当成漏填
+     */
+    private String describeFileSource(ResolvedSummary.ResolvedFileSource fileSource) {
+        String filePaths = describeFileSourcePaths(fileSource);
+        String origin = describeFileSourceOrigin(fileSource);
+        if (StringUtils.isBlank(origin)) {
+            return filePaths;
+        }
+        if (StringUtils.isBlank(filePaths)) {
+            return origin;
+        }
+        // 本地文件的前缀是个标记而不是取文件的身份，用冒号连起来反倒像是"以本地文件这个账号去取"
+        return Boolean.TRUE.equals(fileSource.getLocalUpload())
+            ? origin + " " + filePaths : origin + ": " + filePaths;
+    }
+
+    private String describeFileSourcePaths(ResolvedSummary.ResolvedFileSource fileSource) {
+        if (CollectionUtils.isEmpty(fileSource.getFilePaths())) {
+            return null;
+        }
+        String filePaths = String.join(",", fileSource.getFilePaths());
+        Integer totalCount = fileSource.getFilePathCount();
+        if (totalCount != null && totalCount > fileSource.getFilePaths().size()) {
+            filePaths = filePaths + "," + labelWithArgs("value.itemTruncated", totalCount);
+        }
+        return filePaths;
+    }
+
+    /**
+     * 取文件的身份与来源机器。机器台数在上限内时逐台列出，超出只报台数，与执行对象、主机变量一致
+     */
+    private String describeFileSourceOrigin(ResolvedSummary.ResolvedFileSource fileSource) {
+        if (Boolean.TRUE.equals(fileSource.getLocalUpload())) {
+            return label("value.localFile");
+        }
+        String hosts = null;
+        if (CollectionUtils.isNotEmpty(fileSource.getHosts())) {
+            hosts = String.join(",", fileSource.getHosts());
+        } else if (fileSource.getHostCount() != null && fileSource.getHostCount() > 0) {
+            hosts = labelWithArgs("value.fileSourceHostCount", fileSource.getHostCount());
+        }
+        String accountAlias = fileSource.getAccountAlias();
+        if (StringUtils.isBlank(accountAlias)) {
+            return hosts;
+        }
+        return hosts == null ? accountAlias : accountAlias + "@" + hosts;
     }
 
     /**
@@ -537,7 +684,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
      * 沿用现有配置的那些——沿用来的取值一样会被执行，只列本次改动的等于让审批人蒙着眼放行。
      * 沿用现值的行加前缀并统一沉底，与概要表格里默认值行的处理一致。
      * <p>
-     * 主机类变量的取值可能是上千台机器，超过 {@link ResolvedSummary#MAX_GLOBAL_VAR_HOST_COUNT} 台时
+     * 主机类变量的取值可能是上千台机器，超过 {@link ResolvedSummary#MAX_DISPLAY_ITEM_COUNT} 台时
      * 下游只回带台数，此处相应只报总数
      */
     private void appendGlobalVars(StringBuilder content, ResolvedSummary summary) {

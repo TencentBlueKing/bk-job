@@ -56,6 +56,8 @@ class ResolvedSummaryJsonNamingTest {
         assertSnakeCaseFieldNames(ResolvedSummary.ResolvedStep.class, root.get("steps").get(0));
         assertSnakeCaseFieldNames(ResolvedSummary.ResolvedExecuteObject.class,
             root.get("steps").get(0).get("execute_objects").get(0));
+        assertSnakeCaseFieldNames(ResolvedSummary.ResolvedFileSource.class,
+            root.get("steps").get(0).get("file_sources").get(0));
         assertSnakeCaseFieldNames(ResolvedSummary.ResolvedGlobalVar.class, root.get("global_vars").get(0));
     }
 
@@ -153,7 +155,16 @@ class ResolvedSummaryJsonNamingTest {
         step.setContainsDynamicTarget(true);
         step.setExecuteObjects(Collections.singletonList(
             new ResolvedSummary.ResolvedExecuteObject("HOST", 1L, "0:127.0.0.1")));
+        step.setScriptParam("--env=prod");
+        step.setParamSensitive(false);
         step.addField("目标路径", "/tmp/");
+
+        ResolvedSummary.ResolvedFileSource fileSource = new ResolvedSummary.ResolvedFileSource();
+        fileSource.setAccountAlias("root");
+        fileSource.setLocalUpload(false);
+        fileSource.addHost(1L, "0:127.0.0.1");
+        fileSource.addFilePath("/data/a.tar.gz");
+        step.addFileSource(fileSource);
         summary.addStep(step);
 
         ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();

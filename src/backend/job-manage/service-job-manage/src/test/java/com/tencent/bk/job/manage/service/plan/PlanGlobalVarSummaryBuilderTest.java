@@ -125,13 +125,13 @@ class PlanGlobalVarSummaryBuilderTest {
     void hostIdIsResolvedToCloudIp() {
         ResolvedSummary summary = new ResolvedSummary();
         when(tenantHostService.listHosts(anyString(), any()))
-            .thenReturn(Collections.singletonList(host(1L, "10.0.0.1")));
+            .thenReturn(Collections.singletonList(host(1L, "127.0.0.1")));
 
         builder.fillGlobalVars(summary, Collections.singletonList(hostVar("target_hosts", 1)),
             assignedNames("target_hosts"), TENANT_ID);
 
         ResolvedGlobalVar globalVar = globalVar(summary, "target_hosts");
-        assertThat(globalVar.getHosts()).containsExactly("0:10.0.0.1");
+        assertThat(globalVar.getHosts()).containsExactly("0:127.0.0.1");
         assertThat(globalVar.getHostCount()).isEqualTo(1);
     }
 
@@ -152,7 +152,7 @@ class PlanGlobalVarSummaryBuilderTest {
     @DisplayName("台数超过上限时只报台数、也不再反查IP：那种情况下查回来的IP没有用处")
     void overLimitHostVarReportsCountOnly() {
         ResolvedSummary summary = new ResolvedSummary();
-        int hostCount = ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT + 1;
+        int hostCount = ResolvedSummary.MAX_DISPLAY_ITEM_COUNT + 1;
 
         builder.fillGlobalVars(summary, Collections.singletonList(hostVar("target_hosts", hostCount)),
             assignedNames("target_hosts"), TENANT_ID);

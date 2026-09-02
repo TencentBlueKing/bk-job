@@ -46,6 +46,7 @@ bash "<AI_HUB_SKILLS_ROOT>/ai-hub-ask-user-input/scripts/ask-user-input.sh" \
 | 选资源范围（`list-authorized-scopes`） | `single_select` | `业务名(ID)`，便于用户辨认 |
 | 选执行账号（`account-list`） | `single_select` | `别名(用途)`，如 `root(系统账号)` |
 | 选主机（`host-search` 候选 ≤ 8） | `single_select` / `multi_select` | `IP(主机名)`；多台目标机用多选 |
+| 选文件来源（用户没说文件在哪） | `single_select` | **固定两项**：`服务器文件（业务内某台机器上已有的文件）`、`本地文件（我这边的文件，先上传再分发）`。**禁止加第三项**（制品库/仓库已有文件、文件源文件、COS 等本技能都不支持），见 [file-transfer.md](file-transfer.md) 第 2 节 |
 | 多条匹配选定时任务/执行方案 | `single_select` | `名称(ID)` |
 | 写操作确认门禁（G2） | **`confirm`** | 见下节 |
 

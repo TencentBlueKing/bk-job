@@ -24,18 +24,22 @@
 
 package com.tencent.bk.job.execute.api.esb.v4;
 
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteJobPlanRequest;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4GlobalVarDTO;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import org.junit.jupiter.api.AfterEach;
@@ -43,6 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -122,6 +127,42 @@ class OpenApiExecuteJobPlanV4ResourceImplTest {
     }
 
     @Test
+    @DisplayName("预检概要列出方案的全部变量，本次传了的标为本次指定")
+    void givenDryRunThenMarkAssignedGlobalVars() {
+        TaskInstanceDTO taskInstance = buildResolvedTaskInstance();
+        taskInstance.setVariables(Arrays.asList(
+            planVar(1L, "version", "v2.0.0"),
+            planVar(2L, "port", "8080")));
+        when(taskExecuteService.executeJobPlan(any())).thenReturn(taskInstance);
+        V4ExecuteJobPlanRequest request = baseRequest();
+        request.setGlobalVars(Collections.singletonList(globalVar(null, "version")));
+
+        ResolvedSummary summary =
+            resource.executeJobPlan(USERNAME, APP_CODE, true, request).getDryRunSummary();
+
+        assertThat(summary.getGlobalVars()).hasSize(2);
+        assertThat(globalVarOf(summary, "version").getAssigned()).isTrue();
+        assertThat(globalVarOf(summary, "port").getAssigned())
+            .as("沿用方案默认值的变量不标注出来，审批人会以为这个值是本次改的")
+            .isFalse();
+    }
+
+    @Test
+    @DisplayName("调用方只传变量 ID 时按预检解析出的变量反查变量名，同样标为本次指定")
+    void givenGlobalVarWithIdOnlyThenStillMarkAssigned() {
+        TaskInstanceDTO taskInstance = buildResolvedTaskInstance();
+        taskInstance.setVariables(Collections.singletonList(planVar(1L, "version", "v2.0.0")));
+        when(taskExecuteService.executeJobPlan(any())).thenReturn(taskInstance);
+        V4ExecuteJobPlanRequest request = baseRequest();
+        request.setGlobalVars(Collections.singletonList(globalVar(1L, null)));
+
+        ResolvedSummary summary =
+            resource.executeJobPlan(USERNAME, APP_CODE, true, request).getDryRunSummary();
+
+        assertThat(globalVarOf(summary, "version").getAssigned()).isTrue();
+    }
+
+    @Test
     @DisplayName("执行方案 ID 非法时在进入执行链路前就拒绝")
     void givenInvalidPlanIdThenRejectBeforeExecute() {
         V4ExecuteJobPlanRequest request = baseRequest();
@@ -140,6 +181,33 @@ class OpenApiExecuteJobPlanV4ResourceImplTest {
         request.setScopeId("2");
         request.setPlanId(100L);
         return request;
+    }
+
+    private V4GlobalVarDTO globalVar(Long id, String name) {
+        V4GlobalVarDTO globalVar = new V4GlobalVarDTO();
+        globalVar.setId(id);
+        globalVar.setName(name);
+        globalVar.setValue("v2.0.0");
+        return globalVar;
+    }
+
+    /**
+     * 预检解析出的变量：方案默认值与请求取值合并后的全集
+     */
+    private TaskVariableDTO planVar(Long id, String name, String value) {
+        TaskVariableDTO variable = new TaskVariableDTO();
+        variable.setId(id);
+        variable.setName(name);
+        variable.setType(TaskVariableTypeEnum.STRING.getType());
+        variable.setValue(value);
+        return variable;
+    }
+
+    private ResolvedSummary.ResolvedGlobalVar globalVarOf(ResolvedSummary summary, String name) {
+        return summary.getGlobalVars().stream()
+            .filter(globalVar -> name.equals(globalVar.getName()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("概要里没有变量：" + name));
     }
 
     /**

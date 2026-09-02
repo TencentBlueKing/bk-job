@@ -314,6 +314,117 @@ class DefaultApprovalContentRendererTest {
     }
 
     @Test
+    @DisplayName("源文件带出取文件的身份与源机器：只给路径，审批人不知道文件从哪台机器上来")
+    void givenStructuredFileSourceThenShowAccountAndHosts() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
+        summary.addStep(structuredFileStep(fileSource("root", 1, "/data/a.tar.gz", "/data/b.tar.gz")));
+
+        assertThat(tableRow(renderer.render(fileTask(summary)).getApprovalContent(), FILE_SOURCE_LIST))
+            .contains("root@0:127.0.0.1: /data/a.tar.gz,/data/b.tar.gz");
+    }
+
+    @Test
+    @DisplayName("本地上传的文件标成本地文件：它没有源机器与源账号，空着会被当成漏填")
+    void givenLocalUploadFileSourceThenMarkAsLocalFile() {
+        ResolvedSummary.ResolvedFileSource fileSource = new ResolvedSummary.ResolvedFileSource();
+        fileSource.setLocalUpload(true);
+        fileSource.addFilePath("/tmp/20260901/app.sh");
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
+        summary.addStep(structuredFileStep(fileSource));
+
+        assertThat(tableRow(renderer.render(fileTask(summary)).getApprovalContent(), FILE_SOURCE_LIST))
+            .contains("task.approval.content.value.localFile /tmp/20260901/app.sh");
+    }
+
+    @Test
+    @DisplayName("源机器超过上限时只报台数：几十台源机器逐台列出会把这一行铺成一堵墙")
+    void givenFileSourceHostsOverLimitThenShowHostCount() {
+        int hostCount = ResolvedSummary.MAX_DISPLAY_ITEM_COUNT + 2;
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
+        summary.addStep(structuredFileStep(fileSource("root", hostCount, "/data/a.tar.gz")));
+
+        assertThat(tableRow(renderer.render(fileTask(summary)).getApprovalContent(), FILE_SOURCE_LIST))
+            .contains("root@task.approval.content.value.fileSourceHostCount(" + hostCount + ")")
+            .doesNotContain("0:127.0.0.1");
+    }
+
+    @Test
+    @DisplayName("老单据的快照里源文件是一个拼好的字符串，仍按老方式展示，不能整行消失")
+    void givenLegacyFileSourceSnapshotThenStillShow() {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
+        summary.addStep(fileStep("/tmp/", "root: /data/legacy.tar.gz"));
+
+        assertThat(tableRow(renderer.render(fileTask(summary)).getApprovalContent(), FILE_SOURCE_LIST))
+            .contains("root: /data/legacy.tar.gz");
+    }
+
+    @Test
+    @DisplayName("执行对象不超上限时逐个列出：这次到底动哪几台，只给一个数字等于让人凭空想象")
+    void givenFewExecuteObjectsThenListThem() {
+        ResolvedSummary summary = summaryWithExecuteObjects(3, 3);
+
+        assertThat(tableRow(renderer.render(fileTask(summary)).getApprovalContent(), "content.executeObjects"))
+            .contains("task.approval.content.value.executeObjectList(3,0:127.0.0.1; 0:127.0.0.2; 0:127.0.0.3)");
+    }
+
+    @Test
+    @DisplayName("执行对象超过上限时只报总数：上千台逐个列出只会让人直接划到底放行")
+    void givenManyExecuteObjectsThenOnlyShowCount() {
+        int totalCount = ResolvedSummary.MAX_DISPLAY_ITEM_COUNT + 1;
+        ResolvedSummary summary = summaryWithExecuteObjects(totalCount, totalCount);
+
+        assertThat(tableRow(renderer.render(fileTask(summary)).getApprovalContent(), "content.executeObjects"))
+            .contains("task.approval.content.value.executeObjectCount(" + totalCount + ")")
+            .doesNotContain("0:127.0.0.1");
+    }
+
+    @Test
+    @DisplayName("清单被快照上限截断时只报总数：拿截断后的一部分当全部列出来就是在骗审批人")
+    void givenTruncatedExecuteObjectListThenOnlyShowCount() {
+        ResolvedSummary summary = summaryWithExecuteObjects(3, 8);
+
+        assertThat(tableRow(renderer.render(fileTask(summary)).getApprovalContent(), "content.executeObjects"))
+            .contains("task.approval.content.value.executeObjectCount(8)")
+            .doesNotContain("0:127.0.0.1");
+    }
+
+    @Test
+    @DisplayName("脚本参数进概要：同一份脚本，参数决定了这次到底干什么")
+    void givenScriptParamThenShowInSummary() {
+        ResolvedSummary summary = buildFullSummary();
+        summary.getSteps().get(0).setScriptParam("--env=prod --force");
+        summary.getSteps().get(0).setParamSensitive(false);
+
+        assertThat(tableRow(renderer.render(scriptTask(summary, false)).getApprovalContent(),
+            "content.scriptParam")).contains("--env=prod --force");
+    }
+
+    @Test
+    @DisplayName("敏感脚本参数只出占位符，但那一行必须在：空着会被读成这次执行不带参数")
+    void givenSensitiveScriptParamThenShowMask() {
+        ResolvedSummary summary = buildFullSummary();
+        summary.getSteps().get(0).setParamSensitive(true);
+
+        ApprovalContent rendered = renderer.render(scriptTask(summary, true));
+
+        assertThat(tableRow(rendered.getApprovalContent(), "content.scriptParam"))
+            .contains("task.approval.content.value.scriptParamSensitive(******)");
+        assertContentFreeOfSecrets(rendered);
+    }
+
+    @Test
+    @DisplayName("没传脚本参数时不出这一行，免得单据上多一行空白")
+    void givenNoScriptParamThenNoRow() {
+        String content = renderer.render(scriptTask(buildFullSummary(), false)).getApprovalContent();
+
+        assertThat(content).doesNotContain("content.scriptParam");
+    }
+
+    @Test
     @DisplayName("执行方案的文件步骤定义在方案里、入参只有 plan_id，概要不汇总就等于完全看不到")
     void givenJobPlanWithFileStepsThenShowMergedFileInfo() {
         ResolvedSummary summary = new ResolvedSummary();
@@ -693,7 +804,7 @@ class DefaultApprovalContentRendererTest {
             buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
 
         assertThat(tableRow(content, "| target_hosts |"))
-            .contains("task.approval.content.value.varHostList(3,0:10.0.0.1; 0:10.0.0.2; 0:10.0.0.3)");
+            .contains("task.approval.content.value.varHostList(3,0:127.0.0.1; 0:127.0.0.2; 0:127.0.0.3)");
     }
 
     @Test
@@ -705,10 +816,10 @@ class DefaultApprovalContentRendererTest {
             buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
 
         assertThat(tableRow(content, "batch_hosts"))
-            .contains("task.approval.content.value.varHostCount(" + (ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT + 1)
+            .contains("task.approval.content.value.varHostCount(" + (ResolvedSummary.MAX_DISPLAY_ITEM_COUNT + 1)
                 + ")")
             .as("超上限的变量不该再逐台列出")
-            .doesNotContain("0:10.1.0.1");
+            .doesNotContain("0:127.1.0.1");
     }
 
     @Test
@@ -792,7 +903,7 @@ class DefaultApprovalContentRendererTest {
     void givenHostVarCountThenRaiseRiskLevel() {
         ResolvedSummary summary = new ResolvedSummary();
         summary.setOperationType(ApprovalOperationTypeEnum.CREATE_JOB_PLAN.name());
-        summary.addGlobalVar(hostVar("target_hosts", "10.0.0.", 101, true));
+        summary.addGlobalVar(hostVar("target_hosts", "127.0.0.", 101, true));
 
         String content = renderer.render(
             buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null)).getApprovalContent();
@@ -806,7 +917,7 @@ class DefaultApprovalContentRendererTest {
         ResolvedSummary summary = new ResolvedSummary();
         summary.setOperationType(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN.name());
         summary.setTotalExecuteObjectCount(100);
-        summary.addGlobalVar(hostVar("target_hosts", "10.0.0.", 100, true));
+        summary.addGlobalVar(hostVar("target_hosts", "127.0.0.", 100, true));
 
         String content = renderer.render(
             buildTask(ApprovalOperationTypeEnum.EXECUTE_JOB_PLAN, summary, null)).getApprovalContent();
@@ -899,7 +1010,7 @@ class DefaultApprovalContentRendererTest {
         stringVar.setAssigned(true);
         summary.addGlobalVar(stringVar);
 
-        summary.addGlobalVar(hostVar("target_hosts", "10.0.0.", 3, true));
+        summary.addGlobalVar(hostVar("target_hosts", "127.0.0.", 3, true));
 
         ResolvedSummary.ResolvedGlobalVar cipherVar = new ResolvedSummary.ResolvedGlobalVar();
         cipherVar.setName("db_password");
@@ -907,8 +1018,8 @@ class DefaultApprovalContentRendererTest {
         cipherVar.setAssigned(true);
         summary.addGlobalVar(cipherVar);
 
-        summary.addGlobalVar(hostVar("batch_hosts", "10.1.0.",
-            ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT + 1, false));
+        summary.addGlobalVar(hostVar("batch_hosts", "127.1.0.",
+            ResolvedSummary.MAX_DISPLAY_ITEM_COUNT + 1, false));
         return summary;
     }
 
@@ -1062,6 +1173,54 @@ class DefaultApprovalContentRendererTest {
 
     private ApprovalTaskDTO fileTask(ResolvedSummary summary) {
         return buildTask(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE, summary, null);
+    }
+
+    /**
+     * 结构化源文件的文件分发步骤，与 job-execute 侧新版 ResolvedSummaryBuilder 写入的形态一致
+     */
+    private ResolvedSummary.ResolvedStep structuredFileStep(ResolvedSummary.ResolvedFileSource... fileSources) {
+        ResolvedSummary.ResolvedStep step = new ResolvedSummary.ResolvedStep();
+        step.setExecuteType("SEND_FILE");
+        step.setAccountAlias("root");
+        step.addField(FILE_TARGET_PATH, "/tmp/");
+        for (ResolvedSummary.ResolvedFileSource fileSource : fileSources) {
+            step.addFileSource(fileSource);
+        }
+        return step;
+    }
+
+    private ResolvedSummary.ResolvedFileSource fileSource(String accountAlias, int hostCount, String... filePaths) {
+        ResolvedSummary.ResolvedFileSource fileSource = new ResolvedSummary.ResolvedFileSource();
+        fileSource.setAccountAlias(accountAlias);
+        for (int i = 1; i <= hostCount; i++) {
+            fileSource.addHost((long) i, "0:127.0.0." + i);
+        }
+        for (String filePath : filePaths) {
+            fileSource.addFilePath(filePath);
+        }
+        return fileSource;
+    }
+
+    /**
+     * @param listedCount 步骤里逐条带回的执行对象条数，小于总数即表示清单被快照上限截断过
+     * @param totalCount  跨步骤去重后的执行对象总数
+     */
+    private ResolvedSummary summaryWithExecuteObjects(int listedCount, int totalCount) {
+        List<ResolvedSummary.ResolvedExecuteObject> executeObjects = new ArrayList<>(listedCount);
+        for (int i = 1; i <= listedCount; i++) {
+            executeObjects.add(new ResolvedSummary.ResolvedExecuteObject("HOST", (long) i, "0:127.0.0." + i));
+        }
+        ResolvedSummary.ResolvedStep step = new ResolvedSummary.ResolvedStep();
+        step.setExecuteType("SEND_FILE");
+        step.setExecuteObjects(executeObjects);
+        step.setExecuteObjectCount(totalCount);
+        step.setExecuteObjectTruncated(listedCount < totalCount);
+
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setOperationType(ApprovalOperationTypeEnum.FAST_TRANSFER_FILE.name());
+        summary.setTotalExecuteObjectCount(totalCount);
+        summary.addStep(step);
+        return summary;
     }
 
     private V4FastExecuteScriptRequest buildScriptRequest(boolean paramSensitive) {

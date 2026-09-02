@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -42,7 +44,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 把 dryRun 预检解析出的执行信息组装成审批单据概要。
@@ -62,18 +63,27 @@ public class ResolvedSummaryBuilder {
     }
 
     /**
+     * 由预检返回的作业实例组装概要。快速执行脚本、快速分发文件没有全局变量，走这个重载。
+     */
+    public static ResolvedSummary build(TaskInstanceDTO taskInstance) {
+        return build(taskInstance, Collections.emptySet());
+    }
+
+    /**
      * 由预检返回的作业实例组装概要。
      * <p>
      * 不设置 operationType：审批操作类型是审批域的概念，由 job-analysis 侧填充，
      * 避免在下游服务里复制一份操作类型枚举。
      *
-     * @param taskInstance 预检返回的作业实例，其 stepInstances 已由预检返回点填充
+     * @param taskInstance     预检返回的作业实例，其 stepInstances 与 variables 已由预检返回点填充
+     * @param assignedVarNames 本次请求显式指定了取值的全局变量名，其余变量沿用执行方案的默认值
      */
-    public static ResolvedSummary build(TaskInstanceDTO taskInstance) {
+    public static ResolvedSummary build(TaskInstanceDTO taskInstance, Set<String> assignedVarNames) {
         ResolvedSummary summary = new ResolvedSummary();
         if (taskInstance == null) {
             return summary;
         }
+        fillGlobalVars(summary, taskInstance.getVariables(), assignedVarNames);
         summary.setName(taskInstance.getName());
         if (taskInstance.getPlanId() != null && taskInstance.getPlanId() > 0) {
             summary.addField("job_plan_id", String.valueOf(taskInstance.getPlanId()));
@@ -96,9 +106,61 @@ public class ResolvedSummaryBuilder {
             dangerousRuleMatched |= StringUtils.isNotBlank(step.getDangerousCheckSummary());
         }
         summary.setTotalExecuteObjectCount(allExecuteObjects.size());
-        summary.setContainsDynamicTarget(containsDynamicTarget);
+        // 全局变量里的动态目标已在 fillGlobalVars 里标过，别在这里覆盖掉
+        summary.setContainsDynamicTarget(containsDynamicTarget
+            || Boolean.TRUE.equals(summary.getContainsDynamicTarget()));
         summary.setDangerousRuleMatched(dangerousRuleMatched);
         return summary;
+    }
+
+    /**
+     * 启动执行方案的全局变量：这次操作到底拿什么参数去跑的直接答案。
+     * <p>
+     * <b>全部变量都要列出</b>，包括本次请求没指定、沿用执行方案默认值的那些——沿用来的取值一样会被执行，
+     * 只列本次传的等于让审批人蒙着眼放行。变量在预检时已完成解析（主机变量的机器已带出 IP），
+     * 这里只做形态转换，不再回查 CMDB。密文变量的取值一律不带：概要整份明文落库
+     */
+    private static void fillGlobalVars(ResolvedSummary summary,
+                                       List<TaskVariableDTO> variables,
+                                       Set<String> assignedVarNames) {
+        if (CollectionUtils.isEmpty(variables)) {
+            return;
+        }
+        for (TaskVariableDTO variable : variables) {
+            ResolvedSummary.ResolvedGlobalVar globalVar = new ResolvedSummary.ResolvedGlobalVar();
+            globalVar.setName(variable.getName());
+            TaskVariableTypeEnum type = variable.getType() == null
+                ? null : TaskVariableTypeEnum.valOf(variable.getType());
+            globalVar.setType(type == null ? null : type.name());
+            globalVar.setAssigned(assignedVarNames.contains(variable.getName()));
+            if (type == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST) {
+                fillGlobalVarTarget(summary, globalVar, variable.getExecuteTarget());
+            } else if (type != TaskVariableTypeEnum.CIPHER) {
+                globalVar.setValue(variable.getValue());
+            }
+            summary.addGlobalVar(globalVar);
+        }
+    }
+
+    private static void fillGlobalVarTarget(ResolvedSummary summary,
+                                            ResolvedSummary.ResolvedGlobalVar globalVar,
+                                            ExecuteTargetDTO executeTarget) {
+        if (executeTarget == null) {
+            return;
+        }
+        for (ExecuteObject executeObject : resolveExecuteObjects(executeTarget)) {
+            globalVar.addHost(executeObject.getResourceId(), executeObject.getExecuteObjectName());
+        }
+        if (CollectionUtils.isNotEmpty(executeTarget.getDynamicServerGroups())) {
+            globalVar.setDynamicGroupCount(executeTarget.getDynamicServerGroups().size());
+        }
+        if (CollectionUtils.isNotEmpty(executeTarget.getTopoNodes())) {
+            globalVar.setTopoNodeCount(executeTarget.getTopoNodes().size());
+        }
+        if (containsDynamicTarget(executeTarget)) {
+            // 台数为 0 会被读成"不动机器"，动态目标必须给出提示
+            summary.setContainsDynamicTarget(true);
+        }
     }
 
     private static ResolvedSummary.ResolvedStep buildStep(StepInstanceDTO stepInstance) {
@@ -117,9 +179,27 @@ public class ResolvedSummaryBuilder {
         step.setScriptSource(stepInstance.getScriptSource());
         // 预检期高危命中结果不落 dangerous_record，只能从这里带出来
         step.setDangerousCheckSummary(stepInstance.getDangerousCheckSummary());
+        fillScriptParam(step, stepInstance);
         fillExecuteObjects(step, stepInstance.getTargetExecuteObjects());
+        fillFileSources(step, stepInstance);
         fillStepFields(step, stepInstance);
         return step;
+    }
+
+    /**
+     * 脚本参数决定了同一份脚本这次到底干什么（是灰度还是全量、清哪个目录），审批人必须看到。
+     * <p>
+     * <b>调用方声明为敏感的参数一律不带取值</b>：概要整份明文落库，只带一个敏感标记，
+     * 由单据渲染成占位符。没传参数时两个字段都不带，免得单据上出一行空的敏感提示
+     */
+    private static void fillScriptParam(ResolvedSummary.ResolvedStep step, StepInstanceDTO stepInstance) {
+        if (!stepInstance.isScriptStep() || StringUtils.isEmpty(stepInstance.getScriptParam())) {
+            return;
+        }
+        step.setParamSensitive(stepInstance.isSecureParam());
+        if (!stepInstance.isSecureParam()) {
+            step.setScriptParam(stepInstance.getScriptParam());
+        }
     }
 
     private static void fillExecuteObjects(ResolvedSummary.ResolvedStep step, ExecuteTargetDTO executeTarget) {
@@ -150,7 +230,6 @@ public class ResolvedSummaryBuilder {
         if (stepInstance.isFileStep()) {
             step.addField("file_target_path", stepInstance.getFileTargetPath());
             step.addField("file_target_name", stepInstance.getFileTargetName());
-            step.addField("file_source_list", summaryFileSources(stepInstance.getFileSourceList()));
             step.addField("transfer_mode", describeTransferMode(stepInstance));
         }
     }
@@ -168,40 +247,34 @@ public class ResolvedSummaryBuilder {
     }
 
     /**
-     * 源文件按"账号: 文件路径"的形式概述，让审批人看清要以什么身份取哪些文件。
+     * 源文件带上"以什么身份、从哪台机器、取哪些文件"三件事。
      * <p>
-     * 不带源机器台数：这段文本在预检时按固定语言拼好，而单据是稍后按审批人语言渲染的，
-     * 塞英文进去必然有一半人看不懂，做成结构化字段又要为一个数字打通跨服务的国际化。
-     * 需要知道从哪台机器取的，快速分发文件可看正文里的原始参数，执行方案可查该执行方案的步骤定义
+     * <b>结构化带回而不是在这里拼成一句话</b>：源机器超过上限时要说的"共 N 台"、本地文件要标的
+     * "本地文件"都是给人看的文案，而预检发生在调用方的语言环境、单据却按审批人的语言渲染
      */
-    private static String summaryFileSources(List<FileSourceDTO> fileSources) {
-        if (CollectionUtils.isEmpty(fileSources)) {
-            return null;
+    private static void fillFileSources(ResolvedSummary.ResolvedStep step, StepInstanceDTO stepInstance) {
+        if (!stepInstance.isFileStep() || CollectionUtils.isEmpty(stepInstance.getFileSourceList())) {
+            return;
         }
-        StringBuilder sb = new StringBuilder();
-        for (FileSourceDTO fileSource : fileSources) {
-            String item = describeFileSource(fileSource);
-            if (StringUtils.isBlank(item)) {
-                continue;
-            }
-            if (sb.length() > 0) {
-                sb.append(ResolvedSummary.ITEM_SEPARATOR);
-            }
-            sb.append(item);
+        for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
+            step.addFileSource(buildFileSource(fileSource));
         }
-        return sb.length() == 0 ? null : sb.toString();
     }
 
-    private static String describeFileSource(FileSourceDTO fileSource) {
-        String filePaths = CollectionUtils.isEmpty(fileSource.getFiles()) ? null
-            : fileSource.getFiles().stream()
-            .map(FileDetailDTO::getFilePath)
-            .collect(Collectors.joining(","));
-        String accountAlias = fileSource.getAccountAlias();
-        if (StringUtils.isBlank(accountAlias)) {
-            return filePaths;
+    private static ResolvedSummary.ResolvedFileSource buildFileSource(FileSourceDTO fileSource) {
+        ResolvedSummary.ResolvedFileSource resolved = new ResolvedSummary.ResolvedFileSource();
+        resolved.setLocalUpload(fileSource.isLocalUpload());
+        resolved.setAccountAlias(StringUtils.isNotBlank(fileSource.getAccountAlias())
+            ? fileSource.getAccountAlias() : fileSource.getAccount());
+        if (CollectionUtils.isNotEmpty(fileSource.getFiles())) {
+            for (FileDetailDTO file : fileSource.getFiles()) {
+                resolved.addFilePath(file.getFilePath());
+            }
         }
-        return StringUtils.isBlank(filePaths) ? accountAlias : accountAlias + ": " + filePaths;
+        for (ExecuteObject executeObject : resolveExecuteObjects(fileSource.getServers())) {
+            resolved.addHost(executeObject.getResourceId(), executeObject.getExecuteObjectName());
+        }
+        return resolved;
     }
 
     private static List<ExecuteObject> resolveExecuteObjects(ExecuteTargetDTO executeTarget) {

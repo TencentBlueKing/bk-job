@@ -130,7 +130,7 @@ class CronGlobalVarSummaryBuilderTest {
 
         builder.fillGlobalVars(summary, cronJobInfo(assigned), operator);
 
-        assertThat(globalVar(summary, "target_hosts").getHosts()).containsExactly("0:10.0.0.1");
+        assertThat(globalVar(summary, "target_hosts").getHosts()).containsExactly("0:127.0.0.1");
         assertThat(globalVar(summary, "target_hosts").getHostCount()).isEqualTo(1);
     }
 
@@ -138,7 +138,7 @@ class CronGlobalVarSummaryBuilderTest {
     @DisplayName("台数超过上限时只报台数、也不再反查IP")
     void overLimitHostVarReportsCountOnly() {
         givenPlanVars(hostVar(1L, "target_hosts"));
-        int hostCount = ResolvedSummary.MAX_GLOBAL_VAR_HOST_COUNT + 1;
+        int hostCount = ResolvedSummary.MAX_DISPLAY_ITEM_COUNT + 1;
         Long[] hostIds = new Long[hostCount];
         for (int i = 0; i < hostCount; i++) {
             hostIds[i] = (long) (i + 1);
@@ -161,7 +161,7 @@ class CronGlobalVarSummaryBuilderTest {
     void notAssignedHostVarUsesPlanDefaultTarget() {
         ServiceTaskVariableDTO planVar = hostVar(1L, "target_hosts");
         ServiceTaskHostNodeDTO targetServer = new ServiceTaskHostNodeDTO();
-        targetServer.setHostList(Collections.singletonList(serviceHost(1L, "10.0.0.1")));
+        targetServer.setHostList(Collections.singletonList(serviceHost(1L, "127.0.0.1")));
         targetServer.setDynamicGroupId(Arrays.asList("group-1", "group-2"));
         ServiceTaskTargetDTO target = new ServiceTaskTargetDTO();
         target.setTargetServer(targetServer);
@@ -173,7 +173,7 @@ class CronGlobalVarSummaryBuilderTest {
 
         ResolvedGlobalVar globalVar = globalVar(summary, "target_hosts");
         assertThat(globalVar.getAssigned()).isFalse();
-        assertThat(globalVar.getHosts()).containsExactly("0:10.0.0.1");
+        assertThat(globalVar.getHosts()).containsExactly("0:127.0.0.1");
         assertThat(globalVar.getDynamicGroupCount()).isEqualTo(2);
         assertThat(summary.getContainsDynamicTarget()).isTrue();
         verify(hostService, never()).fillHosts(anyString(), any());
@@ -228,7 +228,7 @@ class CronGlobalVarSummaryBuilderTest {
             List<HostDTO> hosts = invocation.getArgument(1);
             for (HostDTO host : hosts) {
                 host.setBkCloudId(0L);
-                host.setIp("10.0.0." + host.getHostId());
+                host.setIp("127.0.0." + host.getHostId());
             }
             return hosts.size();
         }).when(hostService).fillHosts(anyString(), any());
