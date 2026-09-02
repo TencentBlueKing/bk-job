@@ -5616,7 +5616,8 @@ paths:
               set:
                 - key: X-Bk-Job-Api-Type
                   value: 'user'
-              remove: []
+              remove:
+                - key: X-Bk-Job-Dry-Run
         authConfig:
           userVerifiedRequired: true
           appVerifiedRequired: true
@@ -7213,7 +7214,8 @@ paths:
               set:
                 - key: X-Bk-Job-Api-Type
                   value: 'user'
-              remove: []
+              remove:
+                - key: X-Bk-Job-Dry-Run
         authConfig:
           userVerifiedRequired: true
           appVerifiedRequired: true
@@ -7671,7 +7673,8 @@ paths:
               set:
                 - key: X-Bk-Job-Api-Type
                   value: 'user'
-              remove: []
+              remove:
+                - key: X-Bk-Job-Dry-Run
         authConfig:
           userVerifiedRequired: true
           appVerifiedRequired: true
@@ -7918,7 +7921,8 @@ paths:
               set:
                 - key: X-Bk-Job-Api-Type
                   value: 'user'
-              remove: []
+              remove:
+                - key: X-Bk-Job-Dry-Run
         authConfig:
           userVerifiedRequired: true
           appVerifiedRequired: true
@@ -8090,7 +8094,8 @@ paths:
               set:
                 - key: X-Bk-Job-Api-Type
                   value: 'user'
-              remove: []
+              remove:
+                - key: X-Bk-Job-Dry-Run
         authConfig:
           userVerifiedRequired: true
           appVerifiedRequired: true
@@ -8185,7 +8190,8 @@ paths:
               set:
                 - key: X-Bk-Job-Api-Type
                   value: 'user'
-              remove: []
+              remove:
+                - key: X-Bk-Job-Dry-Run
         authConfig:
           userVerifiedRequired: true
           appVerifiedRequired: true
@@ -10579,7 +10585,7 @@ paths:
   /api/v4/cancel_approval_task:
     post:
       operationId: v4_cancel_approval_task
-      description: 主动作废审批任务，作废后不可再放行
+      description: 主动作废审批任务，作废后不可再放行；与放行并发时以先抢到待审批状态的一方为准，放行抢先时本接口返回状态不允许的错误并带上任务此刻的真实状态，表示作废未生效、操作已在执行
       tags:
         - v4
       responses:

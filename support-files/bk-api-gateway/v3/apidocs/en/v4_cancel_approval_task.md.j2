@@ -4,6 +4,8 @@ Cancel an approval task. Once canceled the task enters the final status `CANCELE
 
 Only a task waiting for approval (`PENDING`) can be canceled. Calling this API on a task that has already been released, rejected, canceled or failed returns a "status not allowed" error. Canceling only affects the approval task on the Job side and **does not notify the approval channel**: the ticket in the channel must be handled by the approver.
 
+When a cancellation races with a release, **whichever grabs the pending status first wins**. If the release gets there first, this API returns a "status not allowed" error carrying the current status of the task (such as `EXECUTING`), which means **the cancellation did not take effect and the operation is already running**; the other way round, the release returns the same kind of error. So never treat that error as "canceled".
+
 Only approval tasks created by the same user through the same application can be canceled. In every other case the "approval task does not exist" error is returned.
 
 {% include '_generic_v4_approval_flow.md.j2' %}

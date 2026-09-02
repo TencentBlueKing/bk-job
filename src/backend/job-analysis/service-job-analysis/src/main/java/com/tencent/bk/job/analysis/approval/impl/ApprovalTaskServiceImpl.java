@@ -253,16 +253,35 @@ public class ApprovalTaskServiceImpl implements ApprovalTaskService {
         return executeAfterConsume(consumedTask, params, caller);
     }
 
+    /**
+     * 作废任务。
+     * <p>
+     * <b>取消与放行并发时以先抢到 PENDING 的一方为准，抢输的一方必须报错而不是返回成功</b>：
+     * 作废走的是与 {@link #refresh} 同一把 CAS 锁（{@code markCanceled} 只改 PENDING 的行），
+     * 放行抢先把任务消费成 EXECUTING 时，这条更新影响 0 行、任务照常执行。此时若还返回 200，
+     * 调用方会以为已经取消，而机器上的操作已经在跑了 —— 这正是 AI 场景下最不能出的误判。
+     * <p>
+     * 与 refresh 的不对称是有意的：refresh 抢输时对方已经放行，用户目的达成，返回当前状态即可；
+     * cancel 抢输时用户目的没达成，必须让他知道
+     */
     @Override
     public ApprovalTaskDTO cancel(String approvalTaskId, ApprovalCallerContext caller) {
         ApprovalTaskDTO task = loadOwnTask(approvalTaskId, caller);
         ApprovalStatusEnum status = task.getStatusEnum();
+        // 前置校验只负责常见路径的快速失败，省下一次注定影响 0 行的写；并发防线在下面的 CAS
         if (status != ApprovalStatusEnum.PENDING) {
             throw new FailedPreconditionException(ErrorCode.APPROVAL_TASK_STATUS_NOT_ALLOWED,
                 new Object[]{task.getStatus()});
         }
         // 只作废本地任务，不反向通知渠道：渠道侧单据由审批人自行处理
-        approvalTaskDAO.markCanceled(approvalTaskId);
+        int canceled = approvalTaskDAO.markCanceled(approvalTaskId);
+        if (canceled != 1) {
+            ApprovalTaskDTO latestTask = loadOwnTask(approvalTaskId, caller);
+            log.info("Approval task {} has been consumed concurrently, reject cancel, current status: {}",
+                approvalTaskId, latestTask.getStatus());
+            throw new FailedPreconditionException(ErrorCode.APPROVAL_TASK_STATUS_NOT_ALLOWED,
+                new Object[]{latestTask.getStatus()});
+        }
         return loadOwnTask(approvalTaskId, caller);
     }
 
