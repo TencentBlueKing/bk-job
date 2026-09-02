@@ -44,6 +44,8 @@ import com.tencent.bk.job.common.iam.service.impl.WebAuthServiceImpl;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.HttpClientService;
@@ -77,8 +79,13 @@ public class IamAutoConfiguration {
 
     @Bean
     public HttpClientService httpClientService(IamConfiguration iamConfiguration,
-                                               IVirtualAdminAccountProvider virtualAdminAccountProvider) {
-        return new IamHttpClientServiceImpl(iamConfiguration, virtualAdminAccountProvider);
+                                               IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                               JobHttpSslVerifyProperties sslVerifyProperties) {
+        return new IamHttpClientServiceImpl(
+            iamConfiguration,
+            virtualAdminAccountProvider,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.IAM)
+        );
     }
 
     @Bean
@@ -146,13 +153,15 @@ public class IamAutoConfiguration {
                                      IamConfiguration iamConfiguration,
                                      BkApiGatewayProperties bkApiGatewayProperties,
                                      TenantEnvService tenantEnvService,
-                                     IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                                     IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                     JobHttpSslVerifyProperties sslVerifyProperties) {
         return new ApiGwIamClient(
             meterRegistry,
             new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
             bkApiGatewayProperties,
             tenantEnvService,
-            virtualAdminAccountProvider
+            virtualAdminAccountProvider,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.IAM)
         );
     }
 

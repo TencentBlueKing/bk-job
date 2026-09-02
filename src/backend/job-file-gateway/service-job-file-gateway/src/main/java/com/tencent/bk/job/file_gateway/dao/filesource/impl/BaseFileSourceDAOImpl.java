@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.mysql.dao.BaseDAOImpl;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceShareDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.tables.FileSource;
 import com.tencent.bk.job.file_gateway.model.tables.FileSourceShare;
@@ -79,6 +80,16 @@ public class BaseFileSourceDAOImpl extends BaseDAOImpl {
         defaultTable.LAST_MODIFY_USER,
         defaultTable.LAST_MODIFY_TIME
     };
+    /**
+     * {@link #convertRecordToBasicInfoDto} 所需的最小字段集，避免为了基本信息去拉 custom_info 这类大字段
+     */
+    protected final TableField<?, ?>[] BASIC_INFO_FIELDS = {
+        defaultTable.ID,
+        defaultTable.APP_ID,
+        defaultTable.CODE,
+        defaultTable.ALIAS,
+        defaultTable.ENABLE
+    };
 
     public BaseFileSourceDAOImpl(DSLContext dslContext,
                                  FileSourceShareDAO fileSourceShareDAO,
@@ -108,6 +119,16 @@ public class BaseFileSourceDAOImpl extends BaseDAOImpl {
             .where(conditions)
             .orderBy(defaultTable.LAST_MODIFY_TIME.desc());
         return listPage(query, start, pageSize, this::convertRecordToDto);
+    }
+
+    protected FileSourceBasicInfoDTO convertRecordToBasicInfoDto(Record record) {
+        FileSourceBasicInfoDTO fileSourceBasicInfoDTO = new FileSourceBasicInfoDTO();
+        fileSourceBasicInfoDTO.setId(record.get(defaultTable.ID));
+        fileSourceBasicInfoDTO.setAppId(record.get(defaultTable.APP_ID));
+        fileSourceBasicInfoDTO.setCode(record.get(defaultTable.CODE));
+        fileSourceBasicInfoDTO.setAlias(record.get(defaultTable.ALIAS));
+        fileSourceBasicInfoDTO.setEnable(record.get(defaultTable.ENABLE));
+        return fileSourceBasicInfoDTO;
     }
 
     protected FileSourceDTO convertRecordToDto(Record record) {

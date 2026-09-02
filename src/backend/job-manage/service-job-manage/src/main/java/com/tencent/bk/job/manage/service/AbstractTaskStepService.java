@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -391,6 +392,30 @@ public abstract class AbstractTaskStepService {
         }
         templateScriptVersionMap.put(0L, new ArrayList<>(uniqScriptVersionSet));
         return templateScriptVersionMap;
+    }
+
+    /**
+     * 拉取作业模版文件步骤引用的第三方文件源 ID
+     *
+     * @param templateId 作业模版 ID
+     * @return 引用的文件源 ID 集合
+     */
+    public Set<Integer> listFileSourceIdsByTemplateId(Long templateId) {
+        List<Long> stepIdList = taskStepDAO.listStepIdByParentId(Collections.singletonList(templateId));
+        if (CollectionUtils.isEmpty(stepIdList)) {
+            return Collections.emptySet();
+        }
+        Set<Integer> fileSourceIdSet = new HashSet<>();
+        taskFileInfoDAO.listFileInfosByStepIds(stepIdList).values().forEach(fileInfoList -> {
+            if (CollectionUtils.isEmpty(fileInfoList)) {
+                return;
+            }
+            fileInfoList.stream()
+                .filter(fileInfo -> TaskFileTypeEnum.FILE_SOURCE == fileInfo.getFileType()
+                    && fileInfo.getFileSourceId() != null)
+                .forEach(fileInfo -> fileSourceIdSet.add(fileInfo.getFileSourceId()));
+        });
+        return fileSourceIdSet;
     }
 
     public Integer countApprovalSteps(Long appId) {

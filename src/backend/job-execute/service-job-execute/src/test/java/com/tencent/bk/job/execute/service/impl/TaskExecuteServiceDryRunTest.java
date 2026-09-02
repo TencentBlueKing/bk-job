@@ -52,6 +52,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
+import com.tencent.bk.job.execute.service.FileSourceReferenceService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -145,6 +146,8 @@ public class TaskExecuteServiceDryRunTest {
     private CustomPasswordCache customPasswordCache;
     @Mock
     private TenantService tenantService;
+    @Mock
+    private FileSourceReferenceService fileSourceReferenceService;
 
     private TaskExecuteServiceImpl service;
     private User operator;
@@ -182,7 +185,8 @@ public class TaskExecuteServiceDryRunTest {
             runningJobResourceQuotaManager,
             hostService,
             customPasswordCache,
-            tenantService
+            tenantService,
+            fileSourceReferenceService
         );
         operator = new User("tenant-1", "admin", "admin");
         stubPassThroughChecks();

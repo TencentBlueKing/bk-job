@@ -1,5 +1,51 @@
 # chart values 更新日志
 
+## 0.9.6
+1. job-gateway 开启 https 所需的证书与口令不再内置默认值，需使用 `op-tools/gateway-tls-cert/generate_gateway_tls_cert.py` 生成后填入
+```yaml
+gatewayConfig:
+  server:
+    ssl:
+      p12:
+        base64Content: ""
+      keystore:
+        password: ""
+      truststore:
+        base64Content: ""
+        password: ""
+```
+2. 调用外部系统的 HTTPS 证书校验默认开启，开关集中在 `job.http.ssl.verify` 一处配置
+```yaml
+job:
+  # 调用外部系统时的 HTTPS 证书校验配置，所有系统的开关集中在此处配置
+  http:
+    ssl:
+      verify:
+        # 全局是否校验证书，默认开启。systems 下未单独配置的系统继承该值
+        enabled: true
+        # 各外部系统单独的证书校验开关，留空表示继承上面的全局配置。
+        # 仅在对接自签名证书等特殊场景下才关闭，关闭后该系统的调用存在被中间人攻击的风险
+        systems:
+          # 管控平台 GSE
+          gse: true
+          # 配置平台 CMDB
+          cmdb: true
+          # 权限中心 IAM
+          iam: true
+          # 统一登录 BK-Login
+          bkLogin: true
+          # 用户管理 BK-User
+          bkUser: true
+          # 制品库 BK-Repo
+          bkRepo: true
+          # 消息通知中心 BK-Notice
+          bkNotice: true
+          # 蓝鲸消息管理 CMSI
+          bkCmsi: true
+          # 蓝鲸 AI 开发平台 BK-AIDev
+          bkAiDev: true
+```
+
 ## 0.9.5
 1. 新增审批相关配置（审批任务 TTL、记录保留期、默认渠道、IMate 渠道地址与 appCode、回查 IMate 使用的开放接口凭证、Mock 渠道开关与通过 ID 列表）
 ```yaml

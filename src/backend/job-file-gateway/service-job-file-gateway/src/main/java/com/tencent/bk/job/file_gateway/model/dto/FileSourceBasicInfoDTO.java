@@ -53,4 +53,8 @@ public class FileSourceBasicInfoDTO {
      * 文件源别名
      */
     private String alias;
+    /**
+     * 是否启用
+     */
+    private Boolean enable;
 }

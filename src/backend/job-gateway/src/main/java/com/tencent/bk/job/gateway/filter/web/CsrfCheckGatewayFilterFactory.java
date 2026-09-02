@@ -26,7 +26,6 @@ package com.tencent.bk.job.gateway.filter.web;
 
 import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import com.tencent.bk.job.common.util.RequestUtil;
-import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.gateway.common.consts.HeaderConsts;
 import com.tencent.bk.job.gateway.common.util.UrlUtil;
 import com.tencent.bk.job.gateway.config.CsrfCheckProperties;
@@ -48,7 +47,10 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -132,40 +134,73 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
     }
 
     /**
-     * 尝试获取请求描述
+     * 尝试获取请求描述。仅记录方法、路径、是否缺 CSRF 头，并对 Cookie/Authorization 做脱敏。
      *
      * @param request 请求
      * @return 请求描述
      */
-    @SuppressWarnings("StringBufferReplaceableByString")
     private String tryToGetRequestDesc(ServerHttpRequest request) {
         if (request == null) {
             return "null";
         }
-        int maxLength = 2048;
         try {
-            StringBuilder builder = new StringBuilder();
-            builder.append("[");
-            builder.append("uri=").append(request.getURI()).append(",");
-            builder.append("headers=").append(getHeadersDesc(request));
-            builder.append("]");
-            String requestDesc = builder.toString();
-            return StringUtil.substring(requestDesc, maxLength);
+            HttpMethod method = request.getMethod();
+            String methodName = method != null ? method.name() : "null";
+            URI uri = request.getURI();
+            String path = uri != null ? uri.getPath() : "null";
+            boolean csrfHeaderMissing = StringUtils.isBlank(
+                RequestUtil.getHeaderValue(request, HEADER_CSRF_TOKEN_NAME)
+            );
+            boolean csrfCookieMissing = StringUtils.isBlank(
+                RequestUtil.getCookieValue(request, COOKIE_CSRF_KEY_NAME)
+            );
+            return "[method=" + methodName
+                + ", path=" + path
+                + ", csrfHeaderMissing=" + csrfHeaderMissing
+                + ", csrfCookieMissing=" + csrfCookieMissing
+                + ", headers=" + getRedactedHeadersDesc(request)
+                + "]";
         } catch (Throwable t) {
             log.warn("tryToGetRequestDesc error", t);
-            return StringUtil.substring(request.toString(), maxLength);
+            return "unavailable";
         }
     }
 
     /**
-     * 获取请求头描述
+     * 获取脱敏后的请求头描述
      *
      * @param request 请求
      * @return 请求头描述
      */
-    private String getHeadersDesc(ServerHttpRequest request) {
+    private String getRedactedHeadersDesc(ServerHttpRequest request) {
         HttpHeaders headers = request.getHeaders();
-        return headers.toString();
+        if (headers == null || headers.isEmpty()) {
+            return "[]";
+        }
+        HttpHeaders redacted = new HttpHeaders();
+        headers.forEach((name, values) -> {
+            if (isSensitiveHeader(name)) {
+                redacted.put(name, Collections.nCopies(values.size(), "***"));
+            } else {
+                redacted.put(name, values);
+            }
+        });
+        return redacted.toString();
+    }
+
+    private boolean isSensitiveHeader(String name) {
+        if (name == null) {
+            return false;
+        }
+        String lower = name.toLowerCase(Locale.ROOT);
+        return "cookie".equals(lower)
+            || "set-cookie".equals(lower)
+            || "authorization".equals(lower)
+            || "proxy-authorization".equals(lower)
+            || lower.contains("token")
+            || lower.contains("auth")
+            || lower.contains("secret")
+            || lower.contains("password");
     }
 
     /**

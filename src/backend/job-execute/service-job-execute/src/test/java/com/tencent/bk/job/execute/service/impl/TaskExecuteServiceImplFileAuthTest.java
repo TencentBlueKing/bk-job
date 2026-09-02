@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.Container;
@@ -43,9 +45,9 @@ import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.KubeContainerFilter;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
+import com.tencent.bk.job.execute.service.FileSourceReferenceService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -54,6 +56,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
@@ -78,8 +81,10 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -105,6 +110,8 @@ public class TaskExecuteServiceImplFileAuthTest {
     private static final long TARGET_HOST_2 = 1002L;
     private static final long SOURCE_HOST_1 = 2001L;
     private static final long SOURCE_HOST_2 = 2002L;
+    private static final int OWN_FILE_SOURCE_ID = 301;
+    private static final int SHARED_FILE_SOURCE_ID = 302;
     private static final String FILE_DIST_ACTION = ActionScopeEnum.FILE_DISTRIBUTION.name();
 
     @Mock
@@ -147,6 +154,8 @@ public class TaskExecuteServiceImplFileAuthTest {
     private CustomPasswordCache customPasswordCache;
     @Mock
     private TenantService tenantService;
+    @Mock
+    private FileSourceReferenceService fileSourceReferenceService;
 
     private TaskExecuteServiceImpl service;
     private User operator;
@@ -173,7 +182,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             runningJobResourceQuotaManager,
             hostService,
             customPasswordCache,
-            tenantService
+            tenantService,
+            fileSourceReferenceService
         );
         operator = new User("tenant-1", "admin", "admin");
     }
@@ -312,14 +322,13 @@ public class TaskExecuteServiceImplFileAuthTest {
         @Test
         @DisplayName("5.1.1 目标主机 + 源主机全部在白名单 → 不调用 batchAuthAccountExecutable，不调用 authFastPushFile")
         void allHostsWhitelisted_skipAllAuth() {
-            TaskInstanceDTO task = newTask();
             FileSourceDTO source = serverFileSource(SOURCE_ACCOUNT_ID_1, SOURCE_HOST_1);
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1, TARGET_HOST_2),
                 source);
             Map<Long, List<String>> whitelist = allowMap(
                 TARGET_HOST_1, TARGET_HOST_2, SOURCE_HOST_1);
 
-            AuthResult result = service.authFileTransfer(operator, task, step, whitelist);
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             verify(executeAuthService, never())
@@ -331,14 +340,13 @@ public class TaskExecuteServiceImplFileAuthTest {
         @Test
         @DisplayName("5.1.2 目标主机全在白名单，源主机部分在白名单 → 仅鉴源账号 + 仅鉴未豁免源主机")
         void targetAllWhitelisted_sourcePartial_authSourceAccountOnly() {
-            TaskInstanceDTO task = newTask();
             FileSourceDTO source = serverFileSource(SOURCE_ACCOUNT_ID_1, SOURCE_HOST_1, SOURCE_HOST_2);
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1), source);
             Map<Long, List<String>> whitelist = allowMap(TARGET_HOST_1, SOURCE_HOST_1);
             stubAccountAuthPass();
             stubFastPushFilePass();
 
-            AuthResult result = service.authFileTransfer(operator, task, step, whitelist);
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -355,7 +363,6 @@ public class TaskExecuteServiceImplFileAuthTest {
         @Test
         @DisplayName("5.1.3 源主机全在白名单，目标主机部分在白名单 → 仅鉴目标账号 + 仅鉴未豁免目标主机")
         void sourceAllWhitelisted_targetPartial_authTargetAccountOnly() {
-            TaskInstanceDTO task = newTask();
             FileSourceDTO source = serverFileSource(SOURCE_ACCOUNT_ID_1, SOURCE_HOST_1);
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1, TARGET_HOST_2),
                 source);
@@ -363,7 +370,7 @@ public class TaskExecuteServiceImplFileAuthTest {
             stubAccountAuthPass();
             stubFastPushFilePass();
 
-            AuthResult result = service.authFileTransfer(operator, task, step, whitelist);
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -380,7 +387,6 @@ public class TaskExecuteServiceImplFileAuthTest {
         @Test
         @DisplayName("5.1.4 多个 FileSource 不同源账号、混合白名单 → 各源账号独立判定豁免")
         void multipleFileSources_independentExemption() {
-            TaskInstanceDTO task = newTask();
             FileSourceDTO source1 = serverFileSource(SOURCE_ACCOUNT_ID_1, SOURCE_HOST_1);
             FileSourceDTO source2 = serverFileSource(SOURCE_ACCOUNT_ID_2, SOURCE_HOST_2);
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1),
@@ -390,7 +396,7 @@ public class TaskExecuteServiceImplFileAuthTest {
             stubAccountAuthPass();
             stubFastPushFilePass();
 
-            AuthResult result = service.authFileTransfer(operator, task, step, whitelist);
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -403,7 +409,6 @@ public class TaskExecuteServiceImplFileAuthTest {
         @Test
         @DisplayName("5.1.5 目标含动态分组 → 即使 staticIpList 全部在白名单，仍需鉴目标账号")
         void targetWithDynamicGroup_doesNotExemptAccount() {
-            TaskInstanceDTO task = newTask();
             FileSourceDTO source = serverFileSource(SOURCE_ACCOUNT_ID_1, SOURCE_HOST_1);
             ExecuteTargetDTO targetWithGroup = staticHosts(TARGET_HOST_1);
             DynamicServerGroupDTO group = new DynamicServerGroupDTO();
@@ -414,7 +419,7 @@ public class TaskExecuteServiceImplFileAuthTest {
             stubAccountAuthPass();
             stubFastPushFilePass();
 
-            AuthResult result = service.authFileTransfer(operator, task, step, whitelist);
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -427,14 +432,13 @@ public class TaskExecuteServiceImplFileAuthTest {
         @Test
         @DisplayName("5.1.6 本地上传 FileSource → 不参与豁免判定（无源账号、无源主机）")
         void localUploadFileSource_ignoredInExemption() {
-            TaskInstanceDTO task = newTask();
             FileSourceDTO localSource = new FileSourceDTO();
             localSource.setLocalUpload(true);
             localSource.setFileType(TaskFileTypeEnum.LOCAL.getType());
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1), localSource);
             Map<Long, List<String>> whitelist = allowMap(TARGET_HOST_1);
 
-            AuthResult result = service.authFileTransfer(operator, task, step, whitelist);
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             // 目标账号豁免，本地上传 FileSource 不参与，账号 set 为空
@@ -451,7 +455,6 @@ public class TaskExecuteServiceImplFileAuthTest {
             // 始终是 setAccount("root") 占位字符串、setLocalUpload(false)、setFileType(BASE64_FILE)，
             // 不调 setAccountId、不调 setServers。此处复刻该真实状态。
             // 产品语义：BASE64 源是从 job-execute 机器分发的，没有源主机也就没有源账号鉴权概念。
-            TaskInstanceDTO task = newTask();
             FileSourceDTO base64 = new FileSourceDTO();
             base64.setAccount("root");
             base64.setLocalUpload(false);
@@ -460,7 +463,7 @@ public class TaskExecuteServiceImplFileAuthTest {
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1), base64);
             Map<Long, List<String>> whitelist = allowMap(TARGET_HOST_1);
 
-            AuthResult result = service.authFileTransfer(operator, task, step, whitelist);
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             // 目标账号被白名单豁免；BASE64 源因 accountId=null 直接被跳过
@@ -475,13 +478,13 @@ public class TaskExecuteServiceImplFileAuthTest {
         @Test
         @DisplayName("5.1.8 白名单 map 为空 → 行为与改造前完全一致：所有账号都鉴权、所有主机都鉴权")
         void emptyWhitelist_behavesAsBeforeChange() {
-            TaskInstanceDTO task = newTask();
             FileSourceDTO source = serverFileSource(SOURCE_ACCOUNT_ID_1, SOURCE_HOST_1);
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1), source);
             stubAccountAuthPass();
             stubFastPushFilePass();
 
-            AuthResult result = service.authFileTransfer(operator, task, step, Collections.emptyMap());
+            AuthResult result = service.authFileTransfer(
+                operator, APP_ID, step, Collections.emptyMap(), Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -500,7 +503,6 @@ public class TaskExecuteServiceImplFileAuthTest {
         @Test
         @DisplayName("5.1.9 executeTarget.isEmpty() 边界：合并后无主机 → 仍按账号集合鉴权（保留旧行为）")
         void executeTargetEmptyAfterMerge_keepsAccountAuth() {
-            TaskInstanceDTO task = newTask();
             // 复刻 push_config_file 真实生产构造：BASE64 源 accountId=null, servers=null
             // 配合目标也是空 ExecuteTargetDTO —— 合并后 executeTarget.isEmpty() 为 true
             FileSourceDTO base64 = new FileSourceDTO();
@@ -511,7 +513,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, new ExecuteTargetDTO(), base64);
             stubAccountAuthPass();
 
-            AuthResult result = service.authFileTransfer(operator, task, step, Collections.emptyMap());
+            AuthResult result = service.authFileTransfer(
+                operator, APP_ID, step, Collections.emptyMap(), Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             // 目标账号未被白名单豁免（whitelist 为空 → areAllHostsWhitelistedFor 直接返回 false）
@@ -523,6 +526,73 @@ public class TaskExecuteServiceImplFileAuthTest {
             // 主机为空，跳过主机鉴权
             verify(executeAuthService, never())
                 .authFastPushFile(any(), any(), any());
+        }
+    }
+
+    // ========================================================================
+    // 文件源鉴权（view_file_source）接入 authFileTransfer 的单测
+    // ========================================================================
+
+    @Nested
+    @DisplayName("authFileTransfer 第三方文件源鉴权")
+    class AuthFileTransferFileSourceTest {
+
+        @Test
+        @DisplayName("目标与源主机全部命中白名单时，本业务文件源仍要鉴权（防主机 early return 回归）")
+        void allHostsWhitelisted_stillAuthOwnFileSource() {
+            StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1),
+                thirdPartyFileSource(OWN_FILE_SOURCE_ID));
+            Map<Long, List<String>> whitelist = allowMap(TARGET_HOST_1);
+            when(executeAuthService.batchAuthViewFileSource(any(), any(), anyMap()))
+                .thenReturn(AuthResult.pass(operator));
+
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist,
+                Collections.singletonList(ownFileSource(OWN_FILE_SOURCE_ID, "own-alias")));
+
+            assertThat(result.isPass()).isTrue();
+            // 主机、账号都被白名单豁免，但文件源鉴权必须发生
+            verify(executeAuthService, never()).authFastPushFile(any(), any(), any());
+            ArgumentCaptor<Map<Integer, String>> captor = mapCaptor();
+            verify(executeAuthService, times(1))
+                .batchAuthViewFileSource(any(User.class), any(AppResourceScope.class), captor.capture());
+            assertThat(captor.getValue()).containsExactly(entry(OWN_FILE_SOURCE_ID, "own-alias"));
+        }
+
+        @Test
+        @DisplayName("其他业务共享过来的文件源不做 view_file_source 鉴权")
+        void sharedFileSource_skipViewAuth() {
+            StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1),
+                thirdPartyFileSource(SHARED_FILE_SOURCE_ID));
+            Map<Long, List<String>> whitelist = allowMap(TARGET_HOST_1);
+
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist,
+                Collections.singletonList(sharedFileSource(SHARED_FILE_SOURCE_ID, "shared-alias")));
+
+            assertThat(result.isPass()).isTrue();
+            verify(executeAuthService, never()).batchAuthViewFileSource(any(), any(), anyMap());
+        }
+
+        @Test
+        @DisplayName("账号、主机、文件源三类权限同时缺失时合并进同一个 AuthResult")
+        void allThreeDenied_mergedIntoOneAuthResult() {
+            FileSourceDTO serverSource = serverFileSource(SOURCE_ACCOUNT_ID_1, SOURCE_HOST_1);
+            StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1),
+                serverSource, thirdPartyFileSource(OWN_FILE_SOURCE_ID));
+            when(executeAuthService.batchAuthAccountExecutable(any(), any(), anyCollection()))
+                .thenReturn(failWith(ActionId.USE_ACCOUNT));
+            when(executeAuthService.authFastPushFile(any(), any(), any()))
+                .thenReturn(failWith(ActionId.QUICK_TRANSFER_FILE));
+            when(executeAuthService.batchAuthViewFileSource(any(), any(), anyMap()))
+                .thenReturn(failWith(ActionId.VIEW_FILE_SOURCE));
+
+            AuthResult result = service.authFileTransfer(operator, APP_ID, step, Collections.emptyMap(),
+                Collections.singletonList(ownFileSource(OWN_FILE_SOURCE_ID, "own-alias")));
+
+            assertThat(result.isPass()).isFalse();
+            assertThat(result.getRequiredActionResources())
+                .extracting(PermissionActionResource::getActionId)
+                .containsExactlyInAnyOrder(ActionId.USE_ACCOUNT, ActionId.QUICK_TRANSFER_FILE,
+                    ActionId.VIEW_FILE_SOURCE);
         }
     }
 
@@ -599,6 +669,33 @@ public class TaskExecuteServiceImplFileAuthTest {
         return ids;
     }
 
+    private AuthResult failWith(String actionId) {
+        AuthResult authResult = AuthResult.fail(operator);
+        authResult.addRequiredPermission(actionId, null);
+        return authResult;
+    }
+
+    private static FileSourceDTO thirdPartyFileSource(int fileSourceId) {
+        FileSourceDTO source = new FileSourceDTO();
+        source.setLocalUpload(false);
+        source.setFileType(TaskFileTypeEnum.FILE_SOURCE.getType());
+        source.setFileSourceId(fileSourceId);
+        return source;
+    }
+
+    private static ServiceFileSourceAvailabilityDTO ownFileSource(int fileSourceId, String alias) {
+        return new ServiceFileSourceAvailabilityDTO(fileSourceId, true, APP_ID, alias, true);
+    }
+
+    private static ServiceFileSourceAvailabilityDTO sharedFileSource(int fileSourceId, String alias) {
+        return new ServiceFileSourceAvailabilityDTO(fileSourceId, true, APP_ID + 1, alias, true);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ArgumentCaptor<Map<Integer, String>> mapCaptor() {
+        return ArgumentCaptor.forClass(Map.class);
+    }
+
     private static FileSourceDTO serverFileSource(Long accountId, long... sourceHostIds) {
         FileSourceDTO source = new FileSourceDTO();
         source.setLocalUpload(false);
@@ -606,12 +703,6 @@ public class TaskExecuteServiceImplFileAuthTest {
         source.setAccountId(accountId);
         source.setServers(staticHosts(sourceHostIds));
         return source;
-    }
-
-    private static TaskInstanceDTO newTask() {
-        TaskInstanceDTO task = new TaskInstanceDTO();
-        task.setAppId(APP_ID);
-        return task;
     }
 
     private static StepInstanceDTO fileStep(Long targetAccountId,

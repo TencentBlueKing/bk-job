@@ -47,7 +47,9 @@ import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendVoiceEsbReq;
 import com.tencent.bk.job.common.paas.model.cmsi.resp.EsbCmsiChannelResp;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -81,12 +83,23 @@ public class CmsiEsbClient extends BkApiV1Client implements ICmsiClient {
                          MeterRegistry meterRegistry,
                          CmsiApiProperties cmsiApiProperties,
                          TenantEnvService tenantEnvService) {
+        this(esbProperties, appProperties, meterRegistry, cmsiApiProperties, tenantEnvService,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_CMSI));
+    }
+
+    public CmsiEsbClient(EsbProperties esbProperties,
+                         AppProperties appProperties,
+                         MeterRegistry meterRegistry,
+                         CmsiApiProperties cmsiApiProperties,
+                         TenantEnvService tenantEnvService,
+                         boolean sslVerifyEnabled) {
         super(
             meterRegistry,
             ESB_CMSI_API,
             esbProperties.getService().getUrl(),
             HttpHelperFactory.createHttpHelper(
-                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor()),
+                sslVerifyEnabled
             ),
             tenantEnvService
         );

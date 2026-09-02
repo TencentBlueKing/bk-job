@@ -99,6 +99,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
+import com.tencent.bk.job.execute.service.FileSourceReferenceService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -109,6 +110,7 @@ import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.util.LoggerFactory;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
@@ -184,6 +186,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
     private final TenantService tenantService;
+    private final FileSourceReferenceService fileSourceReferenceService;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -207,7 +210,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   RunningJobResourceQuotaManager runningJobResourceQuotaManager,
                                   HostService hostService,
                                   CustomPasswordCache customPasswordCache,
-                                  TenantService tenantService) {
+                                  TenantService tenantService,
+                                  FileSourceReferenceService fileSourceReferenceService) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -228,6 +232,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.hostService = hostService;
         this.customPasswordCache = customPasswordCache;
         this.tenantService = tenantService;
+        this.fileSourceReferenceService = fileSourceReferenceService;
     }
 
     @Override
@@ -319,6 +324,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkStepInstance(taskInstance, Collections.singletonList(stepInstance));
             watch.stop();
 
+            // 校验引用的第三方文件源对当前业务可用，查询结果供后续鉴权复用
+            watch.start("validateFileSourceReference");
+            List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities =
+                fileSourceReferenceService.validateReferencedFileSources(
+                    fastTask.getOperator().getTenantId(), appId, stepInstance.getFileSourceList());
+            watch.stop();
+
             // 校验并行错峰滚动批次总数（依赖执行对象解析结果，须在写DB前完成，避免产生脏数据）
             watch.start("validateRollingBatchCount");
             rollingConfigService.validateRollingBatchCountForFastJob(fastTask);
@@ -326,8 +338,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 鉴权
             watch.start("authFastExecute");
-            authFastExecute(fastTask.getOperator(), taskInstance, stepInstance,
-                taskInstanceExecuteObjects.getWhiteHostAllowActions());
+            authFastExecute(fastTask.getOperator(), appId, stepInstance,
+                taskInstanceExecuteObjects.getWhiteHostAllowActions(), fileSourceAvailabilities);
             watch.stop();
 
             // ============ dryRun 预检返回点 ============
@@ -914,17 +926,26 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance -> checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance, dryRun));
     }
 
+    /**
+     * 快速执行任务鉴权。主体与业务必须由调用方显式传入：重做场景下待执行的步骤实例来自他人的历史实例，
+     * 从实例里取 operator / appId 会变成"以原执行人的身份、在原业务下鉴权"。
+     *
+     * @param operator 发起本次执行的用户
+     * @param appId    本次执行所属业务
+     */
     private void authFastExecute(User operator,
-                                 TaskInstanceDTO taskInstance,
+                                 long appId,
                                  StepInstanceDTO stepInstance,
-                                 Map<Long, List<String>> whiteHostAllowActions) {
+                                 Map<Long, List<String>> whiteHostAllowActions,
+                                 List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
         AuthResult authResult;
         if (stepInstance.isScriptStep()) {
             // 鉴权脚本任务
-            authResult = authExecuteScript(operator, taskInstance, stepInstance, whiteHostAllowActions);
+            authResult = authExecuteScript(operator, appId, stepInstance, whiteHostAllowActions);
         } else {
             // 鉴权文件任务
-            authResult = authFileTransfer(operator, taskInstance, stepInstance, whiteHostAllowActions);
+            authResult = authFileTransfer(operator, appId, stepInstance, whiteHostAllowActions,
+                fileSourceAvailabilities);
         }
 
         if (!authResult.isPass()) {
@@ -933,10 +954,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private AuthResult authExecuteScript(User user,
-                                         TaskInstanceDTO taskInstance,
+                                         long appId,
                                          StepInstanceDTO stepInstance,
                                          Map<Long, List<String>> whiteHostAllowActions) {
-        Long appId = taskInstance.getAppId();
         Long accountId = null;
         if (StepExecuteTypeEnum.EXECUTE_SCRIPT == stepInstance.getExecuteType()) {
             accountId = stepInstance.getAccountId();
@@ -1050,11 +1070,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     AuthResult authFileTransfer(User operator,
-                                TaskInstanceDTO taskInstance,
+                                long appId,
                                 StepInstanceDTO stepInstance,
-                                Map<Long, List<String>> whiteHostAllowActions) {
-        Long appId = taskInstance.getAppId();
-
+                                Map<Long, List<String>> whiteHostAllowActions,
+                                List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
         // 收集需要鉴权的账号集合：
         // 仅当账号实际作用的主机集合「非空且全部在白名单」时才豁免该账号的使用鉴权。
         Set<Long> accountsNeedAuth = new HashSet<>();
@@ -1094,6 +1113,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             : executeAuthService.batchAuthAccountExecutable(
                 operator, new AppResourceScope(appId), accountsNeedAuth);
 
+        // 文件源鉴权必须在下面主机为空的提前返回之前合并进来，否则目标主机全部命中白名单时会静默跳过
+        AuthResult preHostAuthResult = accountAuthResult.mergeAuthResult(
+            authViewFileSource(operator, appId, fileSourceAvailabilities));
+
         ExecuteTargetDTO executeTarget = targetExecuteObjects.clone();
         stepInstance.getFileSourceList().stream()
             .filter(fileSource -> !fileSource.isLocalUpload()
@@ -1103,13 +1126,38 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, executeTarget, whiteHostAllowActions);
         if (executeTarget.isEmpty()) {
             // 如果主机为空，无需对主机进行权限
-            return accountAuthResult;
+            return preHostAuthResult;
         }
 
         AuthResult serverAuthResult = executeAuthService.authFastPushFile(
             operator, new AppResourceScope(appId), executeTarget);
 
-        return accountAuthResult.mergeAuthResult(serverAuthResult);
+        return preHostAuthResult.mergeAuthResult(serverAuthResult);
+    }
+
+    /**
+     * 只对归属当前业务的文件源做 view_file_source 鉴权。
+     * <p>
+     * 共享过来的文件源跳过鉴权：其 IAM 实例注册在归属业务路径下，共享方业务的用户天然拿不到该实例的权限，
+     * 共享关系本身即视为归属业务管理员做出的一次显式授权。
+     */
+    private AuthResult authViewFileSource(User operator,
+                                          Long appId,
+                                          List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
+        if (CollectionUtils.isEmpty(fileSourceAvailabilities)) {
+            return AuthResult.pass(operator);
+        }
+        Map<Integer, String> ownFileSourceIdToName = new HashMap<>();
+        for (ServiceFileSourceAvailabilityDTO availability : fileSourceAvailabilities) {
+            if (appId.equals(availability.getOwnerAppId())) {
+                ownFileSourceIdToName.put(availability.getId(), availability.getAlias());
+            }
+        }
+        if (ownFileSourceIdToName.isEmpty()) {
+            return AuthResult.pass(operator);
+        }
+        return executeAuthService.batchAuthViewFileSource(
+            operator, new AppResourceScope(appId), ownFileSourceIdToName);
     }
 
     private void checkStepInstanceExecuteTargetNonEmpty(StepInstanceDTO stepInstance) {
@@ -1198,6 +1246,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    /**
+     * 重做快速任务。前提：fastTask 的作业实例由控制器用当次调用者与 URL 业务构造
+     * （见 WebExecuteTaskResourceImpl.buildFastScriptTaskInstance），下面的归属校验与鉴权依赖这一点，
+     * 新增调用方时需重新确认。
+     */
     @Override
     public TaskInstanceDTO redoFastTask(FastTaskDTO fastTask) {
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
@@ -1206,6 +1259,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (StringUtils.isNotEmpty(stepInstance.getScriptParam())
             && stepInstance.getScriptParam().equals(JobConstants.SENSITIVE_FIELD_PLACEHOLDER)) {
             // 重做快速任务，如果是敏感参数，并且用户未修改脚本参数值(******为与前端的约定，表示用户未修改脚本参数值)，需要从原始任务取值
+            // 敏感参数不会通过任何读接口暴露，取值前必须确认调用者有权查看原实例，否则可借他人实例 ID 窃取其机密
+            TaskInstanceDTO originTaskInstance =
+                taskInstanceService.getTaskInstance(taskInstance.getAppId(), taskInstanceId);
+            executeAuthService.authViewTaskInstance(fastTask.getOperator(),
+                new AppResourceScope(taskInstance.getAppId()), originTaskInstance);
             StepInstanceDTO originStepInstance = stepInstanceService.getStepInstanceByTaskInstanceId(taskInstanceId);
             if (originStepInstance == null) {
                 log.error("Rode task is not exist, taskInstanceId: {}", taskInstanceId);
@@ -1547,6 +1605,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return Pair.of(authServers, accountIds);
     }
 
+    /**
+     * 作业重做鉴权。taskInstance 是被重做的原实例，只用于取待执行的内容；
+     * 鉴权主体一律取 user 与 appId，即本次调用者与本次请求的业务。
+     */
     private void authRedoJob(User user,
                              long appId,
                              TaskInstanceDTO taskInstance,
@@ -1574,11 +1636,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     scriptStepInstance.setScriptName(script.getName());
                 }
             }
-            authFastExecute(user, taskInstance, scriptStepInstance, whiteHostAllowActions);
+            authFastExecute(user, appId, scriptStepInstance, whiteHostAllowActions,
+                Collections.emptyList());
         } else if (taskType.equals(TaskTypeEnum.FILE.getValue())) {
             // 快速分发文件鉴权
             StepInstanceDTO fileStepInstance = taskInstance.getStepInstances().get(0);
-            authFastExecute(user, taskInstance, fileStepInstance, whiteHostAllowActions);
+            // 重做走的是已落库的执行实例，不对其引用的文件源追加可用性校验与鉴权，避免存量作业无法重做
+            authFastExecute(user, appId, fileStepInstance, whiteHostAllowActions,
+                Collections.emptyList());
         } else {
             log.warn("Auth fail because of invalid task type!");
             throw new PermissionDeniedException(AuthResult.fail(user));
@@ -1652,14 +1717,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                    List<TaskVariableDTO> executeVariableValues) {
         log.info("Create task instance for redo, appId={}, taskInstanceId={}, operator={}, variables={}", appId,
             taskInstanceId, operator, executeVariableValues);
-        TaskInstanceDTO originTaskInstance = taskInstanceService.getTaskInstanceDetail(taskInstanceId);
-        if (originTaskInstance == null) {
-            log.warn("Create task instance for redo, task instance is not exist.appId={}, planId={}", appId,
-                taskInstanceId);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
+        // 必须按 (调用者, URL 业务) 取原实例：不属于该业务时抛 TASK_INSTANCE_NOT_EXIST，
+        // 非本人执行的实例还会鉴 VIEW_HISTORY。用裸 taskInstanceId 取会让调用者拿到任意业务的实例
+        TaskInstanceDTO originTaskInstance =
+            taskInstanceService.getTaskInstanceDetail(operator, appId, taskInstanceId);
 
-        TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, operator.getUsername());
+        TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, appId,
+            operator.getUsername());
 
         Map<String, TaskVariableDTO> finalVariableValueMap = buildFinalTaskVariableValues(
             originTaskInstance.getVariables(), executeVariableValues);
@@ -1716,9 +1780,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return taskInstance;
     }
 
-    private TaskInstanceDTO createTaskInstanceForRedo(TaskInstanceDTO originTaskInstance, String operator) {
+    private TaskInstanceDTO createTaskInstanceForRedo(TaskInstanceDTO originTaskInstance,
+                                                      long appId,
+                                                      String operator) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
-        taskInstance.setAppId(originTaskInstance.getAppId());
+        // 用校验过的 appId，与步骤实例保持一致；原实例的归属已在取实例时校验过，两者必然相等
+        taskInstance.setAppId(appId);
         taskInstance.setType(originTaskInstance.getType());
         taskInstance.setStartupMode(TaskStartupModeEnum.WEB.getValue());
         taskInstance.setCronTaskId(-1L);

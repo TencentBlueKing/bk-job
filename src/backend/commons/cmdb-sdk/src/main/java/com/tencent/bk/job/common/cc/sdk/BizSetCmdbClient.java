@@ -52,7 +52,6 @@ import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -326,7 +325,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetEventDetail>>>() {
                 },
-                HttpHelperFactory.getLongRetryableHttpHelper());
+                longRetryableHttpHelper());
             if (!resp.getResult()) {
                 throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
@@ -356,7 +355,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetRelationEventDetail>>>() {
                 },
-                HttpHelperFactory.getLongRetryableHttpHelper());
+                longRetryableHttpHelper());
             if (!resp.getResult()) {
                 throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
