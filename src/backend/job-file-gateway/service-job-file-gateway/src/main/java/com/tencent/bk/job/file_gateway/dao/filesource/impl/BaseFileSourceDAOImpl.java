@@ -121,6 +121,26 @@ public class BaseFileSourceDAOImpl extends BaseDAOImpl {
         return listPage(query, start, pageSize, this::convertRecordToDto);
     }
 
+    /**
+     * 文件源对指定业务可见的判定条件：命中本业务那行共享记录（归属业务自己那行在保存时无条件写入，
+     * 故这一支同时覆盖「归属」与「显式共享」），或者「公共 + 全业务共享」。
+     * <p>
+     * 显式共享这一支必须叠加 PUBLIC = true —— 私有文件源不对其他业务开放，
+     * 即使 file_source_share 里残留了历史共享记录；
+     * 但归属业务自身必须放行，所以是 {@code APP_ID = appId OR PUBLIC = true} 而不是只判 PUBLIC。
+     * <p>
+     * 归属这一支刻意保持用 share 表判定、不改成直接判 {@code file.APP_ID = appId}：
+     * 查询与 share 表是 join 关系，直接判归属会让归属业务的每一行共享记录都命中，
+     * 使文件源在列表里重复出现（列表未去重，而计数用的是 countDistinct）。
+     * <p>
+     * 只适用于与 {@link #tableFileSourceShare} join 之后的查询。
+     */
+    protected Condition genAppScopeCondition(Long appId) {
+        return tableFileSourceShare.APP_ID.eq(appId)
+            .and(defaultTable.APP_ID.eq(appId).or(defaultTable.PUBLIC.eq(true)))
+            .or(defaultTable.PUBLIC.eq(true).and(defaultTable.SHARE_TO_ALL_APP.eq(true)));
+    }
+
     protected FileSourceBasicInfoDTO convertRecordToBasicInfoDto(Record record) {
         FileSourceBasicInfoDTO fileSourceBasicInfoDTO = new FileSourceBasicInfoDTO();
         fileSourceBasicInfoDTO.setId(record.get(defaultTable.ID));

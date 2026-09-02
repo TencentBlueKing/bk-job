@@ -1303,6 +1303,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkStepInstance(taskInstance, stepInstanceList);
             watch.stop();
 
+            // 校验引用的第三方文件源对当前业务可用。
+            // 必须放在 skipAuth 判断之外：定时任务等 skipAuth = true 的路径同样不允许引用越权的文件源
+            watch.start("validateFileSourceReference");
+            validateReferencedFileSources(executeParam.getOperator().getTenantId(),
+                taskInstance.getAppId(), stepInstanceList);
+            watch.stop();
+
             if (!executeParam.isSkipAuth()) {
                 watch.start("auth-execute-job");
                 authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), jobPlan, stepInstanceList,
@@ -1349,6 +1356,25 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 log.warn("createTaskInstanceForTask is slow, statistics: {}", watch.prettyPrint());
             }
         }
+    }
+
+    /**
+     * 汇总各文件分发步骤引用的第三方文件源，校验它们对当前业务可用，不可用则抛异常。
+     * 文件源 ID 在下游按 LinkedHashSet 去重，多个步骤引用同一文件源也只发起一次跨服务查询。
+     */
+    private void validateReferencedFileSources(String tenantId,
+                                               long appId,
+                                               List<StepInstanceDTO> stepInstanceList) {
+        if (CollectionUtils.isEmpty(stepInstanceList)) {
+            return;
+        }
+        List<FileSourceDTO> referencedFileSources = new ArrayList<>();
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
+                referencedFileSources.addAll(stepInstance.getFileSourceList());
+            }
+        }
+        fileSourceReferenceService.validateReferencedFileSources(tenantId, appId, referencedFileSources);
     }
 
     private void standardizeStepDynamicGroupId(List<StepInstanceDTO> stepInstanceList) {
@@ -1696,6 +1722,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 检查步骤
         checkStepInstance(taskInstance, stepInstanceList);
+
+        // 原实例执行时文件源可能还在共享范围内，重做时要按当前范围重新校验
+        validateReferencedFileSources(operator.getTenantId(), appId, stepInstanceList);
 
         authRedoJob(operator, appId, originTaskInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
 
@@ -2158,11 +2187,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         log.info("Operate step, appId:{}, stepInstanceId:{}, operator:{}, operation:{}", appId, stepInstanceId,
             operator, operation.getValue());
 
-        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, stepOperation.getTaskInstanceId());
-        addJobInstanceContext(taskInstance);
-
         StepInstanceDTO stepInstance = queryStepInstanceAndCheckExist(
             appId, stepOperation.getTaskInstanceId(), stepInstanceId);
+
+        // 鉴权用的作业实例 ID 取自查出来的步骤实例，不能取入参里的 taskInstanceId：
+        // 步骤查询里的 task_instance_id 条件在分库开关未开启或历史数据下会退化成 TRUE
+        // （见 TaskInstanceIdDynamicCondition），此时入参与步骤实例可以不匹配，
+        // 直接信入参会让调用者拿自己的作业去通过鉴权、操作他人的步骤
+        TaskInstanceDTO taskInstance =
+            queryTaskInstanceAndCheckExist(operator, appId, stepInstance.getTaskInstanceId());
+        addJobInstanceContext(taskInstance);
 
         int executeCount = stepInstance.getExecuteCount();
         switch (operation) {
@@ -2202,13 +2236,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return executeCount;
     }
 
-    private TaskInstanceDTO queryTaskInstanceAndCheckExist(long appId, long taskInstanceId) {
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
-            log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
-        return taskInstance;
+    /**
+     * 按 (调用者, 业务) 取作业实例：不属于该业务时抛 TASK_INSTANCE_NOT_EXIST，
+     * 非本人执行的实例还会鉴 VIEW_HISTORY，避免业务内任意用户操作他人的作业。
+     * <p>
+     * 必须带调用者：只校验 appId 时业务内任意用户都能操作他人发起的作业。
+     */
+    private TaskInstanceDTO queryTaskInstanceAndCheckExist(User user, long appId, long taskInstanceId) {
+        return taskInstanceService.getTaskInstance(user, appId, taskInstanceId);
     }
 
     private StepInstanceDTO queryStepInstanceAndCheckExist(long appId, long taskInstanceId, long stepInstanceId) {
@@ -2522,7 +2557,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public void terminateJob(User user, Long appId, Long taskInstanceId) {
-        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(user, appId, taskInstanceId);
         terminateJob(user.getUsername(), taskInstance);
     }
 
@@ -2557,7 +2592,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                 TaskOperationEnum operation) {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
             taskInstanceId, operator, operation.getValue());
-        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(operator, appId, taskInstanceId);
         addJobInstanceContext(taskInstance);
         switch (operation) {
             case TERMINATE_JOB:

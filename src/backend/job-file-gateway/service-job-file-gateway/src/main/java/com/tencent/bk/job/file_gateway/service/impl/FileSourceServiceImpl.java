@@ -53,6 +53,7 @@ import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -148,6 +149,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     public FileSourceDTO saveFileSource(User user, Long appId, FileSourceDTO fileSource) {
         authCreate(user, appId);
         authUseTicketIfNeeded(user, appId, fileSource.getCredentialId());
+        normalizeShareScope(fileSource);
 
         if (existsCode(appId, fileSource.getCode())) {
             throw new FailedPreconditionException(
@@ -170,6 +172,25 @@ public class FileSourceServiceImpl implements FileSourceService {
             log.warn("Fail to register file_source to iam:({},{})", fileSource.getId(), fileSource.getAlias());
         }
         return getFileSourceById(id);
+    }
+
+    /**
+     * 归一化文件源的共享范围：非公共文件源不允许带任何共享范围。
+     * 前端「设为公共存储 → 全业务 → 取消公共存储」等操作可能提交
+     * publicFlag = false + shareToAllApp = true 的矛盾数据，落库后会被其他业务读到。
+     * 放在 service 层这个共同漏斗上，Web 与 ESB 入口一并覆盖。
+     */
+    private void normalizeShareScope(FileSourceDTO fileSource) {
+        if (Boolean.TRUE.equals(fileSource.getPublicFlag())) {
+            return;
+        }
+        if (Boolean.TRUE.equals(fileSource.getShareToAllApp())
+            || CollectionUtils.isNotEmpty(fileSource.getSharedAppIdList())) {
+            log.info("Reset share scope of non-public file source, appId={}, code={}",
+                fileSource.getAppId(), fileSource.getCode());
+        }
+        fileSource.setShareToAllApp(false);
+        fileSource.setSharedAppIdList(new ArrayList<>());
     }
 
     private void authView(User user, long appId, int fileSourceId) {
@@ -214,6 +235,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     public FileSourceDTO updateFileSourceById(User user, Long appId, FileSourceDTO fileSource) {
         authManage(user, appId, fileSource.getId());
         authUseTicketIfNeeded(user, appId, fileSource.getCredentialId());
+        normalizeShareScope(fileSource);
 
         if (existsCodeExceptId(appId, fileSource.getCode(), fileSource.getId())) {
             throw new FailedPreconditionException(
@@ -311,6 +333,11 @@ public class FileSourceServiceImpl implements FileSourceService {
         return getFileSourceById(appId, id);
     }
 
+    /**
+     * 按 ID 查询文件源。<b>入参 appId 未被使用</b>，既不做归属过滤也不做共享范围校验，
+     * 不要当成带范围校验的方法用；需要范围校验请走
+     * {@code SpecifiedTenantFileSourceDAO.listFileSourceIdsInAppScope}。
+     */
     @Override
     public FileSourceDTO getFileSourceById(Long appId, Integer id) {
         return currentTenantFileSourceDAO.getFileSourceById(id);
@@ -359,7 +386,7 @@ public class FileSourceServiceImpl implements FileSourceService {
 
     @Override
     public Boolean checkFileSourceAlias(Long appId, String alias, Integer fileSourceId) {
-        int count = currentTenantFileSourceDAO.countFileSource(appId, null, alias);
+        int count = currentTenantFileSourceDAO.countFileSourceInApp(appId, null, alias);
         if (count == 0) {
             return true;
         } else {

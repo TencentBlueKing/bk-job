@@ -51,7 +51,7 @@ public interface CurrentTenantFileSourceDAO {
 
     Integer countAvailableLikeFileSource(Long appId, String credentialId, String alias);
 
-    Integer countFileSource(Long appId, String credentialId, String alias);
+    Integer countFileSourceInApp(Long appId, String credentialId, String alias);
 
     Integer countWorkTableFileSource(Long appId, String credentialId, String alias);
 
