@@ -1,0 +1,128 @@
+### Description
+
+Advance an approval task: Job queries the approval decision from the approval channel assigned to the task, and once the request is approved and all checks pass, automatically executes the original operation submitted at initiation time and returns its result in `execute_result`.
+
+**The request body contains only the two IDs `approval_task_id` and `approval_ticket_id`, and accepts no approval-decision field** (there is no status, approver, approval time or comment field). The approval decision can only be obtained by Job querying the approval channel, so a caller cannot declare whether the request was approved; extra fields are ignored.
+
+Only approval tasks created by the same user through the same application can be advanced. In every other case the "approval task does not exist" error is returned.
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+#### Behavior of This API
+
+- **The decision comes from the channel query.** The operation is executed only when the query returns approved. If it returns rejected, the task moves to `REJECTED`. If the channel has no decision yet, the task stays `PENDING` and the call can be retried later. If the query fails (channel error, empty decision), the release is rejected and the task stays `PENDING`: a channel failure never releases an operation.
+- **The approver must be the creator of the task**, otherwise the release is rejected.
+- **The ticket ID cannot be replaced once bound.** `approval_ticket_id` is bound to the task the first time the checks pass; any different ticket ID sent afterwards is rejected.
+- **One approval releases the operation exactly once.** On release the task is atomically consumed into `EXECUTING`, so concurrent or repeated calls never execute it twice: when the task is already in a final status (`EXECUTED`, `REJECTED`, `CANCELED`, `FAILED`) the existing result is returned directly, and when it has been consumed but is still executing the current status is returned.
+- **An expired task can no longer be released.** It returns `EXPIRED` and the approval must be initiated again.
+- **No automatic retry when the result is unknown.** If the execution request was dispatched but no downstream response was obtained, the task stays `EXECUTING` with `execute_result` set to `null` and `result_unknown` set to `true`. Check the execution history manually to confirm whether a job was created; **do not call this API repeatedly because of it**.
+- **When the downstream service returns a definite business failure**, the task moves to the final status `FAILED`, the approval becomes void, and a new approval must be initiated.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| approval_task_id | string | Yes | Approval task ID returned by the initiating API |
+| approval_ticket_id | string | Yes | Ticket ID in the approval channel. It is used only for Job to query the approval decision and does not itself represent any decision; once bound to the task it cannot be replaced. **The IMate channel identifies an approval ticket by the approval task ID and has no separate ticket ID, so pass the same value as `approval_task_id`** |
+
+### Request Parameters Example
+
+- POST
+
+```json
+{
+    "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+    "approval_ticket_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f"
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+Approved and executed:
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "EXECUTED",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": "admin",
+        "approved_at": 1786669200000,
+        "execute_result": {
+            "job_instance_id": 10000,
+            "job_instance_name": "API Quick execution script1",
+            "step_instance_id": 10001
+        },
+        "result_unknown": false,
+        "message": "Executed"
+    }
+}
+```
+
+The channel has no decision yet, the task stays pending:
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "PENDING",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": null,
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": null,
+        "approved_at": null,
+        "execute_result": null,
+        "result_unknown": false,
+        "message": "Waiting for approval"
+    }
+}
+```
+
+The execution request was dispatched but the result is unknown and needs manual investigation:
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "EXECUTING",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": "admin",
+        "approved_at": 1786669200000,
+        "execute_result": null,
+        "result_unknown": true,
+        "message": "The execution result is unknown, please check the execution history"
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+{% include '_generic_v4_approval_task.md.j2' %}

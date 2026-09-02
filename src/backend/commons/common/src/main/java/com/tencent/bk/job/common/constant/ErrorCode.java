@@ -584,5 +584,27 @@ public class ErrorCode {
     public static final int AI_CHAT_HISTORY_NOT_FOUND_BY_ID = 1264003;
     // 目标执行对象不存在，请检查任务及执行对象参数是否正确
     public static final int TASK_CONTEXT_TARGET_EXECUTE_OBJECT_NOT_EXIST = 1264004;
+    // 审批任务不存在：{0}
+    public static final int APPROVAL_TASK_NOT_EXIST = 1264005;
+    // 审批任务已过期（有效期{0}小时），请重新发起
+    public static final int APPROVAL_TASK_EXPIRED = 1264006;
+    // 审批任务已被消费，不可重复放行
+    public static final int APPROVAL_TASK_ALREADY_CONSUMED = 1264007;
+    // 当前状态{0}不允许该操作
+    public static final int APPROVAL_TASK_STATUS_NOT_ALLOWED = 1264008;
+    // 审批单据ID与该任务已绑定的单据不一致
+    public static final int APPROVAL_TICKET_ID_MISMATCH = 1264009;
+    // 审批单据与审批任务的绑定关系不正确
+    public static final int APPROVAL_TASK_ID_BINDING_MISMATCH = 1264010;
+    // 审批人必须为发起人本人
+    public static final int APPROVAL_APPROVER_NOT_CREATOR = 1264011;
+    // 不支持或当前不可用的审批渠道：{0}
+    public static final int APPROVAL_CHANNEL_NOT_SUPPORTED = 1264012;
+    // 审批状态暂不可确认，请稍后重试（不会自动放行）
+    public static final int APPROVAL_CHANNEL_QUERY_FAIL = 1264013;
+    // 无权获取该审批任务的审批内容
+    public static final int APPROVAL_CONTENT_ACCESS_DENIED = 1264014;
+    // 审批放行后执行失败：{0}
+    public static final int APPROVAL_OPERATION_EXECUTE_FAIL = 1264015;
     // 统计分析服务job-analysis错误码 end
 }

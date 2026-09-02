@@ -317,7 +317,7 @@
 | file_list      | array  | 是          | 源文件的绝对路径数组，支持多个文件               |
 | account        | object | 是          | 执行账号名/别名                        |
 | server         | object | 否          | 文件源服务器                          |
-| file_type      | int    | 是          | 文件源类型，1：服务器文件，2：本地文件，3：第三方文件源文件 |
+| file_type      | int    | 是          | 文件源类型，1：服务器文件，2：本地文件，3：第三方文件源文件（**只会在既有方案的详情里读到，本技能不能组装这一类来源**，见 [fast_transfer_file.md](fast_transfer_file.md)） |
 | file_source_id | int    | 否          | 文件源类型为第三方文件源文件时的第三方文件源Id        |
 
 ##### file_destination

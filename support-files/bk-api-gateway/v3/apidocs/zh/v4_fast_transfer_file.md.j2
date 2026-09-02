@@ -1,0 +1,157 @@
+### 功能描述
+
+快速分发文件：无需预先创建作业模板与执行方案，直接把源文件分发到目标主机或容器上。接口同步返回作业实例 ID 与步骤实例 ID，可用它们查询作业执行状态与执行日志。
+
+调用前须满足：调用身份对目标资源范围具备快速分发文件的操作权限，且对源文件所在主机、第三方文件源、执行账号与分发目标主机具备相应权限。
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| task_name | string | 否 | 自定义作业名称，长度不可超过 512 字符；不传时由系统生成 |
+| file_source_list | array | 是 | 源文件列表，不可为空 |
+| file_target_path | string | 是 | 文件分发到目标主机的目录，须为绝对路径 |
+| file_target_name | string | 否 | 文件分发到目标主机后的文件名，不传时沿用源文件名 |
+| account_alias | string | 否 | 目标主机的执行账号别名。与 `account_id` 二者填一个，同时存在时以 `account_id` 为准 |
+| account_id | long | 否 | 目标主机的执行账号 ID。与 `account_alias` 二者填一个，同时存在时以本字段为准 |
+| execute_target | object | 是 | 分发目标 |
+| transfer_mode | int | 否 | 传输模式。可选值：1（严谨模式，目标路径不存在时直接失败）、2（强制模式，目标路径不存在时自动创建目录，同名文件被直接覆盖）、3（保险模式，按源主机分目录存放，不同来源的同名文件不会互相覆盖）、4（保险模式，按日期与源主机分目录存放）。不传按强制模式处理，请注意其覆盖行为；传上述以外的值报错 |
+| download_speed_limit | int | 否 | 下载限速，单位为 MB；不传表示不限速 |
+| upload_speed_limit | int | 否 | 上传限速，单位为 MB；不传表示不限速 |
+| timeout | int | 否 | 文件分发超时时间，单位为秒。不传默认 7200，取值范围 1～259200 |
+| callback_url | string | 否 | 作业执行完成后的回调 URL，长度不可超过 1024 字符。作业执行完成后作业平台会回调该地址 |
+| rolling_config | object | 否 | 滚动执行配置，不传表示不滚动执行 |
+| start_task | boolean | 否 | 是否立即启动作业。可选值：`true`（立即启动，默认）、`false`（仅创建作业实例不启动，后续可通过作业实例操作接口启动） |
+
+##### file_source_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| file_list | array | 是 | 源文件路径列表，元素为字符串形式的文件路径；文件源类型为服务器文件时须为绝对路径 |
+| file_type | int | 否 | 文件源类型。可选值：1（服务器文件）、2（本地文件）、3（第三方文件源文件）。不传默认 1 |
+| account_alias | string | 否 | 源文件所在主机的执行账号别名。与 `account_id` 二者填一个；文件源类型为服务器文件时必填 |
+| account_id | long | 否 | 源文件所在主机的执行账号 ID。与 `account_alias` 二者填一个；文件源类型为服务器文件时必填 |
+| execute_target | object | 否 | 源文件所在主机；文件源类型为服务器文件时必填 |
+| file_source_id | long | 否 | 第三方文件源 ID。与 `file_source_code` 二者填一个；文件源类型为第三方文件源文件时必填 |
+| file_source_code | string | 否 | 第三方文件源标识。与 `file_source_id` 二者填一个；文件源类型为第三方文件源文件时必填 |
+
+##### execute_target 与 file_source_list[].execute_target
+
+分发目标 `execute_target` 与源文件所在主机 `file_source_list[].execute_target` 使用相同的结构，字段如下：
+
+{% include '_generic_v4_execute_target.md.j2' %}
+
+**注：** 主机与容器不能混合执行。
+
+{% include '_generic_rolling_config.md.j2' %}
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "task_name": "push-config",
+    "file_source_list": [
+        {
+            "file_list": [
+                "/tmp/REGEX:[a-z]*.txt"
+            ],
+            "file_type": 1,
+            "account_alias": "root",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.1"
+                    }
+                ]
+            }
+        },
+        {
+            "file_list": [
+                "testbucket/test.txt"
+            ],
+            "file_type": 3,
+            "file_source_id": 1
+        },
+        {
+            "file_list": [
+                "testbucket/test2.txt"
+            ],
+            "file_type": 3,
+            "file_source_code": "testInnerCOS"
+        }
+    ],
+    "file_target_path": "/data/release/",
+    "file_target_name": "app.conf",
+    "account_id": 1000,
+    "execute_target": {
+        "host_list": [
+            {
+                "bk_cloud_id": 0,
+                "ip": "127.0.0.2"
+            }
+        ],
+        "dynamic_group_list": [
+            {
+                "id": "asdo8gojhasdfskft7pr5"
+            }
+        ],
+        "topo_node_list": [
+            {
+                "id": 1000,
+                "node_type": "module"
+            }
+        ]
+    },
+    "transfer_mode": 2,
+    "download_speed_limit": 100,
+    "upload_speed_limit": 100,
+    "timeout": 1000,
+    "callback_url": "https://example.com/job/callback",
+    "rolling_config": {
+        "type": 1,
+        "execution_mode": 1,
+        "mode": 1,
+        "expression": "1 5 10 100%"
+    },
+    "start_task": true
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "job_instance_id": 10000,
+        "job_instance_name": "push-config",
+        "step_instance_id": 10001
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+{% include '_generic_response_job_instance.md.j2' %}

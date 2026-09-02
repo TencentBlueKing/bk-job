@@ -26,42 +26,23 @@ package com.tencent.bk.job.manage.api.esb.impl.v4;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
-import com.tencent.bk.job.common.exception.AlreadyExistsException;
-import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
-import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
-import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteTargetDTO;
 import com.tencent.bk.job.manage.api.esb.v4.OpenApiJobPlanV4Resource;
-import com.tencent.bk.job.manage.auth.PlanAuthService;
-import com.tencent.bk.job.manage.auth.TemplateAuthService;
-import com.tencent.bk.job.manage.model.dto.task.TaskHostNodeDTO;
-import com.tencent.bk.job.manage.model.dto.task.TaskNodeInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
-import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
-import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
-import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
-import com.tencent.bk.job.manage.service.host.TenantHostService;
-import com.tencent.bk.job.manage.service.plan.TaskPlanService;
-import com.tencent.bk.job.manage.service.template.TaskTemplateService;
+import com.tencent.bk.job.manage.service.plan.PlanGlobalVarSummaryBuilder;
+import com.tencent.bk.job.manage.service.plan.V4JobPlanCreateService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,36 +50,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
 
-    private final TaskPlanService planService;
-    private final TaskTemplateService templateService;
-    private final TemplateAuthService templateAuthService;
-    private final PlanAuthService planAuthService;
+    private final V4JobPlanCreateService jobPlanCreateService;
     private final AppScopeMappingService appScopeMappingService;
-    private final TenantHostService tenantHostService;
+    private final PlanGlobalVarSummaryBuilder globalVarSummaryBuilder;
 
     @Autowired
-    public OpenApiJobPlanV4ResourceImpl(TaskPlanService planService,
-                                        TaskTemplateService templateService,
-                                        TemplateAuthService templateAuthService,
-                                        PlanAuthService planAuthService,
+    public OpenApiJobPlanV4ResourceImpl(V4JobPlanCreateService jobPlanCreateService,
                                         AppScopeMappingService appScopeMappingService,
-                                        TenantHostService tenantHostService) {
-        this.planService = planService;
-        this.templateService = templateService;
-        this.templateAuthService = templateAuthService;
-        this.planAuthService = planAuthService;
+                                        PlanGlobalVarSummaryBuilder globalVarSummaryBuilder) {
+        this.jobPlanCreateService = jobPlanCreateService;
         this.appScopeMappingService = appScopeMappingService;
-        this.tenantHostService = tenantHostService;
+        this.globalVarSummaryBuilder = globalVarSummaryBuilder;
     }
 
     @Override
@@ -106,269 +77,74 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v4_create_job_plan"})
     public EsbV4Response<OpenApiV4JobPlanDTO> createJobPlan(String username,
                                                         String appCode,
+                                                        Boolean dryRun,
                                                         @AuditRequestBody V4CreateJobPlanRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-        Long appId = request.getAppId();
-        AppResourceScope appResourceScope = request.getAppResourceScope();
-
         User user = JobContextUtil.getUser();
-        templateAuthService.authViewJobTemplate(user, appResourceScope, request.getJobTemplateId())
-            .denyIfNoPermission();
-        planAuthService.authCreateJobPlan(user, appResourceScope, request.getJobTemplateId(), null)
-            .denyIfNoPermission();
-
-        TaskTemplateInfoDTO template = templateService.getTaskTemplateById(appId, request.getJobTemplateId());
-        if (template == null) {
-            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
+        boolean isDryRun = Boolean.TRUE.equals(dryRun);
+        TaskPlanInfoDTO plan = jobPlanCreateService.createJobPlan(user, request, isDryRun);
+        if (isDryRun) {
+            return EsbV4Response.dryRunSuccess(buildSummary(plan, request, user.getTenantId()));
         }
-
-        List<Long> enableSteps = resolveEnableSteps(request, template);
-        List<TaskVariableDTO> variableList = mapVariables(request.getVariables(), template, user.getTenantId());
-
-        String planName = StringUtils.strip(request.getName());
-        if (Boolean.FALSE.equals(
-            planService.checkPlanName(appId, request.getJobTemplateId(), 0L, planName)
-        )) {
-            throw new AlreadyExistsException(ErrorCode.PLAN_NAME_EXIST);
-        }
-
-        TaskPlanInfoDTO planInfoDTO = buildTaskPlanInfoDTO(
-            username, appId, request.getJobTemplateId(), planName, enableSteps, variableList
-        );
-
-        TaskPlanInfoDTO savedPlan = planService.createTaskPlan(user, planInfoDTO);
-
-        return EsbV4Response.success(toOpenApiV4JobPlanDTO(appId, username, savedPlan));
+        return EsbV4Response.success(toOpenApiV4JobPlanDTO(request.getAppId(), username, plan));
     }
 
-    private List<Long> resolveEnableSteps(V4CreateJobPlanRequest request, TaskTemplateInfoDTO template) {
-        List<Long> templateStepIds = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(template.getStepList())) {
-            for (TaskStepDTO step : template.getStepList()) {
-                templateStepIds.add(step.getId());
-            }
-        }
-        if (request.getEnableSteps() == null) {
-            return templateStepIds;
-        }
-        Set<Long> templateStepIdSet = new HashSet<>(templateStepIds);
-        for (Long stepId : request.getEnableSteps()) {
-            if (stepId == null || !templateStepIdSet.contains(stepId)) {
-                throw new InvalidParamException(
-                    ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    new Object[]{
-                        "enable_steps",
-                        "step id " + stepId + " is not in template " + template.getId()
-                    }
-                );
-            }
-        }
-        return new ArrayList<>(request.getEnableSteps());
-    }
-
-    private List<TaskVariableDTO> mapVariables(List<V4JobPlanVariableItem> variables,
-                                               TaskTemplateInfoDTO template,
-                                               String tenantId) {
-        if (CollectionUtils.isEmpty(variables)) {
-            return new ArrayList<>();
-        }
-        Map<String, TaskVariableDTO> templateVarByName = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(template.getVariableList())) {
-            for (TaskVariableDTO variable : template.getVariableList()) {
-                templateVarByName.put(variable.getName(), variable);
-            }
-        }
-        List<TaskVariableDTO> result = new ArrayList<>(variables.size());
-        Set<String> seenNames = new HashSet<>();
-        for (V4JobPlanVariableItem item : variables) {
-            String name = item.getName();
-            if (!seenNames.add(name)) {
-                throw new InvalidParamException(
-                    ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    new Object[]{"variables", "duplicated variable name: " + name}
-                );
-            }
-            TaskVariableDTO templateVar = templateVarByName.get(name);
-            if (templateVar == null) {
-                throw new InvalidParamException(
-                    ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    new Object[]{"variables", "variable name '" + name + "' not exist in template"}
-                );
-            }
-            TaskVariableDTO dto = new TaskVariableDTO();
-            dto.setId(templateVar.getId());
-            dto.setName(templateVar.getName());
-            dto.setDescription(templateVar.getDescription() == null ? "" : templateVar.getDescription());
-            dto.setChangeable(templateVar.getChangeable());
-            dto.setRequired(templateVar.getRequired());
-            dto.setDelete(false);
-            dto.setFollowTemplate(item.isFollowTemplate());
-            TaskVariableTypeEnum varType = templateVar.getType();
-            dto.setType(varType);
-            if (varType == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST) {
-                if (item.isFollowTemplate()) {
-                    if (item.getExecuteTarget() != null) {
-                        throw new InvalidParamException(
-                            ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                            new Object[]{
-                                "variables[].execute_target",
-                                "execute_target must not be provided when follow_template is true"
-                            }
-                        );
-                    }
-                } else {
-                    if (item.getValue() != null) {
-                        throw new InvalidParamException(
-                            ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                            new Object[]{
-                                "variables",
-                                "EXECUTE_OBJECT_LIST variable must use execute_target instead of value"
-                            }
-                        );
-                    }
-                    TaskTargetDTO taskTargetDTO = buildTaskTargetDTO(item.getExecuteTarget(), tenantId);
-                    dto.setDefaultValue(taskTargetDTO.toJsonString());
-                }
-            } else if (!item.isFollowTemplate() && item.getValue() != null) {
-                dto.setDefaultValue(item.getValue());
-            }
-            result.add(dto);
-        }
-        return result;
-    }
-
-    /** 执行目标变量覆盖：仅主机维度，容器 filter 暂不支持。 */
-    private TaskTargetDTO buildTaskTargetDTO(V4ExecuteTargetDTO v4, String tenantId) {
-        if (v4 == null) {
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new Object[]{
-                    "variables[].execute_target",
-                    "execute_target is required for EXECUTE_OBJECT_LIST variable"
-                }
-            );
-        }
-        if (CollectionUtils.isNotEmpty(v4.getKubeContainerFilters())) {
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new Object[]{
-                    "variables[].execute_target.kube_container_filters",
-                    "container target is not supported by this API"
-                }
-            );
-        }
-        boolean hostDimensionEmpty = CollectionUtils.isEmpty(v4.getHostList())
-            && CollectionUtils.isEmpty(v4.getDynamicGroups())
-            && CollectionUtils.isEmpty(v4.getTopoNodes());
-        if (hostDimensionEmpty) {
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new Object[]{
-                    "variables[].execute_target",
-                    "at least one of host_list/dynamic_group_list/topo_node_list is required"
-                }
-            );
-        }
-        TaskHostNodeDTO hostNode = new TaskHostNodeDTO();
-        if (CollectionUtils.isNotEmpty(v4.getHostList())) {
-            hostNode.setHostList(resolveHostList(v4.getHostList(), tenantId));
-        }
-        if (CollectionUtils.isNotEmpty(v4.getDynamicGroups())) {
-            hostNode.setDynamicGroupId(v4.getDynamicGroups().stream()
-                .map(EsbDynamicGroupDTO::getId)
-                .collect(Collectors.toList()));
-        }
-        if (CollectionUtils.isNotEmpty(v4.getTopoNodes())) {
-            hostNode.setNodeInfoList(v4.getTopoNodes().stream()
-                .map(OpenApiJobPlanV4ResourceImpl::toTaskNodeInfoDTO)
-                .collect(Collectors.toList()));
-        }
-        return new TaskTargetDTO(null, hostNode, null);
+    private ResolvedSummary buildSummary(TaskPlanInfoDTO plan, V4CreateJobPlanRequest request, String tenantId) {
+        ResolvedSummary summary = new ResolvedSummary();
+        summary.setName(plan.getName());
+        summary.addField("job_template_id", String.valueOf(plan.getTemplateId()));
+        putEnableStepsField(summary, plan);
+        // 预检返回的 variableList 已是合并后的全部方案变量，未被本次请求赋值的那些标为沿用模板默认值
+        globalVarSummaryBuilder.fillGlobalVars(summary, plan.getVariableList(), assignedVarNames(request), tenantId);
+        return summary;
     }
 
     /**
-     * 将 OpenAPI 主机列表解析为 {@link ApplicationHostDTO} 列表，并补全 hostId。
-     *
-     * <p>已带 bk_host_id 的直接使用；仅传 bk_cloud_id+ip 的批量从 CMDB（经 TenantHostService 缓存兜底）反查 hostId。
-     * 未能解析到 hostId 的主机会抛 {@link InvalidParamException}，避免创建出页面回显"主机无效"的执行方案。
-     *
-     * @param hosts    入参主机列表，已由 {@link com.tencent.bk.job.execute.model.esb.v4.req.validator.V4HostGroupSequenceProvider}
-     *                 保证至少含有 bk_host_id 或 bk_cloud_id+ip
-     * @param tenantId 当前请求租户 ID
-     * @return 已补全 hostId 的主机列表
+     * 本次请求真正给出了取值的变量名。
+     * <p>
+     * 声明了 follow_template、或压根没带取值的，最终生效的仍是模板默认值，不算本次指定
      */
-    private List<ApplicationHostDTO> resolveHostList(List<OpenApiV4HostDTO> hosts, String tenantId) {
-        List<ApplicationHostDTO> result = new ArrayList<>(hosts.size());
-        Set<String> cloudIpsToResolve = new HashSet<>();
-        for (OpenApiV4HostDTO host : hosts) {
-            ApplicationHostDTO dto = new ApplicationHostDTO();
-            if (host.getBkHostId() != null) {
-                dto.setHostId(host.getBkHostId());
-            } else {
-                dto.setCloudAreaId(host.getBkCloudId());
-                dto.setIp(host.getIp());
-                cloudIpsToResolve.add(dto.getCloudIp());
-            }
-            result.add(dto);
+    private Set<String> assignedVarNames(V4CreateJobPlanRequest request) {
+        if (CollectionUtils.isEmpty(request.getVariables())) {
+            return Collections.emptySet();
         }
-        if (cloudIpsToResolve.isEmpty()) {
-            return result;
-        }
-
-        Map<String, ApplicationHostDTO> hostsFromCmdb =
-            tenantHostService.listHostsByIps(tenantId, cloudIpsToResolve);
-        List<String> missingCloudIps = new ArrayList<>();
-        for (ApplicationHostDTO dto : result) {
-            if (dto.getHostId() != null) {
+        Set<String> names = new HashSet<>();
+        for (V4JobPlanVariableItem item : request.getVariables()) {
+            if (item == null || item.isFollowTemplate()) {
                 continue;
             }
-            ApplicationHostDTO cmdbHost = hostsFromCmdb == null ? null : hostsFromCmdb.get(dto.getCloudIp());
-            if (cmdbHost == null || cmdbHost.getHostId() == null) {
-                missingCloudIps.add(dto.getCloudIp());
-                continue;
+            if (item.getValue() != null || item.getExecuteTarget() != null) {
+                names.add(item.getName());
             }
-            dto.setHostId(cmdbHost.getHostId());
         }
-        if (!missingCloudIps.isEmpty()) {
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new Object[]{
-                    "variables[].execute_target.host_list",
-                    "host not found in cmdb by cloud_id+ip: " + String.join(",", missingCloudIps)
-                }
-            );
-        }
-        return result;
+        return names;
     }
 
-    private static TaskNodeInfoDTO toTaskNodeInfoDTO(EsbCmdbTopoNodeDTO topoNode) {
-        TaskNodeInfoDTO nodeInfo = new TaskNodeInfoDTO();
-        nodeInfo.setId(topoNode.getId());
-        nodeInfo.setType(topoNode.getNodeType());
-        return nodeInfo;
-    }
-
-    private TaskPlanInfoDTO buildTaskPlanInfoDTO(String username,
-                                                 Long appId,
-                                                 Long templateId,
-                                                 String name,
-                                                 List<Long> enableSteps,
-                                                 List<TaskVariableDTO> variableList) {
-        TaskPlanInfoDTO planInfo = new TaskPlanInfoDTO();
-        planInfo.setAppId(appId);
-        planInfo.setTemplateId(templateId);
-        planInfo.setName(name);
-        planInfo.setCreator(username);
-        planInfo.setLastModifyUser(username);
-        planInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
-        planInfo.setEnableStepList(
-            enableSteps == null ? Collections.emptyList() : enableSteps
-        );
-        planInfo.setVariableList(
-            variableList == null ? Collections.emptyList() : variableList
-        );
-        planInfo.setDebug(false);
-        return planInfo;
+    /**
+     * 启用的步骤按<b>名称</b>逐行给出，一行一个步骤：一串步骤 ID 审批人完全看不出这个方案会跑什么。
+     * <p>
+     * 此处只管按行拼，渲染侧认得这个字段名并把它摘出概要表格、单独成章节逐行列出（表格单元格塞不下换行）。
+     * <b>步骤不做条数截断</b>：条数上限就是模板的步骤数（人工编排出来的，不会像文件源那样上千条），
+     * 而截掉几个步骤名恰好截掉的是本行唯一要说明的事。启用的是全部模板步骤时换用带「全部」注明的标签，
+     * 省得审批人自己去数
+     */
+    private void putEnableStepsField(ResolvedSummary summary, TaskPlanInfoDTO plan) {
+        List<Long> enableStepIds = plan.getEnableStepList();
+        if (CollectionUtils.isEmpty(enableStepIds)) {
+            return;
+        }
+        Map<Long, String> stepNames = new LinkedHashMap<>();
+        if (CollectionUtils.isNotEmpty(plan.getStepList())) {
+            for (TaskStepDTO step : plan.getStepList()) {
+                stepNames.put(step.getId(), step.getName());
+            }
+        }
+        List<String> names = new ArrayList<>(enableStepIds.size());
+        for (Long stepId : enableStepIds) {
+            // 名称缺失时退回 ID：整行不能因此变空，审批人至少还能拿 ID 去查
+            names.add(StringUtils.defaultIfBlank(stepNames.get(stepId), String.valueOf(stepId)));
+        }
+        boolean allStepsEnabled = !stepNames.isEmpty() && enableStepIds.containsAll(stepNames.keySet());
+        summary.addField(allStepsEnabled ? "enable_steps_all" : "enable_steps", String.join("\n", names));
     }
 
     private OpenApiV4JobPlanDTO toOpenApiV4JobPlanDTO(Long appId, String username, TaskPlanInfoDTO savedPlan) {

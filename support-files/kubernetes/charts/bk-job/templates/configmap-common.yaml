@@ -188,9 +188,16 @@ data:
       expire-delete: {{ .Values.localFile.expireDelete }}
       expire-days: {{ .Values.localFile.expireDays }}
     springdoc:
+      # 以下地址由浏览器直接请求，必须是"外部可见"的完整路径。应用自身看不到这两段前缀：
+      # 服务名一段被 job-gateway 路由的 StripPrefix=1 剥掉，根前缀一段被子路径模式下的 ingress rewrite 剥掉
+      open-api:
+        # 显式声明 servers，否则 swagger-ui 上 Execute 发出的请求会缺少根前缀 ——
+        # 该值默认由 job-gateway 传入的 X-Forwarded-Prefix 推断，而 ingress 剥掉根前缀时未留下任何痕迹
+        servers:
+          - url: {{ include "job.url.pathRootPrefix" . }}/${spring.application.name}
       swagger-ui:
-        config-url: /${spring.application.name}/v3/api-docs/swagger-config
-        url: /${spring.application.name}/v3/api-docs
+        config-url: {{ include "job.url.pathRootPrefix" . }}/${spring.application.name}/v3/api-docs/swagger-config
+        url: {{ include "job.url.pathRootPrefix" . }}/${spring.application.name}/v3/api-docs
         disable-swagger-default-url: true
     swagger:
       url: {{ .Values.swagger.url }}

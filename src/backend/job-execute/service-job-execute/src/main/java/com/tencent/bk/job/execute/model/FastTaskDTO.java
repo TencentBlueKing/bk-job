@@ -65,6 +65,15 @@ public class FastTaskDTO {
     private List<EsbCustomHostPasswordDTO> hostPasswordList;
 
     /**
+     * 是否为预检（dryRun）。为 true 时走完全部业务校验与鉴权后立即返回，不产生任何写操作。
+     * <p>
+     * 供带审批的接口在创建审批任务时触发完整业务层校验并产出单据所需的解析结果。
+     * 快速执行任务链路没有 skipAuth 概念，鉴权在 dryRun 下必然真实执行。
+     */
+    @Builder.Default
+    private Boolean dryRun = false;
+
+    /**
      * 是否滚动执行
      *
      * @return 是否滚动执行

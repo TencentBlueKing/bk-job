@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -56,6 +57,8 @@ import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.job.manage.service.plan.PlanGlobalVarSummaryBuilder;
+import com.tencent.bk.job.manage.service.plan.impl.V4JobPlanCreateServiceImpl;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +73,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -125,12 +129,16 @@ class OpenApiJobPlanV4ResourceImplTest {
         when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(0L), any())).thenReturn(true);
 
         resource = new OpenApiJobPlanV4ResourceImpl(
-            planService,
-            templateService,
-            templateAuthService,
-            planAuthService,
+            new V4JobPlanCreateServiceImpl(
+                planService,
+                templateService,
+                templateAuthService,
+                planAuthService,
+                appScopeMappingService,
+                tenantHostService
+            ),
             appScopeMappingService,
-            tenantHostService
+            new PlanGlobalVarSummaryBuilder(tenantHostService)
         );
         JobContextUtil.setUser(testUser);
     }
@@ -158,11 +166,16 @@ class OpenApiJobPlanV4ResourceImplTest {
         for (Long stepId : stepIds) {
             TaskStepDTO step = new TaskStepDTO();
             step.setId(stepId);
+            step.setName(stepName(stepId));
             stepList.add(step);
         }
         template.setStepList(stepList);
         template.setVariableList(variables == null ? Collections.emptyList() : variables);
         return template;
+    }
+
+    private static String stepName(Long stepId) {
+        return "步骤-" + stepId;
     }
 
     private TaskVariableDTO buildTemplateVar(Long id, String name, TaskVariableTypeEnum type, String defaultValue) {
@@ -203,7 +216,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest allStepsRequest = buildBaseRequest();
         allStepsRequest.setEnableSteps(null);
-        resource.createJobPlan(USERNAME, APP_CODE, allStepsRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, allStepsRequest);
 
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
         verify(planService).createTaskPlan(any(User.class), captor.capture());
@@ -211,7 +224,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest subsetRequest = buildBaseRequest();
         subsetRequest.setEnableSteps(Arrays.asList(101L, 103L));
-        resource.createJobPlan(USERNAME, APP_CODE, subsetRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, subsetRequest);
 
         verify(planService, times(2)).createTaskPlan(any(User.class), captor.capture());
         assertThat(captor.getValue().getEnableStepList()).containsExactly(101L, 103L);
@@ -226,7 +239,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         V4CreateJobPlanRequest request = buildBaseRequest();
         request.setEnableSteps(Arrays.asList(101L, 999L));
 
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, request))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, request))
             .isInstanceOfSatisfying(InvalidParamException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON)
             );
@@ -238,7 +251,7 @@ class OpenApiJobPlanV4ResourceImplTest {
     void template_not_exist_throws() {
         when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID)).thenReturn(null);
 
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest()))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, buildBaseRequest()))
             .isInstanceOfSatisfying(NotFoundException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.TEMPLATE_NOT_EXIST)
             );
@@ -257,7 +270,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         V4CreateJobPlanRequest request = buildBaseRequest();
         request.setVariables(Collections.singletonList(item));
 
-        resource.createJobPlan(USERNAME, APP_CODE, request);
+        resource.createJobPlan(USERNAME, APP_CODE, false, request);
 
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
         verify(planService).createTaskPlan(any(User.class), captor.capture());
@@ -279,7 +292,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         unknown.setValue("x");
         V4CreateJobPlanRequest unknownRequest = buildBaseRequest();
         unknownRequest.setVariables(Collections.singletonList(unknown));
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, unknownRequest))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, unknownRequest))
             .isInstanceOf(InvalidParamException.class);
 
         V4JobPlanVariableItem dup1 = new V4JobPlanVariableItem();
@@ -290,7 +303,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         dup2.setValue("b");
         V4CreateJobPlanRequest dupRequest = buildBaseRequest();
         dupRequest.setVariables(Arrays.asList(dup1, dup2));
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, dupRequest))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, dupRequest))
             .isInstanceOf(InvalidParamException.class);
 
         verify(planService, times(0)).createTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
@@ -313,7 +326,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest followRequest = buildBaseRequest();
         followRequest.setVariables(Collections.singletonList(followItem));
-        resource.createJobPlan(USERNAME, APP_CODE, followRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, followRequest);
 
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
         verify(planService).createTaskPlan(any(User.class), captor.capture());
@@ -329,7 +342,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest conflictRequest = buildBaseRequest();
         conflictRequest.setVariables(Collections.singletonList(conflictItem));
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, conflictRequest))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, conflictRequest))
             .isInstanceOf(InvalidParamException.class);
     }
 
@@ -429,7 +442,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         item.setExecuteTarget(executeTarget);
         V4CreateJobPlanRequest request = buildBaseRequest();
         request.setVariables(Collections.singletonList(item));
-        resource.createJobPlan(USERNAME, APP_CODE, request);
+        resource.createJobPlan(USERNAME, APP_CODE, false, request);
     }
 
     private static OpenApiV4HostDTO hostWithId(long hostId) {
@@ -444,7 +457,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         stubTemplateAndCreate(Collections.singletonList(101L), null);
         when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(0L), any())).thenReturn(false);
 
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest()))
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, buildBaseRequest()))
             .isInstanceOfSatisfying(AlreadyExistsException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.PLAN_NAME_EXIST)
             );
@@ -458,7 +471,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         TaskPlanInfoDTO savedPlan = buildSavedPlan(true);
         when(planService.createTaskPlan(any(User.class), any(TaskPlanInfoDTO.class))).thenReturn(savedPlan);
 
-        EsbV4Response<OpenApiV4JobPlanDTO> response = resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest());
+        EsbV4Response<OpenApiV4JobPlanDTO> response = resource.createJobPlan(USERNAME, APP_CODE, false, buildBaseRequest());
 
         OpenApiV4JobPlanDTO data = response.getData();
         assertThat(data.getJobPlanId()).isEqualTo(50001L);
@@ -468,12 +481,100 @@ class OpenApiJobPlanV4ResourceImplTest {
     }
 
     @Test
+    @DisplayName("预检概要里启用的步骤展示步骤名称、一行一个，而不是审批人看不懂的步骤 ID")
+    void dryRunSummary_enableSteps_showStepNames() {
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID))
+            .thenReturn(buildTemplate(Arrays.asList(101L, 102L, 103L), null));
+
+        V4CreateJobPlanRequest request = buildBaseRequest();
+        request.setEnableSteps(Arrays.asList(101L, 103L));
+
+        ResolvedSummary summary = resource.createJobPlan(USERNAME, APP_CODE, true, request).getDryRunSummary();
+
+        assertThat(summaryFields(summary))
+            .containsEntry("enable_steps", stepName(101L) + "\n" + stepName(103L));
+        assertThat(summaryFields(summary))
+            .as("只启用了部分步骤时不能注明「全部」")
+            .doesNotContainKey("enable_steps_all");
+    }
+
+    @Test
+    @DisplayName("启用的是全部模板步骤时换用带「全部」注明的标签")
+    void dryRunSummary_allStepsEnabled_useAllLabel() {
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID))
+            .thenReturn(buildTemplate(Arrays.asList(101L, 102L), null));
+
+        V4CreateJobPlanRequest request = buildBaseRequest();
+        request.setEnableSteps(null);
+
+        ResolvedSummary summary = resource.createJobPlan(USERNAME, APP_CODE, true, request).getDryRunSummary();
+
+        assertThat(summaryFields(summary))
+            .containsEntry("enable_steps_all", stepName(101L) + "\n" + stepName(102L))
+            .doesNotContainKey("enable_steps");
+    }
+
+    @Test
+    @DisplayName("步骤名称缺失时退回步骤 ID，整行不能变空")
+    void dryRunSummary_stepNameMissing_fallbackToId() {
+        TaskTemplateInfoDTO template = buildTemplate(Collections.singletonList(101L), null);
+        template.getStepList().get(0).setName(null);
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID)).thenReturn(template);
+
+        ResolvedSummary summary =
+            resource.createJobPlan(USERNAME, APP_CODE, true, buildBaseRequest()).getDryRunSummary();
+
+        assertThat(summaryFields(summary)).containsEntry("enable_steps_all", "101");
+    }
+
+    @Test
+    @DisplayName("预检概要列出生效的全部全局变量：本次未覆盖的也带上模板默认值并标为沿用")
+    void dryRunSummary_globalVars_listAllEffectiveVars() {
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID)).thenReturn(buildTemplate(
+            Collections.singletonList(101L),
+            new ArrayList<>(Arrays.asList(
+                buildTemplateVar(10L, "TARGET_DIR", TaskVariableTypeEnum.STRING, "/tmp"),
+                buildTemplateVar(11L, "VERSION", TaskVariableTypeEnum.STRING, "v1.0.0")))));
+        V4JobPlanVariableItem item = new V4JobPlanVariableItem();
+        item.setName("TARGET_DIR");
+        item.setValue("/data/release");
+        V4CreateJobPlanRequest request = buildBaseRequest();
+        request.setVariables(Collections.singletonList(item));
+
+        ResolvedSummary summary = resource.createJobPlan(USERNAME, APP_CODE, true, request).getDryRunSummary();
+
+        assertThat(summary.getGlobalVars()).hasSize(2);
+        ResolvedSummary.ResolvedGlobalVar assigned = globalVar(summary, "TARGET_DIR");
+        assertThat(assigned.getAssigned()).isTrue();
+        assertThat(assigned.getValue()).isEqualTo("/data/release");
+        ResolvedSummary.ResolvedGlobalVar notAssigned = globalVar(summary, "VERSION");
+        assertThat(notAssigned.getAssigned())
+            .as("沿用模板默认值的变量照样会被执行，只列本次改的等于让审批人蒙着眼放行")
+            .isFalse();
+        assertThat(notAssigned.getValue()).isEqualTo("v1.0.0");
+    }
+
+    private ResolvedSummary.ResolvedGlobalVar globalVar(ResolvedSummary summary, String name) {
+        return summary.getGlobalVars().stream()
+            .filter(globalVar -> name.equals(globalVar.getName()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("概要里没有变量：" + name));
+    }
+
+    private Map<String, String> summaryFields(ResolvedSummary summary) {
+        return summary.getFields().stream()
+            .filter(field -> field.getValue() != null)
+            .collect(Collectors.toMap(ResolvedSummary.ResolvedField::getLabel,
+                ResolvedSummary.ResolvedField::getValue));
+    }
+
+    @Test
     @DisplayName("鉴权失败时不进入模板查询与落库")
     void auth_failure_blocks_service() {
         when(templateAuthService.authViewJobTemplate(any(User.class), any(AppResourceScope.class), eq(TEMPLATE_ID)))
             .thenReturn(AuthResult.fail(testUser));
 
-        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, buildBaseRequest()));
+        assertThatThrownBy(() -> resource.createJobPlan(USERNAME, APP_CODE, false, buildBaseRequest()));
         verify(templateService, times(0)).getTaskTemplateById(anyLong(), anyLong());
         verify(planService, times(0)).createTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
     }
@@ -488,7 +589,7 @@ class OpenApiJobPlanV4ResourceImplTest {
 
         V4CreateJobPlanRequest emptyStepsRequest = buildBaseRequest();
         emptyStepsRequest.setEnableSteps(null);
-        resource.createJobPlan(USERNAME, APP_CODE, emptyStepsRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, emptyStepsRequest);
 
         ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
         verify(planService).createTaskPlan(any(User.class), captor.capture());
@@ -497,7 +598,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         stubTemplateAndCreate(Collections.singletonList(101L), null);
         V4CreateJobPlanRequest trimRequest = buildBaseRequest();
         trimRequest.setName("  trimmed  ");
-        resource.createJobPlan(USERNAME, APP_CODE, trimRequest);
+        resource.createJobPlan(USERNAME, APP_CODE, false, trimRequest);
 
         verify(planService, times(2)).createTaskPlan(any(User.class), captor.capture());
         assertThat(captor.getValue().getName()).isEqualTo("trimmed");

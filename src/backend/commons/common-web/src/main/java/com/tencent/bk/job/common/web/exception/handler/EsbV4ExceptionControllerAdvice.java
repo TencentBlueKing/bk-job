@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.esb.model.v4.V4ErrorCodeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.esb.exception.OpenApiPropagatedException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.MissingParameterException;
@@ -128,6 +129,21 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         );
         return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
 
+    }
+
+    /**
+     * 下游 OpenAPI 已经构造好的错误，原样回吐，不做二次渲染。
+     * <p>
+     * 下游返回的 message 已按调用方语言渲染完毕，且 errorParams 在传输中已丢失，
+     * 走通用分支重渲染只会得到占位符没填的消息
+     */
+    @ExceptionHandler(OpenApiPropagatedException.class)
+    ResponseEntity<?> handleOpenApiPropagatedException(HttpServletRequest request, OpenApiPropagatedException ex) {
+        log.warn("Handle OpenApiPropagatedException, uri: {}, status: {}", request.getRequestURI(), ex.getHttpStatus());
+        EsbV4Response<Object> body = new EsbV4Response<>();
+        body.setError(ex.getError());
+        HttpStatus status = HttpStatus.resolve(ex.getHttpStatus());
+        return new ResponseEntity<>(body, status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
     }
 
     /**

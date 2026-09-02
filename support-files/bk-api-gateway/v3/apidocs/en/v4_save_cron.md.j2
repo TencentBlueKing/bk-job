@@ -1,0 +1,130 @@
+### Description
+
+Create or update a cron job; both operations share this API. Providing `id` in the body updates that cron job, while omitting `id` creates a new one.
+
+**This API never changes the enabled/disabled state of a cron job.** A newly created cron job is disabled by default, so call the "update cron status" API after saving if it should be triggered as planned. Updating an existing cron job keeps its current state, so a scheduled cron job is not stopped by an update.
+
+Before calling: the job plan to be scheduled must exist; the caller must have the permission to create (or, when updating, to edit) cron jobs in the resource scope; when updating, the cron job must exist in the same resource scope.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bk_scope_type | string | Yes | Resource scope type. Options: `biz` (business), `biz_set` (business set) |
+| bk_scope_id | string | Yes | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
+| id | long | No | Cron job ID. Required when updating an existing cron job, omitted when creating |
+| job_plan_id | long | No | ID of the job plan to be scheduled. Required when creating, optional when updating |
+| name | string | No | Cron job name, at most 60 characters, and cannot contain the HTML special characters `<`, `>`, `"`, `'`. Required when creating, optional when updating |
+| expression | string | No | Cron expression for periodic execution, whose fields are "minute hour day month week", for example `0/5 * * * ?` means every 5 minutes. Provide at least one of `expression` and `execute_time` |
+| execute_time | long | No | Execution time of a one-off run, a Unix timestamp in seconds. Provide at least one of `expression` and `execute_time` |
+| execute_time_zone | string | No | Time zone the trigger time belongs to, for example `Asia/Shanghai`. Falls back to the business time zone when omitted, and to the server time zone when the business time zone is empty |
+| global_var_list | array | No | Global variable values used when the cron job launches the job plan. All default values defined in the job plan are used when omitted |
+
+**Note:** When updating an existing cron job, at least one of `job_plan_id`, `name`, `expression` and `execute_time` must be provided.
+
+##### global_var_list[] element
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| id | long | No | Global variable ID. Provide either `id` or `name`; this one wins if both are given |
+| name | string | No | Global variable name. Provide either `id` or `name` |
+| value | string | No | Global variable value. Use `execute_target` for execution target variables, and this field for the other types (string, namespace, ciphertext, associative array, indexed array) |
+| execute_target | object | No | Value of an execution target type global variable |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target_without_container_req.md.j2' %}
+
+### Request Parameters Example
+
+- POST
+
+Create a cron job that runs periodically:
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_plan_id": 50001,
+    "name": "nightly-clean",
+    "expression": "0/5 * * * ?",
+    "execute_time_zone": "Asia/Shanghai",
+    "global_var_list": [
+        {
+            "id": 300001,
+            "value": "/data/release"
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "dynamic_group_list": [
+                    {
+                        "id": "asdo8gojhasdfskft7pr5"
+                    }
+                ],
+                "topo_node_list": [
+                    {
+                        "id": 1000,
+                        "node_type": "module"
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
+
+Update an existing cron job to run once at a given time:
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 700001,
+    "name": "one-shot-clean",
+    "execute_time": 1786694400,
+    "execute_time_zone": "Asia/Shanghai"
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "id": 700001,
+        "name": "nightly-clean",
+        "status": 0
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Never null | Description |
+|-------|------|------------|-------------|
+| id | long | Yes | Cron job ID; a newly generated ID when creating, and the same as the `id` in the request when updating |
+| name | string | No | Cron job name |
+| status | int | Yes | Cron job status. Options: 1 (enabled), 0 (disabled). Saving does not change this state: creating always returns 0, while updating returns the state the cron job had before the update |

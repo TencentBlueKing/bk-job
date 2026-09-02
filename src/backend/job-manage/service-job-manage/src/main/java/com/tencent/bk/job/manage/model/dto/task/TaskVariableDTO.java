@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableTypeDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -124,6 +125,17 @@ public class TaskVariableDTO {
         variableInfo.setRequired(variableVO.getRequired() == 1);
         variableInfo.setFollowTemplate(variableVO.getFollowTemplate() != null && variableVO.getFollowTemplate() == 1);
         return variableInfo;
+    }
+
+    public static ServiceTaskVariableTypeDTO toServiceTypeDTO(TaskVariableDTO taskVariable) {
+        if (taskVariable == null) {
+            return null;
+        }
+        ServiceTaskVariableTypeDTO variableType = new ServiceTaskVariableTypeDTO();
+        variableType.setId(taskVariable.getId());
+        variableType.setName(taskVariable.getName());
+        variableType.setType(taskVariable.getType() == null ? null : taskVariable.getType().getType());
+        return variableType;
     }
 
     public static ServiceTaskVariableDTO toServiceDTO(TaskVariableDTO taskVariable) {

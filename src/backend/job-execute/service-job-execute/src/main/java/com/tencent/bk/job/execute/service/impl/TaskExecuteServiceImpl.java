@@ -241,9 +241,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         rollingConfigService.validateRollingConfigForFastJob(fastTask);
 
         // 设置脚本信息
-        checkAndSetScript(fastTask.getOperator().getTenantId(), fastTask.getTaskInstance(), fastTask.getStepInstance());
+        checkAndSetScript(fastTask.getOperator().getTenantId(), fastTask.getTaskInstance(),
+            fastTask.getStepInstance(), Boolean.TRUE.equals(fastTask.getDryRun()));
 
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
+
+        if (Boolean.TRUE.equals(fastTask.getDryRun())) {
+            // 预检走裸调用，不进入 ActionAuditContext 包裹：审批任务有自己的审计链路，
+            // 预检不应伪造一条"已执行作业"的审计事件
+            return executeFastTaskInternal(fastTask);
+        }
 
         ActionAuditContext actionAuditContext;
         if (stepInstance.isFileStep()) {
@@ -334,6 +341,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             authFastExecute(fastTask.getOperator(), appId, stepInstance,
                 taskInstanceExecuteObjects.getWhiteHostAllowActions(), fileSourceAvailabilities);
             watch.stop();
+
+            // ============ dryRun 预检返回点 ============
+            // 此行之上不得新增写操作：预检与真实执行必须走同一段校验代码，但预检绝不能落作业实例、
+            // 发 MQ 事件或产生审计事件。往上插入写操作会让预检穿透成真实执行 ——
+            // 这是本机制最危险的失效方式，TaskExecuteServiceDryRunTest 锁定了该性质。
+            // 返回点之上唯一带写操作的校验是 checkAndSetScript 内的高危脚本检查，已按 dryRun 跳过落库。
+            if (Boolean.TRUE.equals(fastTask.getDryRun())) {
+                fillDryRunResolvedResult(taskInstance, Collections.singletonList(stepInstance), null);
+                return taskInstance;
+            }
 
             // 保存作业
             saveTaskInstance(watch, fastTask, taskInstance, stepInstance);
@@ -603,6 +620,25 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         watch.stop();
     }
 
+    /**
+     * dryRun 返回前把解析结果挂到作业实例上，供上层组装审批单据所需的"实际影响面"。
+     * 这里只做只读的执行对象提取，不产生任何写操作。
+     *
+     * @param variables 本次生效的全局变量（执行方案默认值与请求取值合并后的结果），
+     *                  快速执行脚本/分发文件没有全局变量，传 null。
+     *                  <b>不能只带请求里传的那几个</b>：沿用方案默认值的变量一样会被执行，
+     *                  单据要列全才谈得上审批
+     */
+    private void fillDryRunResolvedResult(TaskInstanceDTO taskInstance,
+                                          List<StepInstanceDTO> stepInstanceList,
+                                          Collection<TaskVariableDTO> variables) {
+        taskInstance.setStepInstances(stepInstanceList);
+        taskInstance.setAllHosts(taskInstanceExecuteObjectProcessor.extractHosts(stepInstanceList, null));
+        if (variables != null) {
+            taskInstance.setVariables(new ArrayList<>(variables));
+        }
+    }
+
     private void addJobInstanceContext(TaskInstanceDTO taskInstance) {
         JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         if (jobExecuteContext != null) {
@@ -778,7 +814,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void checkAndSetScript(String tenantId, TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
+    private void checkAndSetScript(String tenantId,
+                                   TaskInstanceDTO taskInstance,
+                                   StepInstanceDTO stepInstance,
+                                   boolean dryRun) {
         long appId = taskInstance.getAppId();
         ServiceScriptDTO script = null;
         if (stepInstance.isScriptStep()) {
@@ -814,7 +853,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
         // 检查高危脚本
-        checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance);
+        checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance, dryRun);
     }
 
     private void checkScriptExist(long appId, StepInstanceDTO stepInstance, ServiceScriptDTO script) {
@@ -843,9 +882,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    /**
+     * 高危脚本规则匹配。
+     *
+     * @param dryRun 是否预检。预检期只做规则匹配与拦截判定，不写 dangerous_record 表：
+     *               同一次操作会先预检、审批通过后再执行，写两条记录会让高危统计翻倍。
+     *               拦截判定与命中结果照常生效，命中结果改为随 stepInstance 带回上层。
+     */
     private void checkScriptMatchDangerousRule(String tenantId,
                                                TaskInstanceDTO taskInstance,
-                                               StepInstanceDTO stepInstance) {
+                                               StepInstanceDTO stepInstance,
+                                               boolean dryRun) {
         if (!stepInstance.isScriptStep()) {
             return;
         }
@@ -857,8 +904,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             String checkResultSummary =
                 dangerousScriptCheckService.summaryDangerousScriptCheckResult(stepInstance.getName(), checkResultItems);
             if (StringUtils.isNotBlank(checkResultSummary)) {
-                log.info("Script match dangerous rule, checkResult: {}", checkResultItems);
-                dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
+                log.info("Script match dangerous rule, dryRun: {}, checkResult: {}", dryRun, checkResultItems);
+                if (dryRun) {
+                    stepInstance.setDangerousCheckSummary(checkResultSummary);
+                } else {
+                    dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
+                }
                 if (dangerousScriptCheckService.shouldIntercept(tenantId, checkResultItems)) {
                     throw new AbortedException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION,
                         ArrayUtil.toArray(checkResultSummary));
@@ -869,8 +920,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void batchCheckScriptMatchDangerousRule(String tenantId,
                                                     TaskInstanceDTO taskInstance,
-                                                    List<StepInstanceDTO> stepInstanceList) {
-        stepInstanceList.forEach(stepInstance -> checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance));
+                                                    List<StepInstanceDTO> stepInstanceList,
+                                                    boolean dryRun) {
+        stepInstanceList.forEach(
+            stepInstance -> checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance, dryRun));
     }
 
     /**
@@ -1230,11 +1283,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam) {
+        executeParam.assertDryRunNotSkipAuth();
         StopWatch watch = new StopWatch("createTaskInstanceForTask");
         TaskInfo taskInfo = buildTaskInfoFromExecuteParam(executeParam, watch);
         ServiceTaskPlanDTO plan = taskInfo.getJobPlan();
-        ActionAuditContext actionAuditContext;
 
+        if (executeParam.isDryRun()) {
+            // 预检走裸调用，不进入 ActionAuditContext 包裹，也不产生 auditJobPlanExecute 事件
+            return executeJobPlanInternal(watch, executeParam, taskInfo);
+        }
+
+        ActionAuditContext actionAuditContext;
         if (plan.isDebugTask()) {
             // 作业模版调试
             actionAuditContext = ActionAuditContext.builder(ActionId.DEBUG_JOB_TEMPLATE)
@@ -1287,7 +1346,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             batchCheckScriptMatchDangerousRule(
                 executeParam.getOperator().getTenantId(),
                 taskInstance,
-                stepInstanceList
+                stepInstanceList,
+                executeParam.isDryRun()
             );
             watch.stop();
 
@@ -1315,6 +1375,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), jobPlan, stepInstanceList,
                     taskInstanceExecuteObjects.getWhiteHostAllowActions());
                 watch.stop();
+            }
+
+            // ============ dryRun 预检返回点 ============
+            // 此行之上不得新增写操作，理由同 executeFastTaskInternal 的返回点注释；
+            // 本链路的高危脚本检查在 batchCheckScriptMatchDangerousRule 内，已按 dryRun 跳过落库
+            if (executeParam.isDryRun()) {
+                fillDryRunResolvedResult(taskInstance, stepInstanceList, finalVariableValueMap.values());
+                return taskInstance;
             }
 
             watch.start("saveInstance");
@@ -1712,8 +1780,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstanceList.add(stepInstance);
         }
 
-        // 检查高危脚本
-        batchCheckScriptMatchDangerousRule(operator.getTenantId(), taskInstance, stepInstanceList);
+        // 检查高危脚本（重做作业是真实执行，命中照常落 dangerous_record）
+        batchCheckScriptMatchDangerousRule(operator.getTenantId(), taskInstance, stepInstanceList, false);
 
         // 处理执行对象
         TaskInstanceExecuteObjects taskInstanceExecuteObjects =

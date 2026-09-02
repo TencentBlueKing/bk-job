@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.EndWith;
 import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.common.validation.ValidBase64;
 import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
@@ -77,6 +78,7 @@ public class V4FastExecuteScriptRequest extends EsbAppScopeReq {
         message = "{validation.constraints.ScriptContent_empty.message}",
         groups = ValidationGroups.Script.ScriptContent.class
     )
+    @ValidBase64(fieldName = "script_content", groups = ValidationGroups.Script.ScriptContent.class)
     private String content;
 
     /**
@@ -114,6 +116,7 @@ public class V4FastExecuteScriptRequest extends EsbAppScopeReq {
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
+    @ValidBase64(fieldName = "script_param")
     private String scriptParam;
 
     /**

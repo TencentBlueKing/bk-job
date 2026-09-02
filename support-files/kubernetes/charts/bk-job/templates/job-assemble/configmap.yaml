@@ -536,6 +536,8 @@ data:
         worker-tags:
           white: {{ .Values.fileGatewayConfig.workerTags.white }}
           black: {{ .Values.fileGatewayConfig.workerTags.black }}
+      analysis:
+        {{- include "job.analysis.approval.config" . | nindent 8 }}
     {{- $mysql := merge .Values.executeConfig.mysql .Values.assembleConfig.mysql }}
     mysql:
       {{- toYaml $mysql | nindent 6 }}

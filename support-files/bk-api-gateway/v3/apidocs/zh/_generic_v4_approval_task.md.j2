@@ -1,0 +1,51 @@
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| approval_task_id | string | 审批任务 ID |
+| status | string | 审批任务状态。可选值：`PENDING`（待审批）、`EXECUTING`（审批通过且已开始执行）、`EXECUTED`（已执行完成）、`REJECTED`（审批被驳回）、`CANCELED`（已被主动作废）、`FAILED`（执行失败，该次审批已作废，需重新发起）、`EXPIRED`（已过期，不可再放行）。其中 `EXPIRED` 不是持久状态，而是查询时按 `expire_at` 判断出的呈现值 |
+| operation_type | string | 操作类型。可选值：`FAST_EXECUTE_SCRIPT`（快速执行脚本）、`FAST_TRANSFER_FILE`（快速分发文件）、`EXECUTE_JOB_PLAN`（启动执行方案）、`CREATE_JOB_PLAN`（创建执行方案）、`SAVE_CRON`（保存定时任务）、`UPDATE_CRON_STATUS`（启停定时任务） |
+| approval_channel | string | 审批渠道。可选值：`IMATE`（IMate 审批渠道） |
+| approval_ticket_id | string | 已绑定的审批单据 ID；尚未绑定时为 `null`。一旦绑定即不可更换 |
+| creator | string | 审批任务发起人。审批人必须为发起人本人；放行时实际执行操作的用户也只能是该用户 |
+| create_time | long | 发起时刻，Unix 时间戳，单位毫秒 |
+| expire_at | long | 过期时刻，Unix 时间戳，单位毫秒；过期后不可再放行 |
+| approver | string | 审批人，由作业平台回查审批渠道得到；尚未审批时为 `null` |
+| approved_at | long | 审批时刻，Unix 时间戳，单位毫秒；尚未审批时为 `null` |
+| execute_result | object | 放行后的操作结果，结构随 `operation_type` 变化，与对应操作的直接执行接口返回的 `data` 一致；尚未执行时为 `null` |
+| result_unknown | boolean | 执行结果未知标记。可选值：`true`（执行请求已下发但未取得下游响应，需人工到执行历史确认是否已产生作业，平台**不会自动重试**，也请勿据此重复调用推进接口）、`false`（结果明确） |
+| message | string | 面向用户的可读说明，随状态变化，如审批中、已过期、执行结果未知等提示 |
+
+##### execute_result（`operation_type` 为 `FAST_EXECUTE_SCRIPT`、`FAST_TRANSFER_FILE` 时）
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| job_instance_id | long | 作业实例 ID |
+| job_instance_name | string | 作业实例名称 |
+| step_instance_id | long | 步骤实例 ID |
+
+##### execute_result（`operation_type` 为 `EXECUTE_JOB_PLAN` 时）
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| job_instance_id | long | 作业实例 ID |
+| job_instance_name | string | 作业实例名称 |
+
+##### execute_result（`operation_type` 为 `CREATE_JOB_PLAN` 时）
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| bk_scope_type | string | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| job_plan_id | long | 新建的执行方案 ID |
+| job_plan_name | string | 执行方案名称 |
+| job_template_id | long | 作业模板 ID |
+| creator | string | 创建人 |
+| create_time | long | 创建时间，Unix 时间戳，单位毫秒 |
+| need_update | boolean | 是否需要根据作业模板同步更新该执行方案。可选值：`true`（需要同步）、`false`（不需要） |
+
+##### execute_result（`operation_type` 为 `SAVE_CRON`、`UPDATE_CRON_STATUS` 时）
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| id | long | 定时任务 ID |
+| name | string | 定时任务名称 |
+| status | int | 定时任务状态。可选值：1（已启用）、0（已停用） |

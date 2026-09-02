@@ -1,0 +1,131 @@
+### Description
+
+Initiate an approval for saving a cron job. This API covers both creating and updating a cron job. It only creates an approval task and runs a full pre-check on the parameters. **The cron job is not saved.** Once the approval is granted, Job saves it automatically as the creator of the task.
+
+Before calling: the job plan to be scheduled must exist and the caller must have the permission to create or edit cron jobs in the resource scope. When updating an existing cron job, that cron job must belong to the same resource scope. If the pre-check fails, an error is returned and no approval task is created.
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bk_scope_type | string | Yes | Resource scope type. Options: `biz` (business), `biz_set` (business set) |
+| bk_scope_id | string | Yes | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
+| approval_channel | string | No | Approval channel. Options: `IMATE` (IMate approval channel). The default channel configured on the server is used when omitted. Only the channel enum can be specified; the channel address and secret always come from the server configuration |
+| id | long | No | Cron job ID. Required when updating an existing cron job, omitted when creating a new one |
+| job_plan_id | long | No | ID of the job plan to be scheduled. Required when creating, optional when updating |
+| name | string | No | Cron job name, at most 60 characters, cannot contain the HTML special characters `<`, `>`, `"`, `'`. Required when creating, optional when updating |
+| expression | string | No | Cron expression for periodic execution. The fields stand for "minute hour day month week", for example `0/5 * * * ?` means every 5 minutes. At least one of `expression` and `execute_time` must be provided |
+| execute_time | long | No | Moment of a one-off execution, Unix timestamp in seconds. At least one of `expression` and `execute_time` must be provided |
+| execute_time_zone | string | No | Time zone the trigger time belongs to, for example `Asia/Shanghai`. The business time zone is used when omitted, and the server time zone is used when the business time zone is empty |
+| global_var_list | array | No | Global variable values used when the cron job launches the job plan. All default values defined in the job plan are used when omitted |
+
+##### global_var_list[] element
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| id | long | No | Global variable ID. Provide either `id` or `name`; this one wins if both are given |
+| name | string | No | Global variable name. Provide either `id` or `name` |
+| value | string | No | Global variable value. Use `execute_target` for an execution-target variable and this field for the other types (string, namespace, ciphertext, associative array, indexed array). A ciphertext variable is shown as a placeholder in the approval content |
+| execute_target | object | No | Value of an execution-target global variable |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target_without_container_req.md.j2' %}
+
+**Note:** When the value contains dynamic groups or topology nodes, the cron job resolves the actual execution targets on every trigger, which may differ from the moment the approval was initiated; the approval content highlights this explicitly.
+
+### Request Parameters Example
+
+- POST
+
+Create a periodic cron job:
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "approval_channel": "IMATE",
+    "job_plan_id": 50001,
+    "name": "nightly-clean",
+    "expression": "0/5 * * * ?",
+    "execute_time_zone": "Asia/Shanghai",
+    "global_var_list": [
+        {
+            "id": 300001,
+            "value": "/data/release"
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "dynamic_group_list": [
+                    {
+                        "id": "asdo8gojhasdfskft7pr5"
+                    }
+                ],
+                "topo_node_list": [
+                    {
+                        "id": 1000,
+                        "node_type": "module"
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
+
+Update an existing cron job into a one-off execution at a given moment:
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 700001,
+    "name": "one-shot-clean",
+    "execute_time": 1786694400,
+    "execute_time_zone": "Asia/Shanghai"
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "PENDING",
+        "approval_channel": "IMATE",
+        "expire_at": 1786694400000
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+This API returns approval task information only and **returns no execution result**, because the cron job has not been saved yet.
+
+{% include '_generic_v4_approval_task_created.md.j2' %}

@@ -1,0 +1,116 @@
+### 功能描述
+
+发起「启动执行方案」的审批。本接口只创建审批任务并对参数做一次完整预检，**执行方案不会被启动**；审批通过后由作业平台用发起人的身份自动启动。
+
+调用前须满足：目标执行方案已存在，调用身份对该资源范围具备查看并启动该执行方案的操作权限（预检不通过会直接返回错误，不会创建审批任务）。
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| approval_channel | string | 否 | 审批渠道。可选值：`IMATE`（IMate 审批渠道）。不传时使用服务端配置的默认渠道。只能指定渠道枚举值，渠道地址与密钥一律取自服务端配置 |
+| job_plan_id | long | 是 | 要启动的执行方案 ID |
+| global_var_list | array | 否 | 全局变量取值列表，不传表示全部使用执行方案中的默认值 |
+| callback_url | string | 否 | 作业执行完成后的回调 URL，长度不可超过 1024 字符。审批放行执行的作业完成后，作业平台会回调该地址 |
+| start_task | boolean | 否 | 审批通过后是否立即启动作业。可选值：`true`（立即启动，默认）、`false`（仅创建作业实例不启动） |
+
+##### global_var_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| id | long | 否 | 全局变量 ID。与 `name` 二者填一个，同时存在时以本字段为准 |
+| name | string | 否 | 全局变量名。与 `id` 二者填一个 |
+| value | string | 否 | 全局变量取值。执行目标类变量请用 `execute_target` 传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用本字段。密文类型变量在审批内容中只显示占位符 |
+| execute_target | object | 否 | 执行目标类全局变量的取值 |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target.md.j2' %}
+
+**注：** 取值中含动态分组或拓扑节点时，实际执行台数在审批放行时重新解析确定，可能与发起时不同；审批内容中会显著标注这一点。
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "approval_channel": "IMATE",
+    "job_plan_id": 50001,
+    "global_var_list": [
+        {
+            "id": 300001,
+            "value": "/data/release"
+        },
+        {
+            "name": "DB_PASSWORD",
+            "value": "p@ssw0rd"
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "dynamic_group_list": [
+                    {
+                        "id": "asdo8gojhasdfskft7pr5"
+                    }
+                ],
+                "topo_node_list": [
+                    {
+                        "id": 1000,
+                        "node_type": "module"
+                    }
+                ]
+            }
+        }
+    ],
+    "callback_url": "https://example.com/job/callback",
+    "start_task": true
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "PENDING",
+        "approval_channel": "IMATE",
+        "expire_at": 1786694400000
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+本接口只返回审批任务信息，**不返回任何执行结果**，此时执行方案尚未启动。
+
+{% include '_generic_v4_approval_task_created.md.j2' %}

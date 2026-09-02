@@ -28,6 +28,7 @@ import com.cronutils.mapper.CronMapper;
 import com.cronutils.model.Cron;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.parser.CronParser;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.cronutils.model.CronType.QUARTZ;
@@ -36,6 +37,7 @@ import static com.cronutils.model.CronType.UNIX;
 /**
  * @since 17/1/2020 22:06
  */
+@Slf4j
 public class CronExpressionUtil {
 
     private static final CronParser QUARTZ_PARSER = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(QUARTZ));
@@ -55,5 +57,20 @@ public class CronExpressionUtil {
             return expression;
         }
         return CronMapper.fromQuartzToUnix().map(QUARTZ_PARSER.parse(expression)).asString();
+    }
+
+    /**
+     * 仅供展示用的 Quartz -> UNIX 转换：转换失败时退回原表达式。
+     * <p>
+     * 落库的表达式都已通过校验，理论上转不失败；但调用方（如带审批接口的预检）只是要给人看一眼定时规则，
+     * <b>不能因为这一个展示细节把整次调用拖挂</b>，退回 Quartz 形态总比直接报错好。
+     */
+    public static String fixExpressionForUserSafely(String expression) {
+        try {
+            return fixExpressionForUser(expression);
+        } catch (Exception e) {
+            log.warn("Convert cron expression for user display failed, expression: {}", expression, e);
+            return expression;
+        }
     }
 }

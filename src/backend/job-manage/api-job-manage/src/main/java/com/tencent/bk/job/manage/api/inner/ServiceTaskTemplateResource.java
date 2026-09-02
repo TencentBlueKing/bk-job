@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableTypeDTO;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -87,6 +88,11 @@ public interface ServiceTaskTemplateResource {
         @Parameter(description = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @Parameter(description = "模版 ID") @RequestParam("templateId") Long templateId,
         @Parameter(description = "模版名称", required = true) @RequestParam("templateName") String name);
+
+    @Operation(summary = "获取模版全局变量的身份与类型")
+    @GetMapping("/service/template/{templateId}/variable/types")
+    InternalResponse<List<ServiceTaskVariableTypeDTO>> listTemplateGlobalVarTypes(
+        @Parameter(description = "模版 ID", required = true) @PathVariable("templateId") Long templateId);
 
     @Operation(summary = "根据模版 ID 获取模版变量信息")
     @GetMapping("/service/app/{appId}/template/{templateId}/variable")

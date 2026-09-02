@@ -46,7 +46,7 @@ public class EsbJobReq extends EsbReq {
      * 分页-起始位置,默认为0
      */
     @JsonProperty("start")
-    private Integer start = 0;
+    private Integer start;
 
     /**
      * 分页-每页大小

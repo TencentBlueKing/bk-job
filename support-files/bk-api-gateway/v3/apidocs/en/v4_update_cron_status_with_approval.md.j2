@@ -1,0 +1,63 @@
+### Description
+
+Initiate an approval for enabling or disabling a cron job. This API only creates an approval task and runs a full pre-check on the parameters. **The cron job status is not changed.** Once the approval is granted, Job changes it automatically as the creator of the task.
+
+Before calling: the target cron job must exist in the given resource scope and the caller must have the permission to enable or disable cron jobs in that scope. If the pre-check fails, an error is returned and no approval task is created.
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bk_scope_type | string | Yes | Resource scope type. Options: `biz` (business), `biz_set` (business set) |
+| bk_scope_id | string | Yes | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
+| approval_channel | string | No | Approval channel. Options: `IMATE` (IMate approval channel). The default channel configured on the server is used when omitted. Only the channel enum can be specified; the channel address and secret always come from the server configuration |
+| id | long | Yes | Cron job ID |
+| status | int | Yes | Target status. Options: 1 (enabled), 0 (disabled) |
+
+### Request Parameters Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "approval_channel": "IMATE",
+    "id": 700001,
+    "status": 1
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "PENDING",
+        "approval_channel": "IMATE",
+        "expire_at": 1786694400000
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+This API returns approval task information only and **returns no execution result**, because the cron job status has not been changed yet. Note that `status` in the response is the approval task status, which is different from `status` in the request that stands for the target cron job status.
+
+{% include '_generic_v4_approval_task_created.md.j2' %}

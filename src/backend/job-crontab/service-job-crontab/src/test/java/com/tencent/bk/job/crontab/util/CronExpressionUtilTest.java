@@ -13,4 +13,12 @@ public class CronExpressionUtilTest {
         assertThat(" ".equals(CronExpressionUtil.fixExpressionForUser(" "))).isTrue();
         assertThat(CronExpressionUtil.fixExpressionForUser(null)).isNull();
     }
+
+    @Test
+    public void testFixExpressionForUserSafely() {
+        assertThat(CronExpressionUtil.fixExpressionForUserSafely("0 30 10 8 * ? *")).isEqualTo("30 10 8 * *");
+        // 展示用转换不能因为表达式非法就抛出去，退回原表达式总比让调用方整个失败好
+        assertThat(CronExpressionUtil.fixExpressionForUserSafely("not-a-cron")).isEqualTo("not-a-cron");
+        assertThat(CronExpressionUtil.fixExpressionForUserSafely(null)).isNull();
+    }
 }

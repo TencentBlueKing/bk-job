@@ -30,27 +30,18 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
-import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
-import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
+import com.tencent.bk.job.execute.service.ResolvedSummaryBuilder;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
-import com.tencent.bk.job.execute.service.V4ExecuteTargetConverter;
-import com.tencent.bk.job.execute.util.FastTaskUtil;
-import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
+import com.tencent.bk.job.execute.service.V4FastExecuteScriptRequestConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -76,98 +67,26 @@ public class OpenApiFastExecuteScriptV4ResourceImpl implements OpenApiFastExecut
     @AuditEntry
     public EsbV4Response<V4JobExecuteDTO> fastExecuteScript(String username,
                                                             String appCode,
+                                                            Boolean dryRun,
                                                             @AuditRequestBody V4FastExecuteScriptRequest request) {
 
-        TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(username, appCode, request);
-        StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, request);
-        StepRollingConfigDTO rollingConfig = null;
-        if (request.getRollingConfig() != null) {
-            rollingConfig = StepRollingConfigDTO.fromEsbRollingConfig(request.getRollingConfig());
+        boolean isDryRun = Boolean.TRUE.equals(dryRun);
+        FastTaskDTO fastTask = V4FastExecuteScriptRequestConverter.convert(
+            request, JobContextUtil.getUser(), appCode, isDryRun);
+        TaskInstanceDTO taskInstance = taskExecuteService.executeFastTask(fastTask);
+
+        if (isDryRun) {
+            ResolvedSummary summary = ResolvedSummaryBuilder.build(taskInstance);
+            if (request.getTimeout() == null) {
+                summary.addDefaultApplied("timeout", JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS + "s");
+            }
+            return EsbV4Response.dryRunSuccess(summary);
         }
-        taskExecuteService.executeFastTask(
-            FastTaskDTO.builder()
-                .taskInstance(taskInstance)
-                .stepInstance(stepInstance)
-                .operator(JobContextUtil.getUser())
-                .rollingConfig(rollingConfig)
-                .startTask(request.getStartTask())
-                .hostPasswordList(request.getHostPasswordList())
-                .build()
-        );
 
         V4JobExecuteDTO jobExecuteDTO = new V4JobExecuteDTO();
-        jobExecuteDTO.setTaskInstanceId(taskInstance.getId());
-        jobExecuteDTO.setStepInstanceId(stepInstance.getId());
-        jobExecuteDTO.setTaskName(taskInstance.getName());
+        jobExecuteDTO.setTaskInstanceId(fastTask.getTaskInstance().getId());
+        jobExecuteDTO.setStepInstanceId(fastTask.getStepInstance().getId());
+        jobExecuteDTO.setTaskName(fastTask.getTaskInstance().getName());
         return EsbV4Response.success(jobExecuteDTO);
-    }
-
-    private TaskInstanceDTO buildFastScriptTaskInstance(String username,
-                                                        String appCode,
-                                                        V4FastExecuteScriptRequest request) {
-        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
-        if (StringUtils.isNotBlank(request.getName())) {
-            taskInstance.setName(request.getName());
-        } else {
-            String taskName = FastTaskUtil.getFastScriptTaskName();
-            taskInstance.setName(taskName);
-        }
-        taskInstance.setPlanId(-1L);
-        taskInstance.setCronTaskId(-1L);
-        taskInstance.setTaskTemplateId(-1L);
-        taskInstance.setDebugTask(false);
-        taskInstance.setAppId(request.getAppId());
-        taskInstance.setOperator(username);
-        taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
-        taskInstance.setStatus(RunStatusEnum.BLANK);
-        taskInstance.setCreateTime(DateUtils.currentTimeMillis());
-        taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
-        taskInstance.setCurrentStepInstanceId(0L);
-        taskInstance.setCallbackUrl(request.getCallbackUrl());
-        taskInstance.setAppCode(appCode);
-        return taskInstance;
-    }
-
-    private StepInstanceDTO buildFastScriptStepInstance(String username,
-                                                        V4FastExecuteScriptRequest request) {
-        StepInstanceDTO stepInstance = new StepInstanceDTO();
-
-        if (StringUtils.isNotBlank(request.getName())) {
-            stepInstance.setName(request.getName());
-        } else {
-            stepInstance.setName(FastTaskUtil.getFastScriptTaskName());
-        }
-
-        if (request.getScriptVersionId() != null && request.getScriptVersionId() > 0) {
-            stepInstance.setScriptVersionId(request.getScriptVersionId());
-        } else if (StringUtils.isNotBlank(request.getScriptId())) {
-            stepInstance.setScriptId(request.getScriptId());
-        } else if (StringUtils.isNotBlank(request.getContent())) {
-            stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
-            stepInstance.setScriptType(ScriptTypeEnum.valOf(request.getScriptLanguage()));
-        }
-
-        if (StringUtils.isNotEmpty(request.getScriptParam())) {
-            String scriptParam = Base64Util.decodeContentToStr(request.getScriptParam());
-            // 需要把换行转换成空格，否则脚本执行报错
-            if (StringUtils.isNotBlank(scriptParam)) {
-                stepInstance.setScriptParam(scriptParam.replace("\n", " "));
-            }
-        }
-
-        stepInstance.setAppId(request.getAppId());
-        stepInstance.setStepId(-1L);
-        stepInstance.setSecureParam(request.isParamSensitive());
-        stepInstance.setWindowsInterpreter(request.getTrimmedWindowsInterpreter());
-        stepInstance.setTimeout(
-            request.getTimeout() == null ? JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
-        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
-        stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetExecuteObjects(V4ExecuteTargetConverter.v4ToExecuteTargetDTO(request.getExecuteTarget()));
-        stepInstance.setAccountId(request.getAccountId());
-        stepInstance.setAccountAlias(request.getAccountAlias());
-        stepInstance.setOperator(username);
-        stepInstance.setCreateTime(DateUtils.currentTimeMillis());
-        return stepInstance;
     }
 }

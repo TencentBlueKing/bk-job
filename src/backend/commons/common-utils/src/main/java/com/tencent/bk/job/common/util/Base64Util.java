@@ -28,6 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
@@ -46,6 +49,41 @@ public class Base64Util {
             return new String(Base64.decodeBase64(content), StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.warn("Decode content fail", e);
+            return null;
+        }
+    }
+
+    /**
+     * BASE64 解码字符，仅当解码结果是一段合法的 UTF-8 文本时才返回，否则返回 null
+     * <p>
+     * {@link #decodeContentToStr(String)} 用的解码器会跳过非法字符，明文也能"解码成功"，
+     * 解出的却是一串二进制垃圾（例如 "111" 解出 0xD7 0x5D）。要区分调用方传的是 BASE64 还是明文，
+     * 只能靠解码结果是否为合法 UTF-8 来判断。
+     *
+     * @param content BASE64 编码后的字符串
+     * @return 解码后的文本；content 为空、或解码结果不是合法 UTF-8 文本时返回 null
+     */
+    public static String decodeContentToStrStrictly(String content) {
+        if (StringUtils.isEmpty(content)) {
+            return null;
+        }
+        byte[] decoded;
+        try {
+            decoded = Base64.decodeBase64(content);
+        } catch (Exception e) {
+            log.warn("Decode content fail", e);
+            return null;
+        }
+        if (decoded.length == 0) {
+            return null;
+        }
+        try {
+            return StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(decoded))
+                .toString();
+        } catch (CharacterCodingException e) {
             return null;
         }
     }

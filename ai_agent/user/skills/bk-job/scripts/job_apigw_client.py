@@ -659,7 +659,7 @@ def http_request(
 
 
 def http_upload_file(url: str, filepath: str, timeout: int = 600) -> Tuple[int, str]:
-    """将本地文件以 HTTP PUT 上传到指定 URL（用于本地文件分发时上传到制品库临时地址）。
+    """将本地文件以 HTTP PUT 上传到指定 URL（用于本地文件分发时上传到作业平台的临时上传地址）。
 
     等价于：curl -X PUT -H "Content-Type: application/octet-stream"
              --data-binary @<file> "<upload_url>"
@@ -1723,7 +1723,7 @@ def cmd_gen_local_upload_url(args: argparse.Namespace) -> None:
 
 
 def cmd_upload_local_file(args: argparse.Namespace) -> None:
-    """上传本地文件到制品库临时地址（HTTP PUT，非 APIGW）。
+    """上传本地文件到作业平台的临时上传地址（HTTP PUT，非 APIGW）。
 
     本地文件分发第二步：将 --file-path 指向的本地文件 PUT 到 gen-local-upload-url 返回的 upload_url。
     """
@@ -2335,7 +2335,7 @@ def main() -> None:
 
     p_ulf = sub.add_parser(
         "upload-local-file",
-        help="上传本地文件到制品库临时地址（HTTP PUT，非 APIGW），本地文件分发第二步",
+        help="上传本地文件到作业平台的临时上传地址（HTTP PUT，非 APIGW），本地文件分发第二步",
     )
     p_ulf.add_argument(
         "--upload-url",
