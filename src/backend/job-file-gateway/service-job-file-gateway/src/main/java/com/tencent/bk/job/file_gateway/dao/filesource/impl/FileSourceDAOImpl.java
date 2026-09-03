@@ -166,10 +166,10 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
             sql = insertFileSourceShareQuery.getSQL(ParamType.INLINED);
             insertFileSourceShareQuery.execute();
             sharedAppIdList.remove(fileSourceDTO.getAppId());
-            // 插入新数据
-            if (fileSourceDTO.getPublicFlag()) {
+            // 插入新数据。publicFlag / shareToAllApp 可能为 null，按 false 处理
+            if (Boolean.TRUE.equals(fileSourceDTO.getPublicFlag())) {
                 // 共享Worker
-                if (!fileSourceDTO.getShareToAllApp() && sharedAppIdList.size() > 0) {
+                if (!Boolean.TRUE.equals(fileSourceDTO.getShareToAllApp()) && sharedAppIdList.size() > 0) {
                     insertFileSourceShareQuery = dslContext.insertInto(tableFileSourceShare,
                         tableFileSourceShare.FILE_SOURCE_ID,
                         tableFileSourceShare.APP_ID
@@ -323,9 +323,7 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
         }
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ID.in(ids));
-        // 归属业务自己那一行共享记录在保存文件源时无条件写入，故归属业务也能由 share 条件命中，
-        // 与已有的 listAvailableFileSource 口径保持一致
-        conditions.add(tableFileSourceShare.APP_ID.eq(appId).or(defaultTable.SHARE_TO_ALL_APP.eq(true)));
+        conditions.add(genAppScopeCondition(appId));
         val records = dslContext.selectDistinct(defaultTable.ID)
             .from(defaultTable)
             .join(tableFileSourceShare)
@@ -360,11 +358,29 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
         }
     }
 
+    /**
+     * 文件源对指定业务可见的判定条件：命中本业务那行共享记录（归属业务自己那行在保存时无条件写入，
+     * 故这一支同时覆盖「归属」与「显式共享」），或者「公共 + 全业务共享」。
+     * <p>
+     * 显式共享这一支必须叠加 PUBLIC = true —— 私有文件源不对其他业务开放，
+     * 即使 file_source_share 里残留了历史共享记录；
+     * 但归属业务自身必须放行，所以是 {@code APP_ID = appId OR PUBLIC = true} 而不是只判 PUBLIC。
+     * <p>
+     * 归属这一支刻意保持用 share 表判定、不改成直接判 {@code file.APP_ID = appId}：
+     * 查询与 share 表是 join 关系，直接判归属会让归属业务的每一行共享记录都命中，
+     * 使文件源在列表里重复出现（列表未去重，而计数用的是 countDistinct）。
+     */
+    private Condition genAppScopeCondition(Long appId) {
+        return tableFileSourceShare.APP_ID.eq(appId)
+            .and(defaultTable.APP_ID.eq(appId).or(defaultTable.PUBLIC.eq(true)))
+            .or(defaultTable.PUBLIC.eq(true).and(defaultTable.SHARE_TO_ALL_APP.eq(true)));
+    }
+
     private Collection<Condition> genAvailableLikeConditions(Long appId, String credentialId, String alias) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ENABLE.eq(true));
         if (appId != null) {
-            conditions.add(tableFileSourceShare.APP_ID.eq(appId).or(defaultTable.SHARE_TO_ALL_APP.eq(true)));
+            conditions.add(genAppScopeCondition(appId));
         }
         if (StringUtils.isNotBlank(credentialId)) {
             conditions.add(defaultTable.CREDENTIAL_ID.eq(credentialId));
