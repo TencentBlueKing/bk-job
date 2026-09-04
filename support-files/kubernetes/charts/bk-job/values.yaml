@@ -1,4 +1,4 @@
- # Default values for bk-job.
+﻿# Default values for bk-job.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -1072,6 +1072,8 @@ gatewayConfig:
     targetMemory: 50
   # 容器内的端口号
   containerPort:
+    # https端口号
+    https: 19802
     # http端口号
     http: 9802
     # 管理端口号
@@ -1080,6 +1082,8 @@ gatewayConfig:
     type: ClusterIP
     # 暴露出的Service端口号
     port:
+      # https端口号
+      https: 443
       # http端口号
       http: 80
   ingress:
@@ -1095,6 +1099,22 @@ gatewayConfig:
     tls: []
     extraTls: []
     secrets: []
+  server:
+    ssl:
+      # job-gateway 开启 https 所需的证书材料，部署前必须自行生成并填写。
+      # 可使用 op-tools/gateway-tls-cert/generate_gateway_tls_cert.py 生成
+      p12:
+        # job-gateway开启https时使用的p12文件单行base64编码内容
+        base64Content: ""
+      keystore:
+        # job-gateway开启https时使用的p12文件中所包含的keystore的密码
+        password: ""
+      truststore:
+        # job-gateway开启https时使用的p12文件truststore单行base64编码内容
+        base64Content: ""
+        # job-gateway开启https时使用的truststore的密码
+        password: ""
+  # 运行时JVM参数
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
   # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
   volumeExtension:
