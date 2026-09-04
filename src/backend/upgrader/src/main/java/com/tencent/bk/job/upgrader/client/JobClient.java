@@ -47,9 +47,10 @@ public class JobClient extends AbstractJobClient {
 
     private static final String URL_LIST_BIZ_SET_APPS = "/service/app/list/bizSet";
 
-    private static final String URL_SET_BIZ_SET_MIGRATION_STATUS = "/manage/migration/action/setBizSetMigrationStatus";
+    private static final String URL_SET_BIZ_SET_MIGRATION_STATUS =
+        "/service/manage/migration/action/setBizSetMigrationStatus";
 
-    private static final String URL_GET_BK_PLATFORM_INFO = "/manage/migration/action/getBkPlatformInfo";
+    private static final String URL_GET_BK_PLATFORM_INFO = "/service/manage/migration/action/getBkPlatformInfo";
 
 
     public JobClient(String jobHostUrl, String jobAuthToken) {
