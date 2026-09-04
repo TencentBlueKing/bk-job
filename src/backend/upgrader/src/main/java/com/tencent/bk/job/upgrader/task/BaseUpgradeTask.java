@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.jwt.BasicJwtManager;
 import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.http.BaseHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpRequest;
@@ -81,23 +80,42 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
     }
 
     public JobClient getJobManageClient() {
-        String securityPublicKeyBase64 =
-            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
-        String securityPrivateKeyBase64 =
-            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
-        JwtManager jwtManager;
+        return new JobClient(
+            getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
+            generateJobAuthToken()
+        );
+    }
+
+    /**
+     * 使用服务私钥签发 JWT，供 x-job-auth-token 校验。
+     */
+    private String generateJobAuthToken() {
+        String securityPublicKeyBase64 = getProperties().getProperty(
+            ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
+        );
+        String securityPrivateKeyBase64 = getProperties().getProperty(
+            ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64
+        );
+        if (StringUtils.isBlank(securityPublicKeyBase64)) {
+            log.error("{} is not configured", ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{
+                ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
+            });
+        }
+        if (StringUtils.isBlank(securityPrivateKeyBase64)) {
+            log.error("{} is not configured", ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{
+                ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64
+            });
+        }
         try {
-            jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
+            JwtManager jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
+            return jwtManager.generateToken(60 * 60 * 1000);
         } catch (Exception e) {
             String msg = "Fail to generate jwt auth token";
             log.error(msg, e);
             throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
         }
-        String jobAuthToken = jwtManager.generateToken(60 * 60 * 1000);
-        return new JobClient(
-            getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
-            jobAuthToken
-        );
     }
 
     @Override
@@ -105,19 +123,8 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
     }
 
     public <T> Response<T> post(String url, String content) throws InternalException {
-        String jobAuthToken = getProperties().getProperty(
-            ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
-        );
-        if (StringUtils.isBlank(jobAuthToken)) {
-            log.error("{} is not configured", ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{
-                ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
-            });
-        }
-        jobAuthToken = Base64Util.decodeContentToStr(jobAuthToken);
-
         Header[] headers = new Header[2];
-        headers[0] = new BasicHeader("x-job-auth-token", jobAuthToken);
+        headers[0] = new BasicHeader("x-job-auth-token", generateJobAuthToken());
         headers[1] = new BasicHeader("Content-Type", "application/json");
 
         try {
