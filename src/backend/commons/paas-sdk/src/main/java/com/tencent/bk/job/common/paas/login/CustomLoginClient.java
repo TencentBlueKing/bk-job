@@ -25,9 +25,12 @@
 package com.tencent.bk.job.common.paas.login;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.util.http.HttpConPoolUtil;
+import com.tencent.bk.job.common.util.http.HttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,13 +50,19 @@ import java.util.Map;
 public class CustomLoginClient implements ILoginClient {
     private static final String API_GET_USER_INFO = "/user/get_info/";
     private final String customLoginApiUrl;
+    private final HttpHelper httpHelper;
 
     public CustomLoginClient(String customLoginApiUrl) {
+        this(customLoginApiUrl, true);
+    }
+
+    public CustomLoginClient(String customLoginApiUrl, boolean sslVerifyEnabled) {
         if (customLoginApiUrl.endsWith("/")) {
             this.customLoginApiUrl = customLoginApiUrl.substring(0, customLoginApiUrl.length() - 1);
         } else {
             this.customLoginApiUrl = customLoginApiUrl;
         }
+        this.httpHelper = HttpHelperFactory.getDefaultHttpHelper(sslVerifyEnabled);
     }
 
     @Override
@@ -101,7 +110,9 @@ public class CustomLoginClient implements ILoginClient {
         String queryParamStr = buildQueryParams(queryParams);
         String url = customLoginApiUrl + uri + queryParamStr;
         try {
-            responseBody = HttpConPoolUtil.get(false, url, null);
+            responseBody = httpHelper.request(
+                HttpRequest.builder(HttpMethodEnum.GET, url).build()
+            ).getEntity();
             return responseBody;
         } catch (Throwable e) {
             log.error("doHttpGet| url={}| params={}| exception={}", uri, buildPrintedParams(queryParams, secretField),

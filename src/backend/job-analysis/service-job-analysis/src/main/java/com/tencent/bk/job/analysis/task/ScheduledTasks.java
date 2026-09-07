@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.task;
 import com.tencent.bk.job.analysis.task.ai.AIChatHistoryCleanTask;
 import com.tencent.bk.job.analysis.task.ai.AIChatSessionCleanTask;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskScheduler;
+import com.tencent.bk.job.analysis.task.approval.ApprovalTaskCleanTask;
 import com.tencent.bk.job.analysis.task.statistics.StatisticsTaskScheduler;
 import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import org.slf4j.Logger;
@@ -44,16 +45,19 @@ public class ScheduledTasks {
     private final StatisticsTaskScheduler statisticsTaskScheduler;
     private final AIChatHistoryCleanTask aiChatHistoryCleanTask;
     private final AIChatSessionCleanTask aiChatSessionCleanTask;
+    private final ApprovalTaskCleanTask approvalTaskCleanTask;
 
     @Autowired
     public ScheduledTasks(AnalysisTaskScheduler analysisTaskScheduler,
                           StatisticsTaskScheduler statisticsTaskScheduler,
                           AIChatHistoryCleanTask aiChatHistoryCleanTask,
-                          AIChatSessionCleanTask aiChatSessionCleanTask) {
+                          AIChatSessionCleanTask aiChatSessionCleanTask,
+                          ApprovalTaskCleanTask approvalTaskCleanTask) {
         this.analysisTaskScheduler = analysisTaskScheduler;
         this.statisticsTaskScheduler = statisticsTaskScheduler;
         this.aiChatHistoryCleanTask = aiChatHistoryCleanTask;
         this.aiChatSessionCleanTask = aiChatSessionCleanTask;
+        this.approvalTaskCleanTask = approvalTaskCleanTask;
     }
 
     /**
@@ -107,6 +111,18 @@ public class ScheduledTasks {
             aiChatSessionCleanTask.execute();
         } catch (Exception e) {
             logger.error("aiChatSessionCleanTask fail", e);
+        }
+    }
+
+    /**
+     * 定时清理过期的审批任务记录，1h一次
+     */
+    @ScheduledOnOperationTimeZone(cron = "0 50 * * * *")
+    public void approvalTaskCleanTask() {
+        try {
+            approvalTaskCleanTask.execute();
+        } catch (Exception e) {
+            logger.error("approvalTaskCleanTask fail", e);
         }
     }
 }

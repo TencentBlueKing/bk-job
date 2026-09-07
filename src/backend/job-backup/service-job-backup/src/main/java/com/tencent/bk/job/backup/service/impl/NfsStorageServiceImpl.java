@@ -29,7 +29,9 @@ import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.FilePathUtils;
+import com.tencent.bk.job.common.util.file.PathUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,8 +83,7 @@ public class NfsStorageServiceImpl implements StorageService {
             String fileName = prefix + id + File.separatorChar
                 + FilePathUtils.parseDirAndFileName(originalFileName).getRight();
 
-            String fullFileName = storagePath.concat(fileName);
-            File theFile = new File(fullFileName);
+            File theFile = PathUtil.resolveSafely(storagePath, fileName);
 
             // 创建上传文件父目录，并设置父目录可写权限
             File parentDir = theFile.getParentFile();
@@ -100,6 +101,8 @@ public class NfsStorageServiceImpl implements StorageService {
 
             file.transferTo(theFile);
             return fileName;
+        } catch (ServiceException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Upload file fail", e);
             return null;
@@ -108,8 +111,7 @@ public class NfsStorageServiceImpl implements StorageService {
 
     @Override
     public File getFile(String fileName) {
-        String fullFileName = storagePath.concat(fileName);
-        return new File(fullFileName);
+        return PathUtil.resolveSafely(storagePath, fileName);
     }
 
     @Override
@@ -119,8 +121,7 @@ public class NfsStorageServiceImpl implements StorageService {
 
     @Override
     public File getLocalUploadFile(String fileName) {
-        String fullFileName = localUploadStoragePath.concat(fileName);
-        File file = new File((fullFileName));
+        File file = PathUtil.resolveSafely(localUploadStoragePath, fileName);
         if (file.exists()) {
             return file;
         }

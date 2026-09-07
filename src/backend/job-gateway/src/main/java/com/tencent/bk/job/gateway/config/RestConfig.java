@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.util.Timeout;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,25 +54,37 @@ import java.util.List;
 public class RestConfig {
     @Bean
     @ConditionalOnMissingBean({RestOperations.class, RestTemplate.class})
-    public RestTemplate restTemplate() {
+    public RestTemplate restTemplate(
+        @Value("${job.http.ssl.verify.enabled:true}") boolean sslVerifyEnabled
+    ) {
         HttpComponentsClientHttpRequestFactory factory = new
             HttpComponentsClientHttpRequestFactory();
         factory.setConnectionRequestTimeout(10000);
-        // https
         try {
-            SSLContext sslContext = new SSLContextBuilder()
-                .loadTrustMaterial(null, (X509Certificate[] x509Certificates, String s) -> true)
-                .build();
-            HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
-                    .setSslContext(sslContext)
-                    .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                    .build())
-                .setDefaultConnectionConfig(ConnectionConfig.custom()
-                    .setConnectTimeout(Timeout.ofMilliseconds(10000))
-                    .build())
-                .setMaxConnTotal(200)
-                .build();
+            HttpClientConnectionManager connectionManager;
+            if (sslVerifyEnabled) {
+                connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                        .setConnectTimeout(Timeout.ofMilliseconds(10000))
+                        .build())
+                    .setMaxConnTotal(200)
+                    .build();
+            } else {
+                log.warn("HTTPS certificate verification is disabled for RestTemplate, connections are vulnerable to MITM");
+                SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (X509Certificate[] x509Certificates, String s) -> true)
+                    .build();
+                connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                        .setSslContext(sslContext)
+                        .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                        .build())
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                        .setConnectTimeout(Timeout.ofMilliseconds(10000))
+                        .build())
+                    .setMaxConnTotal(200)
+                    .build();
+            }
             CloseableHttpClient httpClient = HttpClients.custom()
                 .setConnectionManager(connectionManager)
                 .build();

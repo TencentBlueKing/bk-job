@@ -24,29 +24,61 @@
 
 package com.tencent.bk.job.gateway.config;
 
+import org.springframework.boot.actuate.autoconfigure.security.reactive.EndpointRequest;
+import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.actuate.info.InfoEndpoint;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+
 /**
  * Actuator spring security config
+ * <p>
+ * 管理端点仅健康端点（k8s 存活/就绪探针依赖）与 info 端点允许匿名访问，与其余微服务的
+ * common-web ActuatorSecurityConfig 保持一致；其余端点必须通过 HTTP Basic 认证，
+ * 账号来自 spring.security.user 配置。
+ * <p>
+ * 注意：job-gateway 的管理端点运行在独立端口上，本配置需配合
+ * {@link ManagementContextSecurityConfiguration} 才能在管理端口生效。
  */
-//@Configuration
-//@EnableWebFluxSecurity
+@Configuration
+@EnableWebFluxSecurity
 public class ActuatorSecurityConfig {
-//    @Bean
-//    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-//        http
-//            .csrf()
-//            .disable()
-//            .authorizeExchange()
-//            .pathMatchers("/actuator/health/**", "/actuator/info")
-//            .permitAll()
-//            .pathMatchers("/actuator/**")
-//            .authenticated()
-//            .pathMatchers("/iam/api/**")
-//            .permitAll()
-//            // check in filter
-//            .anyExchange()
-//            .permitAll()
-//            .and()
-//            .httpBasic();
-//        return http.build();
-//    }
+
+    @Bean
+    @Order(1)
+    SecurityWebFilterChain actuatorSecurityWebFilterChain(ServerHttpSecurity http) {
+        http
+            .securityMatcher(EndpointRequest.toAnyEndpoint())
+            .csrf(ServerHttpSecurity.CsrfSpec::disable)
+            .authorizeExchange(exchanges -> exchanges
+                .matchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class)).permitAll()
+                .anyExchange().authenticated()
+            )
+            .httpBasic(Customizer.withDefaults())
+            .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+            .logout(ServerHttpSecurity.LogoutSpec::disable);
+        return http.build();
+    }
+
+    /**
+     * 网关转发的业务请求由 Authorize/CsrfCheck/CheckOpenApiJwt 等网关过滤器负责认证，
+     * 此处一律放行；同时关闭 Spring Security 默认响应头与登出处理，避免影响既有代理行为。
+     */
+    @Bean
+    @Order(2)
+    SecurityWebFilterChain gatewayRouteSecurityWebFilterChain(ServerHttpSecurity http) {
+        http
+            .csrf(ServerHttpSecurity.CsrfSpec::disable)
+            .headers(ServerHttpSecurity.HeaderSpec::disable)
+            .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+            .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+            .logout(ServerHttpSecurity.LogoutSpec::disable)
+            .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll());
+        return http.build();
+    }
 }

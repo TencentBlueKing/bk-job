@@ -26,6 +26,8 @@ package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -36,12 +38,14 @@ public class JobBackupAutoConfiguration {
 
     @Bean
     public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
+                                               @Autowired JobHttpSslVerifyProperties sslVerifyProperties,
                                                @Autowired MeterRegistry meterRegistry) {
         return new ArtifactoryClient(
             artifactoryConfig.getArtifactoryBaseUrl(),
             artifactoryConfig.getArtifactoryJobUsername(),
             artifactoryConfig.getArtifactoryJobPassword(),
-            meterRegistry
+            meterRegistry,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_REPO)
         );
     }
 }

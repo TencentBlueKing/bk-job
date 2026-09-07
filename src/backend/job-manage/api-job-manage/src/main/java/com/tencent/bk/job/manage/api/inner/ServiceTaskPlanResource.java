@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableTypeDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -118,6 +119,11 @@ public interface ServiceTaskPlanResource {
         @Parameter(description = "模版 ID") @PathVariable("templateId") Long templateId,
         @Parameter(description = "创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
         @Parameter(description = "执行方案信息", required = true) @RequestBody TaskPlanVO planInfo);
+
+    @Operation(summary = "获取执行方案全局变量的身份与类型")
+    @GetMapping("/service/plan/{planId}/globalVar/types")
+    InternalResponse<List<ServiceTaskVariableTypeDTO>> listPlanGlobalVarTypes(
+        @Parameter(description = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
     @GetMapping("/service/app/{appId}/plan/{templateId}/{planId}/variable")
     InternalResponse<List<ServiceTaskVariableDTO>> getPlanVariable(

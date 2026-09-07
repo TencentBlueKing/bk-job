@@ -27,7 +27,9 @@ package com.tencent.bk.job.common.esb.model.v4;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.iam.OpenApiApplyPermissionDTO;
+import com.tencent.bk.job.common.model.ResolvedSummary;
 import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -53,6 +55,13 @@ public class EsbV4Response<T> {
     private EsbV4RespError error = null;
 
     /**
+     * 预检（{@link JobCommonHeaders#BK_JOB_DRY_RUN}）解析出的操作概要。
+     * 仅预检请求有值，正式执行时为 null，此时 data 为空
+     */
+    @JsonProperty("dry_run_summary")
+    private ResolvedSummary dryRunSummary;
+
+    /**
      * Job平台的request_id
      */
     @JsonProperty("job_request_id")
@@ -65,6 +74,15 @@ public class EsbV4Response<T> {
     public static <T> EsbV4Response<T> success(T data) {
         EsbV4Response<T> resp = new EsbV4Response<>();
         resp.setData(data);
+        return resp;
+    }
+
+    /**
+     * 预检通过。预检不产生任何写操作，因此没有执行结果，只回带解析出的操作概要
+     */
+    public static <T> EsbV4Response<T> dryRunSuccess(ResolvedSummary dryRunSummary) {
+        EsbV4Response<T> resp = new EsbV4Response<>();
+        resp.setDryRunSummary(dryRunSummary);
         return resp;
     }
 

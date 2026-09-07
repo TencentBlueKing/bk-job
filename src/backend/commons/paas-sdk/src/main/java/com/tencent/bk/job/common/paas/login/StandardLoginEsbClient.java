@@ -40,7 +40,9 @@ import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.exception.AppPermissionDeniedException;
 import com.tencent.bk.job.common.paas.model.EsbUserDto;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -64,12 +66,22 @@ public class StandardLoginEsbClient extends BkApiV1Client implements ILoginClien
                                   AppProperties appProperties,
                                   MeterRegistry meterRegistry,
                                   TenantEnvService tenantEnvService) {
+        this(esbProperties, appProperties, meterRegistry, tenantEnvService,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_LOGIN));
+    }
+
+    public StandardLoginEsbClient(EsbProperties esbProperties,
+                                  AppProperties appProperties,
+                                  MeterRegistry meterRegistry,
+                                  TenantEnvService tenantEnvService,
+                                  boolean sslVerifyEnabled) {
         super(
             meterRegistry,
             CommonMetricNames.BK_LOGIN_API,
             esbProperties.getService().getUrl(),
             HttpHelperFactory.createHttpHelper(
-                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor()),
+                sslVerifyEnabled
             ),
             tenantEnvService
         );

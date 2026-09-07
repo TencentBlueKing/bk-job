@@ -26,7 +26,7 @@ metadata: {"version":"1.0.0","bk_skill_code":"bk-job","openclaw":{"displayName":
 - **写操作须过 G1–G4 门禁**：`plan-execute`、`fast-execute-script`、`fast-transfer-file`、`plan-create`、`cron-save`、`cron-update-status`（非 `--dry-run`）须先展示确认摘要，**再等用户下一条独立回复**才执行；「立即执行」只表达意图，**不算**确认。**一次确认只授权一次执行**，重复执行（含「相同参数再执行一次」）须重新走门禁，不得跳过。**摘要须列全部生效参数**：以 `--dry-run` 的 `request_body` 加 `defaults_applied` 为准，未指定项标 `[默认]` 并说明后果（如强制模式覆盖同名文件），不得省略。格式与反例见 [确认门禁](references/manuals/confirmation-and-output-protocol.md)。
 - **填主机先查再填**：需要目标机（含分发源机）而用户未给 `bk_host_id` 或 `bk_cloud_id:ip` 时，先用 `host-topo-tree`、`host-search` 定位，列候选经用户确认，**不要凭空猜主机 ID**。
 - **填账号先查再填**：需要执行账号而用户未指定时，先用 `account-list` 列出该范围可用账号供选择，**不要凭空猜账号别名**。
-- **文件分发仅两种源**：只支持「服务器文件」与「本地文件」；第三方文件源（如 COS）未提供接口，**不要**给该选项，脚本会拒绝。
+- **文件分发仅两种源**：只支持「服务器文件」与「本地文件」。用户没说文件在哪时，**只能在这两项里二选一**，不得提供第三方文件源（`file_type=3`）、制品库/仓库里的已有文件、COS 等任何第三个选项——接口未提供，脚本会拒绝。引导话术见 [文件分发手册](references/manuals/file-transfer.md) 第 2 节。
 - **列表先查一页**：默认 `--length 20` 并用 `--keyword` 缩小，`total > length` 时先说明「本页 N 条，共 M 条」再问翻页；大列表用 jq 过滤，**勿把整页 JSON 贴进对话**。见 [列举与分析](references/manuals/listing-and-token-efficient-analysis.md)。
 - **对用户输出**：不叙述调脚本/调 API 过程，表格化交付结论；同一轮内不得既给摘要又真实执行。
 - **回答须声明当前租户**：无论查询还是写操作，回答中都需显式给出本次请求实际生效的租户 ID 及其来源（`--bk-tenant-id` 入参 / `config.yaml` / `default`），便于用户核对是否是他期望的租户。接口返回 4xx、资源不存在或列表为空时，除给出常规排查建议外，**附带一句**「本次请求的是租户 `<X>` 下的资源，如与预期不符可通过 `--bk-tenant-id` 指定」，供用户自行判断，不预设租户错配即是原因。

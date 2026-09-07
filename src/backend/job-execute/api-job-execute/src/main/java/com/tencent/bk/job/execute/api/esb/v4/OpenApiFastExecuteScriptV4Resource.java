@@ -29,23 +29,31 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("/esb/api/v4")
+/**
+ * <b>类级 MVC 注解（@RestController / @RequestMapping）必须留在实现类上，不能挪到本接口</b>：
+ * 本接口同时是 Feign 客户端，一旦接口上带这两个注解之一，Feign 代理会被
+ * RequestMappingHandlerMapping 判定为 handler，在调用方服务上凭空注册出一个同路径的转发端点。
+ */
 @EsbV4API
-@RestController
 @Validated
+@SmartFeignClient(value = "job-execute", contextId = "openApiFastExecuteScriptV4Resource")
 public interface OpenApiFastExecuteScriptV4Resource {
 
-    @PostMapping("/fast_execute_script")
+    /**
+     * @param dryRun 预检标识。为 true 时走完整校验与执行对象解析后即返回，不落作业实例、不发事件、
+     *               不产生审计，响应以 dry_run_summary 回带解析出的操作概要
+     */
+    @PostMapping("/esb/api/v4/fast_execute_script")
     EsbV4Response<V4JobExecuteDTO> fastExecuteScript(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestHeader(value = JobCommonHeaders.BK_JOB_DRY_RUN, required = false) Boolean dryRun,
         @RequestBody
         @Validated
             V4FastExecuteScriptRequest request

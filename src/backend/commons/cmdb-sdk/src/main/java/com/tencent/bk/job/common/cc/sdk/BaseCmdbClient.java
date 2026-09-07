@@ -43,10 +43,13 @@ import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
+import com.tencent.bk.job.common.util.http.WatchableHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -139,7 +142,9 @@ public class BaseCmdbClient extends BkApiV1Client {
             meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
-            HttpHelperFactory.getLongRetryableHttpHelper(),
+            HttpHelperFactory.getLongRetryableHttpHelper(
+                JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
+            ),
             tenantEnvService
         );
         this.setLogger(LoggerFactory.getLogger(this.getClass()));
@@ -156,9 +161,16 @@ public class BaseCmdbClient extends BkApiV1Client {
             60,
             true,
             new JobHttpRequestRetryHandler(),
-            httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+            httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor()),
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
         );
         this.virtualAdminAccountProvider = virtualAdminAccountProvider;
+    }
+
+    protected WatchableHttpHelper longRetryableHttpHelper() {
+        return HttpHelperFactory.getLongRetryableHttpHelper(
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
+        );
     }
 
 

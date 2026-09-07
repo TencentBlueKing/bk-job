@@ -31,7 +31,7 @@ dependencies {
     api project(':job-analysis:api-common-job-analysis')
     api project(':job-execute:api-job-execute')
     api project(':job-manage:api-job-manage')
-    api(project(":commons:common-api"))
+    api project(':job-crontab:api-job-crontab')
     implementation "org.springframework:spring-web"
     implementation "jakarta.ws.rs:jakarta.ws.rs-api"
     implementation("org.apache.commons:commons-collections4")

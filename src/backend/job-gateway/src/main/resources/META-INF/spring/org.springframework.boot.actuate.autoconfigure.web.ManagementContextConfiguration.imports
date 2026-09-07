@@ -1,1 +1,2 @@
 com.tencent.bk.job.gateway.web.server.config.ManagementWebServerConfig
+com.tencent.bk.job.gateway.config.ManagementContextSecurityConfiguration

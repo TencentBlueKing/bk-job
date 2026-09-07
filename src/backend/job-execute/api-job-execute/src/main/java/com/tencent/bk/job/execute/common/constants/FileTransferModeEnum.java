@@ -24,21 +24,36 @@
 
 package com.tencent.bk.job.execute.common.constants;
 
+import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
+import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+
 /**
- * 文件分发模式
+ * 文件分发模式。
+ * <p>
+ * 分发模式是「同名文件如何处理」与「目标路径不存在如何处理」两个底层选项的组合，
+ * 对外只暴露这一个组合枚举，底层两个选项由 {@link #getDuplicateHandler()} 与
+ * {@link #getNotExistPathHandler()} 给出。
  */
 public enum FileTransferModeEnum {
-    STRICT(1, "严谨模式"),
-    FORCE(2, "强制模式"),
-    SAFETY_IP_PREFIX(3, "保险模式(FILE_SRC_IP)"),
-    SAFETY_DATE_PREFIX(4, "保险模式(YYYY-MM-DD)");
+    STRICT(1, "严谨模式", DuplicateHandlerEnum.OVERWRITE, NotExistPathHandlerEnum.STEP_FAIL),
+    FORCE(2, "强制模式", DuplicateHandlerEnum.OVERWRITE, NotExistPathHandlerEnum.CREATE_DIR),
+    SAFETY_IP_PREFIX(3, "保险模式(FILE_SRC_IP)", DuplicateHandlerEnum.GROUP_BY_IP, NotExistPathHandlerEnum.CREATE_DIR),
+    SAFETY_DATE_PREFIX(4, "保险模式(YYYY-MM-DD)",
+        DuplicateHandlerEnum.GROUP_BY_DATE_AND_IP, NotExistPathHandlerEnum.CREATE_DIR);
 
     private final Integer value;
     private final String name;
+    private final DuplicateHandlerEnum duplicateHandler;
+    private final NotExistPathHandlerEnum notExistPathHandler;
 
-    FileTransferModeEnum(Integer val, String name) {
+    FileTransferModeEnum(Integer val,
+                         String name,
+                         DuplicateHandlerEnum duplicateHandler,
+                         NotExistPathHandlerEnum notExistPathHandler) {
         this.value = val;
         this.name = name;
+        this.duplicateHandler = duplicateHandler;
+        this.notExistPathHandler = notExistPathHandler;
     }
 
     public static FileTransferModeEnum getFileTransferModeEnum(Integer mode) {
@@ -59,5 +74,19 @@ public enum FileTransferModeEnum {
 
     public String getName() {
         return name;
+    }
+
+    /**
+     * 同名文件的处理方式
+     */
+    public DuplicateHandlerEnum getDuplicateHandler() {
+        return duplicateHandler;
+    }
+
+    /**
+     * 目标路径不存在时的处理方式
+     */
+    public NotExistPathHandlerEnum getNotExistPathHandler() {
+        return notExistPathHandler;
     }
 }

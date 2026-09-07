@@ -32,10 +32,11 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.jwt.BasicJwtManager;
 import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.http.BaseHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpRequest;
+import com.tencent.bk.job.common.util.http.JobHttpSslSocketFactory;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.client.JobClient;
@@ -45,29 +46,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.ConnectionConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.ssl.SSLContexts;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 
 @Slf4j
 public abstract class BaseUpgradeTask implements IUpgradeTask {
 
     private Properties properties;
-    private static final HttpHelper HTTP_HELPER;
-
-    static {
-        HTTP_HELPER = new BaseHttpHelper(getHttpClient());
-    }
+    private static volatile HttpHelper HTTP_HELPER;
 
     BaseUpgradeTask() {
 
@@ -89,23 +80,42 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
     }
 
     public JobClient getJobManageClient() {
-        String securityPublicKeyBase64 =
-            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
-        String securityPrivateKeyBase64 =
-            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
-        JwtManager jwtManager;
+        return new JobClient(
+            getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
+            generateJobAuthToken()
+        );
+    }
+
+    /**
+     * 使用服务私钥签发 JWT，供 x-job-auth-token 校验。
+     */
+    private String generateJobAuthToken() {
+        String securityPublicKeyBase64 = getProperties().getProperty(
+            ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
+        );
+        String securityPrivateKeyBase64 = getProperties().getProperty(
+            ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64
+        );
+        if (StringUtils.isBlank(securityPublicKeyBase64)) {
+            log.error("{} is not configured", ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{
+                ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
+            });
+        }
+        if (StringUtils.isBlank(securityPrivateKeyBase64)) {
+            log.error("{} is not configured", ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{
+                ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64
+            });
+        }
         try {
-            jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
+            JwtManager jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
+            return jwtManager.generateToken(60 * 60 * 1000);
         } catch (Exception e) {
             String msg = "Fail to generate jwt auth token";
             log.error(msg, e);
             throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
         }
-        String jobAuthToken = jwtManager.generateToken(60 * 60 * 1000);
-        return new JobClient(
-            getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
-            jobAuthToken
-        );
     }
 
     @Override
@@ -113,23 +123,12 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
     }
 
     public <T> Response<T> post(String url, String content) throws InternalException {
-        String jobAuthToken = getProperties().getProperty(
-            ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
-        );
-        if (StringUtils.isBlank(jobAuthToken)) {
-            log.error("{} is not configured", ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{
-                ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
-            });
-        }
-        jobAuthToken = Base64Util.decodeContentToStr(jobAuthToken);
-
         Header[] headers = new Header[2];
-        headers[0] = new BasicHeader("x-job-auth-token", jobAuthToken);
+        headers[0] = new BasicHeader("x-job-auth-token", generateJobAuthToken());
         headers[1] = new BasicHeader("Content-Type", "application/json");
 
         try {
-            String respStr = HTTP_HELPER.requestForSuccessResp(
+            String respStr = getHttpHelper().requestForSuccessResp(
                     HttpRequest.builder(HttpMethodEnum.POST, url).setStringEntity(content).setHeaders(headers).build())
                 .getEntity();
             log.info("Post {}, content: {}, response: {}", url, content, respStr);
@@ -207,6 +206,20 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
         return this.getClass().getAnnotation(UpgradeTask.class).priority();
     }
 
+    private static HttpHelper getHttpHelper() {
+        HttpHelper helper = HTTP_HELPER;
+        if (helper == null) {
+            synchronized (BaseUpgradeTask.class) {
+                helper = HTTP_HELPER;
+                if (helper == null) {
+                    helper = new BaseHttpHelper(getHttpClient());
+                    HTTP_HELPER = helper;
+                }
+            }
+        }
+        return helper;
+    }
+
     private static CloseableHttpClient getHttpClient() {
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
             .setDefaultConnectionConfig(
@@ -221,21 +234,8 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
                     .setSocketTimeout(43200000)
                     .build()
             )
-            .disableAutomaticRetries();
-
-        CloseableHttpClient httpClient;
-        try {
-            httpClient = httpClientBuilder.setSSLSocketFactory(
-                new SSLConnectionSocketFactory(
-                    SSLContexts.custom()
-                        .loadTrustMaterial(null, new TrustSelfSignedStrategy())
-                        .build()
-                )
-            ).build();
-        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-            log.error("Set ssl config error", e);
-            httpClient = httpClientBuilder.build();
-        }
-        return httpClient;
+            .disableAutomaticRetries()
+            .setSSLSocketFactory(JobHttpSslSocketFactory.create(JobHttpSslVerifyConfig.isGlobalVerifyEnabled()));
+        return httpClientBuilder.build();
     }
 }

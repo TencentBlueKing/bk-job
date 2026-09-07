@@ -37,6 +37,8 @@ import com.tencent.bk.job.common.paas.login.StandardLoginApiGwClient;
 import com.tencent.bk.job.common.paas.login.StandardLoginEsbClient;
 import com.tencent.bk.job.common.paas.login.v3.BkLoginApiGwClient;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -52,9 +54,13 @@ public class LoginAutoConfiguration {
 
     @Bean
     @ConditionalOnCustomLoginEnable
-    public ILoginClient customLoginClient(@Autowired LoginProperties loginProperties) {
+    public ILoginClient customLoginClient(@Autowired LoginProperties loginProperties,
+                                          JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init customLoginClient");
-        return new CustomLoginClient(loginProperties.getCustom().getLoginUrl());
+        return new CustomLoginClient(
+            loginProperties.getCustom().getLoginUrl(),
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_LOGIN)
+        );
     }
 
     @Bean
@@ -63,14 +69,16 @@ public class LoginAutoConfiguration {
     public ILoginClient standardLoginApiGwClient(BkApiGatewayProperties bkApiGatewayProperties,
                                                  AppProperties appProperties,
                                                  ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                                 TenantEnvService tenantEnvService) {
+                                                 TenantEnvService tenantEnvService,
+                                                 JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init standardLoginApiGwClient");
         return new StandardLoginApiGwClient(
             new BkLoginApiGwClient(
                 bkApiGatewayProperties,
                 appProperties,
                 meterRegistryObjectProvider.getIfAvailable(),
-                tenantEnvService
+                tenantEnvService,
+                sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_LOGIN)
             ),
             tenantEnvService
         );
@@ -82,13 +90,15 @@ public class LoginAutoConfiguration {
     public ILoginClient standardLoginEsbClient(EsbProperties esbProperties,
                                                AppProperties appProperties,
                                                MeterRegistry meterRegistry,
-                                               TenantEnvService tenantEnvService) {
+                                               TenantEnvService tenantEnvService,
+                                               JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init standardLoginEsbClient");
         return new StandardLoginEsbClient(
             esbProperties,
             appProperties,
             meterRegistry,
-            tenantEnvService
+            tenantEnvService,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_LOGIN)
         );
     }
 }

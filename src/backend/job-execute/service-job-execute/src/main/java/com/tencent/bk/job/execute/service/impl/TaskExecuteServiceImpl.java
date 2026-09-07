@@ -245,9 +245,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         rollingConfigService.validateRollingConfigForFastJob(fastTask);
 
         // 设置脚本信息
-        checkAndSetScript(fastTask.getOperator().getTenantId(), fastTask.getTaskInstance(), fastTask.getStepInstance());
+        checkAndSetScript(fastTask.getOperator().getTenantId(), fastTask.getTaskInstance(),
+            fastTask.getStepInstance(), Boolean.TRUE.equals(fastTask.getDryRun()));
 
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
+
+        if (Boolean.TRUE.equals(fastTask.getDryRun())) {
+            // 预检走裸调用，不进入 ActionAuditContext 包裹：审批任务有自己的审计链路，
+            // 预检不应伪造一条"已执行作业"的审计事件
+            return executeFastTaskInternal(fastTask);
+        }
 
         ActionAuditContext actionAuditContext;
         if (stepInstance.isFileStep()) {
@@ -335,9 +342,19 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 鉴权
             watch.start("authFastExecute");
-            authFastExecute(fastTask.getOperator(), taskInstance, stepInstance,
+            authFastExecute(fastTask.getOperator(), appId, stepInstance,
                 taskInstanceExecuteObjects.getWhiteHostAllowActions(), fileSourceAvailabilities);
             watch.stop();
+
+            // ============ dryRun 预检返回点 ============
+            // 此行之上不得新增写操作：预检与真实执行必须走同一段校验代码，但预检绝不能落作业实例、
+            // 发 MQ 事件或产生审计事件。往上插入写操作会让预检穿透成真实执行 ——
+            // 这是本机制最危险的失效方式，TaskExecuteServiceDryRunTest 锁定了该性质。
+            // 返回点之上唯一带写操作的校验是 checkAndSetScript 内的高危脚本检查，已按 dryRun 跳过落库。
+            if (Boolean.TRUE.equals(fastTask.getDryRun())) {
+                fillDryRunResolvedResult(taskInstance, Collections.singletonList(stepInstance), null);
+                return taskInstance;
+            }
 
             // 保存作业
             saveTaskInstance(watch, fastTask, taskInstance, stepInstance);
@@ -607,6 +624,25 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         watch.stop();
     }
 
+    /**
+     * dryRun 返回前把解析结果挂到作业实例上，供上层组装审批单据所需的"实际影响面"。
+     * 这里只做只读的执行对象提取，不产生任何写操作。
+     *
+     * @param variables 本次生效的全局变量（执行方案默认值与请求取值合并后的结果），
+     *                  快速执行脚本/分发文件没有全局变量，传 null。
+     *                  <b>不能只带请求里传的那几个</b>：沿用方案默认值的变量一样会被执行，
+     *                  单据要列全才谈得上审批
+     */
+    private void fillDryRunResolvedResult(TaskInstanceDTO taskInstance,
+                                          List<StepInstanceDTO> stepInstanceList,
+                                          Collection<TaskVariableDTO> variables) {
+        taskInstance.setStepInstances(stepInstanceList);
+        taskInstance.setAllHosts(taskInstanceExecuteObjectProcessor.extractHosts(stepInstanceList, null));
+        if (variables != null) {
+            taskInstance.setVariables(new ArrayList<>(variables));
+        }
+    }
+
     private void addJobInstanceContext(TaskInstanceDTO taskInstance) {
         JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         if (jobExecuteContext != null) {
@@ -782,7 +818,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void checkAndSetScript(String tenantId, TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
+    private void checkAndSetScript(String tenantId,
+                                   TaskInstanceDTO taskInstance,
+                                   StepInstanceDTO stepInstance,
+                                   boolean dryRun) {
         long appId = taskInstance.getAppId();
         ServiceScriptDTO script = null;
         if (stepInstance.isScriptStep()) {
@@ -818,7 +857,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
         // 检查高危脚本
-        checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance);
+        checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance, dryRun);
     }
 
     private void checkScriptExist(long appId, StepInstanceDTO stepInstance, ServiceScriptDTO script) {
@@ -847,9 +886,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    /**
+     * 高危脚本规则匹配。
+     *
+     * @param dryRun 是否预检。预检期只做规则匹配与拦截判定，不写 dangerous_record 表：
+     *               同一次操作会先预检、审批通过后再执行，写两条记录会让高危统计翻倍。
+     *               拦截判定与命中结果照常生效，命中结果改为随 stepInstance 带回上层。
+     */
     private void checkScriptMatchDangerousRule(String tenantId,
                                                TaskInstanceDTO taskInstance,
-                                               StepInstanceDTO stepInstance) {
+                                               StepInstanceDTO stepInstance,
+                                               boolean dryRun) {
         if (!stepInstance.isScriptStep()) {
             return;
         }
@@ -861,8 +908,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             String checkResultSummary =
                 dangerousScriptCheckService.summaryDangerousScriptCheckResult(stepInstance.getName(), checkResultItems);
             if (StringUtils.isNotBlank(checkResultSummary)) {
-                log.info("Script match dangerous rule, checkResult: {}", checkResultItems);
-                dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
+                log.info("Script match dangerous rule, dryRun: {}, checkResult: {}", dryRun, checkResultItems);
+                if (dryRun) {
+                    stepInstance.setDangerousCheckSummary(checkResultSummary);
+                } else {
+                    dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
+                }
                 if (dangerousScriptCheckService.shouldIntercept(tenantId, checkResultItems)) {
                     throw new AbortedException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION,
                         ArrayUtil.toArray(checkResultSummary));
@@ -873,22 +924,31 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void batchCheckScriptMatchDangerousRule(String tenantId,
                                                     TaskInstanceDTO taskInstance,
-                                                    List<StepInstanceDTO> stepInstanceList) {
-        stepInstanceList.forEach(stepInstance -> checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance));
+                                                    List<StepInstanceDTO> stepInstanceList,
+                                                    boolean dryRun) {
+        stepInstanceList.forEach(
+            stepInstance -> checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance, dryRun));
     }
 
+    /**
+     * 快速执行任务鉴权。主体与业务必须由调用方显式传入：重做场景下待执行的步骤实例来自他人的历史实例，
+     * 从实例里取 operator / appId 会变成"以原执行人的身份、在原业务下鉴权"。
+     *
+     * @param operator 发起本次执行的用户
+     * @param appId    本次执行所属业务
+     */
     private void authFastExecute(User operator,
-                                 TaskInstanceDTO taskInstance,
+                                 long appId,
                                  StepInstanceDTO stepInstance,
                                  Map<Long, List<String>> whiteHostAllowActions,
                                  List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
         AuthResult authResult;
         if (stepInstance.isScriptStep()) {
             // 鉴权脚本任务
-            authResult = authExecuteScript(operator, taskInstance, stepInstance, whiteHostAllowActions);
+            authResult = authExecuteScript(operator, appId, stepInstance, whiteHostAllowActions);
         } else {
             // 鉴权文件任务
-            authResult = authFileTransfer(operator, taskInstance, stepInstance, whiteHostAllowActions,
+            authResult = authFileTransfer(operator, appId, stepInstance, whiteHostAllowActions,
                 fileSourceAvailabilities);
         }
 
@@ -898,10 +958,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private AuthResult authExecuteScript(User user,
-                                         TaskInstanceDTO taskInstance,
+                                         long appId,
                                          StepInstanceDTO stepInstance,
                                          Map<Long, List<String>> whiteHostAllowActions) {
-        Long appId = taskInstance.getAppId();
         Long accountId = null;
         if (StepExecuteTypeEnum.EXECUTE_SCRIPT == stepInstance.getExecuteType()) {
             accountId = stepInstance.getAccountId();
@@ -1015,12 +1074,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     AuthResult authFileTransfer(User operator,
-                                TaskInstanceDTO taskInstance,
+                                long appId,
                                 StepInstanceDTO stepInstance,
                                 Map<Long, List<String>> whiteHostAllowActions,
                                 List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
-        Long appId = taskInstance.getAppId();
-
         // 收集需要鉴权的账号集合：
         // 仅当账号实际作用的主机集合「非空且全部在白名单」时才豁免该账号的使用鉴权。
         Set<Long> accountsNeedAuth = new HashSet<>();
@@ -1193,6 +1250,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    /**
+     * 重做快速任务。前提：fastTask 的作业实例由控制器用当次调用者与 URL 业务构造
+     * （见 WebExecuteTaskResourceImpl.buildFastScriptTaskInstance），下面的归属校验与鉴权依赖这一点，
+     * 新增调用方时需重新确认。
+     */
     @Override
     public TaskInstanceDTO redoFastTask(FastTaskDTO fastTask) {
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
@@ -1201,6 +1263,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (StringUtils.isNotEmpty(stepInstance.getScriptParam())
             && stepInstance.getScriptParam().equals(JobConstants.SENSITIVE_FIELD_PLACEHOLDER)) {
             // 重做快速任务，如果是敏感参数，并且用户未修改脚本参数值(******为与前端的约定，表示用户未修改脚本参数值)，需要从原始任务取值
+            // 敏感参数不会通过任何读接口暴露，取值前必须确认调用者有权查看原实例，否则可借他人实例 ID 窃取其机密
+            TaskInstanceDTO originTaskInstance =
+                taskInstanceService.getTaskInstance(taskInstance.getAppId(), taskInstanceId);
+            executeAuthService.authViewTaskInstance(fastTask.getOperator(),
+                new AppResourceScope(taskInstance.getAppId()), originTaskInstance);
             StepInstanceDTO originStepInstance = stepInstanceService.getStepInstanceByTaskInstanceId(taskInstanceId);
             if (originStepInstance == null) {
                 log.error("Rode task is not exist, taskInstanceId: {}", taskInstanceId);
@@ -1220,11 +1287,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam) {
+        executeParam.assertDryRunNotSkipAuth();
         StopWatch watch = new StopWatch("createTaskInstanceForTask");
         TaskInfo taskInfo = buildTaskInfoFromExecuteParam(executeParam, watch);
         ServiceTaskPlanDTO plan = taskInfo.getJobPlan();
-        ActionAuditContext actionAuditContext;
 
+        if (executeParam.isDryRun()) {
+            // 预检走裸调用，不进入 ActionAuditContext 包裹，也不产生 auditJobPlanExecute 事件
+            return executeJobPlanInternal(watch, executeParam, taskInfo);
+        }
+
+        ActionAuditContext actionAuditContext;
         if (plan.isDebugTask()) {
             // 作业模版调试
             actionAuditContext = ActionAuditContext.builder(ActionId.DEBUG_JOB_TEMPLATE)
@@ -1277,7 +1350,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             batchCheckScriptMatchDangerousRule(
                 executeParam.getOperator().getTenantId(),
                 taskInstance,
-                stepInstanceList
+                stepInstanceList,
+                executeParam.isDryRun()
             );
             watch.stop();
 
@@ -1293,11 +1367,26 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkStepInstance(taskInstance, stepInstanceList);
             watch.stop();
 
+            // 校验引用的第三方文件源对当前业务可用。
+            // 必须放在 skipAuth 判断之外：定时任务等 skipAuth = true 的路径同样不允许引用越权的文件源
+            watch.start("validateFileSourceReference");
+            validateReferencedFileSources(executeParam.getOperator().getTenantId(),
+                taskInstance.getAppId(), stepInstanceList);
+            watch.stop();
+
             if (!executeParam.isSkipAuth()) {
                 watch.start("auth-execute-job");
                 authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), jobPlan, stepInstanceList,
                     taskInstanceExecuteObjects.getWhiteHostAllowActions());
                 watch.stop();
+            }
+
+            // ============ dryRun 预检返回点 ============
+            // 此行之上不得新增写操作，理由同 executeFastTaskInternal 的返回点注释；
+            // 本链路的高危脚本检查在 batchCheckScriptMatchDangerousRule 内，已按 dryRun 跳过落库
+            if (executeParam.isDryRun()) {
+                fillDryRunResolvedResult(taskInstance, stepInstanceList, finalVariableValueMap.values());
+                return taskInstance;
             }
 
             watch.start("saveInstance");
@@ -1339,6 +1428,25 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 log.warn("createTaskInstanceForTask is slow, statistics: {}", watch.prettyPrint());
             }
         }
+    }
+
+    /**
+     * 汇总各文件分发步骤引用的第三方文件源，校验它们对当前业务可用，不可用则抛异常。
+     * 文件源 ID 在下游按 LinkedHashSet 去重，多个步骤引用同一文件源也只发起一次跨服务查询。
+     */
+    private void validateReferencedFileSources(String tenantId,
+                                               long appId,
+                                               List<StepInstanceDTO> stepInstanceList) {
+        if (CollectionUtils.isEmpty(stepInstanceList)) {
+            return;
+        }
+        List<FileSourceDTO> referencedFileSources = new ArrayList<>();
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
+                referencedFileSources.addAll(stepInstance.getFileSourceList());
+            }
+        }
+        fileSourceReferenceService.validateReferencedFileSources(tenantId, appId, referencedFileSources);
     }
 
     private void standardizeStepDynamicGroupId(List<StepInstanceDTO> stepInstanceList) {
@@ -1527,6 +1635,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return Pair.of(authServers, accountIds);
     }
 
+    /**
+     * 作业重做鉴权。taskInstance 是被重做的原实例，只用于取待执行的内容；
+     * 鉴权主体一律取 user 与 appId，即本次调用者与本次请求的业务。
+     */
     private void authRedoJob(User user,
                              long appId,
                              TaskInstanceDTO taskInstance,
@@ -1554,13 +1666,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     scriptStepInstance.setScriptName(script.getName());
                 }
             }
-            authFastExecute(user, taskInstance, scriptStepInstance, whiteHostAllowActions,
+            authFastExecute(user, appId, scriptStepInstance, whiteHostAllowActions,
                 Collections.emptyList());
         } else if (taskType.equals(TaskTypeEnum.FILE.getValue())) {
             // 快速分发文件鉴权
             StepInstanceDTO fileStepInstance = taskInstance.getStepInstances().get(0);
             // 重做走的是已落库的执行实例，不对其引用的文件源追加可用性校验与鉴权，避免存量作业无法重做
-            authFastExecute(user, taskInstance, fileStepInstance, whiteHostAllowActions,
+            authFastExecute(user, appId, fileStepInstance, whiteHostAllowActions,
                 Collections.emptyList());
         } else {
             log.warn("Auth fail because of invalid task type!");
@@ -1635,14 +1747,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                    List<TaskVariableDTO> executeVariableValues) {
         log.info("Create task instance for redo, appId={}, taskInstanceId={}, operator={}, variables={}", appId,
             taskInstanceId, operator, executeVariableValues);
-        TaskInstanceDTO originTaskInstance = taskInstanceService.getTaskInstanceDetail(taskInstanceId);
-        if (originTaskInstance == null) {
-            log.warn("Create task instance for redo, task instance is not exist.appId={}, planId={}", appId,
-                taskInstanceId);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
+        // 必须按 (调用者, URL 业务) 取原实例：不属于该业务时抛 TASK_INSTANCE_NOT_EXIST，
+        // 非本人执行的实例还会鉴 VIEW_HISTORY。用裸 taskInstanceId 取会让调用者拿到任意业务的实例
+        TaskInstanceDTO originTaskInstance =
+            taskInstanceService.getTaskInstanceDetail(operator, appId, taskInstanceId);
 
-        TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, operator.getUsername());
+        TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, appId,
+            operator.getUsername());
 
         Map<String, TaskVariableDTO> finalVariableValueMap = buildFinalTaskVariableValues(appId,
             originTaskInstance.getVariables(), executeVariableValues);
@@ -1673,8 +1784,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstanceList.add(stepInstance);
         }
 
-        // 检查高危脚本
-        batchCheckScriptMatchDangerousRule(operator.getTenantId(), taskInstance, stepInstanceList);
+        // 检查高危脚本（重做作业是真实执行，命中照常落 dangerous_record）
+        batchCheckScriptMatchDangerousRule(operator.getTenantId(), taskInstance, stepInstanceList, false);
 
         // 处理执行对象
         TaskInstanceExecuteObjects taskInstanceExecuteObjects =
@@ -1684,6 +1795,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 检查步骤
         checkStepInstance(taskInstance, stepInstanceList);
 
+        // 原实例执行时文件源可能还在共享范围内，重做时要按当前范围重新校验
+        validateReferencedFileSources(operator.getTenantId(), appId, stepInstanceList);
+
+        // 鉴权用本次重新解析出的步骤实例，而非原实例的步骤：执行账号全局变量的取值在此次解析中才确定，
+        // 拿原步骤鉴权会漏掉本次实际要用的账号
         taskInstance.setStepInstances(stepInstanceList);
         authRedoJob(operator, appId, taskInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
 
@@ -1700,9 +1816,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return taskInstance;
     }
 
-    private TaskInstanceDTO createTaskInstanceForRedo(TaskInstanceDTO originTaskInstance, String operator) {
+    private TaskInstanceDTO createTaskInstanceForRedo(TaskInstanceDTO originTaskInstance,
+                                                      long appId,
+                                                      String operator) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
-        taskInstance.setAppId(originTaskInstance.getAppId());
+        // 用校验过的 appId，与步骤实例保持一致；原实例的归属已在取实例时校验过，两者必然相等
+        taskInstance.setAppId(appId);
         taskInstance.setType(originTaskInstance.getType());
         taskInstance.setStartupMode(TaskStartupModeEnum.WEB.getValue());
         taskInstance.setCronTaskId(-1L);
@@ -2333,11 +2452,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         log.info("Operate step, appId:{}, stepInstanceId:{}, operator:{}, operation:{}", appId, stepInstanceId,
             operator, operation.getValue());
 
-        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, stepOperation.getTaskInstanceId());
-        addJobInstanceContext(taskInstance);
-
         StepInstanceDTO stepInstance = queryStepInstanceAndCheckExist(
             appId, stepOperation.getTaskInstanceId(), stepInstanceId);
+
+        // 鉴权用的作业实例 ID 取自查出来的步骤实例，不能取入参里的 taskInstanceId：
+        // 步骤查询里的 task_instance_id 条件在分库开关未开启或历史数据下会退化成 TRUE
+        // （见 TaskInstanceIdDynamicCondition），此时入参与步骤实例可以不匹配，
+        // 直接信入参会让调用者拿自己的作业去通过鉴权、操作他人的步骤
+        TaskInstanceDTO taskInstance =
+            queryTaskInstanceAndCheckExist(operator, appId, stepInstance.getTaskInstanceId());
+        addJobInstanceContext(taskInstance);
 
         int executeCount = stepInstance.getExecuteCount();
         switch (operation) {
@@ -2377,13 +2501,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return executeCount;
     }
 
-    private TaskInstanceDTO queryTaskInstanceAndCheckExist(long appId, long taskInstanceId) {
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
-            log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
-        return taskInstance;
+    /**
+     * 按 (调用者, 业务) 取作业实例：不属于该业务时抛 TASK_INSTANCE_NOT_EXIST，
+     * 非本人执行的实例还会鉴 VIEW_HISTORY，避免业务内任意用户操作他人的作业。
+     * <p>
+     * 必须带调用者：只校验 appId 时业务内任意用户都能操作他人发起的作业。
+     */
+    private TaskInstanceDTO queryTaskInstanceAndCheckExist(User user, long appId, long taskInstanceId) {
+        return taskInstanceService.getTaskInstance(user, appId, taskInstanceId);
     }
 
     private StepInstanceDTO queryStepInstanceAndCheckExist(long appId, long taskInstanceId, long stepInstanceId) {
@@ -2697,7 +2822,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public void terminateJob(User user, Long appId, Long taskInstanceId) {
-        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(user, appId, taskInstanceId);
         terminateJob(user.getUsername(), taskInstance);
     }
 
@@ -2732,7 +2857,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                 TaskOperationEnum operation) {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
             taskInstanceId, operator, operation.getValue());
-        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(operator, appId, taskInstanceId);
         addJobInstanceContext(taskInstance);
         switch (operation) {
             case TERMINATE_JOB:

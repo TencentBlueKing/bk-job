@@ -40,7 +40,9 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -79,10 +81,19 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
                             AppProperties appProperties,
                             MeterRegistry meterRegistry,
                             TenantEnvService tenantEnvService) {
+        this(bkApiGatewayProperties, appProperties, meterRegistry, tenantEnvService,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_USER));
+    }
+
+    public UserMgrApiClient(BkApiGatewayProperties bkApiGatewayProperties,
+                            AppProperties appProperties,
+                            MeterRegistry meterRegistry,
+                            TenantEnvService tenantEnvService,
+                            boolean sslVerifyEnabled) {
         super(meterRegistry,
             USER_MANAGE_API,
             bkApiGatewayProperties.getBkUser().getUrl(),
-            HttpHelperFactory.getRetryableHttpHelper(),
+            HttpHelperFactory.getRetryableHttpHelper(sslVerifyEnabled),
             tenantEnvService
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),

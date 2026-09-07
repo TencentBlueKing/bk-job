@@ -283,6 +283,18 @@
         }
       },
       /**
+       * @desc 取消公共存储，清空共享范围
+       *
+       * 共享对象区块只在公共存储下展示，取消公共存储时必须同时清掉共享范围，
+       * 否则会提交 publicFlag = false + shareToAllApp = true 的矛盾数据
+       */
+      'formData.publicFlag'(newVal) {
+        if (!newVal) {
+          this.formData.shareToAllApp = false;
+          this.formData.sharedScopeList = [];
+        }
+      },
+      /**
        * @desc 接入点选择范围——获取文件接入点列表
        * 重置接入点为自动选择
        */
@@ -492,6 +504,12 @@
         return this.$refs.fileSourceform.validate()
           .then(() => {
             const params = Object.assign({}, this.formData);
+
+            // 非公共存储不带任何共享范围，兜住 watch 时序不符合预期的情况
+            if (!params.publicFlag) {
+              params.shareToAllApp = false;
+              params.sharedScopeList = [];
+            }
 
             // workerId 不为空手动选择接入点
             // workerId 为空自动选择接入点

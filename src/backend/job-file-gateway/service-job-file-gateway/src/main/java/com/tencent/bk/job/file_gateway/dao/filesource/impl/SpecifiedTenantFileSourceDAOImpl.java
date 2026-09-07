@@ -79,9 +79,7 @@ public class SpecifiedTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl impl
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.TENANT_ID.eq(tenantId));
         conditions.add(defaultTable.ID.in(ids));
-        // 归属业务自己那一行共享记录由 FileSourceShareDAO 在保存时无条件写入，故归属业务也能由 share 条件命中，
-        // 与已有的 listAvailableFileSource 口径保持一致
-        conditions.add(tableFileSourceShare.APP_ID.eq(appId).or(defaultTable.SHARE_TO_ALL_APP.eq(true)));
+        conditions.add(genAppScopeCondition(appId));
         val records = dslContext.selectDistinct(defaultTable.ID)
             .from(defaultTable)
             .join(tableFileSourceShare)

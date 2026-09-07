@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.constants.EsbConsts;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.check.ParamCheckUtil;
@@ -92,7 +93,7 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
             sb.append(File.separator);
             sb.append(username);
             sb.append(File.separatorChar);
-            sb.append(fileName);
+            sb.append(FilePathUtils.getPureFileName(fileName));
             String filePath = sb.toString();
             filePathList.add(filePath);
         });

@@ -281,11 +281,12 @@ public interface ScriptManager {
     /**
      * 获取引用脚本的模板与步骤
      *
+     * @param tenantId 租户ID，校验脚本属于该租户，不属于则返回空列表，为空则不校验
      * @param appId    业务ID
      * @param scriptId 脚本ID
      * @return 引用脚本的模板与步骤
      */
-    List<ScriptSyncTemplateStepDTO> listScriptSyncTemplateSteps(Long appId, String scriptId);
+    List<ScriptSyncTemplateStepDTO> listScriptSyncTemplateSteps(String tenantId, Long appId, String scriptId);
 
     /**
      * 批量同步脚本到作业模板
@@ -306,38 +307,42 @@ public interface ScriptManager {
     /**
      * 获取引用脚本的模板数量
      *
+     * @param tenantId        租户ID，校验脚本属于该租户，不属于则返回0，为空则不校验
      * @param scriptId        脚本ID
      * @param scriptVersionId 脚本版本ID
      * @return 引用脚本的模板数量
      */
-    Integer getScriptTemplateCiteCount(String scriptId, Long scriptVersionId);
+    Integer getScriptTemplateCiteCount(String tenantId, String scriptId, Long scriptVersionId);
 
     /**
      * 获取引用脚本的执行方案数量
      *
+     * @param tenantId        租户ID，校验脚本属于该租户，不属于则返回0，为空则不校验
      * @param scriptId        脚本ID
      * @param scriptVersionId 脚本版本ID
      * @return 引用脚本的执行方案数量
      */
-    Integer getScriptTaskPlanCiteCount(String scriptId, Long scriptVersionId);
+    Integer getScriptTaskPlanCiteCount(String tenantId, String scriptId, Long scriptVersionId);
 
     /**
      * 获取引用脚本的模板信息
      *
+     * @param tenantId        租户ID，校验脚本属于该租户，不属于则返回空列表，为空则不校验
      * @param scriptId        脚本ID
      * @param scriptVersionId 脚本版本ID
      * @return 引用脚本的作业模板
      */
-    List<ScriptCitedTaskTemplateDTO> getScriptCitedTemplates(String scriptId, Long scriptVersionId);
+    List<ScriptCitedTaskTemplateDTO> getScriptCitedTemplates(String tenantId, String scriptId, Long scriptVersionId);
 
     /**
      * 获取引用脚本的执行方案信息
      *
+     * @param tenantId        租户ID，校验脚本属于该租户，不属于则返回空列表，为空则不校验
      * @param scriptId        脚本ID
      * @param scriptVersionId 脚本版本ID
      * @return 引用脚本的执行方案
      */
-    List<ScriptCitedTaskPlanDTO> getScriptCitedTaskPlans(String scriptId, Long scriptVersionId);
+    List<ScriptCitedTaskPlanDTO> getScriptCitedTaskPlans(String tenantId, String scriptId, Long scriptVersionId);
 
     Integer countScripts(Long appId, ScriptTypeEnum scriptTypeEnum, JobResourceStatusEnum jobResourceStatusEnum);
 
@@ -382,9 +387,10 @@ public interface ScriptManager {
     /**
      * 脚本版本是否被引用
      *
+     * @param tenantId        租户ID，校验脚本属于该租户，不属于则视为未被引用，为空则不校验
      * @param scriptId        脚本ID
      * @param scriptVersionId 脚本版本ID
      */
-    boolean isScriptReferenced(String scriptId, Long scriptVersionId);
+    boolean isScriptReferenced(String tenantId, String scriptId, Long scriptVersionId);
 
 }

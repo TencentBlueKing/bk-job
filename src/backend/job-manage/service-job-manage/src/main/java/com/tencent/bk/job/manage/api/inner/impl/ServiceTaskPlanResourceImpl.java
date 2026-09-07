@@ -62,6 +62,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableTypeDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
 import com.tencent.bk.job.manage.service.AccountService;
@@ -245,6 +246,17 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         Long planId = taskPlanService.saveTaskPlanForBackup(taskPlanInfo);
         planAuthService.registerPlan(user, planId, planInfo.getName());
         return InternalResponse.buildSuccessResp(planId);
+    }
+
+    @Override
+    public InternalResponse<List<ServiceTaskVariableTypeDTO>> listPlanGlobalVarTypes(Long planId) {
+        List<TaskVariableDTO> taskVariableList = taskVariableService.listVariablesByParentId(planId);
+        if (CollectionUtils.isEmpty(taskVariableList)) {
+            return InternalResponse.buildSuccessResp(Collections.emptyList());
+        }
+        return InternalResponse.buildSuccessResp(taskVariableList.stream()
+            .map(TaskVariableDTO::toServiceTypeDTO)
+            .collect(Collectors.toList()));
     }
 
     @Override

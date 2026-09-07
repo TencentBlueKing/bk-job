@@ -1,0 +1,6 @@
+| Field | Type | Description |
+|-------|------|-------------|
+| approval_task_id | string | Approval task ID. Used for querying, refreshing and canceling the approval task, and for the approval channel to fetch the ticket |
+| status | string | Approval task status. Always `PENDING` (waiting for approval) for a newly created task |
+| approval_channel | string | Approval channel actually used. Options: `IMATE` (IMate approval channel) |
+| expire_at | long | Expiry moment of the approval task, Unix timestamp in milliseconds. After expiry the task can no longer be released and must be initiated again |

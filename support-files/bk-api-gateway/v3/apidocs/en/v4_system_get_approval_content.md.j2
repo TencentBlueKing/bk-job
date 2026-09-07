@@ -1,0 +1,157 @@
+### Description
+
+Fetch the approval content of an approval task, so that the **approval channel** can create a ticket and present it to the approver. This is an **application-authenticated API**.
+
+Caller restrictions (any mismatch is reported as "approval task does not exist", without distinguishing "does not exist" from "no permission"):
+
+- The caller must be **the application of the approval channel assigned to the task**;
+- The user passed in the `X-Bk-Username` header must be **the creator of the approval task**;
+- The tenant that user belongs to must match the tenant of the approval task.
+
+The channel must therefore fetch the content as **the current approver** and must not always pass a fixed account. This API **does not accept self-service permission applications** and can only be called after being granted by the Job platform administrator.
+
+The approval content `approval_content` is **Markdown already rendered by the Job platform**, so the channel can present it directly without assembling anything. The body contains, in order, a level-one title, a summary table, the script content code block and the raw parameters JSON code block. The title, the creator and the risk level are all rendered into it, so the response no longer carries separate structured fields. The summary gives the **impact resolved by the pre-check** (risk level, execute account, script param, execute objects, the source files and target path of file transfer operations, transfer mode, defaults that took effect, high-risk and dynamic target notices, and so on); per-step details are not expanded in the body, so that an over-long ticket does not push the approver to scroll straight to the bottom and release it. The value of a sensitive field is only a placeholder and never carries the real value. **Script content is the single exception and is shown as is**, otherwise the approver has no way to assess the risk.
+
+The risk level is a hint for the approver only and never takes part in the release check. It is determined as follows:
+
+| Risk level | Condition |
+|------|------|
+| High | A high-risk statement rule is matched, or more than 100 hosts are affected |
+| Medium | More than 10 hosts are affected |
+| Low | Everything else |
+
+The number of affected hosts is the greater of the **total execute objects** and the **sum of hosts across all host-type global variables**. Create job plan and save cron operations have no total execute objects at all - their whole impact lives in the variables, so a plan pointing at thousands of machines would otherwise be judged low risk. Executing a job plan, on the other hand, already resolves host variables into the step targets and counts them in the total execute objects, so taking the greater value rather than the sum keeps the same machines from being counted twice.
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### Request Parameters
+
+#### Header Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| X-Bk-Username | string | Yes | The user fetching the content. Must be the current approver |
+
+#### Query Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| approval_task_id | string | Yes | Approval task ID returned by the initiating API and handed over to the approval channel by the caller |
+
+### Request Parameters Example
+
+- GET
+
+```
+/api/v4/system/get_approval_content?approval_task_id=5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "expire_at": 1786694400000,
+        "approval_content": "# Fast execute script - BlueKing - 37 execute object(s)\n\n## Operation summary\n\n| Item | Content |\n| --- | --- |\n| Operation type | Fast execute script |\n| Resource scope | BlueKing(biz:2) |\n| Initiator | admin |\n| **Risk level** | **High** |\n| Operation object | Clean disk cache |\n| Execute account | root |\n| Script param | --env=prod --force |\n| Execute objects | 37 in total, too many to list one by one |\n| **High-risk statement detection** | **High-risk statement rule matched, please check carefully** |\n| **Dynamic target notice** | **Target contains dynamic group or topo node, the actual machines are resolved again on release and may differ from here** |\n| [Default] Timeout | 7200s |\n\n## Script content\n\n```shell\n#!/bin/bash\nrm -rf /tmp/cache\n```\n\n## Raw parameters\n\n```json\n{\n  \"script_content\" : \"See the [Script content] section\",\n  \"script_param\" : \"******\"\n}\n```\n"
+    }
+}
+```
+
+#### Operation Summary Example of a File Transfer
+
+A file transfer adds four rows to the summary: source files, target path, target file name (absent unless a rename was requested) and transfer mode, all taken from the pre-check result. A source file is given as "account@source hosts: file paths"; up to 10 source hosts are listed one by one as cloud area ID:IP and beyond that only the host count is reported, while a locally uploaded file has neither source host nor source account and is marked "[Local file]". The transfer mode is the one **actually in effect**, and the "[Default]" mark only shows up when `transfer_mode` was not passed, never when the caller passed it explicitly. Every row carrying the "[Default]" prefix (including the transfer mode when it took effect by default) is placed at the end of the summary table, after the ordinary field rows. The rendered table looks like:
+
+```markdown
+| Item | Content |
+| --- | --- |
+| Operation type | Fast transfer file |
+| Resource scope | BlueKing(biz:2) |
+| Initiator | admin |
+| Risk level | Low |
+| Operation object | Distribute the installation package |
+| Execute account | root |
+| Source files | root@0:127.0.0.9: /pkg/app.tar.gz,/pkg/conf.yaml; [Local file] /tmp/20260901/db.sql |
+| Target path | /data/app/ |
+| Transfer mode | Safety mode (store files with the same name in directories named by source IP, create the target path if it does not exist) |
+| Execute objects | 3 object(s): 0:127.0.0.1; 0:127.0.0.2; 0:127.0.0.3 |
+| [Default] Timeout | 7200s |
+```
+
+A job plan containing file transfer steps works the same way: the source files and target paths of every step are de-duplicated and merged into one row. A row lists at most 5 entries; anything beyond that is not expanded and only the total is appended. Executing a job plan also lists its global variables (see "Global Variables Section Example" below):
+
+```markdown
+| Item | Content |
+| --- | --- |
+| Operation type | Execute job plan |
+| Resource scope | BlueKing(biz:2) |
+| Initiator | admin |
+| Risk level | Medium |
+| Operation object | Release process |
+| Execute account | root |
+| Source files | root@0:127.0.0.9: /pkg/app-0.tar.gz; root@0:127.0.0.9: /pkg/app-1.tar.gz; root@0:127.0.0.9: /pkg/app-2.tar.gz; root@0:127.0.0.9: /pkg/app-3.tar.gz; root@0:127.0.0.9: /pkg/app-4.tar.gz; the rest omitted (7 in total) |
+| Target path | /data/app/ |
+| Transfer mode | Force mode (overwrite files with the same name, create the target path if it does not exist) |
+| Job plan ID | 1000 |
+| Global variables | 4 in total, see the section of the same name below |
+| Execute objects | 12 in total, too many to list one by one |
+```
+
+#### Operation Summary Example of a Create Job Plan
+
+The enabled steps are given by name. **The table only reports how many there are, and the names are listed one per line in a section of the same name right after the summary table** (a table cell cannot hold line breaks, and the body never uses HTML tags such as `<br>`). When every template step is enabled, both the label and the section title are marked "(all)":
+
+```markdown
+| Item | Content |
+| --- | --- |
+| Operation type | Create job plan |
+| Resource scope | BlueKing(biz:2) |
+| Initiator | admin |
+| Risk level | Low |
+| Operation object | Release process - gray |
+| Job template ID | 1000 |
+| Enabled steps | 3 in total, see the section of the same name below |
+| Global variables | 4 in total, see the section of the same name below |
+
+## Enabled steps
+
+- Stop service
+- Distribute the installation package
+- Start service
+```
+
+#### Global Variables Section Example
+
+Execute job plan, create job plan and save cron operations add a "Global variables" section that lists **every variable in effect**, including the ones this request did not specify and that keep the value configured on the job template or the job plan - those values are executed all the same, so listing only what changed would make the approver release the ticket blindfolded. Rows keeping the current value carry an "[unchanged]" prefix and are placed at the end.
+
+The value of a host-type variable follows the host count: up to 10 hosts are listed one by one as cloud area ID:IP, beyond that only the total is reported. Dynamic groups and topology nodes have no computable host count and are reported as a number of entries (the actual machines are resolved at release time, and the summary table carries a dynamic target notice row). Cipher variables show a placeholder only.
+
+```markdown
+## Global variables
+
+| Variable | Type | Value |
+| --- | --- | --- |
+| version | String | v1.2.3 |
+| target_hosts | Host | 3 host(s): 0:127.0.0.1; 0:127.0.0.2; 0:127.0.0.3 |
+| db_password | Cipher | ****** |
+| [unchanged] batch_hosts | Host | 236 hosts in total, too many to list one by one |
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Description |
+|-------|------|-------------|
+| approval_task_id | string | Approval task ID |
+| expire_at | long | Expiry moment of the approval task, Unix timestamp in milliseconds. After expiry the task can no longer be released |
+| approval_content | string | Approval content in Markdown, already rendered by the Job platform, which the channel can present directly. It contains, in order, a level-one title (such as "Fast execute script - BlueKing - 37 execute object(s)"), the summary table (operation type, resource scope, initiator, risk level, operation object, execute account, script param, execute objects, source files, target path, target file name, transfer mode, defaults that took effect, and so on), the sections for fields that must be listed line by line (such as "Enabled steps"), the script content code block (tagged with the script language, such as shell or python, so the channel can highlight it) and the raw parameters JSON code block. **The body uses only basic Markdown - headings, tables, lists and code blocks - and contains no inline HTML such as `<br>`**, so the channel renders it correctly without supporting HTML. The execute account is the de-duplicated set of account aliases resolved for every step. The script param row only shows up when the operation has script steps and the caller passed a param, is likewise the de-duplicated set resolved for every step, and shows a placeholder instead of the real value when the caller declared it sensitive (`is_param_sensitive` set to true). The execute objects row lists the objects themselves (cloud area ID:IP for a host, container name for a container) when there are no more than 10 of them in total, and reports only the total beyond that. The source files, target path, target file name and transfer mode rows only show up when the operation has file transfer steps (including a job plan that contains them), and each is the de-duplicated set of what the pre-check resolved for every step. A source file is given as "account@source hosts: file paths", with up to 10 source hosts listed one by one as cloud area ID:IP and only the host count reported beyond that, while a locally uploaded file has neither source host nor source account and is marked "[Local file]". The target file name appears only when the caller asked for a rename, and the transfer mode is the **mode actually in effect** (strict / force / safety mode) together with how files with the same name and a missing target path are handled, marked with "[Default]" only when `transfer_mode` was not passed and the force mode took effect by default. Every row carrying the "[Default]" prefix is placed at the end of the summary table, after the ordinary field rows. Each of these merged rows lists at most 5 entries; anything beyond that is not expanded and only "the rest omitted (N in total)" is appended. The "Operation" row of a save cron operation reads "Create" or "Update", following the language of the request. The "Cron rule" row of a cron job is shown in the UNIX format the caller submitted (such as `30 10 8 * *`) rather than the Quartz format actually stored. The "Enabled steps" of a create job plan operation gives step names instead of step IDs: the summary table only reports the count ("N in total, see the section of the same name below") and the names are listed one per line as a Markdown bullet list in a section of the same name right after the summary table, with no truncation. Both the label and the section title read "Enabled steps (all)" when every template step is enabled. Execute job plan, create job plan and save cron operations also carry a "Global variables" section, a three-column table (variable / type / value) listing **every variable in effect**, including the ones this request did not specify and that keep the value configured on the job template or the job plan - those rows carry an "[unchanged]" prefix and are placed at the end - while the summary table again only reports the count. A host-type variable lists its hosts as cloud area ID:IP when there are no more than 10 of them and reports only the total beyond that. Dynamic groups and topology nodes have no computable host count and are reported as a number of entries, and cipher variables show a placeholder only. Per-step details (step name, script name, target host list, and so on) are not expanded in the body, so that an over-long ticket does not push the approver to scroll straight to the bottom and release it. High-risk items that must stand out (matched high-risk statement rules, dynamic group targets) are rendered in Markdown bold. Fields that were not provided are omitted from the raw parameters, which therefore list only what the caller actually passed in. The values of password-like sensitive fields are placeholders only and carry no real value, **script content being the single exception shown as is**. When the target contains dynamic groups or topology nodes, the body states that the machines actually executed on are resolved again at release time |

@@ -1,0 +1,63 @@
+### 功能描述
+
+发起「启停定时任务」的审批。本接口只创建审批任务并对参数做一次完整预检，**定时任务状态不会变更**；审批通过后由作业平台用发起人的身份自动变更。
+
+调用前须满足：目标定时任务已存在于指定的资源范围内，调用身份对该资源范围具备启停定时任务的操作权限（预检不通过会直接返回错误，不会创建审批任务）。
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| approval_channel | string | 否 | 审批渠道。可选值：`IMATE`（IMate 审批渠道）。不传时使用服务端配置的默认渠道。只能指定渠道枚举值，渠道地址与密钥一律取自服务端配置 |
+| id | long | 是 | 定时任务 ID |
+| status | int | 是 | 目标状态。可选值：1（启用）、0（停用） |
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "approval_channel": "IMATE",
+    "id": 700001,
+    "status": 1
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "PENDING",
+        "approval_channel": "IMATE",
+        "expire_at": 1786694400000
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+本接口只返回审批任务信息，**不返回任何执行结果**，此时定时任务状态尚未变更。注意响应中的 `status` 表示审批任务状态，与请求中表示定时任务目标状态的 `status` 含义不同。
+
+{% include '_generic_v4_approval_task_created.md.j2' %}

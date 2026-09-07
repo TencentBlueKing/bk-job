@@ -85,4 +85,21 @@ public class TaskExecuteParam {
      */
     @Builder.Default
     private Boolean startTask = true;
+
+    /**
+     * 是否为预检（dryRun）。为 true 时走完全部业务校验与鉴权后立即返回，不产生任何写操作。
+     * <p>
+     * 供带审批的接口在创建审批任务时触发完整业务层校验并产出单据所需的解析结果。
+     */
+    private boolean dryRun;
+
+    /**
+     * dryRun 不得与 skipAuth 同时生效：预检的价值就在于把真实鉴权提前，跳过鉴权的预检没有意义，
+     * 且会让审批放行路径绕过 IAM。违反即视为编码错误。
+     */
+    public void assertDryRunNotSkipAuth() {
+        if (dryRun && skipAuth) {
+            throw new IllegalStateException("dryRun must not be combined with skipAuth, planId=" + planId);
+        }
+    }
 }

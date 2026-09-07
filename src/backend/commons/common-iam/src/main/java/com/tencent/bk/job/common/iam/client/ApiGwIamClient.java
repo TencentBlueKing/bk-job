@@ -42,8 +42,10 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
@@ -72,6 +74,16 @@ public class ApiGwIamClient extends BkApiV1Client implements IIamClient {
                           BkApiGatewayProperties bkApiGatewayProperties,
                           TenantEnvService tenantEnvService,
                           IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+        this(meterRegistry, appProperties, bkApiGatewayProperties, tenantEnvService, virtualAdminAccountProvider,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.IAM));
+    }
+
+    public ApiGwIamClient(MeterRegistry meterRegistry,
+                          AppProperties appProperties,
+                          BkApiGatewayProperties bkApiGatewayProperties,
+                          TenantEnvService tenantEnvService,
+                          IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                          boolean sslVerifyEnabled) {
         super(
             meterRegistry,
             IAM_API,
@@ -85,7 +97,8 @@ public class ApiGwIamClient extends BkApiV1Client implements IIamClient {
                 60,
                 false,
                 null,
-                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor()),
+                sslVerifyEnabled
             ),
             tenantEnvService
         );

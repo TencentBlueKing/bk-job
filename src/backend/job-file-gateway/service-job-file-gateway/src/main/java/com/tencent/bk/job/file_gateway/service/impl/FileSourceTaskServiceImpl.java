@@ -26,6 +26,7 @@ package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
@@ -121,6 +122,44 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         );
     }
 
+    /**
+     * 校验文件源在指定业务的可见范围内，不在则拒绝下发。
+     * 判定口径与 {@code FileSourceDAO.listFileSourceIdsInAppScope} 的 SQL 一致：
+     * 归属本业务、显式共享给本业务、或「公共 + 全业务共享」三者之一。
+     * 刻意不判 ENABLE：禁用与否由既有逻辑处理，兜底只管越权。
+     *
+     * @param appId 发起任务所在的业务 ID
+     * @param fileSourceDTO 文件源信息
+     * @throws FailedPreconditionException 文件源不属于当前业务且没有共享给这个业务使用
+     */
+    private void denyIfNotInAppScope(Long appId, FileSourceDTO fileSourceDTO) {
+        if (isInAppScope(appId, fileSourceDTO)) {
+            return;
+        }
+        log.warn("File source is not in app scope, appId={}, fileSourceId={}, ownerAppId={}",
+            appId, fileSourceDTO.getId(), fileSourceDTO.getAppId());
+        throw new FailedPreconditionException(ErrorCode.FILE_SOURCE_ID_NOT_IN_BIZ,
+            new Object[]{String.valueOf(fileSourceDTO.getId())});
+    }
+
+    private boolean isInAppScope(Long appId, FileSourceDTO fileSourceDTO) {
+        if (appId == null) {
+            return false;
+        }
+        if (appId.equals(fileSourceDTO.getAppId())) {
+            return true;
+        }
+        // 私有文件源不对其他业务开放，即使存量数据里残留了全业务标记或共享记录
+        if (!Boolean.TRUE.equals(fileSourceDTO.getPublicFlag())) {
+            return false;
+        }
+        if (Boolean.TRUE.equals(fileSourceDTO.getShareToAllApp())) {
+            return true;
+        }
+        List<Long> sharedAppIdList = fileSourceDTO.getSharedAppIdList();
+        return sharedAppIdList != null && sharedAppIdList.contains(appId);
+    }
+
     public TaskInfoDTO startFileSourceDownloadTaskWithId(String username,
                                                          Long appId,
                                                          Long stepInstanceId,
@@ -143,6 +182,8 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         if (fileSourceDTO == null) {
             throw new RuntimeException("FileSource not exist, fileSourceId=" + fileSourceId.toString());
         }
+        // 下发漏斗上的兜底校验：步骤重试不会重建步骤实例，绕过了 job-execute 侧的执行前校验
+        denyIfNotInAppScope(appId, fileSourceDTO);
         FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(
             fileSourceDTO,
             "DownloadTask(appId=" + appId + ")"

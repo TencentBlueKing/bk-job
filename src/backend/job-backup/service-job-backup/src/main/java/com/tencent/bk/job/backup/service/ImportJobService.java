@@ -45,13 +45,25 @@ public interface ImportJobService {
     String addImportJob(String username, Long appId, String id, String fileName);
 
     /**
-     * 按 ID 查询导入任务信息
+     * 按 ID 查询导入任务信息。<b>不做创建者校验</b>，仅供 {@code ImportJobExecutor} 等内部异步调用；
+     * 外部入口请用带 username 的重载。
      *
      * @param appId 业务 ID
      * @param jobId 任务 ID
      * @return 导入任务信息
      */
     ImportJobInfoDTO getImportInfoById(Long appId, String jobId);
+
+    /**
+     * 按 ID 查询导入任务信息，并校验任务归属：非本人创建的任务按「不存在」处理（返回 null）。
+     * 导入任务是用户私有资源，业务权限不足以授权访问他人的任务。
+     *
+     * @param username 用户名
+     * @param appId    业务 ID
+     * @param jobId    任务 ID
+     * @return 导入任务信息，任务不存在或非本人创建时返回 null
+     */
+    ImportJobInfoDTO getImportInfoById(String username, Long appId, String jobId);
 
     /**
      * 按用户拉取正在导入的作业列表
