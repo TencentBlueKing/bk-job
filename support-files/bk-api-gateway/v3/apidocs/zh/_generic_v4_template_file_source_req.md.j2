@@ -1,0 +1,13 @@
+| 字段             | 类型    | 必选 | 描述                                                          |
+|----------------|-------|----|-------------------------------------------------------------|
+| file_type      | int   | 是  | 源文件类型。可选值：`1`（服务器文件）、`2`（本地文件）、`3`（文件源文件）                    |
+| file_list      | array | 是  | 源文件路径列表，元素为 string，不可为空                                     |
+| file_source_id | int   | 否  | 文件源 ID。`file_type` 为 3 时必填                                  |
+| account        | object | 否  | 执行账号，见下文 `account`。`file_type` 为 1 时必填                      |
+| execute_target | object | 否  | 源文件所在主机，见下文 `execute_target`。`file_type` 为 1 时必填            |
+
+各类型的填写要求：
+
+- **服务器文件**（`file_type=1`）：`file_list` 为源主机上的绝对路径，须同时填写 `account` 与 `execute_target`
+- **本地文件**（`file_type=2`）：须先调用 v3 接口 `generate_local_file_upload_url` 上传文件，再把返回的文件路径填入 `file_list`；一个元素只能带一个路径（每个本地文件占一个 `file_source_list` 条目）；文件的大小与校验值由服务端从制品库补齐，路径不存在或不属于当前资源范围时报参数错误
+- **文件源文件**（`file_type=3`）：`file_list` 为文件源内的路径；`file_source_id` 可在业务的【文件源】管理页获取，它是自增主键、在不同环境中取值不同。写入只认 `file_source_id`；`get_job_template_detail` 响应中的 `file_source_code` 为只读展示字段，写入时会被忽略而不报错，便于读—改—写闭环。引用的文件源须存在、在当前业务下可用（本业务创建或已共享给本业务）且处于启用状态，否则报错

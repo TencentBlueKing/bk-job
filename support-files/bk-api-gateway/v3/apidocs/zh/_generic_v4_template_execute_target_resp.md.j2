@@ -1,0 +1,70 @@
+| 字段                  | 类型   | 是否一定存在 | 描述 |
+|-----------------------|--------|--------------|------|
+| variable              | string | 否           | 引用模板中其他全局变量名称 |
+| host_list             | array  | 否           | 静态主机列表 |
+| dynamic_group_list    | array  | 否           | 动态分组列表 |
+| topo_node_list        | array  | 否           | CMDB 拓扑节点列表 |
+| container_list        | array  | 否           | 静态容器列表 |
+| container_filter_list | array  | 否           | 容器动态筛选条件列表 |
+
+##### host_list[] 元素
+
+| 字段          | 类型   | 是否一定存在 | 描述 |
+|---------------|--------|--------------|------|
+| bk_host_id    | long   | 否           | 主机在 CMDB 中的 ID |
+| bk_cloud_id   | long   | 否           | 管控区域 ID |
+| ip            | string | 否           | 主机 IP 地址 |
+
+##### dynamic_group_list[] 元素
+
+| 字段 | 类型   | 是否一定存在 | 描述 |
+|------|--------|--------------|------|
+| id   | string | 是           | 动态分组 ID |
+
+##### topo_node_list[] 元素
+
+| 字段       | 类型   | 是否一定存在 | 描述 |
+|------------|--------|--------------|------|
+| id         | long   | 是           | 拓扑节点 ID |
+| node_type  | string | 是           | 拓扑节点类型。可选值：`module`（模块）、`set`（集群） |
+
+##### container_list[] 元素
+
+| 字段            | 类型   | 是否一定存在 | 描述 |
+|-----------------|--------|--------------|------|
+| container_id    | long   | 是           | 容器 ID（CMDB 内部 ID） |
+| container_uid   | string | 否           | 容器运行时 UID |
+| name            | string | 否           | 容器名称 |
+| pod_name        | string | 否           | Pod 名称 |
+| namespace       | string | 否           | namespace 名称 |
+| cluster_uid     | string | 否           | 集群 UID |
+| node_ip         | string | 否           | 容器所在节点 IP |
+
+除 `container_id` 外的字段来自保存时的快照，用于展示。通过本接口之外的方式（如 OpenAPI 写接口）保存的容器可能只有 `container_id`。容器从 CMDB 删除后，这里仍会返回保存时的内容。
+
+##### container_filter_list[] 元素
+
+| 字段              | 类型   | 是否一定存在 | 描述 |
+|-----------------|--------|--------------|------|
+| name            | string | 否           | 条件名称 |
+| kube_topo_list  | array  | 是           | 拓扑路径列表 |
+| prop_conditions | array  | 否           | 容器字段级筛选条件 |
+
+###### kube_topo_list[] 元素
+
+| 字段            | 类型   | 是否一定存在 | 描述 |
+|---------------|--------|--------------|------|
+| cluster       | object | 是           | 集群拓扑对象，形如 `{"id": 105}` |
+| namespace     | object | 否           | namespace 拓扑对象，形如 `{"id": 207}` |
+| workload_list | array  | 否           | workload 拓扑对象列表，元素形如 `{"kind": "deployment", "id": 309}` |
+
+拓扑对象只返回 CMDB 内部 ID，不含集群 UID、namespace 名称等可读信息。
+
+###### prop_conditions[] 元素
+
+| 字段    | 类型     | 是否一定存在 | 描述                                                                              |
+|-------|--------|--------|---------------------------------------------------------------------------------|
+| field | string | 是      | 筛选字段。可选值：`container_name`、`container_container_uid`、`pod_name`、`pod_labels` |
+| value | string | 是      | 取值。`field` 为 `pod_labels` 时为 K8s 标签选择器表达式                                  |
+
+不返回运算符：匹配方式由字段唯一决定，取值与页面一致，原样回传给写接口即可。

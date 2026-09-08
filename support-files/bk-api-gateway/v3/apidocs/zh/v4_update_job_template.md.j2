@@ -1,0 +1,194 @@
+### 功能描述
+
+更新指定的作业模板。
+
+**请求体描述的是模板的期望终态，不是增量补丁。** 未出现在 `step_list` 中的既有步骤会被删除，未出现在 `global_var_list` 中的既有全局变量会被删除。推荐的用法是先调用 `get_job_template_detail` 读取当前配置，改动后整体写回。
+
+调用前须满足：作业模板存在于该资源范围内；调用身份对该模板具备编辑权限；引用脚本、文件源、账号等资源时，须对这些资源具备相应的查看/使用权限。同一资源范围下，作业模板名称不可重复。
+
+步骤 `id` 的三种情况：
+
+- **传既有步骤 ID**：保留该步骤并按请求内容更新，步骤 ID 不变
+- **不传（缺省或 null）**：作为新增步骤处理，由服务端分配 ID
+- **不传该步骤**：从模板中删除该步骤
+
+不接受 `-1`、`0` 等非正数；传入不属于本模板的步骤 ID 会返回参数错误并指明具体 ID；同一请求中步骤 ID 不可重复。
+
+全局变量按 `name` 匹配：同名视为更新既有变量，未出现的既有变量会被删除。**不支持改名**，改名等价于「删除旧变量 + 新增变量」，会丢失该变量在派生执行方案中的取值。
+
+`step_list` 的数组顺序即为步骤执行顺序，重排数组即可调整顺序，步骤 ID 不会变化。
+
+模板更新后，由该模板派生的执行方案会被标记为待同步（`need_update=true`），方案本身的配置不会被自动改动；如需让方案跟上模板变更，调用 `sync_job_plan`。
+
+### 请求参数
+
+#### Body参数
+
+| 字段              | 类型     | 必选 | 描述                                                          |
+|-----------------|--------|----|-------------------------------------------------------------|
+| bk_scope_type   | string | 是  | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集）                         |
+| bk_scope_id     | string | 是  | 资源范围 ID，须与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID               |
+| id              | long   | 是  | 作业模板 ID，须大于 0，且对应模板须已存在                                     |
+| name            | string | 是  | 作业模板名称，长度 1～60 个字符；不可包含 HTML 特殊字符 `<`、`>`、`"`、`'`；在同一资源范围下须唯一 |
+| description     | string | 否  | 作业模板描述，最长 500 个字符                                           |
+| global_var_list | array  | 否  | 全局变量列表；未出现在本列表中的既有变量会被删除；同一请求中变量名不可重复                       |
+| step_list       | array  | 是  | 作业步骤列表，数组顺序即为步骤执行顺序，不可为空；未出现在本列表中的既有步骤会被删除                  |
+
+作业模板的标签不在本接口的更新范围内，模板原有标签会被原样保留。
+
+##### global_var_list[] 元素
+
+{% include '_generic_v4_template_global_var_req.md.j2' %}
+
+##### step_list[] 元素
+
+| 字段            | 类型     | 必选 | 描述                                                     |
+|---------------|--------|----|--------------------------------------------------------|
+| id            | long   | 否  | 步骤 ID。传既有步骤 ID 表示保留并更新该步骤；缺省表示新增步骤；不接受 `-1`、`0` 等非正数 |
+| name          | string | 是  | 步骤名称，长度 1～60 个字符；不可包含 HTML 特殊字符 `<`、`>`、`"`、`'`        |
+| type          | int    | 是  | 步骤类型。可选值：`1`（脚本执行）、`2`（文件分发）、`3`（人工确认）                 |
+| script_info   | object | 否  | 脚本执行步骤详情。`type` 为 1 时必填                                |
+| file_info     | object | 否  | 文件分发步骤详情。`type` 为 2 时必填                                |
+| approval_info | object | 否  | 人工确认步骤详情。`type` 为 3 时必填                                |
+
+{% include '_generic_v4_template_step_req.md.j2' %}
+
+##### account
+
+| 字段          | 类型     | 必选 | 描述                                        |
+|-------------|--------|----|-------------------------------------------|
+| id          | long   | 否  | 账号 ID。与 `account_var` 二选一，同时填写时以 `id` 为准  |
+| account_var | string | 否  | 引用的「执行账号」类型全局变量名称。与 `id` 二选一             |
+
+`id` 与 `account_var` 至少须填写一项。
+
+##### execute_target
+
+{% include '_generic_v4_template_execute_target_req.md.j2' %}
+
+### 请求参数示例
+
+下例把模板原有的步骤 `101`、`102`、`103` 更新为「保留 101、删除 102、保留 103 并在其后新增一个人工确认步骤」。
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 1000,
+    "name": "my-api-template",
+    "description": "updated by openapi",
+    "global_var_list": [
+        {
+            "name": "TARGET_DIR",
+            "type": 1,
+            "required": 1,
+            "value": "/data/release-v2"
+        }
+    ],
+    "step_list": [
+        {
+            "id": 101,
+            "name": "run-script",
+            "type": 1,
+            "script_info": {
+                "script_type": 2,
+                "script_id": "3a1b0e8f9c2d4e5f",
+                "script_version_id": 5001,
+                "script_timeout": 1000,
+                "account": {
+                    "id": 1
+                },
+                "execute_target": {
+                    "host_list": [
+                        {
+                            "bk_host_id": 10001
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": 103,
+            "name": "transfer-file",
+            "type": 2,
+            "file_info": {
+                "file_source_list": [
+                    {
+                        "file_type": 3,
+                        "file_list": [
+                            "/bucket/config.yaml"
+                        ],
+                        "file_source_id": 7
+                    }
+                ],
+                "file_destination": {
+                    "path": "/data/release",
+                    "account": {
+                        "id": 1
+                    },
+                    "execute_target": {
+                        "host_list": [
+                            {
+                                "bk_host_id": 10001
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "name": "confirm",
+            "type": 3,
+            "approval_info": {
+                "approval_user": {
+                    "user_list": [
+                        "admin"
+                    ]
+                },
+                "approval_message": "确认发布"
+            }
+        }
+    ]
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "job_template_id": 1000,
+        "name": "my-api-template",
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "last_modify_time": 1738221000000
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段               | 类型     | 描述                                  |
+|------------------|--------|-------------------------------------|
+| bk_scope_type    | string | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id      | string | 资源范围 ID                             |
+| job_template_id  | long   | 作业模板 ID                             |
+| name             | string | 作业模板名称                              |
+| creator          | string | 创建人                                 |
+| create_time      | long   | 创建时间，Unix 时间戳，单位毫秒                  |
+| last_modify_time | long   | 最近一次修改时间，Unix 时间戳，单位毫秒              |

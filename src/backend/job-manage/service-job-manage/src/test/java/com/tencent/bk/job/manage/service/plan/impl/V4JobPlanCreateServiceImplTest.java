@@ -42,6 +42,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
+import com.tencent.bk.job.manage.service.plan.OpenApiV4JobPlanRequestResolver;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +115,7 @@ class V4JobPlanCreateServiceImplTest {
             templateAuthService,
             planAuthService,
             appScopeMappingService,
-            tenantHostService
+            new OpenApiV4JobPlanRequestResolver(tenantHostService)
         );
     }
 

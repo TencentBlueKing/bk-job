@@ -1,0 +1,202 @@
+### Description
+
+Create a new job template in the specified resource scope (business or business set).
+
+Prerequisites: the caller has permission to create job templates in the scope, and holds the corresponding
+view/use permissions on every referenced resource (scripts, file sources, accounts). Template names must be unique
+within the same resource scope.
+
+The array order of `step_list` is the execution order of the steps. This API does not accept step `id`; step IDs are
+assigned by the server and can be read via `get_job_template_detail`.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field           | Type   | Required | Description                                                                                                                            |
+|-----------------|--------|----------|----------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type   | string | Yes      | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set)                                                        |
+| bk_scope_id     | string | Yes      | Resource scope ID matching `bk_scope_type` (business ID or business set ID)                                                            |
+| name            | string | Yes      | Job template name, 1–60 characters; must not contain HTML special characters `<`, `>`, `"`, `'`; must be unique within the same scope  |
+| description     | string | No       | Job template description, up to 500 characters                                                                                         |
+| global_var_list | array  | No       | Global variable list; variable names must be unique within one request                                                                 |
+| step_list       | array  | Yes      | Job step list; the array order is the execution order; must be non-empty                                                               |
+
+##### global_var_list[] element
+
+{% include '_generic_v4_template_global_var_req.md.j2' %}
+
+##### step_list[] element
+
+| Field         | Type   | Required | Description                                                                                     |
+|---------------|--------|----------|-------------------------------------------------------------------------------------------------|
+| name          | string | Yes      | Step name, 1–60 characters; must not contain HTML special characters `<`, `>`, `"`, `'`         |
+| type          | int    | Yes      | Step type. Allowed values: `1` (script execution), `2` (file transfer), `3` (manual confirmation) |
+| script_info   | object | No       | Script step detail. Required when `type` is 1                                                   |
+| file_info     | object | No       | File transfer step detail. Required when `type` is 2                                            |
+| approval_info | object | No       | Manual confirmation step detail. Required when `type` is 3                                      |
+
+This API does not accept step `id`; providing it results in a parameter error.
+
+{% include '_generic_v4_template_step_req.md.j2' %}
+
+##### account
+
+| Field       | Type   | Required | Description                                                                          |
+|-------------|--------|----------|--------------------------------------------------------------------------------------|
+| id          | long   | No       | Account ID. Mutually exclusive with `account_var`; `id` wins when both are given     |
+| account_var | string | No       | Name of a global variable of type "execute account" to reference. Mutually exclusive with `id` |
+
+At least one of `id` and `account_var` must be provided.
+
+##### execute_target
+
+{% include '_generic_v4_template_execute_target_req.md.j2' %}
+
+### Request Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "name": "my-api-template",
+    "description": "created by openapi",
+    "global_var_list": [
+        {
+            "name": "TARGET_DIR",
+            "type": 1,
+            "description": "release directory",
+            "required": 1,
+            "value": "/data/release"
+        },
+        {
+            "name": "HOST_TARGET",
+            "type": 3,
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    }
+                ]
+            }
+        }
+    ],
+    "step_list": [
+        {
+            "name": "run-script",
+            "type": 1,
+            "script_info": {
+                "script_type": 1,
+                "script_content": "ZWNobyBoZWxsbw==",
+                "script_language": 1,
+                "script_timeout": 1000,
+                "account": {
+                    "id": 1
+                },
+                "execute_target": {
+                    "variable": "HOST_TARGET"
+                }
+            }
+        },
+        {
+            "name": "transfer-file",
+            "type": 2,
+            "file_info": {
+                "file_source_list": [
+                    {
+                        "file_type": 1,
+                        "file_list": [
+                            "/data/app.tar.gz"
+                        ],
+                        "account": {
+                            "id": 1
+                        },
+                        "execute_target": {
+                            "host_list": [
+                                {
+                                    "bk_host_id": 10002
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "file_type": 3,
+                        "file_list": [
+                            "/bucket/config.yaml"
+                        ],
+                        "file_source_id": 7
+                    }
+                ],
+                "file_destination": {
+                    "path": "/data/release",
+                    "account": {
+                        "id": 1
+                    },
+                    "execute_target": {
+                        "variable": "HOST_TARGET"
+                    }
+                },
+                "timeout": 3600,
+                "transfer_mode": 1
+            }
+        },
+        {
+            "name": "confirm",
+            "type": 3,
+            "approval_info": {
+                "approval_type": 1,
+                "approval_user": {
+                    "user_list": [
+                        "admin"
+                    ]
+                },
+                "approval_message": "confirm to release",
+                "notify_channel": [
+                    "weixin"
+                ]
+            }
+        }
+    ]
+}
+```
+
+### Response Example
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "job_template_id": 1000,
+        "name": "my-api-template",
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "last_modify_time": 1738220000000
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field            | Type   | Description                                                                     |
+|------------------|--------|---------------------------------------------------------------------------------|
+| bk_scope_type    | string | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id      | string | Resource scope ID                                                               |
+| job_template_id  | long   | ID of the created job template                                                  |
+| name             | string | Job template name                                                               |
+| creator          | string | Creator                                                                         |
+| create_time      | long   | Create time, unix timestamp in milliseconds                                     |
+| last_modify_time | long   | Last modify time, unix timestamp in milliseconds                                |

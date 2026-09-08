@@ -48,6 +48,14 @@ public class V4JobTemplateFileSourceDTO {
     private Integer fileType;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("file_source_id")
+    @JsonPropertyDescription("File source id")
+    private Integer fileSourceId;
+
+    /**
+     * 文件源标识。仅业务内唯一，作为可读信息展示；引用文件源请用 fileSourceId。
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("file_source_code")
     @JsonPropertyDescription("File source code")
     private String fileSourceCode;

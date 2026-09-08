@@ -1,0 +1,199 @@
+### 功能描述
+
+在指定的资源范围（业务或业务集）内创建一个新的作业模板。
+
+调用前须满足：调用身份对该资源范围具备创建作业模板的操作权限；引用脚本、文件源、账号等资源时，须对这些资源具备相应的查看/使用权限。同一资源范围下，作业模板名称不可重复。
+
+步骤在 `step_list` 中的数组顺序即为步骤的执行顺序。创建接口不接受步骤 `id`，步骤 ID 由服务端分配，可通过 `get_job_template_detail` 读取。
+
+### 请求参数
+
+#### Body参数
+
+| 字段              | 类型     | 必选 | 描述                                                          |
+|-----------------|--------|----|-------------------------------------------------------------|
+| bk_scope_type   | string | 是  | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集）                         |
+| bk_scope_id     | string | 是  | 资源范围 ID，须与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID               |
+| name            | string | 是  | 作业模板名称，长度 1～60 个字符；不可包含 HTML 特殊字符 `<`、`>`、`"`、`'`；在同一资源范围下须唯一 |
+| description     | string | 否  | 作业模板描述，最长 500 个字符                                           |
+| global_var_list | array  | 否  | 全局变量列表；同一请求中变量名不可重复                                         |
+| step_list       | array  | 是  | 作业步骤列表，数组顺序即为步骤执行顺序，不可为空                                    |
+
+##### global_var_list[] 元素
+
+{% include '_generic_v4_template_global_var_req.md.j2' %}
+
+##### step_list[] 元素
+
+| 字段            | 类型     | 必选 | 描述                                          |
+|---------------|--------|----|---------------------------------------------|
+| name          | string | 是  | 步骤名称，长度 1～60 个字符；不可包含 HTML 特殊字符 `<`、`>`、`"`、`'` |
+| type          | int    | 是  | 步骤类型。可选值：`1`（脚本执行）、`2`（文件分发）、`3`（人工确认）      |
+| script_info   | object | 否  | 脚本执行步骤详情。`type` 为 1 时必填                     |
+| file_info     | object | 否  | 文件分发步骤详情。`type` 为 2 时必填                     |
+| approval_info | object | 否  | 人工确认步骤详情。`type` 为 3 时必填                     |
+
+创建接口不接受步骤 `id`，传入会返回参数错误。
+
+{% include '_generic_v4_template_step_req.md.j2' %}
+
+##### account
+
+| 字段          | 类型     | 必选 | 描述                                        |
+|-------------|--------|----|-------------------------------------------|
+| id          | long   | 否  | 账号 ID。与 `account_var` 二选一，同时填写时以 `id` 为准  |
+| account_var | string | 否  | 引用的「执行账号」类型全局变量名称。与 `id` 二选一             |
+
+`id` 与 `account_var` 至少须填写一项。
+
+##### execute_target
+
+{% include '_generic_v4_template_execute_target_req.md.j2' %}
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "name": "my-api-template",
+    "description": "created by openapi",
+    "global_var_list": [
+        {
+            "name": "TARGET_DIR",
+            "type": 1,
+            "description": "发布目录",
+            "required": 1,
+            "value": "/data/release"
+        },
+        {
+            "name": "HOST_TARGET",
+            "type": 3,
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    }
+                ]
+            }
+        }
+    ],
+    "step_list": [
+        {
+            "name": "run-script",
+            "type": 1,
+            "script_info": {
+                "script_type": 1,
+                "script_content": "ZWNobyBoZWxsbw==",
+                "script_language": 1,
+                "script_timeout": 1000,
+                "account": {
+                    "id": 1
+                },
+                "execute_target": {
+                    "variable": "HOST_TARGET"
+                }
+            }
+        },
+        {
+            "name": "transfer-file",
+            "type": 2,
+            "file_info": {
+                "file_source_list": [
+                    {
+                        "file_type": 1,
+                        "file_list": [
+                            "/data/app.tar.gz"
+                        ],
+                        "account": {
+                            "id": 1
+                        },
+                        "execute_target": {
+                            "host_list": [
+                                {
+                                    "bk_host_id": 10002
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "file_type": 3,
+                        "file_list": [
+                            "/bucket/config.yaml"
+                        ],
+                        "file_source_id": 7
+                    }
+                ],
+                "file_destination": {
+                    "path": "/data/release",
+                    "account": {
+                        "id": 1
+                    },
+                    "execute_target": {
+                        "variable": "HOST_TARGET"
+                    }
+                },
+                "timeout": 3600,
+                "transfer_mode": 1
+            }
+        },
+        {
+            "name": "confirm",
+            "type": 3,
+            "approval_info": {
+                "approval_type": 1,
+                "approval_user": {
+                    "user_list": [
+                        "admin"
+                    ]
+                },
+                "approval_message": "确认发布",
+                "notify_channel": [
+                    "weixin"
+                ]
+            }
+        }
+    ]
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "job_template_id": 1000,
+        "name": "my-api-template",
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "last_modify_time": 1738220000000
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段               | 类型     | 描述                                  |
+|------------------|--------|-------------------------------------|
+| bk_scope_type    | string | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id      | string | 资源范围 ID                             |
+| job_template_id  | long   | 新建的作业模板 ID                          |
+| name             | string | 作业模板名称                              |
+| creator          | string | 创建人                                 |
+| create_time      | long   | 创建时间，Unix 时间戳，单位毫秒                  |
+| last_modify_time | long   | 最近一次修改时间，Unix 时间戳，单位毫秒              |

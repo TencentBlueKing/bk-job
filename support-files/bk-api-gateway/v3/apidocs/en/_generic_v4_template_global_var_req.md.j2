@@ -1,0 +1,11 @@
+| Field          | Type   | Required | Description                                                                                                                                                    |
+|----------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| name           | string | Yes      | Variable name, 1–60 characters; must not contain HTML special characters `<`, `>`, `"`, `'`; must be unique within one request                                 |
+| type           | int    | Yes      | Variable type. Allowed values: `1` (string), `2` (namespace), `3` (execute target list), `4` (ciphertext), `5` (associative array), `6` (index array), `7` (execute account) |
+| description    | string | No       | Variable description                                                                                                                                           |
+| required       | int    | No       | Whether the variable is mandatory at execution time. Allowed values: `0` (no, default), `1` (yes)                                                              |
+| value          | string | No       | Default value for string, namespace, ciphertext, associative array, index array and execute account types; for execute account variables the value is the account ID string |
+| execute_target | object | No       | Default execute targets, see `execute_target` below. Only for `type` 3                                                                                         |
+
+Ciphertext variables (`type=4`) are always returned as `******` by `get_job_template_detail`. Writing `******` back
+keeps the stored value unchanged; provide the new plaintext to change it.

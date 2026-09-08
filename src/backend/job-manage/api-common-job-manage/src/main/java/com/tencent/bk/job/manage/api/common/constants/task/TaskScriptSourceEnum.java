@@ -59,4 +59,8 @@ public enum TaskScriptSourceEnum {
         return null;
     }
 
+    public static boolean isValid(Integer type) {
+        return type != null && valueOf(type) != null;
+    }
+
 }
