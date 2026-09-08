@@ -1,0 +1,113 @@
+### 功能描述
+
+启动一个已有的执行方案。接口同步返回作业实例 ID，可用它查询作业执行状态与执行日志。
+
+调用前须满足：目标执行方案已存在，调用身份对该资源范围具备查看并启动该执行方案的操作权限。
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| job_plan_id | long | 是 | 要启动的执行方案 ID |
+| global_var_list | array | 否 | 全局变量取值列表，不传表示全部使用执行方案中的默认值 |
+| callback_url | string | 否 | 作业执行完成后的回调 URL，长度不可超过 1024 字符。作业执行完成后作业平台会回调该地址 |
+| start_task | boolean | 否 | 是否立即启动作业。可选值：`true`（立即启动，默认）、`false`（仅创建作业实例不启动，后续可通过作业实例操作接口启动） |
+
+##### global_var_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| id | long | 否 | 全局变量 ID。与 `name` 二者填一个，同时存在时以本字段为准 |
+| name | string | 否 | 全局变量名。与 `id` 二者填一个 |
+| value | string | 否 | 全局变量取值。执行目标类变量请用 `execute_target` 传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用本字段 |
+| execute_target | object | 否 | 执行目标类全局变量的取值 |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target.md.j2' %}
+
+**注：** 主机与容器不能混合执行。
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_plan_id": 50001,
+    "global_var_list": [
+        {
+            "id": 300001,
+            "value": "/data/release"
+        },
+        {
+            "name": "DB_PASSWORD",
+            "value": "p@ssw0rd"
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "dynamic_group_list": [
+                    {
+                        "id": "asdo8gojhasdfskft7pr5"
+                    }
+                ],
+                "topo_node_list": [
+                    {
+                        "id": 1000,
+                        "node_type": "module"
+                    }
+                ]
+            }
+        }
+    ],
+    "callback_url": "https://example.com/job/callback",
+    "start_task": true
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "job_instance_id": 10000,
+        "job_instance_name": "API Execute job plan1"
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+执行方案通常包含多个步骤，本接口只返回作业实例信息，不返回步骤实例 ID；如需步骤维度的信息，请用 `job_instance_id` 查询作业执行状态。
+
+| 字段 | 类型 | 是否一定不为null | 描述 |
+|------|------|------------|------|
+| job_instance_id | long | 是 | 作业实例 ID，用于后续查询作业执行状态与执行日志 |
+| job_instance_name | string | 否 | 作业实例名称 |

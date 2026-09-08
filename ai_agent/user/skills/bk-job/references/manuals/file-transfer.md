@@ -13,7 +13,7 @@
 | 子命令 | 接口 | 说明 |
 |--------|------|------|
 | `gen-local-upload-url` | `POST /api/v3/generate_local_file_upload_url` | 本地文件分发第 1 步：按文件名生成上传地址 `upload_url` 与分发路径 `path` |
-| `upload-local-file` | HTTP PUT（制品库临时地址，非 APIGW） | 本地文件分发第 2 步：以 PUT + `--data-binary` 将本地文件字节上传到 `upload_url` |
+| `upload-local-file` | HTTP PUT（作业平台文件上传地址，非 APIGW） | 本地文件分发第 2 步：以 PUT + `--data-binary` 将本地文件字节上传到 `upload_url` |
 | `fast-transfer-file` | `POST /api/v3/fast_transfer_file` | 分发文件到目标机器，写操作，须过确认门禁 |
 
 ## 2. 支持的源文件类型（仅两种）
@@ -24,6 +24,18 @@
 | 本地文件 | 2 | 分发运行环境本地的文件（先上传再分发） | `--local-file-list`（路径取自 `gen-local-upload-url` 的 `path`） |
 
 > **第三方文件源（file_type=3）暂不支持**：相关接口目前未提供，脚本对含 `file_type=3` 或 `file_source_id`/`file_source_code` 的源文件会报错退出。
+
+### 用户没说文件在哪时的引导（只有两个选项）
+
+**必须且只能给这两项**，禁止出现「制品库/仓库里已有的文件」「文件源文件」「COS」等第三个选项——它们在本技能里没有对应能力，给出来只会让用户选中一个走不通的路。用户若主动提到制品库里的文件，如实说明技能不支持，并问他能否改用这两种来源之一。
+
+`ai-hub-ask-user-input` 可用时发结构化选项（规范见 [interactive-choice.md](interactive-choice.md)），否则直接自然语言二选一提问：
+
+```json
+[{"question":"要分发的文件在哪里？","options":["服务器文件（业务内某台机器上已有的文件）","本地文件（我这边的文件，先上传再分发）"],"type":"single_select"}]
+```
+
+选定后的必要追问：服务器文件要接着确认**源机器与源账号**；本地文件要确认**本机文件路径**，再走下方三步流程。
 
 服务器/本地文件的滚动等复杂结构可用 `--file-source-file` 传完整 `file_source_list` JSON 数组（同样仅允许 file_type=1/2）。
 
@@ -78,11 +90,11 @@
 
 - 本地文件源（file_type=2）**不需要**源账号与源服务器，只需 `path`。
 - `path` 必须是 `gen-local-upload-url` 返回的原样路径；须先 `upload-local-file` 成功上传，否则分发时找不到文件。
-- 两步的 HTTP 方法不同，勿混淆：**[A] 生成上传地址走 APIGW 的 POST**，**[B] 上传文件字节走制品库地址的 PUT**（`Content-Type: application/octet-stream`，等价于 `curl -X PUT --data-binary @<file> "<upload_url>"`）；`upload_url` 自带 token，不附加 APIGW 鉴权头。
+- 两步的 HTTP 方法不同，勿混淆：**[A] 生成上传地址走 APIGW 的 POST**，**[B] 上传文件字节走 `upload_url` 的 PUT**（`Content-Type: application/octet-stream`，等价于 `curl -X PUT --data-binary @<file> "<upload_url>"`）；`upload_url` 自带 token，不附加 APIGW 鉴权头。
 
 #### 临时文件清理（本地文件分发尤其重要）
 
-待分发文件常常体积很大，若智能体为本次分发在 `tmp/` 下准备了副本或中间文件，**[B] 上传成功后就要立即删除**——文件已进入制品库，本地副本再无用途，堆积会直接吃掉磁盘空间。分发触发（[C] 拿到 `job_instance_id`）后再清理剩余的入参文件。
+待分发文件常常体积很大，若智能体为本次分发在 `tmp/` 下准备了副本或中间文件，**[B] 上传成功后就要立即删除**——文件已上传到作业平台，本地副本再无用途，堆积会直接吃掉磁盘空间。分发触发（[C] 拿到 `job_instance_id`）后再清理剩余的入参文件。
 
 注意区分：**用户自己的原始文件不是临时文件**，无论放在哪里都不要删；只清理 `tmp/` 下由本次任务产生的副本与中间文件。清理命令与红线见 [temp-files.md](temp-files.md)。
 

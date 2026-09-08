@@ -53,6 +53,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableTypeDTO;
 import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
@@ -292,6 +293,17 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         idNameCheck.setIdCheckResult(idResult ? 1 : 0);
         idNameCheck.setNameCheckResult(nameResult ? 1 : 0);
         return InternalResponse.buildSuccessResp(idNameCheck);
+    }
+
+    @Override
+    public InternalResponse<List<ServiceTaskVariableTypeDTO>> listTemplateGlobalVarTypes(Long templateId) {
+        List<TaskVariableDTO> taskVariableList = taskVariableService.listVariablesByParentId(templateId);
+        if (CollectionUtils.isEmpty(taskVariableList)) {
+            return InternalResponse.buildSuccessResp(Collections.emptyList());
+        }
+        return InternalResponse.buildSuccessResp(taskVariableList.stream()
+            .map(TaskVariableDTO::toServiceTypeDTO)
+            .collect(Collectors.toList()));
     }
 
     @Override

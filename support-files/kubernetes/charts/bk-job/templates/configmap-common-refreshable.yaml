@@ -31,4 +31,17 @@ data:
           {{- if .Values.job.toggle.props }}
           {{- toYaml .Values.job.toggle.props | nindent 10 }}
           {{- end }}
+      analysis:
+        approval:
+          channels:
+            imate:
+              mock:
+                # 放在可热刷新的配置里：自测时改"视为审批通过"的ID列表无需重启job-analysis。
+                # 同一节点下的mock.enabled不在此处，它决定Mock渠道Bean是否注册，只能在启动前就位
+                approvedIds:
+                  {{- if .Values.analysisConfig.approval.channels.imate.mock.approvedIds }}
+                  {{- toYaml .Values.analysisConfig.approval.channels.imate.mock.approvedIds | nindent 18 }}
+                  {{- else }}
+                  []
+                  {{- end }}
           

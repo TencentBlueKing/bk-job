@@ -271,6 +271,17 @@ public class JsonUtils {
         return JSON_MAPPERS.computeIfAbsent("__non_empty__", s -> JsonMapper.nonEmptyMapper()).toJson(bean);
     }
 
+    /**
+     * 创建不输出 null 字段的 Json，空串与空集合仍保留
+     *
+     * @param bean bean
+     * @param <T>  bean
+     * @return json
+     */
+    public static <T> String toNonNullJson(T bean) {
+        return JSON_MAPPERS.computeIfAbsent("__non_null__", s -> JsonMapper.nonNullMapper()).toJson(bean);
+    }
+
     public static <T> String toNonDefault(T bean) {
         return JSON_MAPPERS.computeIfAbsent("__non_default__", s -> JsonMapper.nonDefaultMapper()).toJson(bean);
     }

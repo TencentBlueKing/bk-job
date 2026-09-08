@@ -25,6 +25,8 @@
 package com.tencent.bk.job.common.artifactory.config;
 
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -41,12 +43,14 @@ public class ArtifactoryAutoConfiguration {
 
     @Bean("jobArtifactoryClient")
     public ArtifactoryClient jobArtifactoryClient(ArtifactoryConfig artifactoryConfig,
+                                                  JobHttpSslVerifyProperties sslVerifyProperties,
                                                   ObjectProvider<MeterRegistry> meterRegistryProvider) {
         ArtifactoryClient client = new ArtifactoryClient(
             artifactoryConfig.getArtifactoryBaseUrl(),
             artifactoryConfig.getArtifactoryJobUsername(),
             artifactoryConfig.getArtifactoryJobPassword(),
-            meterRegistryProvider.getIfAvailable()
+            meterRegistryProvider.getIfAvailable(),
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_REPO)
         );
         log.info("Init JobArtifactoryClient success");
         return client;
@@ -54,12 +58,14 @@ public class ArtifactoryAutoConfiguration {
 
     @Bean("adminArtifactoryClient")
     public ArtifactoryClient adminArtifactoryClient(ArtifactoryConfig artifactoryConfig,
+                                                    JobHttpSslVerifyProperties sslVerifyProperties,
                                                     ObjectProvider<MeterRegistry> meterRegistryProvider) {
         ArtifactoryClient client = new ArtifactoryClient(
             artifactoryConfig.getArtifactoryBaseUrl(),
             artifactoryConfig.getArtifactoryAdminUsername(),
             artifactoryConfig.getArtifactoryAdminPassword(),
-            meterRegistryProvider.getIfAvailable()
+            meterRegistryProvider.getIfAvailable(),
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_REPO)
         );
         log.info("Init AdminArtifactoryClient success");
         return client;

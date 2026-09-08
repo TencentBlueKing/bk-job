@@ -115,7 +115,8 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
         ScriptDTO script = publicScriptService.getScript(JobContextUtil.getTenantId(), scriptId);
         AssertUtil.scriptAvailable(() -> script != null);
 
-        List<ScriptDTO> scriptVersions = publicScriptService.listScriptVersion(scriptId);
+        List<ScriptDTO> scriptVersions = publicScriptService.listScriptVersion(
+            JobContextUtil.getTenantId(), scriptId);
         if (CollectionUtils.isEmpty(scriptVersions)) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
@@ -261,7 +262,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
         User user = JobContextUtil.getUser();
         AuthResult manageAuthResult = noResourceScopeAuthService.authManagePublicScript(user, scriptId);
 
-        List<ScriptDTO> scripts = publicScriptService.listScriptVersion(scriptId);
+        List<ScriptDTO> scripts = publicScriptService.listScriptVersion(user.getTenantId(), scriptId);
         List<ScriptVO> resultVOS = new ArrayList<>();
         if (scripts != null && !scripts.isEmpty()) {
             for (ScriptDTO scriptDTO : scripts) {

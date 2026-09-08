@@ -128,5 +128,13 @@ public interface EventContentConstants {
 
     String EDIT_BUSINESS_NOTIFY_SETTINGS = "Modify business notification settings";
 
+    /**
+     * 审批链路只在"审批通过并放行"这一个时点产出审计事件：该事件同时回答了"谁发起、谁批的、批了什么、
+     * 结果如何"，而发起 / 驳回 / 作废都不曾真正改变系统，多记只会淹没这条真正重要的事件
+     */
+    String RELEASE_APPROVAL = "Release approval task ({{" + JobAuditAttributeNames.APPROVAL_TASK_ID
+        + "}}) for operation [{{" + JobAuditAttributeNames.APPROVAL_OPERATION_TYPE
+        + "}}] approved by [{{" + JobAuditAttributeNames.APPROVER
+        + "}}], result [{{" + JobAuditAttributeNames.APPROVAL_RESULT + "}}]";
 
 }

@@ -109,8 +109,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
                     File.separatorChar + username + File.separatorChar +
                     FilePathUtils.parseDirAndFileName(originalFileName).getRight();
 
-                String fullFileName = uploadPath.concat(fileName);
-                File theFile = new File(fullFileName);
+                File theFile = PathUtil.resolveSafely(uploadPath, fileName);
 
                 //创建上传文件父目录，并设置父目录可写权限
                 File parentDir = theFile.getParentFile();
@@ -173,7 +172,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
         for (MultipartFile file : uploadFiles) {
             String filePath = Utils.getUUID() +
                 File.separatorChar + username + File.separatorChar +
-                file.getOriginalFilename();
+                FilePathUtils.getPureFileName(file.getOriginalFilename());
             String fileName = PathUtil.getFileNameByPath(filePath);
             log.debug("filePath={}", filePath);
             UploadLocalFileResultVO fileResultVO = new UploadLocalFileResultVO();
@@ -293,7 +292,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
         List<String> filePathList = new ArrayList<>();
         fileNameList.forEach(fileName -> {
             String filePath = Utils.getUUID() +
-                File.separatorChar + username + File.separatorChar + fileName;
+                File.separatorChar + username + File.separatorChar + FilePathUtils.getPureFileName(fileName);
             filePathList.add(filePath);
         });
         List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(

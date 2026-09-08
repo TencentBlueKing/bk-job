@@ -24,13 +24,32 @@
 
 package com.tencent.bk.job.common.util;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class Base64UtilTest {
+
+    @Test
+    @DisplayName("严格解码：BASE64 内容解码成原文")
+    void testDecodeContentToStrStrictly() {
+        assertEquals("111", Base64Util.decodeContentToStrStrictly(Base64Util.encodeContentToStr("111")));
+        assertEquals("中文参数", Base64Util.decodeContentToStrStrictly(Base64Util.encodeContentToStr("中文参数")));
+    }
+
+    @Test
+    @DisplayName("严格解码：明文虽然能被宽松解码器解出字节，但不是可读文本，判为非法")
+    void testDecodeContentToStrStrictlyGivenPlainText() {
+        // "111" 落到宽松解码器手里会解出 0xD7 0x5D 这样的二进制垃圾
+        assertNull(Base64Util.decodeContentToStrStrictly("111"));
+        assertNull(Base64Util.decodeContentToStrStrictly("中文明文"));
+        assertNull(Base64Util.decodeContentToStrStrictly(""));
+        assertNull(Base64Util.decodeContentToStrStrictly(null));
+    }
 
     @Test
     void testCalcOriginBytesLength() {

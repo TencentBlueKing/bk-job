@@ -39,6 +39,8 @@ import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.paas.user.VirtualAdminAccountCache;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -54,14 +56,16 @@ public class UserMgrAutoConfiguration {
     public IUserApiClient userMgrApiClient(AppProperties appProperties,
                                            BkApiGatewayProperties bkApiGatewayProperties,
                                            ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                           TenantEnvService tenantEnvService) {
+                                           TenantEnvService tenantEnvService,
+                                           JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init UserMgrApiClient");
         return new SafeUserMgrApiClient(
             new UserMgrApiClient(
                 bkApiGatewayProperties,
                 appProperties,
                 meterRegistryObjectProvider.getIfAvailable(),
-                tenantEnvService
+                tenantEnvService,
+                sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.BK_USER)
             ),
             tenantEnvService
         );

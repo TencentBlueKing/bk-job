@@ -278,7 +278,7 @@ public class CurrentTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl implem
         List<Condition> conditions = buildTenantConditions();
         conditions.add(defaultTable.ENABLE.eq(true));
         if (appId != null) {
-            conditions.add(tableFileSourceShare.APP_ID.eq(appId).or(defaultTable.SHARE_TO_ALL_APP.eq(true)));
+            conditions.add(genAppScopeCondition(appId));
         }
         if (StringUtils.isNotBlank(credentialId)) {
             conditions.add(defaultTable.CREDENTIAL_ID.eq(credentialId));
@@ -289,7 +289,7 @@ public class CurrentTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl implem
         return conditions;
     }
 
-    private Collection<Condition> genAvailableConditions(Long appId, String credentialId, String alias) {
+    private Collection<Condition> genAppAvailableConditions(Long appId, String credentialId, String alias) {
         List<Condition> conditions = buildTenantConditions();
         conditions.add(defaultTable.ENABLE.eq(true));
         if (appId != null) {
@@ -304,9 +304,10 @@ public class CurrentTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl implem
         return conditions;
     }
 
+    // 只count当前业务下的文件源
     @Override
-    public Integer countFileSource(Long appId, String credentialId, String alias) {
-        Collection<Condition> conditions = genAvailableConditions(appId, credentialId, alias);
+    public Integer countFileSourceInApp(Long appId, String credentialId, String alias) {
+        Collection<Condition> conditions = genAppAvailableConditions(appId, credentialId, alias);
         return countFileSourcesByConditions(conditions);
     }
 

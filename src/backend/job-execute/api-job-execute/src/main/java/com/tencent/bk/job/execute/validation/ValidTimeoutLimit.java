@@ -62,12 +62,10 @@ public @interface ValidTimeoutLimit {
     @Slf4j
     class TimeoutValidator implements ConstraintValidator<ValidTimeoutLimit, Integer> {
 
-        private ResourceScopeTaskTimeoutParser resourceScopeTaskTimeoutParser;
         private ValidTimeoutLimit validTimeoutLimit;
 
         @Override
         public void initialize(ValidTimeoutLimit constraintAnnotation) {
-            resourceScopeTaskTimeoutParser = ApplicationContextRegister.getBean(ResourceScopeTaskTimeoutParser.class);
             validTimeoutLimit = constraintAnnotation;
         }
 
@@ -92,8 +90,14 @@ public @interface ValidTimeoutLimit {
                 return false;
             }
 
+            ResourceScopeTaskTimeoutParser timeoutParser = getTimeoutParserOrNull();
+            if (timeoutParser == null) {
+                log.warn("ResourceScopeTaskTimeoutParser not available, skip timeout limit validation, timeout={}",
+                    target);
+                return true;
+            }
             BasicApp app = JobContextUtil.getApp();
-            int maxTimeoutInConfiguration = resourceScopeTaskTimeoutParser.getMaxTimeoutOrDefault(
+            int maxTimeoutInConfiguration = timeoutParser.getMaxTimeoutOrDefault(
                 app.getId(),
                 JobConstants.MAX_JOB_TIMEOUT_SECONDS);
             // 超时时间超过配置或默认的最大值
@@ -110,6 +114,23 @@ public @interface ValidTimeoutLimit {
             return true;
         }
 
+        /**
+         * 软取上限配置：带 {@code @ValidTimeoutLimit} 的请求体会被 job-analysis 的带审批接口继承复用，
+         * 而该 Bean 只在 job-execute 注册，硬取会让整个请求以 HV000032 失败。
+         * <p>
+         * 取不到时跳过上限校验而非拒绝请求：上限最终由 job-execute 的 dryRun 预检把关，
+         * 那里会对同一请求体重新跑一次完整的 Bean Validation，校验能力并不会因此丢失。
+         * <p>
+         * 刻意放在这里而不是 {@code initialize}：一是初始化期抛异常会直接让请求 500，
+         * 二是校验器实例会被缓存复用，Bean 晚于校验器就绪时不至于永久失效。
+         */
+        private ResourceScopeTaskTimeoutParser getTimeoutParserOrNull() {
+            try {
+                return ApplicationContextRegister.getBean(ResourceScopeTaskTimeoutParser.class);
+            } catch (Exception e) {
+                return null;
+            }
+        }
     }
 
 }

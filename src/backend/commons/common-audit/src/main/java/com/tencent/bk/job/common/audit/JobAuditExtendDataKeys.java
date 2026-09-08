@@ -32,4 +32,19 @@ public interface JobAuditExtendDataKeys {
      * 作业实例 ID
      */
     String JOB_INSTANCE_ID = "job_instance_id";
+
+    /**
+     * 审批任务 ID。审批链路的发起、放行、驳回、作废事件都带上它，便于按此串起完整链路
+     */
+    String APPROVAL_TASK_ID = "approval_task_id";
+
+    /**
+     * 审批渠道给出审批结论的时刻（毫秒）
+     */
+    String APPROVAL_APPROVED_AT = "approval_approved_at";
+
+    /**
+     * 放行后下游返回的操作结果
+     */
+    String APPROVAL_EXECUTE_RESULT = "approval_execute_result";
 }

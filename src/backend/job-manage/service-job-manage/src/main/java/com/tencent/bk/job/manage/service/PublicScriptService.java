@@ -89,10 +89,11 @@ public interface PublicScriptService {
     /**
      * 根据脚本ID查询所有版本的脚本
      *
+     * @param tenantId 租户ID，脚本不属于该租户时返回空列表
      * @param scriptId 脚本ID
      * @return 脚本版本列表
      */
-    List<ScriptDTO> listScriptVersion(String scriptId);
+    List<ScriptDTO> listScriptVersion(String tenantId, String scriptId);
 
     /**
      * 分页查询脚本列表

@@ -1,0 +1,51 @@
+| Field | Type | Description |
+|-------|------|-------------|
+| approval_task_id | string | Approval task ID |
+| status | string | Approval task status. Options: `PENDING` (waiting for approval), `EXECUTING` (approved and execution started), `EXECUTED` (execution finished), `REJECTED` (rejected by the approver), `CANCELED` (canceled by the caller), `FAILED` (execution failed, this approval is void and must be initiated again), `EXPIRED` (expired, can no longer be released). `EXPIRED` is not a persisted status: it is derived from `expire_at` when the task is read |
+| operation_type | string | Operation type. Options: `FAST_EXECUTE_SCRIPT` (fast execute script), `FAST_TRANSFER_FILE` (fast transfer file), `EXECUTE_JOB_PLAN` (launch a job plan), `CREATE_JOB_PLAN` (create a job plan), `SAVE_CRON` (save a cron job), `UPDATE_CRON_STATUS` (enable or disable a cron job) |
+| approval_channel | string | Approval channel. Options: `IMATE` (IMate approval channel) |
+| approval_ticket_id | string | Bound approval ticket ID, `null` when not bound yet. Once bound it cannot be replaced |
+| creator | string | Creator of the approval task. The approver must be the creator, and the operation is always executed as this user when released |
+| create_time | long | Moment the task was initiated, Unix timestamp in milliseconds |
+| expire_at | long | Expiry moment, Unix timestamp in milliseconds. After expiry the task can no longer be released |
+| approver | string | Approver, obtained by Job querying the approval channel; `null` before the approval is made |
+| approved_at | long | Approval moment, Unix timestamp in milliseconds; `null` before the approval is made |
+| execute_result | object | Operation result after release. Its structure depends on `operation_type` and matches the `data` returned by the corresponding direct-execution API; `null` before execution |
+| result_unknown | boolean | Unknown-result flag. Options: `true` (the execution request was dispatched but no response was obtained from the downstream service; check the execution history manually to confirm whether a job was created. Job **does not retry automatically**, and you should not repeatedly call the refresh API because of this flag), `false` (the result is definite) |
+| message | string | Human-readable message that changes with the status, for example waiting for approval, expired, or unknown execution result |
+
+##### execute_result (when `operation_type` is `FAST_EXECUTE_SCRIPT` or `FAST_TRANSFER_FILE`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| job_instance_id | long | Job instance ID |
+| job_instance_name | string | Job instance name |
+| step_instance_id | long | Step instance ID |
+
+##### execute_result (when `operation_type` is `EXECUTE_JOB_PLAN`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| job_instance_id | long | Job instance ID |
+| job_instance_name | string | Job instance name |
+
+##### execute_result (when `operation_type` is `CREATE_JOB_PLAN`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| bk_scope_type | string | Resource scope type. Options: `biz` (business), `biz_set` (business set) |
+| bk_scope_id | string | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
+| job_plan_id | long | ID of the newly created job plan |
+| job_plan_name | string | Job plan name |
+| job_template_id | long | Job template ID |
+| creator | string | Creator |
+| create_time | long | Creation time, Unix timestamp in milliseconds |
+| need_update | boolean | Whether the job plan needs to be synchronized with its job template. Options: `true` (synchronization needed), `false` (not needed) |
+
+##### execute_result (when `operation_type` is `SAVE_CRON` or `UPDATE_CRON_STATUS`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | long | Cron job ID |
+| name | string | Cron job name |
+| status | int | Cron job status. Options: 1 (enabled), 0 (disabled) |

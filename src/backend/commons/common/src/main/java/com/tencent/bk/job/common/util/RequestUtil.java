@@ -113,7 +113,7 @@ public class RequestUtil {
      * @return 请求来源
      */
     public static HttpRequestSourceEnum parseHttpRequestSource(HttpServletRequest request) {
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
         if (uri.startsWith("/web/")) {
             return HttpRequestSourceEnum.WEB;
         } else if (uri.startsWith("/esb/")) {

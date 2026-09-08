@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.service;
 
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -126,10 +127,11 @@ public class FileTaskService {
         for (String taskId : taskIdList) {
             String deleteDirPath = taskId;
             try {
-                deleteDirPath = PathUtil.joinFilePath(workerConfig.getWorkspaceDirPath(), taskId);
-                FileUtils.deleteDirectory(new File(deleteDirPath));
+                File deleteDir = PathUtil.resolveSafely(workerConfig.getWorkspaceDirPath(), taskId);
+                deleteDirPath = deleteDir.getPath();
+                FileUtils.deleteDirectory(deleteDir);
                 count += 1;
-            } catch (IOException e) {
+            } catch (IOException | InvalidParamException e) {
                 String msg = MessageFormatter.format(
                     "Fail to delete dir:{}",
                     deleteDirPath

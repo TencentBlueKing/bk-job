@@ -42,7 +42,9 @@ import com.tencent.bk.job.common.notice.exception.BkNoticeException;
 import com.tencent.bk.job.common.notice.model.AnnouncementDTO;
 import com.tencent.bk.job.common.notice.model.BkNoticeApp;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -64,12 +66,22 @@ public class BkNoticeClient extends BkApiV1Client implements IBkNoticeClient {
                           AppProperties appProperties,
                           BkApiGatewayProperties bkApiGatewayProperties,
                           TenantEnvService tenantEnvService) {
+        this(meterRegistry, appProperties, bkApiGatewayProperties, tenantEnvService,
+            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_NOTICE));
+    }
+
+    public BkNoticeClient(MeterRegistry meterRegistry,
+                          AppProperties appProperties,
+                          BkApiGatewayProperties bkApiGatewayProperties,
+                          TenantEnvService tenantEnvService,
+                          boolean sslVerifyEnabled) {
         super(
             meterRegistry,
             CommonMetricNames.BK_NOTICE_API,
             getBkNoticeUrlSafely(bkApiGatewayProperties),
             HttpHelperFactory.createHttpHelper(
-                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor()),
+                sslVerifyEnabled
             ),
             tenantEnvService
         );

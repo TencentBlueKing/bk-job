@@ -1,0 +1,54 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.manage.model.inner;
+
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+/**
+ * 全局变量的身份与类型。
+ * <p>
+ * 只承载定位变量与判断其类型所需的字段，<b>不含默认值</b>：调用方只想知道"这个变量是不是密码类型"时，
+ * 用 {@link ServiceTaskVariableDTO} 会把密码类变量的默认值一并带出去，属于不必要的敏感信息扩散。
+ */
+@Data
+@Schema(description = "全局变量的身份与类型")
+public class ServiceTaskVariableTypeDTO {
+
+    @Schema(description = "变量ID")
+    private Long id;
+
+    @Schema(description = "变量名")
+    private String name;
+
+    /**
+     * 变量类型
+     *
+     * @see TaskVariableTypeEnum
+     */
+    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组")
+    private Integer type;
+}

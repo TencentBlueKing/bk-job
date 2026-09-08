@@ -1,0 +1,113 @@
+### Description
+
+Launch an existing job plan. The API returns the job instance ID synchronously, which can be used to query the execution status and logs.
+
+Before calling: the target job plan must exist and the caller must have the permission to view and launch that job plan in the resource scope.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bk_scope_type | string | Yes | Resource scope type. Options: `biz` (business), `biz_set` (business set) |
+| bk_scope_id | string | Yes | Resource scope ID, corresponding to `bk_scope_type`, that is the business ID or the business set ID |
+| job_plan_id | long | Yes | ID of the job plan to launch |
+| global_var_list | array | No | Global variable values. All default values defined in the job plan are used when omitted |
+| callback_url | string | No | Callback URL invoked after the job finishes, at most 1024 characters. Job calls it once the job completes |
+| start_task | boolean | No | Whether to start the job immediately. Options: `true` (start immediately, the default), `false` (only create the job instance without starting it, which can be started later via the job instance operation API) |
+
+##### global_var_list[] element
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| id | long | No | Global variable ID. Provide either `id` or `name`; this one wins if both are given |
+| name | string | No | Global variable name. Provide either `id` or `name` |
+| value | string | No | Global variable value. Use `execute_target` for execution target variables, and this field for the other types (string, namespace, ciphertext, associative array, indexed array) |
+| execute_target | object | No | Value of an execution target type global variable |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target.md.j2' %}
+
+**Note:** Hosts and containers cannot be mixed in one execution.
+
+### Request Parameters Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_plan_id": 50001,
+    "global_var_list": [
+        {
+            "id": 300001,
+            "value": "/data/release"
+        },
+        {
+            "name": "DB_PASSWORD",
+            "value": "p@ssw0rd"
+        },
+        {
+            "name": "HOST_TARGET",
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    },
+                    {
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "dynamic_group_list": [
+                    {
+                        "id": "asdo8gojhasdfskft7pr5"
+                    }
+                ],
+                "topo_node_list": [
+                    {
+                        "id": 1000,
+                        "node_type": "module"
+                    }
+                ]
+            }
+        }
+    ],
+    "callback_url": "https://example.com/job/callback",
+    "start_task": true
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "job_instance_id": 10000,
+        "job_instance_name": "API Execute job plan1"
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+A job plan usually contains several steps, so this API returns the job instance information only and does not return a step instance ID. Query the job execution status with `job_instance_id` when step level information is needed.
+
+| Field | Type | Never null | Description |
+|-------|------|------------|-------------|
+| job_instance_id | long | Yes | Job instance ID, used to query the execution status and logs afterwards |
+| job_instance_name | string | No | Job instance name |

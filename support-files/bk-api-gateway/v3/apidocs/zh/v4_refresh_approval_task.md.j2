@@ -1,0 +1,128 @@
+### 功能描述
+
+推进一个审批任务：作业平台向该任务指派的审批渠道回查审批结论，审批通过且全部校验通过后，自动执行发起时提交的原操作，并在 `execute_result` 中返回执行结果。
+
+**请求体只有 `approval_task_id` 与 `approval_ticket_id` 两个 ID，不接受任何审批结论字段**（没有状态、审批人、审批时间、审批意见等字段）。审批结论只能由作业平台向审批渠道回查得出，调用方无法声明审批是否通过；多传的字段会被忽略。
+
+只能推进本人通过同一应用发起的审批任务；其余情况一律返回「审批任务不存在」。
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+#### 本接口的行为约定
+
+- **审批结论由回查得出。** 回查到通过才执行；回查到驳回则任务转为 `REJECTED`；渠道尚无结论则任务保持 `PENDING`，可稍后重试。回查失败（渠道异常、返回空结论）一律拒绝本次放行、任务保持 `PENDING`，绝不因渠道故障而放行。
+- **审批人必须是发起人本人**，否则拒绝放行。
+- **单据 ID 绑定后不可更换。** 首次校验通过时 `approval_ticket_id` 会与任务绑定固化，之后传入不同的单据 ID 一律拒绝。
+- **一次审批只能放行一次。** 放行时任务被原子消费为 `EXECUTING`，并发或重复调用不会重复执行：任务已处于终态（`EXECUTED` / `REJECTED` / `CANCELED` / `FAILED`）时直接返回既有结论；已被消费但仍在执行中时返回当前状态。
+- **任务过期后不可再放行。** 已过期的任务返回 `EXPIRED`，需重新发起审批。
+- **执行结果未知时不会自动重试。** 若执行请求已下发但未取得下游响应，任务停留在 `EXECUTING`、`execute_result` 为 `null` 且 `result_unknown` 为 `true`，需人工到执行历史确认是否已产生作业；**请勿据此重复调用本接口**。
+- **下游明确返回业务失败时**，任务转为 `FAILED` 终态，该次审批随之作废，需重新发起审批。
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| approval_task_id | string | 是 | 审批任务 ID，由发起审批的接口返回 |
+| approval_ticket_id | string | 是 | 审批渠道的单据 ID。仅用于让作业平台回查审批结论，本身不代表任何审批结论；一旦与任务绑定即不可更换。**IMate 渠道以审批任务 ID 唯一标识审批单、没有独立的单据 ID，请传与 `approval_task_id` 相同的值** |
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+    "approval_ticket_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f"
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+审批通过并已执行完成：
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "EXECUTED",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": "admin",
+        "approved_at": 1786669200000,
+        "execute_result": {
+            "job_instance_id": 10000,
+            "job_instance_name": "API Quick execution script1",
+            "step_instance_id": 10001
+        },
+        "result_unknown": false,
+        "message": "已执行完成"
+    }
+}
+```
+
+审批渠道尚无审批结论，任务保持待审批：
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "PENDING",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": null,
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": null,
+        "approved_at": null,
+        "execute_result": null,
+        "result_unknown": false,
+        "message": "审批中"
+    }
+}
+```
+
+执行请求已下发但结果未知，需人工排查：
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "EXECUTING",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": "admin",
+        "approved_at": 1786669200000,
+        "execute_result": null,
+        "result_unknown": true,
+        "message": "执行结果未知，请到执行历史确认是否已产生作业"
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+{% include '_generic_v4_approval_task.md.j2' %}

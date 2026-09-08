@@ -1,0 +1,80 @@
+### Description
+
+Cancel an approval task. Once canceled the task enters the final status `CANCELED` and can no longer be released; a new approval must be initiated if the operation is still needed.
+
+Only a task waiting for approval (`PENDING`) can be canceled. Calling this API on a task that has already been released, rejected, canceled or failed returns a "status not allowed" error. Canceling only affects the approval task on the Job side and **does not notify the approval channel**: the ticket in the channel must be handled by the approver.
+
+When a cancellation races with a release, **whichever grabs the pending status first wins**. If the release gets there first, this API returns a "status not allowed" error carrying the current status of the task (such as `EXECUTING`), which means **the cancellation did not take effect and the operation is already running**; the other way round, the release returns the same kind of error. So never treat that error as "canceled".
+
+Only approval tasks created by the same user through the same application can be canceled. In every other case the "approval task does not exist" error is returned.
+
+{% include '_generic_v4_approval_flow.md.j2' %}
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| approval_task_id | string | Yes | Approval task ID returned by the initiating API. Only a task waiting for approval can be canceled |
+
+### Request Parameters Example
+
+- POST
+
+```json
+{
+    "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f"
+}
+```
+
+### Response Example
+
+#### Failure Example
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success Example
+
+```json
+# http status=200
+{
+    "data": {
+        "approval_task_id": "5f9c1d1a3f2b4a1e9f2d7c1b2e3a4d5f",
+        "status": "CANCELED",
+        "operation_type": "FAST_EXECUTE_SCRIPT",
+        "approval_channel": "IMATE",
+        "approval_ticket_id": null,
+        "creator": "admin",
+        "create_time": 1786665600000,
+        "expire_at": 1786694400000,
+        "approver": null,
+        "approved_at": null,
+        "execute_result": null,
+        "result_unknown": false,
+        "message": "Canceled"
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Description |
+|-------|------|-------------|
+| approval_task_id | string | Approval task ID |
+| status | string | Approval task status. Always `CANCELED` (canceled) after a successful cancellation |
+| operation_type | string | Operation type. Options: `FAST_EXECUTE_SCRIPT` (fast execute script), `FAST_TRANSFER_FILE` (fast transfer file), `EXECUTE_JOB_PLAN` (launch a job plan), `CREATE_JOB_PLAN` (create a job plan), `SAVE_CRON` (save a cron job), `UPDATE_CRON_STATUS` (enable or disable a cron job) |
+| approval_channel | string | Approval channel. Options: `IMATE` (IMate approval channel) |
+| approval_ticket_id | string | Bound approval ticket ID, `null` when not bound yet. Canceling does not notify the approval channel; the ticket in the channel must be handled by the approver |
+| creator | string | Creator of the approval task |
+| create_time | long | Moment the task was initiated, Unix timestamp in milliseconds |
+| expire_at | long | Expiry moment, Unix timestamp in milliseconds |
+| approver | string | Approver. A cancelable task has no approval decision yet, so this field is `null` |
+| approved_at | long | Approval moment, Unix timestamp in milliseconds. A cancelable task has no approval decision yet, so this field is `null` |
+| execute_result | object | Operation result. A canceled task was never executed, so this field is always `null` |
+| result_unknown | boolean | Unknown-result flag. Always `false` for a cancellation |
+| message | string | Human-readable message |

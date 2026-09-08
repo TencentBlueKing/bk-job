@@ -29,29 +29,35 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * OpenAPI V4 执行方案管理资源。当前包含基于作业模板创建执行方案的接口。
+ * <p>
+ * <b>类级 MVC 注解（@RestController / @RequestMapping）必须留在实现类上，不能挪到本接口</b>：
+ * 本接口同时是 Feign 客户端，一旦接口上带这两个注解之一，Feign 代理会被
+ * RequestMappingHandlerMapping 判定为 handler，在调用方服务上凭空注册出一个同路径的转发端点。
  */
-@RequestMapping("/esb/api/v4")
 @EsbV4API
-@RestController
 @Validated
+@SmartFeignClient(value = "job-manage", contextId = "openApiJobPlanV4Resource")
 public interface OpenApiJobPlanV4Resource {
 
     /**
      * 基于作业模板创建执行方案
+     *
+     * @param dryRun 预检标识。为 true 时走完整校验与解析后即返回，不落执行方案、不产生审计，
+     *               响应以 dry_run_summary 回带解析出的操作概要
      */
-    @PostMapping("/create_job_plan")
+    @PostMapping("/esb/api/v4/create_job_plan")
     EsbV4Response<OpenApiV4JobPlanDTO> createJobPlan(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestHeader(value = JobCommonHeaders.BK_JOB_DRY_RUN, required = false) Boolean dryRun,
         @RequestBody @Validated V4CreateJobPlanRequest request
     );
 }

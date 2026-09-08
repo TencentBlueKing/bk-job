@@ -5616,7 +5616,8 @@ paths:
               set:
                 - key: X-Bk-Job-Api-Type
                   value: 'user'
-              remove: []
+              remove:
+                - key: X-Bk-Job-Dry-Run
         authConfig:
           userVerifiedRequired: true
           appVerifiedRequired: true
@@ -7043,7 +7044,7 @@ paths:
                   description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
                 script_param:
                   type: string
-                  description: 脚本参数Base64。注意：1.如果有多个参数，比如"param1 param2"这种，需要对"param1 param2"整体进行base64编码，而不是对每个参数进行base64编码再拼接起来。2.非敏感参数编码前长度不能超过64K，敏感参数编码前长度不能超过47K
+                  description: 脚本参数Base64。注意：1.如果有多个参数，比如"param1 param2"这种，需要对"param1 param2"整体进行base64编码，而不是对每个参数进行base64编码再拼接起来。2.非敏感参数编码前长度不能超过64K，敏感参数编码前长度不能超过47K。3.传入非Base64内容会返回参数校验失败
                 account_alias:
                   type: string
                   description: 执行账号别名，一般情况下与机器上账号名称相同，例如user00或root。
@@ -7185,7 +7186,7 @@ paths:
                   description: 执行目标。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空
                 script_content:
                   type: string
-                  description: Base64编码后的脚本内容。
+                  description: Base64编码后的脚本内容。传入非Base64内容会返回参数校验失败
                 param_sensitive:
                   type: boolean
                   default: false
@@ -7213,12 +7214,989 @@ paths:
               set:
                 - key: X-Bk-Job-Api-Type
                   value: 'user'
-              remove: []
+              remove:
+                - key: X-Bk-Job-Dry-Run
         authConfig:
           userVerifiedRequired: true
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Fast execute script
+  /api/v4/fast_transfer_file:
+    post:
+      operationId: v4_fast_transfer_file
+      description: 快速分发文件
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      job_instance_id:
+                        type: number
+                        description: 作业实例ID，用于后续查询作业执行状态与执行日志
+                      job_instance_name:
+                        type: string
+                        description: 作业实例名称
+                      step_instance_id:
+                        type: number
+                        description: 步骤实例ID
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - file_source_list
+              - file_target_path
+              - execute_target
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                task_name:
+                  type: string
+                  description: 自定义作业名称，长度不可超过512字符，不传时由系统生成
+                file_source_list:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      file_list:
+                        type: array
+                        items:
+                          type: string
+                        description: 源文件路径列表，文件源类型为服务器文件时须为绝对路径
+                      file_type:
+                        type: number
+                        default: 1
+                        description: '文件源类型。可选值: 1 - 服务器文件, 2 - 本地文件, 3 - 第三方文件源文件。默认1'
+                      account_alias:
+                        type: string
+                        description: 源文件所在主机的执行账号别名。与account_id二者填一个，服务器文件必填
+                      account_id:
+                        type: number
+                        description: 源文件所在主机的执行账号ID。与account_alias二者填一个，服务器文件必填
+                      execute_target:
+                        type: object
+                        properties:
+                          host_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ip:
+                                  type: string
+                                  description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                                bk_host_id:
+                                  type: number
+                                  description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID，须与ip同时填写
+                              description: 一台静态主机
+                            description: 静态主机列表
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              properties:
+                                id:
+                                  type: string
+                                  description: 动态分组ID
+                              description: 一个动态分组
+                            description: 动态分组列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              - node_type
+                              properties:
+                                id:
+                                  type: number
+                                  description: 拓扑节点ID
+                                node_type:
+                                  type: string
+                                  description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                              description: 一个CMDB拓扑节点
+                            description: CMDB拓扑节点列表
+                          kube_container_filters:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - kube_cluster_filter
+                              properties:
+                                kube_cluster_filter:
+                                  type: object
+                                  required:
+                                  - cluster_uid_list
+                                  properties:
+                                    cluster_uid_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 集群UID列表
+                                  description: 集群过滤器
+                                kube_namespace_filter:
+                                  type: object
+                                  properties:
+                                    namespace_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: namespace名称列表
+                                  description: namespace过滤器
+                                kube_workload_filter:
+                                  type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      description: workload类型，如deployment、statefulSet、daemonSet、customResource等
+                                    workload_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: workload名称列表
+                                  description: workload过滤器
+                                kube_pod_filter:
+                                  type: object
+                                  properties:
+                                    pod_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: pod名称列表
+                                    label_selector:
+                                      type: array
+                                      items:
+                                        type: object
+                                        properties:
+                                          key:
+                                            type: string
+                                            description: label key
+                                          operator:
+                                            type: string
+                                            description: '操作符。可选值: not_exists - 标签不存在, equals - 标签值等于, in - 标签值在指定列表中, not_equals - 标签值不等于, not_in - 标签值不在指定列表中, exists - 标签存在, gt - 标签值大于, lt - 标签值小于'
+                                          values:
+                                            type: array
+                                            items:
+                                              type: string
+                                            description: label value列表，operator为in或not_in时必填
+                                      description: 标签选择器列表
+                                    label_selector_expr:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: label selector表达式
+                                  description: pod属性过滤器
+                                kube_container_prop_filter:
+                                  type: object
+                                  properties:
+                                    container_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 容器名称列表
+                                  description: 容器属性过滤器
+                                execute_in_whole_cluster:
+                                  type: boolean
+                                  default: false
+                                  description: 是否在整个集群内执行，默认为false。为true时忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter
+                              description: 一个容器过滤器
+                            description: 容器过滤器列表
+                        description: 源文件所在主机，服务器文件必填。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空
+                      file_source_id:
+                        type: number
+                        description: 第三方文件源ID。与file_source_code二者填一个，第三方文件源文件必填
+                      file_source_code:
+                        type: string
+                        description: 第三方文件源标识。与file_source_id二者填一个，第三方文件源文件必填
+                    description: 一个源文件配置
+                  description: 源文件列表，不可为空
+                file_target_path:
+                  type: string
+                  description: 文件分发到目标主机的目录，须为绝对路径
+                file_target_name:
+                  type: string
+                  description: 文件分发到目标主机后的文件名，不传时沿用源文件名
+                account_alias:
+                  type: string
+                  description: 目标主机的执行账号别名。与account_id二者填一个，同时存在时以account_id为准
+                account_id:
+                  type: number
+                  description: 目标主机的执行账号ID。与account_alias二者填一个，同时存在时以本字段为准
+                execute_target:
+                  type: object
+                  properties:
+                    host_list:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          ip:
+                            type: string
+                            description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                          bk_host_id:
+                            type: number
+                            description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                          bk_cloud_id:
+                            type: number
+                            description: 管控区域ID，须与ip同时填写
+                        description: 一台静态主机
+                      description: 静态主机列表
+                    dynamic_group_list:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        properties:
+                          id:
+                            type: string
+                            description: 动态分组ID
+                        description: 一个动态分组
+                      description: 动态分组列表
+                    topo_node_list:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        - node_type
+                        properties:
+                          id:
+                            type: number
+                            description: 拓扑节点ID
+                          node_type:
+                            type: string
+                            description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                        description: 一个CMDB拓扑节点
+                      description: CMDB拓扑节点列表
+                    kube_container_filters:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - kube_cluster_filter
+                        properties:
+                          kube_cluster_filter:
+                            type: object
+                            required:
+                            - cluster_uid_list
+                            properties:
+                              cluster_uid_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: 集群UID列表
+                            description: 集群过滤器
+                          kube_namespace_filter:
+                            type: object
+                            properties:
+                              namespace_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: namespace名称列表
+                            description: namespace过滤器
+                          kube_workload_filter:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                                description: workload类型，如deployment、statefulSet、daemonSet、customResource等
+                              workload_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: workload名称列表
+                            description: workload过滤器
+                          kube_pod_filter:
+                            type: object
+                            properties:
+                              pod_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: pod名称列表
+                              label_selector:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    key:
+                                      type: string
+                                      description: label key
+                                    operator:
+                                      type: string
+                                      description: '操作符。可选值: not_exists - 标签不存在, equals - 标签值等于, in - 标签值在指定列表中, not_equals - 标签值不等于, not_in - 标签值不在指定列表中, exists - 标签存在, gt - 标签值大于, lt - 标签值小于'
+                                    values:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: label value列表，operator为in或not_in时必填
+                                description: 标签选择器列表
+                              label_selector_expr:
+                                type: array
+                                items:
+                                  type: string
+                                description: label selector表达式
+                            description: pod属性过滤器
+                          kube_container_prop_filter:
+                            type: object
+                            properties:
+                              container_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: 容器名称列表
+                            description: 容器属性过滤器
+                          execute_in_whole_cluster:
+                            type: boolean
+                            default: false
+                            description: 是否在整个集群内执行，默认为false。为true时忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter
+                        description: 一个容器过滤器
+                      description: 容器过滤器列表
+                  description: 分发目标。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空；主机与容器不能混合执行
+                transfer_mode:
+                  type: number
+                  default: 2
+                  description: '传输模式。可选值: 1 - 严谨模式（目标路径不存在则失败）, 2 - 强制模式（目标路径不存在则自动创建目录，同名文件被直接覆盖）, 3 - 保险模式（按源主机分目录存放，不同来源的同名文件不会互相覆盖）, 4 - 保险模式（按日期与源主机分目录存放）。不传按强制模式处理，传上述以外的值报错'
+                download_speed_limit:
+                  type: number
+                  description: 下载限速，单位MB，不传表示不限速
+                upload_speed_limit:
+                  type: number
+                  description: 上传限速，单位MB，不传表示不限速
+                timeout:
+                  type: number
+                  default: 7200
+                  description: 文件分发超时时间，单位秒。默认7200，取值范围1-259200
+                callback_url:
+                  type: string
+                  description: 作业执行完成后的回调URL，长度不可超过1024字符。作业执行完成后作业平台会回调该地址
+                rolling_config:
+                  type: object
+                  properties:
+                    type:
+                      type: number
+                      default: 1
+                      description: '滚动对象。可选值: 1 - 传输目标, 2 - 源文件。默认1'
+                    mode:
+                      type: number
+                      default: 1
+                      description: '滚动机制。可选值: 1 - 执行失败则暂停, 2 - 忽略失败自动滚动下一批, 3 - 人工确认。默认1'
+                    execution_mode:
+                      type: number
+                      default: 1
+                      description: '滚动批次执行模式。可选值: 1 - 串行, 2 - 并行（错峰）。默认1'
+                    batch_start_wait_min_ms:
+                      type: number
+                      description: 批次间最小延迟，单位毫秒，取值范围0-3600000。仅execution_mode为2时必填
+                    batch_start_wait_max_ms:
+                      type: number
+                      description: 批次间最大延迟，单位毫秒，取值范围0-3600000，须不小于batch_start_wait_min_ms。仅execution_mode为2时必填
+                    expression:
+                      type: string
+                      description: 目标执行对象的分批策略表达式，如"1 5 10 100%"。type为1时必填
+                    file_source:
+                      type: object
+                      properties:
+                        max_execute_object_num_in_batch:
+                          type: number
+                          description: 单批次最大执行对象数量，不填表示不限制
+                        max_file_num_of_single_execute_object:
+                          type: number
+                          description: 单个执行对象单批次最大文件数量，不填表示不限制
+                      description: 源文件滚动配置，type为2时必填，当前不支持与目标执行对象滚动同时配置
+                  description: 滚动执行配置，不传表示不滚动执行
+                start_task:
+                  type: boolean
+                  default: true
+                  description: '是否立即启动作业。可选值: true - 立即启动（默认）, false - 仅创建作业实例不启动，后续可通过作业实例操作接口启动'
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-execute/fast_transfer_file
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove:
+                - key: X-Bk-Job-Dry-Run
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Fast transfer file
+  /api/v4/execute_job_plan:
+    post:
+      operationId: v4_execute_job_plan
+      description: 启动执行方案
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      job_instance_id:
+                        type: number
+                        description: 作业实例ID，用于后续查询作业执行状态与执行日志
+                      job_instance_name:
+                        type: string
+                        description: 作业实例名称
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在。执行方案通常包含多个步骤，本接口不返回步骤实例ID
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - job_plan_id
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                job_plan_id:
+                  type: number
+                  description: 要启动的执行方案ID
+                global_var_list:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        description: 全局变量ID。与name二者填一个，同时存在时以本字段为准
+                      name:
+                        type: string
+                        description: 全局变量名。与id二者填一个
+                      value:
+                        type: string
+                        description: 全局变量取值。执行目标类变量用execute_target传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用该字段
+                      execute_target:
+                        type: object
+                        properties:
+                          host_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ip:
+                                  type: string
+                                  description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                                bk_host_id:
+                                  type: number
+                                  description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID，须与ip同时填写
+                              description: 一台静态主机
+                            description: 静态主机列表
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              properties:
+                                id:
+                                  type: string
+                                  description: 动态分组ID
+                              description: 一个动态分组
+                            description: 动态分组列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              - node_type
+                              properties:
+                                id:
+                                  type: number
+                                  description: 拓扑节点ID
+                                node_type:
+                                  type: string
+                                  description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                              description: 一个CMDB拓扑节点
+                            description: CMDB拓扑节点列表
+                          kube_container_filters:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - kube_cluster_filter
+                              properties:
+                                kube_cluster_filter:
+                                  type: object
+                                  required:
+                                  - cluster_uid_list
+                                  properties:
+                                    cluster_uid_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 集群UID列表
+                                  description: 集群过滤器
+                                kube_namespace_filter:
+                                  type: object
+                                  properties:
+                                    namespace_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: namespace名称列表
+                                  description: namespace过滤器
+                                kube_workload_filter:
+                                  type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      description: workload类型，如deployment、statefulSet、daemonSet、customResource等
+                                    workload_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: workload名称列表
+                                  description: workload过滤器
+                                kube_pod_filter:
+                                  type: object
+                                  properties:
+                                    pod_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: pod名称列表
+                                    label_selector:
+                                      type: array
+                                      items:
+                                        type: object
+                                        properties:
+                                          key:
+                                            type: string
+                                            description: label key
+                                          operator:
+                                            type: string
+                                            description: '操作符。可选值: not_exists - 标签不存在, equals - 标签值等于, in - 标签值在指定列表中, not_equals - 标签值不等于, not_in - 标签值不在指定列表中, exists - 标签存在, gt - 标签值大于, lt - 标签值小于'
+                                          values:
+                                            type: array
+                                            items:
+                                              type: string
+                                            description: label value列表，operator为in或not_in时必填
+                                      description: 标签选择器列表
+                                    label_selector_expr:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: label selector表达式
+                                  description: pod属性过滤器
+                                kube_container_prop_filter:
+                                  type: object
+                                  properties:
+                                    container_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 容器名称列表
+                                  description: 容器属性过滤器
+                                execute_in_whole_cluster:
+                                  type: boolean
+                                  default: false
+                                  description: 是否在整个集群内执行，默认为false。为true时忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter
+                              description: 一个容器过滤器
+                            description: 容器过滤器列表
+                        description: 执行目标类全局变量的取值。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空；主机与容器不能混合执行
+                    description: 一个全局变量取值
+                  description: 全局变量取值列表，不传表示全部使用执行方案中的默认值
+                callback_url:
+                  type: string
+                  description: 作业执行完成后的回调URL，长度不可超过1024字符。作业执行完成后作业平台会回调该地址
+                start_task:
+                  type: boolean
+                  default: true
+                  description: '是否立即启动作业。可选值: true - 立即启动（默认）, false - 仅创建作业实例不启动，后续可通过作业实例操作接口启动'
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-execute/execute_job_plan
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove:
+                - key: X-Bk-Job-Dry-Run
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Launch a job plan
+  /api/v4/save_cron:
+    post:
+      operationId: v4_save_cron
+      description: 新建或更新定时任务，本接口不改变启停状态：新建出来的定时任务默认停用，需再调用启停定时任务接口才会开始调度；更新已有定时任务保持原状态不变
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        description: 定时任务ID；新建时为新生成的ID，更新时与请求中的id相同
+                      name:
+                        type: string
+                        description: 定时任务名称
+                      status:
+                        type: number
+                        description: '定时任务状态。可选值: 1 - 已启用, 0 - 已停用。保存操作不会启用定时任务，因此本接口固定返回0'
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                id:
+                  type: number
+                  description: 定时任务ID。更新已有定时任务时必填，新建时不填
+                job_plan_id:
+                  type: number
+                  description: 要定时执行的执行方案ID。新建时必填，更新时选填
+                name:
+                  type: string
+                  description: 定时任务名称，长度不可超过60个字符，不可包含HTML特殊字符 < > " ' 。新建时必填，更新时选填
+                expression:
+                  type: string
+                  description: 周期执行的cron表达式，各字段含义为"分 时 日 月 周"，如 0/5 * * * ? 表示每5分钟执行一次。与execute_time二者至少填一个
+                execute_time:
+                  type: number
+                  description: 单次执行的指定执行时间，Unix时间戳，单位秒。与expression二者至少填一个
+                execute_time_zone:
+                  type: string
+                  description: 定时任务触发时间所在的时区，如 Asia/Shanghai。不传时取业务时区，业务时区为空时取服务器时区
+                global_var_list:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        description: 全局变量ID。与name二者填一个，同时存在时以本字段为准
+                      name:
+                        type: string
+                        description: 全局变量名。与id二者填一个
+                      value:
+                        type: string
+                        description: 全局变量取值。执行目标类变量用execute_target传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用该字段
+                      execute_target:
+                        type: object
+                        properties:
+                          host_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ip:
+                                  type: string
+                                  description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                                bk_host_id:
+                                  type: number
+                                  description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID，须与ip同时填写
+                              description: 一台静态主机
+                            description: 静态主机列表
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              properties:
+                                id:
+                                  type: string
+                                  description: 动态分组ID
+                              description: 一个动态分组
+                            description: 动态分组列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              - node_type
+                              properties:
+                                id:
+                                  type: number
+                                  description: 拓扑节点ID
+                                node_type:
+                                  type: string
+                                  description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                              description: 一个CMDB拓扑节点
+                            description: CMDB拓扑节点列表
+                        description: 执行目标类全局变量的取值。host_list、dynamic_group_list、topo_node_list不能同时为空
+                    description: 一个全局变量取值
+                  description: 定时任务启动执行方案时的全局变量取值列表，不传表示全部使用执行方案中的默认值
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-crontab/save_cron
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove:
+                - key: X-Bk-Job-Dry-Run
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Create or update a cron job
+  /api/v4/update_cron_status:
+    post:
+      operationId: v4_update_cron_status
+      description: 启用或停用定时任务
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        description: 定时任务ID
+                      status:
+                        type: number
+                        description: '变更后的定时任务状态。可选值: 1 - 已启用, 0 - 已停用'
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - id
+              - status
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                id:
+                  type: number
+                  description: 定时任务ID，须为正整数
+                status:
+                  type: number
+                  description: '目标状态。可选值: 1 - 启用, 0 - 停用'
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-crontab/update_cron_status
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove:
+                - key: X-Bk-Job-Dry-Run
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Switch a cron job on or off
   /api/v4/get_job_instance_status:
     get:
       operationId: v4_get_job_instance_status
@@ -7862,3 +8840,1950 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Get file task context
+  /api/v4/fast_execute_script_with_approval:
+    post:
+      operationId: v4_fast_execute_script_with_approval
+      description: 发起快速执行脚本的审批，审批通过后由作业平台自动执行
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
+                      status:
+                        type: string
+                        description: '审批任务状态。新建时固定为: PENDING - 待审批'
+                      approval_channel:
+                        type: string
+                        description: '实际使用的审批渠道。可选值: IMATE - IMate审批渠道'
+                      expire_at:
+                        type: number
+                        description: 审批任务过期时刻，Unix时间戳，单位毫秒；过期后不可再放行，需重新发起
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在。本接口不返回任何执行结果，此时作业尚未执行
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - execute_target
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                approval_channel:
+                  type: string
+                  description: '审批渠道。可选值: IMATE - IMate审批渠道。不传时使用服务端配置的默认渠道。仅可指定渠道枚举，渠道地址与密钥一律来自服务端配置'
+                task_name:
+                  type: string
+                  description: 自定义作业名称，长度不可超过512字符
+                script_content:
+                  type: string
+                  description: Base64编码后的脚本内容。与script_id、script_version_id三者填一个，优先级为script_version_id > script_id > script_content。传入非Base64内容会返回参数校验失败
+                script_id:
+                  type: string
+                  description: 引用的脚本ID，使用该脚本的上线版本。与script_content、script_version_id三者填一个
+                script_version_id:
+                  type: number
+                  description: 引用的脚本版本ID。与script_content、script_id三者填一个，优先级最高
+                script_language:
+                  type: number
+                  default: 1
+                  description: '脚本语言，仅script_content方式需要。可选值: 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql'
+                script_param:
+                  type: string
+                  description: 脚本参数Base64。注意：1.如果有多个参数，比如"param1 param2"这种，需要对"param1 param2"整体进行base64编码，而不是对每个参数进行base64编码再拼接起来。2.非敏感参数编码前长度不能超过64K，敏感参数编码前长度不能超过47K。3.传入非Base64内容会返回参数校验失败
+                param_sensitive:
+                  type: boolean
+                  default: false
+                  description: 脚本参数是否为敏感参数。敏感参数会在执行详情页面上隐藏，且在审批内容中只显示占位符，默认false
+                account_alias:
+                  type: string
+                  description: 执行账号别名，一般情况下与机器上账号名称相同，例如user00或root。与account_id二者填一个，优先级为account_id > account_alias
+                account_id:
+                  type: number
+                  description: 执行账号ID。与account_alias二者填一个，优先级更高
+                windows_interpreter:
+                  type: string
+                  description: 自定义Windows解释器路径，须以.exe结尾，长度不可超过260字符
+                timeout:
+                  type: number
+                  default: 7200
+                  description: 脚本执行超时时间，单位秒。默认7200，取值范围1-259200
+                execute_target:
+                  type: object
+                  properties:
+                    host_list:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          ip:
+                            type: string
+                            description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                          bk_host_id:
+                            type: number
+                            description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                          bk_cloud_id:
+                            type: number
+                            description: 管控区域ID，须与ip同时填写
+                        description: 一台静态主机
+                      description: 静态主机列表
+                    dynamic_group_list:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        properties:
+                          id:
+                            type: string
+                            description: 动态分组ID
+                        description: 一个动态分组
+                      description: 动态分组列表。审批内容会标注实际执行台数在放行时重新解析确定，可能与发起时不同
+                    topo_node_list:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        - node_type
+                        properties:
+                          id:
+                            type: number
+                            description: 拓扑节点ID
+                          node_type:
+                            type: string
+                            description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                        description: 一个CMDB拓扑节点
+                      description: CMDB拓扑节点列表。审批内容会标注实际执行台数在放行时重新解析确定，可能与发起时不同
+                    kube_container_filters:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - kube_cluster_filter
+                        properties:
+                          kube_cluster_filter:
+                            type: object
+                            required:
+                            - cluster_uid_list
+                            properties:
+                              cluster_uid_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: 集群UID列表
+                            description: 集群过滤器
+                          kube_namespace_filter:
+                            type: object
+                            properties:
+                              namespace_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: namespace名称列表
+                            description: namespace过滤器
+                          kube_workload_filter:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                                description: workload类型，如deployment、statefulSet、daemonSet、customResource等
+                              workload_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: workload名称列表
+                            description: workload过滤器
+                          kube_pod_filter:
+                            type: object
+                            properties:
+                              pod_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: pod名称列表
+                              label_selector:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    key:
+                                      type: string
+                                      description: label key
+                                    operator:
+                                      type: string
+                                      description: '操作符。可选值: not_exists, equals, in, not_equals, not_in, exists, gt, lt'
+                                    values:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: label value列表，operator为in或not_in时必填
+                                description: 标签选择器列表
+                              label_selector_expr:
+                                type: array
+                                items:
+                                  type: string
+                                description: label selector表达式
+                            description: pod属性过滤器
+                          kube_container_prop_filter:
+                            type: object
+                            properties:
+                              container_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: 容器名称列表
+                            description: 容器属性过滤器
+                          execute_in_whole_cluster:
+                            type: boolean
+                            default: false
+                            description: 是否在整个集群内执行，默认为false。为true时忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter
+                        description: 一个容器过滤器
+                      description: 容器过滤器列表
+                  description: 执行目标。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空
+                callback_url:
+                  type: string
+                  description: 作业执行完成后的回调URL，长度不可超过1024字符。作业平台会在放行执行的作业完成后回调该地址
+                rolling_config:
+                  type: object
+                  properties:
+                    type:
+                      type: number
+                      default: 1
+                      description: '滚动对象。可选值: 1 - 传输目标, 2 - 源文件。默认1'
+                    mode:
+                      type: number
+                      default: 1
+                      description: '滚动机制。可选值: 1 - 执行失败则暂停, 2 - 忽略失败自动滚动下一批, 3 - 人工确认。默认1'
+                    execution_mode:
+                      type: number
+                      default: 1
+                      description: '滚动批次执行模式。可选值: 1 - 串行, 2 - 并行（错峰）。默认1'
+                    batch_start_wait_min_ms:
+                      type: number
+                      description: 批次间最小延迟，单位毫秒，取值范围0-3600000。仅execution_mode为2时必填
+                    batch_start_wait_max_ms:
+                      type: number
+                      description: 批次间最大延迟，单位毫秒，取值范围0-3600000，须不小于batch_start_wait_min_ms。仅execution_mode为2时必填
+                    expression:
+                      type: string
+                      description: 目标执行对象的分批策略表达式，如"1 5 10 100%"。type为1时必填
+                    file_source:
+                      type: object
+                      properties:
+                        max_execute_object_num_in_batch:
+                          type: number
+                          description: 单批次最大执行对象数量
+                        max_file_num_of_single_execute_object:
+                          type: number
+                          description: 单个执行对象单批次最大文件数量
+                      description: 源文件滚动配置，type为2时必填，当前不支持与目标执行对象滚动同时配置
+                  description: 滚动执行配置，不传表示不滚动执行
+                start_task:
+                  type: boolean
+                  default: true
+                  description: '审批通过后是否立即启动作业。可选值: true - 立即启动（默认）, false - 仅创建作业实例不启动'
+                host_password_list:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      bk_cloud_id:
+                        type: number
+                        description: 管控区域ID，须与ip同时填写
+                      ip:
+                        type: string
+                        description: 主机IP地址
+                      host_id:
+                        type: number
+                        description: 主机在CMDB中的ID
+                      encrypted_password:
+                        type: string
+                        description: 使用作业平台公钥加密后的账号密码。审批内容中该字段只显示占位符，不含真实值
+                    description: 一台目标主机的自定义账号密码
+                  description: 目标主机的自定义账号密码列表
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/fast_execute_script_with_approval
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Initiate approval for fast execute script
+  /api/v4/fast_transfer_file_with_approval:
+    post:
+      operationId: v4_fast_transfer_file_with_approval
+      description: 发起快速分发文件的审批，审批通过后由作业平台自动执行
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
+                      status:
+                        type: string
+                        description: '审批任务状态。新建时固定为: PENDING - 待审批'
+                      approval_channel:
+                        type: string
+                        description: '实际使用的审批渠道。可选值: IMATE - IMate审批渠道'
+                      expire_at:
+                        type: number
+                        description: 审批任务过期时刻，Unix时间戳，单位毫秒；过期后不可再放行，需重新发起
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在。本接口不返回任何执行结果，此时文件尚未分发
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - file_source_list
+              - file_target_path
+              - execute_target
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                approval_channel:
+                  type: string
+                  description: '审批渠道。可选值: IMATE - IMate审批渠道。不传时使用服务端配置的默认渠道。仅可指定渠道枚举，渠道地址与密钥一律来自服务端配置'
+                task_name:
+                  type: string
+                  description: 自定义作业名称，长度不可超过512字符
+                file_source_list:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      file_list:
+                        type: array
+                        items:
+                          type: string
+                        description: 源文件路径列表
+                      file_type:
+                        type: number
+                        default: 1
+                        description: '文件源类型。可选值: 1 - 服务器文件, 2 - 本地文件, 3 - 第三方文件源文件。默认1'
+                      account_alias:
+                        type: string
+                        description: 源文件所在主机的执行账号别名。与account_id二者填一个，服务器文件必填
+                      account_id:
+                        type: number
+                        description: 源文件所在主机的执行账号ID。与account_alias二者填一个，服务器文件必填
+                      execute_target:
+                        type: object
+                        properties:
+                          host_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ip:
+                                  type: string
+                                  description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                                bk_host_id:
+                                  type: number
+                                  description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID，须与ip同时填写
+                              description: 一台静态主机
+                            description: 静态主机列表
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              properties:
+                                id:
+                                  type: string
+                                  description: 动态分组ID
+                              description: 一个动态分组
+                            description: 动态分组列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              - node_type
+                              properties:
+                                id:
+                                  type: number
+                                  description: 拓扑节点ID
+                                node_type:
+                                  type: string
+                                  description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                              description: 一个CMDB拓扑节点
+                            description: CMDB拓扑节点列表
+                          kube_container_filters:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - kube_cluster_filter
+                              properties:
+                                kube_cluster_filter:
+                                  type: object
+                                  required:
+                                  - cluster_uid_list
+                                  properties:
+                                    cluster_uid_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 集群UID列表
+                                  description: 集群过滤器
+                                kube_namespace_filter:
+                                  type: object
+                                  properties:
+                                    namespace_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: namespace名称列表
+                                  description: namespace过滤器
+                                kube_workload_filter:
+                                  type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      description: workload类型，如deployment、statefulSet、daemonSet、customResource等
+                                    workload_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: workload名称列表
+                                  description: workload过滤器
+                                kube_pod_filter:
+                                  type: object
+                                  properties:
+                                    pod_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: pod名称列表
+                                    label_selector:
+                                      type: array
+                                      items:
+                                        type: object
+                                        properties:
+                                          key:
+                                            type: string
+                                            description: label key
+                                          operator:
+                                            type: string
+                                            description: '操作符。可选值: not_exists, equals, in, not_equals, not_in, exists, gt, lt'
+                                          values:
+                                            type: array
+                                            items:
+                                              type: string
+                                            description: label value列表，operator为in或not_in时必填
+                                      description: 标签选择器列表
+                                    label_selector_expr:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: label selector表达式
+                                  description: pod属性过滤器
+                                kube_container_prop_filter:
+                                  type: object
+                                  properties:
+                                    container_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 容器名称列表
+                                  description: 容器属性过滤器
+                                execute_in_whole_cluster:
+                                  type: boolean
+                                  default: false
+                                  description: 是否在整个集群内执行，默认为false。为true时忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter
+                              description: 一个容器过滤器
+                            description: 容器过滤器列表
+                        description: 源文件所在主机，服务器文件必填
+                      file_source_id:
+                        type: number
+                        description: 第三方文件源ID。与file_source_code二者填一个，第三方文件源文件必填
+                      file_source_code:
+                        type: string
+                        description: 第三方文件源标识。与file_source_id二者填一个，第三方文件源文件必填
+                    description: 一个源文件配置
+                  description: 源文件列表，不可为空
+                file_target_path:
+                  type: string
+                  description: 文件分发到目标主机的目录
+                file_target_name:
+                  type: string
+                  description: 文件分发到目标主机后的文件名，不传时沿用源文件名
+                account_alias:
+                  type: string
+                  description: 目标主机的执行账号别名。与account_id二者填一个，优先级为account_id > account_alias
+                account_id:
+                  type: number
+                  description: 目标主机的执行账号ID。与account_alias二者填一个，优先级更高
+                execute_target:
+                  type: object
+                  properties:
+                    host_list:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          ip:
+                            type: string
+                            description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                          bk_host_id:
+                            type: number
+                            description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                          bk_cloud_id:
+                            type: number
+                            description: 管控区域ID，须与ip同时填写
+                        description: 一台静态主机
+                      description: 静态主机列表
+                    dynamic_group_list:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        properties:
+                          id:
+                            type: string
+                            description: 动态分组ID
+                        description: 一个动态分组
+                      description: 动态分组列表。审批内容会标注实际分发台数在放行时重新解析确定，可能与发起时不同
+                    topo_node_list:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - id
+                        - node_type
+                        properties:
+                          id:
+                            type: number
+                            description: 拓扑节点ID
+                          node_type:
+                            type: string
+                            description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                        description: 一个CMDB拓扑节点
+                      description: CMDB拓扑节点列表。审批内容会标注实际分发台数在放行时重新解析确定，可能与发起时不同
+                    kube_container_filters:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - kube_cluster_filter
+                        properties:
+                          kube_cluster_filter:
+                            type: object
+                            required:
+                            - cluster_uid_list
+                            properties:
+                              cluster_uid_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: 集群UID列表
+                            description: 集群过滤器
+                          kube_namespace_filter:
+                            type: object
+                            properties:
+                              namespace_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: namespace名称列表
+                            description: namespace过滤器
+                          kube_workload_filter:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                                description: workload类型，如deployment、statefulSet、daemonSet、customResource等
+                              workload_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: workload名称列表
+                            description: workload过滤器
+                          kube_pod_filter:
+                            type: object
+                            properties:
+                              pod_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: pod名称列表
+                              label_selector:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    key:
+                                      type: string
+                                      description: label key
+                                    operator:
+                                      type: string
+                                      description: '操作符。可选值: not_exists, equals, in, not_equals, not_in, exists, gt, lt'
+                                    values:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: label value列表，operator为in或not_in时必填
+                                description: 标签选择器列表
+                              label_selector_expr:
+                                type: array
+                                items:
+                                  type: string
+                                description: label selector表达式
+                            description: pod属性过滤器
+                          kube_container_prop_filter:
+                            type: object
+                            properties:
+                              container_name_list:
+                                type: array
+                                items:
+                                  type: string
+                                description: 容器名称列表
+                            description: 容器属性过滤器
+                          execute_in_whole_cluster:
+                            type: boolean
+                            default: false
+                            description: 是否在整个集群内执行，默认为false。为true时忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter
+                        description: 一个容器过滤器
+                      description: 容器过滤器列表
+                  description: 分发目标。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空
+                transfer_mode:
+                  type: number
+                  default: 2
+                  description: '传输模式。可选值: 1 - 严谨模式（目标路径不存在则失败）, 2 - 强制模式（目标路径不存在则自动创建目录，同名文件被直接覆盖）, 3 - 保险模式（按源主机分目录存放，不同来源的同名文件不会互相覆盖）, 4 - 保险模式（按日期与源主机分目录存放）。不传按强制模式处理，传上述以外的值报错'
+                download_speed_limit:
+                  type: number
+                  description: 下载限速，单位MB，不传表示不限速
+                upload_speed_limit:
+                  type: number
+                  description: 上传限速，单位MB，不传表示不限速
+                timeout:
+                  type: number
+                  default: 7200
+                  description: 文件分发超时时间，单位秒。默认7200，取值范围1-259200
+                callback_url:
+                  type: string
+                  description: 作业执行完成后的回调URL，长度不可超过1024字符。作业平台会在放行执行的作业完成后回调该地址
+                rolling_config:
+                  type: object
+                  properties:
+                    type:
+                      type: number
+                      default: 1
+                      description: '滚动对象。可选值: 1 - 传输目标, 2 - 源文件。默认1'
+                    mode:
+                      type: number
+                      default: 1
+                      description: '滚动机制。可选值: 1 - 执行失败则暂停, 2 - 忽略失败自动滚动下一批, 3 - 人工确认。默认1'
+                    execution_mode:
+                      type: number
+                      default: 1
+                      description: '滚动批次执行模式。可选值: 1 - 串行, 2 - 并行（错峰）。默认1'
+                    batch_start_wait_min_ms:
+                      type: number
+                      description: 批次间最小延迟，单位毫秒，取值范围0-3600000。仅execution_mode为2时必填
+                    batch_start_wait_max_ms:
+                      type: number
+                      description: 批次间最大延迟，单位毫秒，取值范围0-3600000，须不小于batch_start_wait_min_ms。仅execution_mode为2时必填
+                    expression:
+                      type: string
+                      description: 目标执行对象的分批策略表达式，如"1 5 10 100%"。type为1时必填
+                    file_source:
+                      type: object
+                      properties:
+                        max_execute_object_num_in_batch:
+                          type: number
+                          description: 单批次最大执行对象数量
+                        max_file_num_of_single_execute_object:
+                          type: number
+                          description: 单个执行对象单批次最大文件数量
+                      description: 源文件滚动配置，type为2时必填，当前不支持与目标执行对象滚动同时配置
+                  description: 滚动执行配置，不传表示不滚动执行
+                start_task:
+                  type: boolean
+                  default: true
+                  description: '审批通过后是否立即启动作业。可选值: true - 立即启动（默认）, false - 仅创建作业实例不启动'
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/fast_transfer_file_with_approval
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Initiate approval for fast transfer file
+  /api/v4/execute_job_plan_with_approval:
+    post:
+      operationId: v4_execute_job_plan_with_approval
+      description: 发起启动执行方案的审批，审批通过后由作业平台自动启动
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
+                      status:
+                        type: string
+                        description: '审批任务状态。新建时固定为: PENDING - 待审批'
+                      approval_channel:
+                        type: string
+                        description: '实际使用的审批渠道。可选值: IMATE - IMate审批渠道'
+                      expire_at:
+                        type: number
+                        description: 审批任务过期时刻，Unix时间戳，单位毫秒；过期后不可再放行，需重新发起
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在。本接口不返回任何执行结果，此时执行方案尚未启动
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - job_plan_id
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                approval_channel:
+                  type: string
+                  description: '审批渠道。可选值: IMATE - IMate审批渠道。不传时使用服务端配置的默认渠道。仅可指定渠道枚举，渠道地址与密钥一律来自服务端配置'
+                job_plan_id:
+                  type: number
+                  description: 要启动的执行方案ID
+                global_var_list:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        description: 全局变量ID。与name二者填一个，优先级更高
+                      name:
+                        type: string
+                        description: 全局变量名。与id二者填一个
+                      value:
+                        type: string
+                        description: 全局变量取值。主机类变量用execute_target传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用该字段。密文类型变量在审批内容中只显示占位符
+                      execute_target:
+                        type: object
+                        properties:
+                          host_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ip:
+                                  type: string
+                                  description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                                bk_host_id:
+                                  type: number
+                                  description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID，须与ip同时填写
+                              description: 一台静态主机
+                            description: 静态主机列表
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              properties:
+                                id:
+                                  type: string
+                                  description: 动态分组ID
+                              description: 一个动态分组
+                            description: 动态分组列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              - node_type
+                              properties:
+                                id:
+                                  type: number
+                                  description: 拓扑节点ID
+                                node_type:
+                                  type: string
+                                  description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                              description: 一个CMDB拓扑节点
+                            description: CMDB拓扑节点列表
+                          kube_container_filters:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - kube_cluster_filter
+                              properties:
+                                kube_cluster_filter:
+                                  type: object
+                                  required:
+                                  - cluster_uid_list
+                                  properties:
+                                    cluster_uid_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 集群UID列表
+                                  description: 集群过滤器
+                                kube_namespace_filter:
+                                  type: object
+                                  properties:
+                                    namespace_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: namespace名称列表
+                                  description: namespace过滤器
+                                kube_workload_filter:
+                                  type: object
+                                  properties:
+                                    kind:
+                                      type: string
+                                      description: workload类型，如deployment、statefulSet、daemonSet、customResource等
+                                    workload_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: workload名称列表
+                                  description: workload过滤器
+                                kube_pod_filter:
+                                  type: object
+                                  properties:
+                                    pod_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: pod名称列表
+                                    label_selector:
+                                      type: array
+                                      items:
+                                        type: object
+                                        properties:
+                                          key:
+                                            type: string
+                                            description: label key
+                                          operator:
+                                            type: string
+                                            description: '操作符。可选值: not_exists, equals, in, not_equals, not_in, exists, gt, lt'
+                                          values:
+                                            type: array
+                                            items:
+                                              type: string
+                                            description: label value列表，operator为in或not_in时必填
+                                      description: 标签选择器列表
+                                    label_selector_expr:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: label selector表达式
+                                  description: pod属性过滤器
+                                kube_container_prop_filter:
+                                  type: object
+                                  properties:
+                                    container_name_list:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: 容器名称列表
+                                  description: 容器属性过滤器
+                                execute_in_whole_cluster:
+                                  type: boolean
+                                  default: false
+                                  description: 是否在整个集群内执行，默认为false。为true时忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter
+                              description: 一个容器过滤器
+                            description: 容器过滤器列表
+                        description: 主机类全局变量的取值。host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空
+                    description: 一个全局变量取值
+                  description: 全局变量取值列表，不传表示全部使用执行方案中的默认值
+                callback_url:
+                  type: string
+                  description: 作业执行完成后的回调URL，长度不可超过1024字符。作业平台会在放行执行的作业完成后回调该地址
+                start_task:
+                  type: boolean
+                  default: true
+                  description: '审批通过后是否立即启动作业。可选值: true - 立即启动（默认）, false - 仅创建作业实例不启动'
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/execute_job_plan_with_approval
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Initiate approval for launching a job plan
+  /api/v4/create_job_plan_with_approval:
+    post:
+      operationId: v4_create_job_plan_with_approval
+      description: 发起创建执行方案的审批，审批通过后由作业平台自动创建
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
+                      status:
+                        type: string
+                        description: '审批任务状态。新建时固定为: PENDING - 待审批'
+                      approval_channel:
+                        type: string
+                        description: '实际使用的审批渠道。可选值: IMATE - IMate审批渠道'
+                      expire_at:
+                        type: number
+                        description: 审批任务过期时刻，Unix时间戳，单位毫秒；过期后不可再放行，需重新发起
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在。本接口不返回任何执行结果，此时执行方案尚未创建
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - job_template_id
+              - name
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                approval_channel:
+                  type: string
+                  description: '审批渠道。可选值: IMATE - IMate审批渠道。不传时使用服务端配置的默认渠道。仅可指定渠道枚举，渠道地址与密钥一律来自服务端配置'
+                job_template_id:
+                  type: number
+                  description: 作业模板ID，须大于0，且对应模板须已存在
+                name:
+                  type: string
+                  description: 执行方案名称，长度1-60个字符；不可包含HTML特殊字符 < > " ' ；在同一资源范围、同一作业模板下须唯一
+                enable_steps:
+                  type: array
+                  items:
+                    type: number
+                    description: 模板步骤ID
+                  description: 要在新方案中启用的模板步骤ID列表；不传时启用模板中的全部步骤；不可传空数组
+                variables:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - name
+                    properties:
+                      name:
+                        type: string
+                        description: 模板中的全局变量名称，按名称匹配
+                      value:
+                        type: string
+                        description: 变量默认值。适用于字符串、命名空间、密文、关联数组、索引数组类型；follow_template为true时不生效。密文类型变量在审批内容中只显示占位符
+                      execute_target:
+                        type: object
+                        properties:
+                          host_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ip:
+                                  type: string
+                                  description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                                bk_host_id:
+                                  type: number
+                                  description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID，须与ip同时填写
+                              description: 一台静态主机
+                            description: 静态主机列表
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              properties:
+                                id:
+                                  type: string
+                                  description: 动态分组ID
+                              description: 一个动态分组
+                            description: 动态分组列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              - node_type
+                              properties:
+                                id:
+                                  type: number
+                                  description: 拓扑节点ID
+                                node_type:
+                                  type: string
+                                  description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                              description: 一个CMDB拓扑节点
+                            description: CMDB拓扑节点列表
+                        description: 执行目标。仅当模板变量为执行目标列表且follow_template为false时填写；host_list、dynamic_group_list、topo_node_list至少一项非空
+                      follow_template:
+                        type: boolean
+                        default: false
+                        description: '是否沿用模板默认值。可选值: true - 沿用模板默认值, false - 使用本请求的value或execute_target（默认false）。为true时不可填写execute_target'
+                    description: 单个模板全局变量覆盖项
+                  description: 模板全局变量覆盖列表，按变量名与模板中的全局变量匹配
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/create_job_plan_with_approval
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Initiate approval for creating a job plan
+  /api/v4/save_cron_with_approval:
+    post:
+      operationId: v4_save_cron_with_approval
+      description: 发起保存（新建/更新）定时任务的审批，审批通过后由作业平台自动保存
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
+                      status:
+                        type: string
+                        description: '审批任务状态。新建时固定为: PENDING - 待审批'
+                      approval_channel:
+                        type: string
+                        description: '实际使用的审批渠道。可选值: IMATE - IMate审批渠道'
+                      expire_at:
+                        type: number
+                        description: 审批任务过期时刻，Unix时间戳，单位毫秒；过期后不可再放行，需重新发起
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在。本接口不返回任何执行结果，此时定时任务尚未保存
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                approval_channel:
+                  type: string
+                  description: '审批渠道。可选值: IMATE - IMate审批渠道。不传时使用服务端配置的默认渠道。仅可指定渠道枚举，渠道地址与密钥一律来自服务端配置'
+                id:
+                  type: number
+                  description: 定时任务ID。更新已有定时任务时必填，新建时不填
+                job_plan_id:
+                  type: number
+                  description: 要定时执行的执行方案ID。新建时必填，更新时选填
+                name:
+                  type: string
+                  description: 定时任务名称，长度不可超过60个字符，不可包含HTML特殊字符 < > " ' 。新建时必填，更新时选填
+                expression:
+                  type: string
+                  description: 周期执行的cron表达式，各字段含义为"分 时 日 月 周"，如 0/5 * * * ? 表示每5分钟执行一次。与execute_time二者至少填一个
+                execute_time:
+                  type: number
+                  description: 单次执行的指定执行时间，Unix时间戳，单位秒。与expression二者至少填一个
+                execute_time_zone:
+                  type: string
+                  description: 定时任务触发时间所在的时区，如 Asia/Shanghai。不传时取业务时区，业务时区为空时取服务器时区
+                global_var_list:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        description: 全局变量ID。与name二者填一个，同时存在时以本字段为准
+                      name:
+                        type: string
+                        description: 全局变量名。与id二者填一个
+                      value:
+                        type: string
+                        description: 全局变量取值。执行目标类变量用execute_target传值，其余类型（字符串、命名空间、密文、关联数组、索引数组）用该字段。密文类型变量在审批内容中只显示占位符
+                      execute_target:
+                        type: object
+                        properties:
+                          host_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ip:
+                                  type: string
+                                  description: 主机IP地址。与bk_host_id须二选一；同时存在时以bk_host_id为准
+                                bk_host_id:
+                                  type: number
+                                  description: 主机在CMDB中的ID。与bk_cloud_id+ip须二选一；同时存在时以bk_host_id为准
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID，须与ip同时填写
+                              description: 一台静态主机
+                            description: 静态主机列表
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              properties:
+                                id:
+                                  type: string
+                                  description: 动态分组ID
+                              description: 一个动态分组
+                            description: 动态分组列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                              - id
+                              - node_type
+                              properties:
+                                id:
+                                  type: number
+                                  description: 拓扑节点ID
+                                node_type:
+                                  type: string
+                                  description: '拓扑节点类型。可选值: module - 模块, set - 集群'
+                              description: 一个CMDB拓扑节点
+                            description: CMDB拓扑节点列表
+                        description: 执行目标类全局变量的取值。host_list、dynamic_group_list、topo_node_list不能同时为空
+                    description: 一个全局变量取值
+                  description: 定时任务启动执行方案时的全局变量取值列表，不传表示全部使用执行方案中的默认值
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/save_cron_with_approval
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Initiate approval for saving a cron job
+  /api/v4/update_cron_status_with_approval:
+    post:
+      operationId: v4_update_cron_status_with_approval
+      description: 发起启停定时任务的审批，审批通过后由作业平台自动启停
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID，后续查询/推进/作废审批任务以及审批渠道取单都使用该ID
+                      status:
+                        type: string
+                        description: '审批任务状态。新建时固定为: PENDING - 待审批'
+                      approval_channel:
+                        type: string
+                        description: '实际使用的审批渠道。可选值: IMATE - IMate审批渠道'
+                      expire_at:
+                        type: number
+                        description: 审批任务过期时刻，Unix时间戳，单位毫秒；过期后不可再放行，需重新发起
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在。本接口不返回任何执行结果，此时定时任务状态尚未变更
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - id
+              - status
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                approval_channel:
+                  type: string
+                  description: '审批渠道。可选值: IMATE - IMate审批渠道。不传时使用服务端配置的默认渠道。仅可指定渠道枚举，渠道地址与密钥一律来自服务端配置'
+                id:
+                  type: number
+                  description: 定时任务ID
+                status:
+                  type: number
+                  description: '目标状态。可选值: 1 - 启用, 0 - 停用'
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/update_cron_status_with_approval
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Initiate approval for enabling or disabling a cron job
+  /api/v4/get_approval_task:
+    get:
+      operationId: v4_get_approval_task
+      description: 查询审批任务的状态与结果
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID
+                      status:
+                        type: string
+                        description: '审批任务状态。可选值: PENDING - 待审批，EXECUTING - 审批通过且已开始执行，EXECUTED - 已执行完成，REJECTED - 审批被驳回，CANCELED - 已被主动作废，FAILED - 执行失败（该次审批已作废），EXPIRED - 已过期（惰性判断出的呈现值，不可再放行）'
+                      operation_type:
+                        type: string
+                        description: '操作类型。可选值: FAST_EXECUTE_SCRIPT - 快速执行脚本，FAST_TRANSFER_FILE - 快速分发文件，EXECUTE_JOB_PLAN - 启动执行方案，CREATE_JOB_PLAN - 创建执行方案，SAVE_CRON - 保存定时任务，UPDATE_CRON_STATUS - 启停定时任务'
+                      approval_channel:
+                        type: string
+                        description: '审批渠道。可选值: IMATE - IMate审批渠道'
+                      approval_ticket_id:
+                        type: string
+                        description: 已绑定的审批单据ID，尚未绑定时为null。绑定后不可更换
+                      creator:
+                        type: string
+                        description: 审批任务发起人。审批人必须为发起人本人，放行时下发下游的操作人也只能是该用户
+                      create_time:
+                        type: number
+                        description: 发起时刻，Unix时间戳，单位毫秒
+                      expire_at:
+                        type: number
+                        description: 过期时刻，Unix时间戳，单位毫秒；过期后不可再放行
+                      approver:
+                        type: string
+                        description: 审批人，由作业平台回查审批渠道得到；未审批时为null
+                      approved_at:
+                        type: number
+                        description: 审批时刻，Unix时间戳，单位毫秒；未审批时为null
+                      execute_result:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 放行后的操作结果，结构与对应操作的直接执行接口返回的data一致（如快速执行脚本返回job_instance_id、step_instance_id、job_instance_name）；未执行时为null
+                      result_unknown:
+                        type: boolean
+                        description: '执行结果未知标记。可选值: true - 执行请求已下发但未取得下游响应，需人工到执行历史确认是否已产生作业，系统不会自动重试; false - 结果明确'
+                      message:
+                        type: string
+                        description: 面向用户的可读说明，随状态变化，如审批中、已过期、执行结果未知等提示
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      parameters:
+      - in: query
+        name: approval_task_id
+        schema:
+          type: string
+        required: true
+        description: 审批任务ID，由发起审批的接口返回。只能查询本人通过同一应用发起的审批任务，其余情况一律返回任务不存在
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: get
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/get_approval_task
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get approval task
+  /api/v4/refresh_approval_task:
+    post:
+      operationId: v4_refresh_approval_task
+      description: 推进审批任务：由作业平台回查审批结论，审批通过且校验全部通过后自动执行原操作
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID
+                      status:
+                        type: string
+                        description: '审批任务状态。可选值: PENDING - 待审批（渠道尚无审批结论），EXECUTING - 审批通过且已开始执行，EXECUTED - 已执行完成，REJECTED - 审批被驳回，CANCELED - 已被主动作废，FAILED - 执行失败（该次审批已作废），EXPIRED - 已过期（惰性判断出的呈现值，不可再放行）'
+                      operation_type:
+                        type: string
+                        description: '操作类型。可选值: FAST_EXECUTE_SCRIPT - 快速执行脚本，FAST_TRANSFER_FILE - 快速分发文件，EXECUTE_JOB_PLAN - 启动执行方案，CREATE_JOB_PLAN - 创建执行方案，SAVE_CRON - 保存定时任务，UPDATE_CRON_STATUS - 启停定时任务'
+                      approval_channel:
+                        type: string
+                        description: '审批渠道。可选值: IMATE - IMate审批渠道'
+                      approval_ticket_id:
+                        type: string
+                        description: 已绑定的审批单据ID。首次校验通过后固化，此后不可更换
+                      creator:
+                        type: string
+                        description: 审批任务发起人。审批人必须为发起人本人，放行时下发下游的操作人也只能是该用户
+                      create_time:
+                        type: number
+                        description: 发起时刻，Unix时间戳，单位毫秒
+                      expire_at:
+                        type: number
+                        description: 过期时刻，Unix时间戳，单位毫秒；过期后不可再放行
+                      approver:
+                        type: string
+                        description: 审批人，由作业平台回查审批渠道得到；未审批时为null
+                      approved_at:
+                        type: number
+                        description: 审批时刻，Unix时间戳，单位毫秒；未审批时为null
+                      execute_result:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 放行后的操作结果，结构与对应操作的直接执行接口返回的data一致；未执行时为null。重复调用本接口时直接返回同一个结果，不会重复执行
+                      result_unknown:
+                        type: boolean
+                        description: '执行结果未知标记。可选值: true - 执行请求已下发但未取得下游响应，需人工到执行历史确认是否已产生作业，系统不会自动重试; false - 结果明确'
+                      message:
+                        type: string
+                        description: 面向用户的可读说明，随状态变化，如审批中、已过期、执行结果未知等提示
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - approval_task_id
+              - approval_ticket_id
+              properties:
+                approval_task_id:
+                  type: string
+                  description: 审批任务ID，由发起审批的接口返回
+                approval_ticket_id:
+                  type: string
+                  description: 审批渠道的单据ID。仅用于让作业平台回查审批结论，不代表任何审批结论；一旦与任务绑定即不可更换。IMate渠道以审批任务ID唯一标识审批单、没有独立的单据ID，请传与approval_task_id相同的值
+        required: true
+        description: 请求体只有两个ID。审批结论只能由作业平台自己回查审批渠道得出，因此本接口不接受任何审批结论字段（无状态、审批人、审批时间、审批意见等字段），多传的字段会被忽略
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/refresh_approval_task
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Refresh approval task and execute the operation once approved
+  /api/v4/cancel_approval_task:
+    post:
+      operationId: v4_cancel_approval_task
+      description: 主动作废审批任务，作废后不可再放行；与放行并发时以先抢到待审批状态的一方为准，放行抢先时本接口返回状态不允许的错误并带上任务此刻的真实状态，表示作废未生效、操作已在执行
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID
+                      status:
+                        type: string
+                        description: '审批任务状态。作废成功后固定为: CANCELED - 已作废'
+                      operation_type:
+                        type: string
+                        description: '操作类型。可选值: FAST_EXECUTE_SCRIPT - 快速执行脚本，FAST_TRANSFER_FILE - 快速分发文件，EXECUTE_JOB_PLAN - 启动执行方案，CREATE_JOB_PLAN - 创建执行方案，SAVE_CRON - 保存定时任务，UPDATE_CRON_STATUS - 启停定时任务'
+                      approval_channel:
+                        type: string
+                        description: '审批渠道。可选值: IMATE - IMate审批渠道'
+                      approval_ticket_id:
+                        type: string
+                        description: 已绑定的审批单据ID，尚未绑定时为null。作废不会反向通知审批渠道，渠道侧单据需由审批人自行处理
+                      creator:
+                        type: string
+                        description: 审批任务发起人
+                      create_time:
+                        type: number
+                        description: 发起时刻，Unix时间戳，单位毫秒
+                      expire_at:
+                        type: number
+                        description: 过期时刻，Unix时间戳，单位毫秒
+                      approver:
+                        type: string
+                        description: 审批人，作废时通常为null
+                      approved_at:
+                        type: number
+                        description: 审批时刻，Unix时间戳，单位毫秒；作废时通常为null
+                      execute_result:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 操作结果，作废的任务未执行，固定为null
+                      result_unknown:
+                        type: boolean
+                        description: '执行结果未知标记。作废场景固定为: false'
+                      message:
+                        type: string
+                        description: 面向用户的可读说明
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - approval_task_id
+              properties:
+                approval_task_id:
+                  type: string
+                  description: 审批任务ID，由发起审批的接口返回。只有处于PENDING状态的任务可以作废
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/cancel_approval_task
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Cancel approval task
+  /api/v4/system/get_approval_content:
+    get:
+      operationId: v4_system_get_approval_content
+      description: 获取审批任务的审批内容（供审批渠道建单使用）
+      tags:
+        - system
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approval_task_id:
+                        type: string
+                        description: 审批任务ID
+                      expire_at:
+                        type: number
+                        description: 审批任务过期时刻，Unix时间戳，单位毫秒；过期后不可再放行
+                      approval_content:
+                        type: string
+                        description: '审批内容，Markdown格式，由作业平台渲染完成，审批渠道直接展示即可。依次包含一级标题（形如“快速执行脚本 - 某业务 - 37个执行对象”）、操作概要表格（操作类型、资源范围、发起人、风险等级、操作对象、执行账号、脚本参数、执行对象、源文件、目标路径、目标文件名、传输模式、生效的默认值等）、需逐行展示的字段章节（如“启用的步骤”）、脚本内容代码块（代码块带脚本语言标记，如shell、python，便于渠道侧高亮）、原始参数JSON代码块。正文只使用标题、表格、列表、代码块等基础Markdown语法，不含<br>等内联HTML，渠道侧无需支持HTML即可正确展示。风险等级判定规则：命中高危语句规则或影响主机数超过100为高危，影响主机数超过10为中危，其余为低危；影响主机数取执行对象总数与各主机类全局变量台数合计的较大值，取较大值而非相加可避免启动执行方案时同一批机器被算两次。脚本参数只在存在脚本步骤且调用方传了参数时出现，取各步骤解析结果去重合并，调用方声明为敏感参数（is_param_sensitive为true）时只出占位符、不含真实值。执行对象总数不超过10个时连同清单一并给出（主机为云区域ID:IP，容器为容器名），超过10个只报总数。源文件、目标路径、目标文件名与传输模式只在存在文件分发步骤时出现（执行方案含文件分发步骤时同样给出），均取各步骤预检解析出的结果去重合并，其中源文件按“账号@源机器: 文件路径”的形式给出，源机器不超过10台时逐台列出（云区域ID:IP）、超过10台只报台数，本地上传的文件没有源机器与源账号、标注为“[本地文件]”，目标文件名仅在调用方指定了重命名时才出现；传输模式为实际生效模式（严谨模式/强制模式/保险模式）并说明同名文件与不存在的目标路径如何处置，未传transfer_mode而按默认（强制模式）生效时该行标注“[默认]”，显式传入时不标注；带“[默认]”前缀的行统一排在概要表格的最后，普通字段行在前；上述汇总行单行最多列5条，超出的不再逐条展开、只在末尾补一句“其余已省略（共N项）”。保存定时任务的“操作”行取值为“创建”/“更新”，随请求语言切换。定时任务的“定时规则”行按调用方提交的UNIX格式（如30 10 8 * *）展示，而非转换后落库的Quartz格式。创建执行方案的“启用的步骤”给出步骤名称而非步骤ID，概要表格中只报条数（“共N项，见下方同名章节”），步骤名在概要表格之后的同名章节中以Markdown无序列表逐行列出、不做条数截断，启用的是全部模板步骤时标签与章节标题都注明为“启用的步骤（全部）”。启动执行方案、创建执行方案与保存定时任务的正文中还有“全局变量”章节，以“变量/类型/取值”三列表格列出生效的全部变量（含本次请求未指定、沿用作业模板或执行方案现有配置的那些，这类行加“[沿用现值]”前缀并统一沉底），概要表格中同样只报条数；主机类变量不超过10台时连同主机清单（云区域ID:IP）一起给出、超过10台只报总数，动态分组与拓扑节点算不出台数、只报个数，密文类变量只出占位符。逐步骤的明细（步骤名称、脚本名称、目标机清单等）不在正文中展开，以免单据过长使审批人直接划到底放行。原始参数中未传的字段不展示。密码类敏感字段的值仅为占位符，不含真实值，脚本内容例外、原样展示；目标含动态分组或拓扑节点时正文中会给出「放行时重新解析」的提示'
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      parameters:
+      - in: query
+        name: approval_task_id
+        schema:
+          type: string
+        required: true
+        description: 审批任务ID，由发起审批的接口返回并由调用方交给审批渠道
+      - in: header
+        name: X-Bk-Username
+        schema:
+          type: string
+        required: true
+        description: 取内容时的用户，必须传当前审批人
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: get
+          path: /{env.api_path_prefix}api/job/v4/job-analysis/get_approval_content
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'app'
+              remove: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get approval content

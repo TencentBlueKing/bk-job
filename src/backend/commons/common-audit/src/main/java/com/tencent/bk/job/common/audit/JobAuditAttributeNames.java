@@ -32,4 +32,9 @@ public interface JobAuditAttributeNames {
     String PLAN_NAME = "@PLAN_NAME";
     String VERSION = "@VERSION";
     String OPERATION = "@OPERATION";
+    String APPROVAL_TASK_ID = "@APPROVAL_TASK_ID";
+    String APPROVAL_OPERATION_TYPE = "@APPROVAL_OPERATION_TYPE";
+    String APPROVAL_CHANNEL = "@APPROVAL_CHANNEL";
+    String APPROVER = "@APPROVER";
+    String APPROVAL_RESULT = "@APPROVAL_RESULT";
 }
