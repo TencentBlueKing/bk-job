@@ -172,7 +172,7 @@ public class WebTagResourceImpl implements WebTagResource {
         for (TagDTO tag : tags) {
             TagVO tagVO = new TagVO();
             tagVO.setId(tag.getId());
-            tagVO.setName(tag.getName());
+            tagVO.setName(TagDTO.getDisplayName(tag));
             tagVO.setDescription(tag.getDescription());
             tagVOS.add(tagVO);
         }

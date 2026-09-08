@@ -30,6 +30,7 @@ import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
+import com.tencent.bk.job.common.util.PublicTagI18nUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -96,7 +97,7 @@ public class TagStatisticService {
         }
         map.clear();
         for (Pair<String, Long> pair : tagList) {
-            map.put(pair.getLeft(), pair.getRight());
+            map.merge(PublicTagI18nUtil.getI18nName(pair.getLeft()), pair.getRight(), Long::sum);
         }
         commonDistributionVO.setLabelAmountMap(map);
         return commonDistributionVO;
