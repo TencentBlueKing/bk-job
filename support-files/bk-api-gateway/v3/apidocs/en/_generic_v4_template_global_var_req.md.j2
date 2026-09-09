@@ -5,7 +5,7 @@
 | description    | string | No       | Variable description                                                                                                                                           |
 | required       | int    | No       | Whether the variable is mandatory at execution time. Allowed values: `0` (no, default), `1` (yes)                                                              |
 | value          | string | No       | Default value for string, namespace, ciphertext, associative array, index array and execute account types; for execute account variables the value is the account ID string |
-| execute_target | object | No       | Default execute targets, see `execute_target` below. Only for `type` 3                                                                                         |
+| execute_target | object | No       | Default execute targets, only for `type` 3. Same shape as `execute_target` below except that **`variable` is not accepted**: a variable default must be concrete targets and cannot reference another variable |
 
 Ciphertext variables (`type=4`) are always returned as `******` by `get_job_template_detail`. Writing `******` back
 keeps the stored value unchanged; provide the new plaintext to change it.

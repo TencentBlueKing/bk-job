@@ -5734,9 +5734,6 @@ paths:
                       execute_target:
                         type: object
                         properties:
-                          variable:
-                            type: string
-                            description: 引用的执行目标类全局变量名。与主机信息二选一，同时存在时以variable为准
                           host_list:
                             type: array
                             items:
@@ -5900,7 +5897,7 @@ paths:
                             description: 脚本内容，Base64编码。script_type为1时必填
                           script_language:
                             type: number
-                            description: '脚本语言。script_type为1时必填。可选值: 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql'
+                            description: '脚本语言。script_type为1时必填；引用脚本（script_type为2、3）时无需传入，以被引用版本的语言为准，传入的值会被忽略。可选值: 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql'
                           script_param:
                             type: string
                             description: 脚本参数，Base64编码
@@ -5931,7 +5928,7 @@ paths:
                             properties:
                               variable:
                                 type: string
-                                description: 引用的执行目标类全局变量名。与主机信息二选一，同时存在时以variable为准
+                                description: 引用的「执行目标列表」类型全局变量名。与下方具体目标互斥，同时填写会返回参数错误
                               host_list:
                                 type: array
                                 items:
@@ -6100,7 +6097,7 @@ paths:
                                   properties:
                                     variable:
                                       type: string
-                                      description: 引用的执行目标类全局变量名。与主机信息二选一，同时存在时以variable为准
+                                      description: 引用的「执行目标列表」类型全局变量名。与下方具体目标互斥，同时填写会返回参数错误
                                     host_list:
                                       type: array
                                       items:
@@ -6254,7 +6251,7 @@ paths:
                                 properties:
                                   variable:
                                     type: string
-                                    description: 引用的执行目标类全局变量名。与主机信息二选一，同时存在时以variable为准
+                                    description: 引用的「执行目标列表」类型全局变量名。与下方具体目标互斥，同时填写会返回参数错误
                                   host_list:
                                     type: array
                                     items:
@@ -6574,9 +6571,6 @@ paths:
                       execute_target:
                         type: object
                         properties:
-                          variable:
-                            type: string
-                            description: 引用的执行目标类全局变量名。与主机信息二选一，同时存在时以variable为准
                           host_list:
                             type: array
                             items:
@@ -6743,7 +6737,7 @@ paths:
                             description: 脚本内容，Base64编码。script_type为1时必填
                           script_language:
                             type: number
-                            description: '脚本语言。script_type为1时必填。可选值: 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql'
+                            description: '脚本语言。script_type为1时必填；引用脚本（script_type为2、3）时无需传入，以被引用版本的语言为准，传入的值会被忽略。可选值: 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql'
                           script_param:
                             type: string
                             description: 脚本参数，Base64编码
@@ -6774,7 +6768,7 @@ paths:
                             properties:
                               variable:
                                 type: string
-                                description: 引用的执行目标类全局变量名。与主机信息二选一，同时存在时以variable为准
+                                description: 引用的「执行目标列表」类型全局变量名。与下方具体目标互斥，同时填写会返回参数错误
                               host_list:
                                 type: array
                                 items:
@@ -6943,7 +6937,7 @@ paths:
                                   properties:
                                     variable:
                                       type: string
-                                      description: 引用的执行目标类全局变量名。与主机信息二选一，同时存在时以variable为准
+                                      description: 引用的「执行目标列表」类型全局变量名。与下方具体目标互斥，同时填写会返回参数错误
                                     host_list:
                                       type: array
                                       items:
@@ -7097,7 +7091,7 @@ paths:
                                 properties:
                                   variable:
                                     type: string
-                                    description: 引用的执行目标类全局变量名。与主机信息二选一，同时存在时以variable为准
+                                    description: 引用的「执行目标列表」类型全局变量名。与下方具体目标互斥，同时填写会返回参数错误
                                   host_list:
                                     type: array
                                     items:

@@ -50,7 +50,7 @@ public class V4JobTemplateGlobalVarReq {
     private String name;
 
     /**
-     * 变量类型。1 字符串、2 命名空间、3 主机列表、4 密文、5 关联数组、6 索引数组、7 执行账号。
+     * 变量类型。1 字符串、2 命名空间、3 执行目标列表、4 密文、5 关联数组、6 索引数组、7 执行账号。
      */
     @JsonProperty("type")
     @NotNull(message = "{validation.constraints.InvalidTemplateGlobalVarType.message}")
@@ -74,9 +74,9 @@ public class V4JobTemplateGlobalVarReq {
     private String value;
 
     /**
-     * 主机列表类型变量的默认值。
+     * 执行目标列表类型变量的默认值。只能是具体目标，不接受 variable。
      */
     @JsonProperty("execute_target")
     @Valid
-    private V4JobTemplateExecuteTargetReq executeTarget;
+    private V4JobTemplateVarTargetReq executeTarget;
 }

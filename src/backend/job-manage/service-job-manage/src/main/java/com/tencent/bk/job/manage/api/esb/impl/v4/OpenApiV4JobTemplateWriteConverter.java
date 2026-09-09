@@ -52,6 +52,7 @@ import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskTemplateStatusEnum;
+import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
@@ -69,6 +70,8 @@ import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateApprovalStepReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateContainerDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateContainerFilterDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateExecuteTargetReq;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateTargetReq;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateVarTargetReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateFileSourceReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateFileStepReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateGlobalVarReq;
@@ -78,6 +81,7 @@ import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateStepReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateWriteRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4KubeTopoDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4UpdateJobTemplateRequest;
+import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.template.TemplateLocalFileService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -86,6 +90,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -108,9 +113,12 @@ public class OpenApiV4JobTemplateWriteConverter {
     private static final String PARAM_GLOBAL_VAR_LIST = "global_var_list";
 
     private final TemplateLocalFileService templateLocalFileService;
+    private final ScriptManager scriptManager;
 
-    public OpenApiV4JobTemplateWriteConverter(TemplateLocalFileService templateLocalFileService) {
+    public OpenApiV4JobTemplateWriteConverter(TemplateLocalFileService templateLocalFileService,
+                                              ScriptManager scriptManager) {
         this.templateLocalFileService = templateLocalFileService;
+        this.scriptManager = scriptManager;
     }
 
     public TaskTemplateInfoDTO toCreateTemplateInfo(String username,
@@ -122,7 +130,7 @@ public class OpenApiV4JobTemplateWriteConverter {
         templateInfo.setTags(Collections.emptyList());
 
         rejectStepIdOnCreate(request.getStepList());
-        templateInfo.setStepList(convertSteps(appId, request.getStepList(), Collections.emptyMap()));
+        templateInfo.setStepList(convertSteps(appId, request.getStepList()));
         templateInfo.setVariableList(convertVariables(request.getGlobalVarList(), Collections.emptyMap()));
         return templateInfo;
     }
@@ -143,7 +151,7 @@ public class OpenApiV4JobTemplateWriteConverter {
 
         Map<Long, TaskStepDTO> existingSteps = indexStepsById(existingTemplate.getStepList());
         checkRequestStepIds(request.getStepList(), existingSteps.keySet());
-        List<TaskStepDTO> steps = convertSteps(appId, request.getStepList(), existingSteps);
+        List<TaskStepDTO> steps = convertSteps(appId, request.getStepList());
         steps.addAll(buildDeletedSteps(request.getStepList(), existingSteps));
         templateInfo.setStepList(steps);
 
@@ -206,17 +214,53 @@ public class OpenApiV4JobTemplateWriteConverter {
         }
     }
 
-    private List<TaskStepDTO> convertSteps(Long appId,
-                                           List<V4JobTemplateStepReq> stepReqList,
-                                           Map<Long, TaskStepDTO> existingSteps) {
+    private List<TaskStepDTO> convertSteps(Long appId, List<V4JobTemplateStepReq> stepReqList) {
+        Map<Long, ScriptTypeEnum> refScriptLanguages = resolveRefScriptLanguages(stepReqList);
         List<TaskStepDTO> steps = new ArrayList<>(stepReqList.size());
         for (V4JobTemplateStepReq stepReq : stepReqList) {
-            steps.add(convertStep(appId, stepReq, existingSteps.get(stepReq.getId())));
+            steps.add(convertStep(appId, stepReq, refScriptLanguages));
         }
         return steps;
     }
 
-    private TaskStepDTO convertStep(Long appId, V4JobTemplateStepReq stepReq, TaskStepDTO existingStep) {
+    /**
+     * 一次性查出所有被引用脚本版本的语言。
+     * 引用脚本的语言以被引用版本为准，调用方只传 script_version_id，语言由这里反查补齐。
+     */
+    private Map<Long, ScriptTypeEnum> resolveRefScriptLanguages(List<V4JobTemplateStepReq> stepReqList) {
+        Set<Long> scriptVersionIds = stepReqList.stream()
+            .filter(stepReq -> TaskStepTypeEnum.SCRIPT.getValue() == stepReq.getType())
+            .map(V4JobTemplateStepReq::getScriptInfo)
+            .filter(scriptReq -> scriptReq != null && isRefScript(scriptReq.getScriptType()))
+            .map(V4JobTemplateScriptStepReq::getScriptVersionId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        if (scriptVersionIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<Long, ScriptDTO> scriptVersions = scriptManager.batchGetScriptVersionsByIds(scriptVersionIds);
+        Set<Long> missingIds = new LinkedHashSet<>(scriptVersionIds);
+        missingIds.removeAll(scriptVersions.keySet());
+        if (!missingIds.isEmpty()) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"script_version_id", "script version does not exist: " + joinIds(missingIds)});
+        }
+
+        Map<Long, ScriptTypeEnum> languages = new HashMap<>(scriptVersions.size());
+        scriptVersions.forEach((versionId, script) ->
+            languages.put(versionId, ScriptTypeEnum.valOf(script.getType())));
+        return languages;
+    }
+
+    private boolean isRefScript(Integer scriptType) {
+        TaskScriptSourceEnum scriptSource = TaskScriptSourceEnum.valueOf(scriptType);
+        return scriptSource == TaskScriptSourceEnum.CITING || scriptSource == TaskScriptSourceEnum.PUBLIC;
+    }
+
+    private TaskStepDTO convertStep(Long appId,
+                                    V4JobTemplateStepReq stepReq,
+                                    Map<Long, ScriptTypeEnum> refScriptLanguages) {
         TaskStepDTO step = new TaskStepDTO();
         step.setId(stepReq.getId());
         step.setName(stepReq.getName());
@@ -225,7 +269,8 @@ public class OpenApiV4JobTemplateWriteConverter {
         step.setEnable(1);
         switch (step.getType()) {
             case SCRIPT:
-                step.setScriptStepInfo(convertScriptStep(stepReq.getId(), stepReq.getScriptInfo()));
+                step.setScriptStepInfo(
+                    convertScriptStep(stepReq.getId(), stepReq.getScriptInfo(), refScriptLanguages));
                 break;
             case FILE:
                 step.setFileStepInfo(convertFileStep(appId, stepReq.getId(), stepReq.getFileInfo()));
@@ -262,7 +307,9 @@ public class OpenApiV4JobTemplateWriteConverter {
 
     // ---------------------------------------------------------------- 脚本步骤
 
-    private TaskScriptStepDTO convertScriptStep(Long stepId, V4JobTemplateScriptStepReq scriptReq) {
+    private TaskScriptStepDTO convertScriptStep(Long stepId,
+                                                V4JobTemplateScriptStepReq scriptReq,
+                                                Map<Long, ScriptTypeEnum> refScriptLanguages) {
         TaskScriptStepDTO scriptStep = new TaskScriptStepDTO();
         scriptStep.setStepId(stepId);
         TaskScriptSourceEnum scriptSource = TaskScriptSourceEnum.valueOf(scriptReq.getScriptType());
@@ -273,9 +320,8 @@ public class OpenApiV4JobTemplateWriteConverter {
         } else {
             scriptStep.setScriptId(scriptReq.getScriptId());
             scriptStep.setScriptVersionId(scriptReq.getScriptVersionId());
-            if (scriptReq.getScriptLanguage() != null) {
-                scriptStep.setLanguage(ScriptTypeEnum.valOf(scriptReq.getScriptLanguage()));
-            }
+            // 语言以被引用版本为准，请求里传的 script_language 一律忽略，避免落库的语言与脚本对不上
+            scriptStep.setLanguage(refScriptLanguages.get(scriptReq.getScriptVersionId()));
         }
         scriptStep.setScriptParam(decodeBase64(scriptReq.getScriptParam(), "script_param"));
         scriptStep.setWindowsInterpreter(scriptReq.getWindowsInterpreter());
@@ -317,6 +363,9 @@ public class OpenApiV4JobTemplateWriteConverter {
     private TaskFileInfoDTO convertFileSource(Long appId, Long stepId, V4JobTemplateFileSourceReq fileSourceReq) {
         TaskFileInfoDTO fileInfo = new TaskFileInfoDTO();
         fileInfo.setStepId(stepId);
+        // v4 不暴露源文件行的主键，没有可用来匹配既有行的稳定标识；统一填 0 让服务层当作新增，
+        // 更新既有文件步骤时等价于「旧行全删、新行全插」，与声明式全量替换的语义一致
+        fileInfo.setId(0L);
         TaskFileTypeEnum fileType = TaskFileTypeEnum.valueOf(fileSourceReq.getFileType());
         fileInfo.setFileType(fileType);
         fileInfo.setFileLocation(fileSourceReq.getFileList());
@@ -410,6 +459,9 @@ public class OpenApiV4JobTemplateWriteConverter {
             variable.setChangeable(existingVariable.getChangeable());
             variable.setFollowTemplate(existingVariable.getFollowTemplate());
         } else {
+            // 服务层用 id > 0 区分「更新既有变量」与「新增变量」，新增时不可为 null；
+            // 真实 ID 由 task_template_variable 表自增生成，这里只是占位
+            variable.setId(0L);
             variable.setChangeable(defaultChangeable(type));
             variable.setFollowTemplate(false);
         }
@@ -425,7 +477,7 @@ public class OpenApiV4JobTemplateWriteConverter {
                     new String[]{PARAM_GLOBAL_VAR_LIST,
                         "execute_target is required for host list variable: " + variableReq.getName()});
             }
-            return convertExecuteTarget(variableReq.getExecuteTarget()).toJsonString();
+            return convertVarTarget(variableReq.getExecuteTarget()).toJsonString();
         }
         // 密文变量读接口返回的是掩码，原样写回时视为未修改，保留原值
         if (type.needMask() && existingVariable != null && type.getMask().equals(variableReq.getValue())) {
@@ -463,6 +515,9 @@ public class OpenApiV4JobTemplateWriteConverter {
 
     // ---------------------------------------------------------------- 执行目标与账号
 
+    /**
+     * 步骤的执行目标。可以引用全局变量，也可以直接指定目标。
+     */
     private TaskTargetDTO convertExecuteTarget(V4JobTemplateExecuteTargetReq targetReq) {
         if (targetReq == null || targetReq.isEmpty()) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
@@ -470,8 +525,34 @@ public class OpenApiV4JobTemplateWriteConverter {
                     "provide at least one of variable, host_list, dynamic_group_list, topo_node_list, "
                         + "container_list and container_filter_list"});
         }
+        String variable = StringUtils.trimToNull(targetReq.getVariable());
+        // 落库时 variable 与具体目标互斥（见 TaskTargetDTO#toJsonString），同时给会让主机维度被静默丢弃
+        if (variable != null && !targetReq.isTargetEmpty()) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"execute_target",
+                    "variable is exclusive with host_list, dynamic_group_list, topo_node_list, "
+                        + "container_list and container_filter_list"});
+        }
+        TaskTargetDTO target = convertTarget(targetReq);
+        target.setVariable(variable);
+        return target;
+    }
+
+    /**
+     * 全局变量默认值的执行目标。只能是具体目标，不涉及 variable。
+     */
+    private TaskTargetDTO convertVarTarget(V4JobTemplateVarTargetReq targetReq) {
+        if (targetReq == null || targetReq.isTargetEmpty()) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{PARAM_GLOBAL_VAR_LIST,
+                    "provide at least one of host_list, dynamic_group_list, topo_node_list, "
+                        + "container_list and container_filter_list in execute_target"});
+        }
+        return convertTarget(targetReq);
+    }
+
+    private TaskTargetDTO convertTarget(V4JobTemplateTargetReq targetReq) {
         TaskTargetDTO target = new TaskTargetDTO();
-        target.setVariable(StringUtils.trimToNull(targetReq.getVariable()));
         TaskHostNodeDTO hostNode = new TaskHostNodeDTO();
         if (CollectionUtils.isNotEmpty(targetReq.getHostList())) {
             hostNode.setHostList(targetReq.getHostList().stream()

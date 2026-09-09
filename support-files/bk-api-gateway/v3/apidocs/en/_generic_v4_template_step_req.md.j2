@@ -8,7 +8,7 @@ Required when `type` is `1` (script execution).
 | script_id           | string | No       | Referenced script ID. Required when `script_type` is 2 or 3                                                                      |
 | script_version_id   | long   | No       | Referenced script version ID. Required when `script_type` is 2 or 3                                                              |
 | script_content      | string | No       | Script content, Base64 encoded. Required when `script_type` is 1                                                                 |
-| script_language     | int    | No       | Script language. Required when `script_type` is 1. Allowed values: `1` (shell), `2` (bat), `3` (perl), `4` (python), `5` (powershell), `6` (sql) |
+| script_language     | int    | No       | Script language. Required when `script_type` is 1. Not needed for referenced scripts (`script_type` 2 or 3): the language of the referenced version is used and any value passed here is ignored. Allowed values: `1` (shell), `2` (bat), `3` (perl), `4` (python), `5` (powershell), `6` (sql) |
 | script_param        | string | No       | Script parameters, Base64 encoded                                                                                                |
 | windows_interpreter | string | No       | Windows interpreter path, only effective on Windows hosts                                                                        |
 | script_timeout      | long   | No       | Script execution timeout in seconds, must be greater than 0                                                                      |

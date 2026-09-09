@@ -24,29 +24,9 @@
 
 package com.tencent.bk.job.manage.model.esb.v4.req;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
-
 /**
- * OpenAPI V4 作业模板中步骤的执行目标。
- * 与 get_job_template_detail 响应中的 execute_target 同形状，响应可原样回传。
+ * OpenAPI V4「执行目标列表」类型全局变量的默认值。
+ * 相比步骤的执行目标少了 variable：变量的默认值只能是具体目标，不能再引用另一个变量。
  */
-@Getter
-@Setter
-public class V4JobTemplateExecuteTargetReq extends V4JobTemplateTargetReq {
-
-    /**
-     * 引用模板中「执行目标列表」类型全局变量的名称。
-     * 与直接指定的目标互斥：填了它，落库时主机维度会被丢弃。
-     */
-    @JsonProperty("variable")
-    private String variable;
-
-    @JsonIgnore
-    public boolean isEmpty() {
-        return StringUtils.isBlank(variable) && isTargetEmpty();
-    }
+public class V4JobTemplateVarTargetReq extends V4JobTemplateTargetReq {
 }

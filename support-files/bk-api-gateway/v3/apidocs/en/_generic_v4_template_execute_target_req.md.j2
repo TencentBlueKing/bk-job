@@ -1,14 +1,18 @@
 | Field                 | Type   | Required | Description                                                                                                    |
 |-----------------------|--------|----------|----------------------------------------------------------------------------------------------------------------|
-| variable              | string | No       | Name of a global variable of type "execute target list" to reference. Mutually exclusive with the concrete targets below; `variable` wins when both are given |
+| variable              | string | No       | Name of a global variable of type "execute target list" to reference                                           |
 | host_list             | array  | No       | Static host list                                                                                               |
 | dynamic_group_list    | array  | No       | Dynamic group list                                                                                             |
 | topo_node_list        | array  | No       | CMDB topology node list                                                                                        |
 | container_list        | array  | No       | Static container list                                                                                          |
 | container_filter_list | array  | No       | Container filter list; multiple filters are unioned                                                            |
 
-When `variable` is omitted, at least one of `host_list`, `dynamic_group_list`, `topo_node_list`, `container_list`
-and `container_filter_list` must be non-empty.
+An execute target is either a variable reference or a set of concrete targets, and the two are **mutually
+exclusive**: either provide `variable` alone, or provide at least one non-empty value among the other five fields.
+Providing both returns a parameter error, and providing neither does as well.
+
+> The default value of a global variable (`global_var_list[].execute_target`) supports concrete targets only. It
+> does not accept `variable`, because a variable default must not reference another variable.
 
 ##### host_list[] element
 

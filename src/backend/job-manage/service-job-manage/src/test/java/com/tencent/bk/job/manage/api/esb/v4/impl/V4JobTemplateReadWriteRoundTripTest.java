@@ -62,6 +62,8 @@ import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateAccountReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateApprovalStepReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateApprovalUserReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateExecuteTargetReq;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateTargetReq;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateVarTargetReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateFileDestinationReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateFileSourceReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateFileStepReq;
@@ -78,6 +80,7 @@ import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateFileStepDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateGlobalVarDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateScriptStepDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateStepDTO;
+import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
 import com.tencent.bk.job.manage.service.template.TemplateLocalFileService;
 import org.junit.jupiter.api.AfterAll;
@@ -122,7 +125,8 @@ class V4JobTemplateReadWriteRoundTripTest {
 
     @BeforeEach
     void setUp() {
-        writeConverter = new OpenApiV4JobTemplateWriteConverter(mock(TemplateLocalFileService.class));
+        writeConverter = new OpenApiV4JobTemplateWriteConverter(
+            mock(TemplateLocalFileService.class), mock(ScriptManager.class));
         appScopeMappingService = mock(AppScopeMappingService.class);
         when(appScopeMappingService.getScopeByAppId(APP_ID))
             .thenReturn(new ResourceScope(ResourceScopeTypeEnum.BIZ, "2"));
@@ -350,7 +354,7 @@ class V4JobTemplateReadWriteRoundTripTest {
         req.setDescription(var.getDescription());
         req.setRequired(var.getRequired());
         req.setValue(var.getValue());
-        req.setExecuteTarget(toTargetReq(var.getExecuteTarget()));
+        req.setExecuteTarget(toVarTargetReq(var.getExecuteTarget()));
         return req;
     }
 
@@ -451,8 +455,22 @@ class V4JobTemplateReadWriteRoundTripTest {
         if (target == null) {
             return null;
         }
-        V4JobTemplateExecuteTargetReq req = new V4JobTemplateExecuteTargetReq();
+        V4JobTemplateExecuteTargetReq req = fillTargetReq(new V4JobTemplateExecuteTargetReq(), target);
         req.setVariable(target.getVariable());
+        return req;
+    }
+
+    /**
+     * 变量默认值的执行目标不含 variable，读接口在该位置也不会返回它。
+     */
+    private V4JobTemplateVarTargetReq toVarTargetReq(V4JobTemplateExecuteTargetDTO target) {
+        if (target == null) {
+            return null;
+        }
+        return fillTargetReq(new V4JobTemplateVarTargetReq(), target);
+    }
+
+    private <T extends V4JobTemplateTargetReq> T fillTargetReq(T req, V4JobTemplateExecuteTargetDTO target) {
         req.setHostList(target.getHostList());
         req.setDynamicGroups(target.getDynamicGroups());
         req.setTopoNodes(target.getTopoNodes());

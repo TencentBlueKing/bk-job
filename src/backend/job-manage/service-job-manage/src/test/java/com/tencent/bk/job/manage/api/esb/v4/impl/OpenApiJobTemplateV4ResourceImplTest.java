@@ -76,6 +76,7 @@ import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateFileSourceDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateGlobalVarDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateExecuteTargetDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateStepDTO;
+import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.job.manage.service.template.TemplateLocalFileService;
 import org.junit.jupiter.api.AfterEach;
@@ -136,7 +137,8 @@ class OpenApiJobTemplateV4ResourceImplTest {
             .thenReturn(new ResourceScope(SCOPE_TYPE, SCOPE_ID));
         resource = new OpenApiJobTemplateV4ResourceImpl(
             templateService, appScopeMappingService, fileSourceResource,
-            new OpenApiV4JobTemplateWriteConverter(templateLocalFileService), executeAccountVariableValidator
+            new OpenApiV4JobTemplateWriteConverter(templateLocalFileService, mock(ScriptManager.class)),
+            executeAccountVariableValidator
         );
         JobContextUtil.setUser(testUser);
     }

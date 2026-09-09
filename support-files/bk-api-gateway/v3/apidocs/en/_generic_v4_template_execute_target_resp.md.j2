@@ -1,6 +1,6 @@
 | Field                 | Type   | Always Present | Description |
 |-----------------------|--------|----------------|-------------|
-| variable              | string | No             | Name of another global variable referenced in the template |
+| variable              | string | No             | Name of the referenced global variable of type "execute target list". Only appears on a step's execute target; never returned inside a global variable default |
 | host_list             | array  | No             | Static host list |
 | dynamic_group_list    | array  | No             | Dynamic group list |
 | topo_node_list        | array  | No             | CMDB topology node list |

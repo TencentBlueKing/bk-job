@@ -35,6 +35,7 @@ import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.api.esb.impl.v4.OpenApiV4JobTemplateWriteConverter;
+import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
@@ -49,6 +50,7 @@ import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateApprovalUserReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateContainerDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateContainerFilterDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateExecuteTargetReq;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateVarTargetReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateFileDestinationReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateFileSourceReq;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateFileStepReq;
@@ -60,6 +62,7 @@ import com.tencent.bk.job.manage.model.esb.v4.req.V4KubeObjectDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4KubeTopoDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4KubeWorkloadObjectDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4UpdateJobTemplateRequest;
+import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.template.TemplateLocalFileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -73,9 +76,12 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -88,12 +94,25 @@ class OpenApiV4JobTemplateWriteConverterTest {
     private static final Long TEMPLATE_ID = 1000L;
 
     private TemplateLocalFileService templateLocalFileService;
+    private ScriptManager scriptManager;
     private OpenApiV4JobTemplateWriteConverter converter;
 
     @BeforeEach
     void setUp() {
         templateLocalFileService = mock(TemplateLocalFileService.class);
-        converter = new OpenApiV4JobTemplateWriteConverter(templateLocalFileService);
+        scriptManager = mock(ScriptManager.class);
+        converter = new OpenApiV4JobTemplateWriteConverter(templateLocalFileService, scriptManager);
+    }
+
+    /**
+     * 让指定脚本版本存在，且其语言为 language。
+     */
+    private void mockScriptVersion(Long scriptVersionId, ScriptTypeEnum language) {
+        ScriptDTO script = new ScriptDTO();
+        script.setScriptVersionId(scriptVersionId);
+        script.setType(language.getValue());
+        when(scriptManager.batchGetScriptVersionsByIds(anyCollection()))
+            .thenReturn(Collections.singletonMap(scriptVersionId, script));
     }
 
     // ------------------------------------------------------------ 创建
@@ -188,20 +207,9 @@ class OpenApiV4JobTemplateWriteConverterTest {
     @Test
     @DisplayName("创建：引用脚本只落库脚本 ID 与版本，不写入脚本内容")
     void create_keeps_script_reference_without_content() {
-        V4JobTemplateScriptStepReq scriptInfo = new V4JobTemplateScriptStepReq();
-        scriptInfo.setScriptType(TaskScriptSourceEnum.CITING.getType());
-        scriptInfo.setScriptId("script-uuid");
-        scriptInfo.setScriptVersionId(9527L);
-        scriptInfo.setScriptLanguage(ScriptTypeEnum.SHELL.getValue());
+        mockScriptVersion(9527L, ScriptTypeEnum.SHELL);
         // 引用脚本即使带了内容也不该落库，内容以引用的脚本版本为准
-        scriptInfo.setScriptContent("ZWNobyBoZWxsbw==");
-        scriptInfo.setAccount(accountReq());
-        scriptInfo.setExecuteTarget(variableTargetReq());
-
-        V4JobTemplateStepReq step = new V4JobTemplateStepReq();
-        step.setName("cite-script");
-        step.setType(TaskStepTypeEnum.SCRIPT.getValue());
-        step.setScriptInfo(scriptInfo);
+        V4JobTemplateStepReq step = refScriptStep(9527L, "ZWNobyBoZWxsbw==");
 
         V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(step));
 
@@ -213,6 +221,77 @@ class OpenApiV4JobTemplateWriteConverterTest {
         assertThat(scriptStep.getScriptVersionId()).isEqualTo(9527L);
         assertThat(scriptStep.getContent()).isNull();
         assertThat(scriptStep.getLanguage()).isEqualTo(ScriptTypeEnum.SHELL);
+    }
+
+    @Test
+    @DisplayName("创建：引用脚本的语言取自被引用版本，请求里传的 script_language 被忽略")
+    void ref_script_language_comes_from_version_not_request() {
+        mockScriptVersion(9527L, ScriptTypeEnum.PYTHON);
+        V4JobTemplateStepReq step = refScriptStep(9527L, null);
+        // 调用方传了与实际版本不符的语言，落库必须以版本为准，否则页面会显示错误的脚本语言
+        step.getScriptInfo().setScriptLanguage(ScriptTypeEnum.SHELL.getValue());
+
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(step));
+
+        TaskScriptStepDTO scriptStep = converter.toCreateTemplateInfo(USERNAME, APP_ID, request)
+            .getStepList().get(0).getScriptStepInfo();
+
+        assertThat(scriptStep.getLanguage()).isEqualTo(ScriptTypeEnum.PYTHON);
+    }
+
+    @Test
+    @DisplayName("创建：引用脚本不传 script_language 时也能补出语言，不会因语言为空落库失败")
+    void ref_script_without_language_is_filled_from_version() {
+        mockScriptVersion(9527L, ScriptTypeEnum.PYTHON);
+        V4JobTemplateStepReq step = refScriptStep(9527L, null);
+
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(step));
+
+        TaskScriptStepDTO scriptStep = converter.toCreateTemplateInfo(USERNAME, APP_ID, request)
+            .getStepList().get(0).getScriptStepInfo();
+
+        assertThat(scriptStep.getLanguage()).isEqualTo(ScriptTypeEnum.PYTHON);
+    }
+
+    @Test
+    @DisplayName("创建：引用的脚本版本不存在时报参数错误，而不是让空语言落到 DAO 抛 NPE")
+    void ref_script_with_unknown_version_is_rejected() {
+        when(scriptManager.batchGetScriptVersionsByIds(anyCollection())).thenReturn(Collections.emptyMap());
+        V4JobTemplateStepReq step = refScriptStep(9527L, null);
+
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(step));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(USERNAME, APP_ID, request))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e)).contains("9527"));
+    }
+
+    @Test
+    @DisplayName("创建：多个步骤引用脚本时只查一次脚本版本")
+    void ref_script_versions_are_queried_in_one_batch() {
+        mockScriptVersion(9527L, ScriptTypeEnum.SHELL);
+        V4CreateJobTemplateRequest request = createRequest(Arrays.asList(
+            refScriptStep(9527L, null), refScriptStep(9527L, null)));
+
+        converter.toCreateTemplateInfo(USERNAME, APP_ID, request);
+
+        verify(scriptManager, times(1)).batchGetScriptVersionsByIds(anyCollection());
+    }
+
+    private V4JobTemplateStepReq refScriptStep(Long scriptVersionId, String scriptContent) {
+        V4JobTemplateScriptStepReq scriptInfo = new V4JobTemplateScriptStepReq();
+        scriptInfo.setScriptType(TaskScriptSourceEnum.CITING.getType());
+        scriptInfo.setScriptId("script-uuid");
+        scriptInfo.setScriptVersionId(scriptVersionId);
+        scriptInfo.setScriptContent(scriptContent);
+        scriptInfo.setAccount(accountReq());
+        scriptInfo.setExecuteTarget(variableTargetReq());
+
+        V4JobTemplateStepReq step = new V4JobTemplateStepReq();
+        step.setName("cite-script");
+        step.setType(TaskStepTypeEnum.SCRIPT.getValue());
+        step.setScriptInfo(scriptInfo);
+        return step;
     }
 
     // ------------------------------------------------------------ 更新：步骤 diff
@@ -407,7 +486,7 @@ class OpenApiV4JobTemplateWriteConverterTest {
             .extracting(TaskVariableDTO::getName, TaskVariableDTO::getId, TaskVariableDTO::getDelete)
             .containsExactly(
                 tuple("KEEP", 21L, false),
-                tuple("ADDED", null, false),
+                tuple("ADDED", 0L, false),
                 tuple("DROP", 22L, true)
             );
         assertThat(templateInfo.getVariableList().get(0).getDefaultValue()).isEqualTo("new-value");
@@ -635,6 +714,107 @@ class OpenApiV4JobTemplateWriteConverterTest {
         List<TaskTargetContainerDTO> containers =
             templateInfo.getStepList().get(0).getScriptStepInfo().getExecuteTarget().getContainerList();
         assertThat(containers).extracting(TaskTargetContainerDTO::getId).containsExactly(3002L);
+    }
+
+    @Test
+    @DisplayName("文件源：行 id 补 0，服务层靠 id>0 区分原地更新与新增，为 null 会 NPE")
+    void file_source_gets_zero_id_placeholder() {
+        when(templateLocalFileService.getFileDetail(anyLong(), anyString()))
+            .thenReturn(new TemplateLocalFileService.LocalFileDetail("md5-value", 1024L));
+        V4JobTemplateStepReq step = localFileStepReq(Collections.singletonList("2/8f1c/admin/app.tar.gz"));
+
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(step));
+
+        TaskTemplateInfoDTO templateInfo = converter.toCreateTemplateInfo(USERNAME, APP_ID, request);
+
+        assertThat(templateInfo.getStepList().get(0).getFileStepInfo().getOriginFileList())
+            .singleElement()
+            .satisfies(file -> assertThat(file.getId()).isZero());
+    }
+
+    @Test
+    @DisplayName("变量：新增变量补 id=0 占位，服务层靠 id>0 区分新增与更新，为 null 会 NPE")
+    void new_variable_gets_zero_id_placeholder() {
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
+            scriptStepWithTarget(variableTargetReq())));
+        request.setGlobalVarList(Collections.singletonList(stringVariableReq("TARGET_DIR", "/data/release")));
+
+        TaskTemplateInfoDTO templateInfo = converter.toCreateTemplateInfo(USERNAME, APP_ID, request);
+
+        assertThat(templateInfo.getVariableList()).singleElement()
+            .satisfies(variable -> assertThat(variable.getId()).isZero());
+    }
+
+    @Test
+    @DisplayName("变量：更新时新增的变量同样补 id=0，既有变量保留原 id")
+    void update_mixes_new_and_existing_variable_ids() {
+        TaskTemplateInfoDTO existing = existingTemplate(
+            Collections.singletonList(existingApprovalStep(1L)),
+            Collections.singletonList(existingVariable(21L, "KEEP")));
+
+        V4UpdateJobTemplateRequest request = updateRequest(Collections.singletonList(
+            approvalStepReq(1L, "step-1")));
+        request.setGlobalVarList(Arrays.asList(
+            stringVariableReq("KEEP", "v1"),
+            stringVariableReq("ADDED", "v2")
+        ));
+
+        TaskTemplateInfoDTO templateInfo = converter.toUpdateTemplateInfo(USERNAME, APP_ID, request, existing);
+
+        assertThat(templateInfo.getVariableList())
+            .extracting(TaskVariableDTO::getName, TaskVariableDTO::getId)
+            .containsExactly(tuple("KEEP", 21L), tuple("ADDED", 0L));
+    }
+
+    @Test
+    @DisplayName("执行目标：variable 与具体目标同时出现时拒绝，避免落库静默丢弃主机")
+    void execute_target_rejects_variable_mixed_with_concrete_target() {
+        V4JobTemplateExecuteTargetReq target = containerTargetReq(new V4JobTemplateContainerDTO(3001L), null);
+        target.setVariable("TARGET_HOSTS");
+        V4CreateJobTemplateRequest request = createRequest(
+            Collections.singletonList(scriptStepWithTarget(target)));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(USERNAME, APP_ID, request))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e)).contains("exclusive"));
+    }
+
+    @Test
+    @DisplayName("变量默认值：执行目标为空时报错，报错定位到 global_var_list")
+    void variable_default_target_rejects_empty() {
+        V4JobTemplateGlobalVarReq variableReq = new V4JobTemplateGlobalVarReq();
+        variableReq.setName("TARGET_HOSTS");
+        variableReq.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType());
+        variableReq.setExecuteTarget(new V4JobTemplateVarTargetReq());
+
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
+            scriptStepWithTarget(variableTargetReq())));
+        request.setGlobalVarList(Collections.singletonList(variableReq));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(USERNAME, APP_ID, request))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e)).contains("execute_target"));
+    }
+
+    @Test
+    @DisplayName("变量默认值：容器目标可正常落库，不含 variable 字段")
+    void variable_default_target_keeps_container() {
+        V4JobTemplateVarTargetReq varTarget = new V4JobTemplateVarTargetReq();
+        varTarget.setContainerList(Collections.singletonList(new V4JobTemplateContainerDTO(3001L)));
+
+        V4JobTemplateGlobalVarReq variableReq = new V4JobTemplateGlobalVarReq();
+        variableReq.setName("TARGET_HOSTS");
+        variableReq.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType());
+        variableReq.setExecuteTarget(varTarget);
+
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
+            scriptStepWithTarget(variableTargetReq())));
+        request.setGlobalVarList(Collections.singletonList(variableReq));
+
+        TaskTemplateInfoDTO templateInfo = converter.toCreateTemplateInfo(USERNAME, APP_ID, request);
+
+        String defaultValue = templateInfo.getVariableList().get(0).getDefaultValue();
+        assertThat(defaultValue).contains("\"id\":3001").doesNotContain("variable");
     }
 
     @Test

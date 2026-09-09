@@ -26,27 +26,59 @@ package com.tencent.bk.job.manage.model.esb.v4.req;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+
+import jakarta.validation.Valid;
+import java.util.List;
 
 /**
- * OpenAPI V4 作业模板中步骤的执行目标。
- * 与 get_job_template_detail 响应中的 execute_target 同形状，响应可原样回传。
+ * OpenAPI V4 作业模板执行目标中「直接指定目标」的部分。
+ * 步骤目标还可以改为引用全局变量，见子类 V4JobTemplateExecuteTargetReq。
  */
 @Getter
 @Setter
-public class V4JobTemplateExecuteTargetReq extends V4JobTemplateTargetReq {
+public abstract class V4JobTemplateTargetReq {
+
+    @JsonProperty("host_list")
+    @Valid
+    private List<OpenApiV4HostDTO> hostList;
+
+    @JsonProperty("dynamic_group_list")
+    @Valid
+    private List<EsbDynamicGroupDTO> dynamicGroups;
+
+    @JsonProperty("topo_node_list")
+    @Valid
+    private List<EsbCmdbTopoNodeDTO> topoNodes;
 
     /**
-     * 引用模板中「执行目标列表」类型全局变量的名称。
-     * 与直接指定的目标互斥：填了它，落库时主机维度会被丢弃。
+     * 静态容器列表。
      */
-    @JsonProperty("variable")
-    private String variable;
+    @JsonProperty("container_list")
+    @Valid
+    private List<V4JobTemplateContainerDTO> containerList;
 
+    /**
+     * 容器动态筛选条件列表，多条之间取并集。
+     */
+    @JsonProperty("container_filter_list")
+    @Valid
+    private List<V4JobTemplateContainerFilterDTO> containerFilters;
+
+    /**
+     * 是否没有指定任何具体目标。不含 variable，子类需要时自行叠加。
+     */
     @JsonIgnore
-    public boolean isEmpty() {
-        return StringUtils.isBlank(variable) && isTargetEmpty();
+    public boolean isTargetEmpty() {
+        return CollectionUtils.isEmpty(hostList)
+            && CollectionUtils.isEmpty(dynamicGroups)
+            && CollectionUtils.isEmpty(topoNodes)
+            && CollectionUtils.isEmpty(containerList)
+            && CollectionUtils.isEmpty(containerFilters);
     }
 }
