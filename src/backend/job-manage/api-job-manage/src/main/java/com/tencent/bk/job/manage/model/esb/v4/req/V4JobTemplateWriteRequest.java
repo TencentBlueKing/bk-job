@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.model.esb.v4.req;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.validation.NoXss;
+import com.tencent.bk.job.manage.model.esb.v4.req.validator.V4JobTemplateValidationGroups;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,8 +45,12 @@ import java.util.List;
 @Setter
 public abstract class V4JobTemplateWriteRequest extends EsbAppScopeReq {
 
+    /**
+     * 模板名称。创建时必填，更新时缺省表示不改名。
+     */
     @JsonProperty("name")
-    @NotBlank(message = "{validation.constraints.InvalidTemplateName_empty.message}")
+    @NotBlank(groups = V4JobTemplateValidationGroups.Create.class,
+        message = "{validation.constraints.InvalidTemplateName_empty.message}")
     @Size(max = 60, message = "{validation.constraints.InvalidTemplateName_outOfLength.message}")
     @NoXss(fieldName = "name")
     private String name;

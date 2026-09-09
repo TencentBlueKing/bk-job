@@ -64,4 +64,10 @@ public interface V4JobTemplateValidationGroups {
         interface FileSource {
         }
     }
+
+    /**
+     * 仅创建时启用。更新时缺省表示沿用模板原值，创建时没有原值可回填，因而必填。
+     */
+    interface Create {
+    }
 }

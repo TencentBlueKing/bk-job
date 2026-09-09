@@ -202,8 +202,10 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         List<TaskVariableDTO> variableList =
             requestResolver.mapVariables(request.getVariables(), template, user.getTenantId());
 
-        String planName = StringUtils.strip(request.getName());
-        if (Boolean.FALSE.equals(planService.checkPlanName(appId, templateId, planId, planName))) {
+        // 名称缺省表示不改名，交由 DAO 跳过 NAME 列；只有显式传了才需要查重
+        String planName = StringUtils.stripToNull(request.getName());
+        if (planName != null
+            && Boolean.FALSE.equals(planService.checkPlanName(appId, templateId, planId, planName))) {
             throw new AlreadyExistsException(ErrorCode.PLAN_NAME_EXIST);
         }
 

@@ -734,6 +734,36 @@ class OpenApiJobPlanV4ResourceImplTest {
     }
 
     @Test
+    @DisplayName("更新：不传 name 时不下发名称、也不做重名校验，DAO 据此保留原名")
+    void update_without_name_keeps_original() {
+        stubExistingPlanAndUpdate(Collections.singletonList(201L), null);
+
+        V4UpdateJobPlanRequest request = buildUpdateRequest(Collections.singletonList(201L));
+        request.setName(null);
+        resource.updateJobPlan(USERNAME, APP_CODE, request);
+
+        ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
+        verify(planService).updateTaskPlan(any(User.class), captor.capture());
+        assertThat(captor.getValue().getName()).isNull();
+        verify(planService, times(0)).checkPlanName(anyLong(), anyLong(), anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("更新：name 传全空白等同于不改名")
+    void update_with_blank_name_keeps_original() {
+        stubExistingPlanAndUpdate(Collections.singletonList(201L), null);
+
+        V4UpdateJobPlanRequest request = buildUpdateRequest(Collections.singletonList(201L));
+        request.setName("   ");
+        resource.updateJobPlan(USERNAME, APP_CODE, request);
+
+        ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
+        verify(planService).updateTaskPlan(any(User.class), captor.capture());
+        assertThat(captor.getValue().getName()).isNull();
+        verify(planService, times(0)).checkPlanName(anyLong(), anyLong(), anyLong(), any());
+    }
+
+    @Test
     @DisplayName("更新：变量按模板变量名映射后交给服务层")
     void update_maps_variables_by_template_variable_name() {
         stubExistingPlanAndUpdate(

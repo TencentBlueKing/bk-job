@@ -133,6 +133,11 @@ public class OpenApiV4JobTemplateWriteConverter {
                                                     TaskTemplateInfoDTO existingTemplate) {
         TaskTemplateInfoDTO templateInfo = buildBasicInfo(username, appId, request);
         templateInfo.setId(request.getId());
+        // 名称缺省表示不改名。这里必须回填出真实名称而不是留空：服务层要拿它查重名，
+        // 审计记录的资源名也取自这个 DTO，留空会让审计记到一条没有名字的变更
+        if (StringUtils.isBlank(templateInfo.getName())) {
+            templateInfo.setName(existingTemplate.getName());
+        }
         // v4 写接口不接收 tags，沿用模板原有标签，避免声明式写回把标签清空
         templateInfo.setTags(existingTemplate.getTags());
 

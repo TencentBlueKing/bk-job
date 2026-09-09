@@ -6531,7 +6531,6 @@ paths:
               - bk_scope_type
               - bk_scope_id
               - id
-              - name
               - step_list
               properties:
                 bk_scope_type:
@@ -6545,7 +6544,7 @@ paths:
                   description: 作业模板ID，须大于0，且对应模板须已存在
                 name:
                   type: string
-                  description: 作业模板名称，长度1-60个字符；不可包含HTML特殊字符 < > " '；在同一资源范围下须唯一
+                  description: 作业模板名称，选填，不传或传空白时保留原名；传入时长度1-60个字符，不可包含HTML特殊字符 < > " '，且在同一资源范围下须唯一
                 description:
                   type: string
                   description: 作业模板描述，最长500个字符
@@ -7378,7 +7377,6 @@ paths:
               - bk_scope_type
               - bk_scope_id
               - job_plan_id
-              - name
               - enable_steps
               properties:
                 bk_scope_type:
@@ -7392,7 +7390,7 @@ paths:
                   description: 执行方案ID，须大于0，且对应方案须已存在
                 name:
                   type: string
-                  description: 执行方案名称，长度1-60个字符；不可包含HTML特殊字符 < > " '；在同一资源范围、同一作业模板下须唯一
+                  description: 执行方案名称，选填，不传或传空白时保留原名；传入时长度1-60个字符，不可包含HTML特殊字符 < > " '，且在同一资源范围、同一作业模板下须唯一
                 enable_steps:
                   type: array
                   items:
@@ -10956,6 +10954,41 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Update a job template
+  /api/v4/system/create_job_plan:
+    post:
+      operationId: v4_system_create_job_plan
+      description: 基于已有作业模板创建执行方案
+      tags:
+        - system
+      responses:
+        default:
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-manage/create_job_plan
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'app'
+              remove: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Create a new job plan based on an existing job template
   /api/v4/system/update_job_plan:
     post:
       operationId: v4_system_update_job_plan

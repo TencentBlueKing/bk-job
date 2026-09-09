@@ -322,6 +322,52 @@ class OpenApiV4JobTemplateWriteConverterTest {
     }
 
     @Test
+    @DisplayName("更新：不传 name 时回填模板原名，而不是留空")
+    void update_without_name_backfills_existing_name() {
+        TaskTemplateInfoDTO existing = existingTemplate(
+            Collections.singletonList(existingApprovalStep(1L)), Collections.emptyList());
+
+        V4UpdateJobTemplateRequest request = updateRequest(Collections.singletonList(
+            approvalStepReq(1L, "step-1")));
+        request.setName(null);
+
+        TaskTemplateInfoDTO templateInfo = converter.toUpdateTemplateInfo(USERNAME, APP_ID, request, existing);
+
+        // 留空会让服务层的重名校验退化成 name = NULL，并让审计记到没有名字的变更
+        assertThat(templateInfo.getName()).isEqualTo("demo-template");
+    }
+
+    @Test
+    @DisplayName("更新：name 传全空白等同于不改名")
+    void update_with_blank_name_backfills_existing_name() {
+        TaskTemplateInfoDTO existing = existingTemplate(
+            Collections.singletonList(existingApprovalStep(1L)), Collections.emptyList());
+
+        V4UpdateJobTemplateRequest request = updateRequest(Collections.singletonList(
+            approvalStepReq(1L, "step-1")));
+        request.setName("   ");
+
+        TaskTemplateInfoDTO templateInfo = converter.toUpdateTemplateInfo(USERNAME, APP_ID, request, existing);
+
+        assertThat(templateInfo.getName()).isEqualTo("demo-template");
+    }
+
+    @Test
+    @DisplayName("更新：传了 name 就按新名字改，不被原名覆盖")
+    void update_with_name_renames_template() {
+        TaskTemplateInfoDTO existing = existingTemplate(
+            Collections.singletonList(existingApprovalStep(1L)), Collections.emptyList());
+
+        V4UpdateJobTemplateRequest request = updateRequest(Collections.singletonList(
+            approvalStepReq(1L, "step-1")));
+        request.setName("renamed-template");
+
+        TaskTemplateInfoDTO templateInfo = converter.toUpdateTemplateInfo(USERNAME, APP_ID, request, existing);
+
+        assertThat(templateInfo.getName()).isEqualTo("renamed-template");
+    }
+
+    @Test
     @DisplayName("更新：v4 不接收 tags，模板原有标签被保留")
     void update_keeps_existing_tags() {
         TaskTemplateInfoDTO existing = existingTemplate(

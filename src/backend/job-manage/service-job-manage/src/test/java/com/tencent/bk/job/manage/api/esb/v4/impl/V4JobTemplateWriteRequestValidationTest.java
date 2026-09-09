@@ -114,11 +114,24 @@ class V4JobTemplateWriteRequestValidationTest {
     }
 
     @Test
-    @DisplayName("模板名称为空时报错")
+    @DisplayName("创建：模板名称为空时报错")
     void blank_name_is_rejected() {
         V4CreateJobTemplateRequest request = createRequest(localScriptStep());
         request.setName("  ");
         assertThat(violatedPaths(request)).contains("name");
+    }
+
+    @Test
+    @DisplayName("更新：模板名称可缺省，表示不改名")
+    void update_allows_absent_name() {
+        V4UpdateJobTemplateRequest request = new V4UpdateJobTemplateRequest();
+        request.setScopeType("biz");
+        request.setScopeId("2");
+        request.setId(1000L);
+        request.setStepList(Collections.singletonList(localScriptStep()));
+        request.setName(null);
+
+        assertThat(violatedPaths(request)).doesNotContain("name");
     }
 
     @Test

@@ -6,8 +6,8 @@ This API operates on the **current step snapshot of the job plan** and does not 
 its job template. After the template changes (the plan's `need_update` becomes `true`), the plan can still be
 updated directly; only enabling a step newly added to the template requires calling `sync_job_plan` first.
 
-Prerequisites: the job plan exists in the scope; the caller has permission to edit it. Plan names must be unique
-within the same resource scope and job template.
+Prerequisites: the job plan exists in the scope; the caller has permission to edit it. When `name` is provided, plan
+names must be unique within the same resource scope and job template.
 
 ### Request Parameters
 
@@ -18,7 +18,7 @@ within the same resource scope and job template.
 | bk_scope_type | string | Yes      | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set)                                                             |
 | bk_scope_id   | string | Yes      | Resource scope ID matching `bk_scope_type` (business ID or business set ID)                                                                 |
 | job_plan_id   | long   | Yes      | Job plan ID; must be greater than 0; the plan must exist                                                                                    |
-| name          | string | Yes      | Job plan name, 1–60 characters; must not contain HTML special characters `<`, `>`, `"`, `'`; must be unique within the same scope and template |
+| name          | string | No       | Job plan name. Omit it or leave it blank to keep the current name; when provided it must be 1–60 characters, must not contain HTML special characters `<`, `>`, `"`, `'`, and must be unique within the same scope and template |
 | enable_steps  | array  | Yes      | **Plan step** IDs to enable; an empty array is not allowed; steps not listed are disabled; every ID must belong to the plan                 |
 | variables     | array  | No       | Overrides for template global variables, matched by variable name; fails if the name is unknown or the value type does not match the template; variable names must be unique in one request |
 

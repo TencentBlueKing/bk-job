@@ -139,15 +139,23 @@ class V4JobPlanWriteRequestValidationTest {
     }
 
     @Test
-    @DisplayName("更新：方案名称为空或超长时报错")
-    void update_rejects_blank_or_too_long_name() {
-        V4UpdateJobPlanRequest blankName = updateRequest();
-        blankName.setName("  ");
-        assertThat(violatedPaths(blankName)).contains("name");
-
+    @DisplayName("更新：方案名称超长时报错")
+    void update_rejects_too_long_name() {
         V4UpdateJobPlanRequest longName = updateRequest();
         longName.setName(StringUtils.repeat("a", 61));
         assertThat(violatedPaths(longName)).contains("name");
+    }
+
+    @Test
+    @DisplayName("更新：方案名称可缺省或为空白，表示不改名")
+    void update_allows_absent_name() {
+        V4UpdateJobPlanRequest absentName = updateRequest();
+        absentName.setName(null);
+        assertThat(violatedPaths(absentName)).doesNotContain("name");
+
+        V4UpdateJobPlanRequest blankName = updateRequest();
+        blankName.setName("  ");
+        assertThat(violatedPaths(blankName)).doesNotContain("name");
     }
 
     @Test

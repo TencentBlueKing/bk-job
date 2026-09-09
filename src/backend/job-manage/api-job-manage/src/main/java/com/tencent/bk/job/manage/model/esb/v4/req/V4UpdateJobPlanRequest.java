@@ -32,7 +32,6 @@ import lombok.Setter;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -56,10 +55,9 @@ public class V4UpdateJobPlanRequest extends EsbAppScopeReq {
     private Long jobPlanId;
 
     /**
-     * 执行方案名称，必填且 1-60 字符；在 (appId, templateId) 下需唯一。
+     * 执行方案名称，选填，最长 60 字符；缺省或为空白时保留方案原名，传入时在 (appId, templateId) 下需唯一。
      */
     @JsonProperty("name")
-    @NotBlank(message = "{validation.constraints.InvalidJobPlanName_empty.message}")
     @Size(max = 60, message = "{validation.constraints.InvalidJobPlanName_outOfLength.message}")
     @NoXss(fieldName = "name")
     private String name;

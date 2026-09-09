@@ -8,8 +8,8 @@ deleted. The recommended usage is to read the current configuration with `get_jo
 write the whole thing back.
 
 Prerequisites: the job template exists in the scope; the caller has permission to edit it, and holds the
-corresponding view/use permissions on every referenced resource (scripts, file sources, accounts). Template names
-must be unique within the same resource scope.
+corresponding view/use permissions on every referenced resource (scripts, file sources, accounts). When `name` is
+provided, template names must be unique within the same resource scope.
 
 Three cases for the step `id`:
 
@@ -39,7 +39,7 @@ configuration is not changed automatically. Call `sync_job_plan` to bring a plan
 | bk_scope_type   | string | Yes      | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set)                                                       |
 | bk_scope_id     | string | Yes      | Resource scope ID matching `bk_scope_type` (business ID or business set ID)                                                           |
 | id              | long   | Yes      | Job template ID; must be greater than 0; the template must exist                                                                      |
-| name            | string | Yes      | Job template name, 1–60 characters; must not contain HTML special characters `<`, `>`, `"`, `'`; must be unique within the same scope |
+| name            | string | No       | Job template name. Omit it or leave it blank to keep the current name; when provided it must be 1–60 characters, must not contain HTML special characters `<`, `>`, `"`, `'`, and must be unique within the same scope |
 | description     | string | No       | Job template description, up to 500 characters                                                                                        |
 | global_var_list | array  | No       | Global variable list; existing variables absent from this list are deleted; variable names must be unique within one request          |
 | step_list       | array  | Yes      | Job step list; the array order is the execution order; must be non-empty; existing steps absent from this list are deleted            |

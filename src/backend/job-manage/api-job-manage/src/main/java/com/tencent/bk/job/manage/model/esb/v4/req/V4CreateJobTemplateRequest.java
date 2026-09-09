@@ -24,8 +24,14 @@
 
 package com.tencent.bk.job.manage.model.esb.v4.req;
 
+import com.tencent.bk.job.manage.model.esb.v4.req.validator.V4JobTemplateValidationGroups;
+
+import jakarta.validation.GroupSequence;
+
 /**
  * OpenAPI V4 创建作业模板请求体。步骤不允许携带 id。
+ * 重定义默认分组以启用 Create 组，让仅创建时必填的字段生效。
  */
+@GroupSequence({V4CreateJobTemplateRequest.class, V4JobTemplateValidationGroups.Create.class})
 public class V4CreateJobTemplateRequest extends V4JobTemplateWriteRequest {
 }
