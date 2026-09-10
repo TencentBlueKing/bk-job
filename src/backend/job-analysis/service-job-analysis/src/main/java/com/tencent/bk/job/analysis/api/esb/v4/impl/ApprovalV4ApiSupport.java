@@ -26,6 +26,7 @@ package com.tencent.bk.job.analysis.api.esb.v4.impl;
 
 import com.tencent.bk.job.analysis.approval.ApprovalTaskService;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
+import com.tencent.bk.job.analysis.approval.impl.ApprovalContentSimplifier;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalStatusEnum;
@@ -58,13 +59,16 @@ public class ApprovalV4ApiSupport {
     private final AppScopeMappingService appScopeMappingService;
     private final ApprovalTaskService approvalTaskService;
     private final MessageI18nService i18nService;
+    private final ApprovalContentSimplifier approvalContentSimplifier;
 
     public ApprovalV4ApiSupport(AppScopeMappingService appScopeMappingService,
                                 ApprovalTaskService approvalTaskService,
-                                MessageI18nService i18nService) {
+                                MessageI18nService i18nService,
+                                ApprovalContentSimplifier approvalContentSimplifier) {
         this.appScopeMappingService = appScopeMappingService;
         this.approvalTaskService = approvalTaskService;
         this.i18nService = i18nService;
+        this.approvalContentSimplifier = approvalContentSimplifier;
     }
 
     /**
@@ -213,6 +217,7 @@ public class ApprovalV4ApiSupport {
         contentDTO.setExpireAt(content.getExpireAt());
         // 正文在渲染阶段就已完成脱敏，这里原样透传，不做任何还原
         contentDTO.setApprovalContent(content.getApprovalContent());
+        contentDTO.setApprovalContentSimple(approvalContentSimplifier.simplify(content));
         return contentDTO;
     }
 }

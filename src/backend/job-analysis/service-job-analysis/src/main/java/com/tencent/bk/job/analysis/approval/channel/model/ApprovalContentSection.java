@@ -22,40 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.esb.v4.resp;
+package com.tencent.bk.job.analysis.approval.channel.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * 取审批内容接口的返回体。
- * <p>
- * 标题、发起人、风险等级等信息都已渲染进 {@link #approvalContent}，不再单独给结构化字段。
+ * 渲染器产出的一段已渲染 Markdown。{@link #kind} 在渲染时带下来，供简要裁剪整段丢弃。
  */
-@Data
-public class V4ApprovalContentDTO {
+@Getter
+@AllArgsConstructor
+public class ApprovalContentSection {
 
-    @JsonProperty("approval_task_id")
-    private String approvalTaskId;
-
-    /**
-     * 过期时刻，Unix 时间戳，单位毫秒；过期后不可再放行
-     */
-    @JsonProperty("expire_at")
-    private Long expireAt;
+    private final ApprovalContentSectionKind kind;
 
     /**
-     * 审批内容，Markdown 格式，含标题、操作概要表格、执行步骤、脚本内容与原始参数。
-     * <p>
-     * 敏感字段只出现占位符，脚本内容例外、原样展示。始终返回完整渲染结果，不做渠道展示上限裁剪。
+     * 该章已渲染的 Markdown，含标题与正文；与全文中对应段落逐字相同。
      */
-    @JsonProperty("approval_content")
-    private String approvalContent;
-
-    /**
-     * 审批内容的简要版，Markdown 格式，供企业微信等对展示长度有限制的渠道使用。
-     * 未超出上限时与 {@link #approvalContent} 相同。
-     */
-    @JsonProperty("approval_content_simple")
-    private String approvalContentSimple;
+    private final String markdown;
 }
