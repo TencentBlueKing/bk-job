@@ -32,6 +32,13 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 public interface ThirdFileDistributeSourceHostProvisioner {
 
     /**
+     * 文件准备任务启动时选定的源主机是否应在后续流程中保持不变
+     */
+    default boolean shouldReuseSelectedSourceHost() {
+        return false;
+    }
+
+    /**
      * @return job-file-worker信息 或者 集群外的机器信息
      */
     HostDTO getThirdFileDistributeSourceHost(Long cloudId, String protocol, String ip);
