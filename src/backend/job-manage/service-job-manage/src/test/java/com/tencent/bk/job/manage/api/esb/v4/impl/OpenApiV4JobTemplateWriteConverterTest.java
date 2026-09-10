@@ -285,7 +285,7 @@ class OpenApiV4JobTemplateWriteConverterTest {
         scriptInfo.setScriptVersionId(scriptVersionId);
         scriptInfo.setScriptContent(scriptContent);
         scriptInfo.setAccount(accountReq());
-        scriptInfo.setExecuteTarget(variableTargetReq());
+        scriptInfo.setExecuteTarget(defaultTargetReq());
 
         V4JobTemplateStepReq step = new V4JobTemplateStepReq();
         step.setName("cite-script");
@@ -735,8 +735,7 @@ class OpenApiV4JobTemplateWriteConverterTest {
     @Test
     @DisplayName("变量：新增变量补 id=0 占位，服务层靠 id>0 区分新增与更新，为 null 会 NPE")
     void new_variable_gets_zero_id_placeholder() {
-        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
-            scriptStepWithTarget(variableTargetReq())));
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(localScriptStepReq()));
         request.setGlobalVarList(Collections.singletonList(stringVariableReq("TARGET_DIR", "/data/release")));
 
         TaskTemplateInfoDTO templateInfo = converter.toCreateTemplateInfo(USERNAME, APP_ID, request);
@@ -815,6 +814,104 @@ class OpenApiV4JobTemplateWriteConverterTest {
 
         String defaultValue = templateInfo.getVariableList().get(0).getDefaultValue();
         assertThat(defaultValue).contains("\"id\":3001").doesNotContain("variable");
+    }
+
+    @Test
+    @DisplayName("变量引用：步骤引用未声明的变量时拒绝，报错指明变量名与步骤名")
+    void step_rejects_reference_to_undeclared_variable() {
+        V4JobTemplateExecuteTargetReq target = new V4JobTemplateExecuteTargetReq();
+        target.setVariable("NO_SUCH_VAR");
+        V4CreateJobTemplateRequest request = createRequest(
+            Collections.singletonList(scriptStepWithTarget(target)));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(USERNAME, APP_ID, request))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e))
+                .contains("does not exist").contains("NO_SUCH_VAR").contains("run-script"));
+    }
+
+    @Test
+    @DisplayName("变量引用：引用的变量存在但类型不是执行目标列表时拒绝")
+    void step_rejects_reference_to_wrong_typed_variable() {
+        V4JobTemplateExecuteTargetReq target = new V4JobTemplateExecuteTargetReq();
+        target.setVariable("TARGET_DIR");
+        V4CreateJobTemplateRequest request = createRequest(
+            Collections.singletonList(scriptStepWithTarget(target)));
+        request.setGlobalVarList(Collections.singletonList(stringVariableReq("TARGET_DIR", "/data/release")));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(USERNAME, APP_ID, request))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e))
+                .contains("not an execute target list").contains("TARGET_DIR"));
+    }
+
+    @Test
+    @DisplayName("变量引用：文件步骤的分发目标纳入校验")
+    void file_step_destination_target_is_checked_for_variable_reference() {
+        when(templateLocalFileService.getFileDetail(anyLong(), anyString()))
+            .thenReturn(new TemplateLocalFileService.LocalFileDetail("md5-value", 1024L));
+
+        V4JobTemplateStepReq step = localFileStepReq(Collections.singletonList("2/uuid/tester/a.sh"));
+        V4JobTemplateExecuteTargetReq badTarget = new V4JobTemplateExecuteTargetReq();
+        badTarget.setVariable("NO_SUCH_VAR");
+        step.getFileInfo().getFileDestination().setExecuteTarget(badTarget);
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(step));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(USERNAME, APP_ID, request))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e))
+                .contains("does not exist").contains("NO_SUCH_VAR").contains("transfer-file"));
+    }
+
+    @Test
+    @DisplayName("变量引用：服务器文件源的源主机同样纳入校验")
+    void file_source_host_is_checked_for_variable_reference() {
+        V4JobTemplateExecuteTargetReq badTarget = new V4JobTemplateExecuteTargetReq();
+        badTarget.setVariable("NO_SUCH_VAR");
+
+        V4JobTemplateFileSourceReq fileSource = new V4JobTemplateFileSourceReq();
+        fileSource.setFileType(TaskFileTypeEnum.SERVER.getType());
+        fileSource.setFileList(Collections.singletonList("/tmp/a.txt"));
+        fileSource.setAccount(accountReq());
+        fileSource.setExecuteTarget(badTarget);
+
+        V4JobTemplateStepReq step = localFileStepReq(Collections.singletonList("2/uuid/tester/a.sh"));
+        step.getFileInfo().setFileSourceList(Collections.singletonList(fileSource));
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(step));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(USERNAME, APP_ID, request))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e))
+                .contains("does not exist").contains("NO_SUCH_VAR").contains("transfer-file"));
+    }
+
+    @Test
+    @DisplayName("变量引用：更新时删掉变量却漏改引用它的步骤，写入被拒绝而不是留下不可执行的模板")
+    void update_rejects_step_referencing_removed_variable() {
+        TaskTemplateInfoDTO existing = existingTemplate(
+            Collections.singletonList(existingApprovalStep(1L)), Collections.emptyList());
+
+        V4UpdateJobTemplateRequest request = updateRequest(Collections.singletonList(
+            scriptStepWithTarget(variableTargetReq())));
+        // 全量替换语义下，变量列表里不再出现 TARGET_HOSTS 就等于删除它
+        request.setGlobalVarList(Collections.singletonList(stringVariableReq("OTHER", "v")));
+
+        assertThatThrownBy(() -> converter.toUpdateTemplateInfo(USERNAME, APP_ID, request, existing))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e)).contains("TARGET_HOSTS"));
+    }
+
+    @Test
+    @DisplayName("变量引用：同一请求内声明并引用执行目标列表变量时通过")
+    void step_accepts_reference_to_declared_target_variable() {
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
+            scriptStepWithTarget(variableTargetReq())));
+        request.setGlobalVarList(Collections.singletonList(targetHostsVariableReq()));
+
+        TaskTemplateInfoDTO templateInfo = converter.toCreateTemplateInfo(USERNAME, APP_ID, request);
+
+        assertThat(templateInfo.getStepList().get(0).getScriptStepInfo().getExecuteTarget().getVariable())
+            .isEqualTo("TARGET_HOSTS");
     }
 
     @Test
@@ -922,7 +1019,7 @@ class OpenApiV4JobTemplateWriteConverterTest {
         scriptInfo.setScriptContent("ZWNobyBoZWxsbw==");
         scriptInfo.setScriptLanguage(ScriptTypeEnum.SHELL.getValue());
         scriptInfo.setAccount(accountReq());
-        scriptInfo.setExecuteTarget(variableTargetReq());
+        scriptInfo.setExecuteTarget(defaultTargetReq());
 
         V4JobTemplateStepReq step = new V4JobTemplateStepReq();
         step.setName("run-script");
@@ -939,7 +1036,7 @@ class OpenApiV4JobTemplateWriteConverterTest {
         V4JobTemplateFileDestinationReq destination = new V4JobTemplateFileDestinationReq();
         destination.setPath("/data/dest");
         destination.setAccount(accountReq());
-        destination.setExecuteTarget(variableTargetReq());
+        destination.setExecuteTarget(defaultTargetReq());
 
         V4JobTemplateFileStepReq fileInfo = new V4JobTemplateFileStepReq();
         fileInfo.setFileSourceList(Collections.singletonList(fileSource));
@@ -967,12 +1064,34 @@ class OpenApiV4JobTemplateWriteConverterTest {
     }
 
     /**
-     * 用变量引用型执行目标，避免触发依赖 Spring 上下文的主机明细补全。
+     * 步骤的缺省执行目标。用容器而非主机，避免触发依赖 Spring 上下文的主机明细补全。
+     */
+    private V4JobTemplateExecuteTargetReq defaultTargetReq() {
+        return containerTargetReq(new V4JobTemplateContainerDTO(3001L), null);
+    }
+
+    /**
+     * 引用变量的执行目标。引用的 TARGET_HOSTS 必须由 {@link #targetHostsVariableReq()} 一并声明，
+     * 否则会被步骤引用校验拦下。
      */
     private V4JobTemplateExecuteTargetReq variableTargetReq() {
         V4JobTemplateExecuteTargetReq target = new V4JobTemplateExecuteTargetReq();
         target.setVariable("TARGET_HOSTS");
         return target;
+    }
+
+    /**
+     * 供 {@link #variableTargetReq()} 引用的执行目标列表变量。
+     */
+    private V4JobTemplateGlobalVarReq targetHostsVariableReq() {
+        V4JobTemplateVarTargetReq varTarget = new V4JobTemplateVarTargetReq();
+        varTarget.setContainerList(Collections.singletonList(new V4JobTemplateContainerDTO(3001L)));
+
+        V4JobTemplateGlobalVarReq variable = new V4JobTemplateGlobalVarReq();
+        variable.setName("TARGET_HOSTS");
+        variable.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType());
+        variable.setExecuteTarget(varTarget);
+        return variable;
     }
 
     private V4JobTemplateExecuteTargetReq containerTargetReq(V4JobTemplateContainerDTO container,

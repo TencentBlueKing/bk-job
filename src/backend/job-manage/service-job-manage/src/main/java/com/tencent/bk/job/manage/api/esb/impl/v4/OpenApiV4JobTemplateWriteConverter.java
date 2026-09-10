@@ -111,6 +111,7 @@ public class OpenApiV4JobTemplateWriteConverter {
 
     private static final String PARAM_STEP_LIST = "step_list";
     private static final String PARAM_GLOBAL_VAR_LIST = "global_var_list";
+    private static final String PARAM_EXECUTE_TARGET_VARIABLE = "execute_target.variable";
 
     private final TemplateLocalFileService templateLocalFileService;
     private final ScriptManager scriptManager;
@@ -130,8 +131,11 @@ public class OpenApiV4JobTemplateWriteConverter {
         templateInfo.setTags(Collections.emptyList());
 
         rejectStepIdOnCreate(request.getStepList());
-        templateInfo.setStepList(convertSteps(appId, request.getStepList()));
-        templateInfo.setVariableList(convertVariables(request.getGlobalVarList(), Collections.emptyMap()));
+        List<TaskStepDTO> steps = convertSteps(appId, request.getStepList());
+        List<TaskVariableDTO> variables = convertVariables(request.getGlobalVarList(), Collections.emptyMap());
+        checkTargetVariableRefs(steps, variables);
+        templateInfo.setStepList(steps);
+        templateInfo.setVariableList(variables);
         return templateInfo;
     }
 
@@ -152,11 +156,15 @@ public class OpenApiV4JobTemplateWriteConverter {
         Map<Long, TaskStepDTO> existingSteps = indexStepsById(existingTemplate.getStepList());
         checkRequestStepIds(request.getStepList(), existingSteps.keySet());
         List<TaskStepDTO> steps = convertSteps(appId, request.getStepList());
-        steps.addAll(buildDeletedSteps(request.getStepList(), existingSteps));
-        templateInfo.setStepList(steps);
 
         Map<String, TaskVariableDTO> existingVariables = indexVariablesByName(existingTemplate.getVariableList());
         List<TaskVariableDTO> variables = convertVariables(request.getGlobalVarList(), existingVariables);
+
+        // 在补 delete 标记前校验：待删除的步骤与变量不参与引用关系
+        checkTargetVariableRefs(steps, variables);
+
+        steps.addAll(buildDeletedSteps(request.getStepList(), existingSteps));
+        templateInfo.setStepList(steps);
         variables.addAll(buildDeletedVariables(request.getGlobalVarList(), existingVariables));
         templateInfo.setVariableList(variables);
         return templateInfo;
@@ -422,6 +430,70 @@ public class OpenApiV4JobTemplateWriteConverter {
         approvalStep.setApprovalMessage(approvalReq.getApprovalMessage());
         approvalStep.setNotifyChannel(approvalReq.getNotifyChannel());
         return approvalStep;
+    }
+
+    // ---------------------------------------------------------------- 步骤对全局变量的引用
+
+    /**
+     * 校验步骤引用的执行目标变量：必须在同一请求的 global_var_list 中声明，且类型为执行目标列表。
+     * <p>
+     * 全量替换语义下「删除变量」是靠不在请求里出现来表达的，删了变量却漏改引用它的步骤很容易发生。
+     * 这种模板能写入成功，直到执行时才会失败（引用不存在的变量报
+     * {@code TASK_INSTANCE_RELATED_HOST_VAR_NOT_EXIST}，引用类型不对的变量则报目标为空），所以在写入前拦下。
+     */
+    private void checkTargetVariableRefs(List<TaskStepDTO> steps, List<TaskVariableDTO> variables) {
+        Set<String> declaredNames = new HashSet<>();
+        Set<String> targetVarNames = new HashSet<>();
+        for (TaskVariableDTO variable : variables) {
+            declaredNames.add(variable.getName());
+            if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST) {
+                targetVarNames.add(variable.getName());
+            }
+        }
+        for (TaskStepDTO step : steps) {
+            for (TaskTargetDTO target : collectTargets(step)) {
+                checkTargetVariableRef(target.getVariable(), step.getName(), declaredNames, targetVarNames);
+            }
+        }
+    }
+
+    private void checkTargetVariableRef(String variable,
+                                        String stepName,
+                                        Set<String> declaredNames,
+                                        Set<String> targetVarNames) {
+        if (StringUtils.isBlank(variable)) {
+            return;
+        }
+        if (!declaredNames.contains(variable)) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{PARAM_EXECUTE_TARGET_VARIABLE,
+                    "global variable does not exist: " + variable + ", referenced by step: " + stepName});
+        }
+        if (!targetVarNames.contains(variable)) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{PARAM_EXECUTE_TARGET_VARIABLE,
+                    "global variable is not an execute target list (type 3): " + variable
+                        + ", referenced by step: " + stepName});
+        }
+    }
+
+    /**
+     * 步骤中所有可以引用变量的执行目标：脚本步骤的目标、文件步骤的分发目标与各源文件的主机。
+     */
+    private List<TaskTargetDTO> collectTargets(TaskStepDTO step) {
+        List<TaskTargetDTO> targets = new ArrayList<>();
+        if (step.getScriptStepInfo() != null) {
+            targets.add(step.getScriptStepInfo().getExecuteTarget());
+        }
+        TaskFileStepDTO fileStep = step.getFileStepInfo();
+        if (fileStep != null) {
+            targets.add(fileStep.getDestinationHostList());
+            if (fileStep.getOriginFileList() != null) {
+                fileStep.getOriginFileList().stream().map(TaskFileInfoDTO::getHost).forEach(targets::add);
+            }
+        }
+        targets.removeIf(Objects::isNull);
+        return targets;
     }
 
     // ---------------------------------------------------------------- 全局变量

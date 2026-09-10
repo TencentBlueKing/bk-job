@@ -11,6 +11,11 @@ An execute target is either a variable reference or a set of concrete targets, a
 exclusive**: either provide `variable` alone, or provide at least one non-empty value among the other five fields.
 Providing both returns a parameter error, and providing neither does as well.
 
+The variable named by `variable` must be declared in the `global_var_list` of the **same request**, with `type` `3`
+(execute target list); otherwise a parameter error is returned. Note that `global_var_list` is replaced as a whole:
+on update, dropping a variable from the list deletes it, and if any step still references it the whole request is
+rejected — the referencing steps have to be updated along with it.
+
 > The default value of a global variable (`global_var_list[].execute_target`) supports concrete targets only. It
 > does not accept `variable`, because a variable default must not reference another variable.
 

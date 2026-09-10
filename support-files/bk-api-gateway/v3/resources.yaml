@@ -11053,6 +11053,41 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Sync a job plan to the latest job template version
+  /api/v4/system/get_job_template_detail:
+    get:
+      operationId: v4_system_get_job_template_detail
+      description: 获取作业模板详情
+      tags:
+        - system
+      responses:
+        default:
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: get
+          path: /{env.api_path_prefix}api/job/v4/job-manage/get_job_template_detail
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'app'
+              remove: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get job template detail
   /api/v3/system/update_account:
     post:
       operationId: system_update_account
