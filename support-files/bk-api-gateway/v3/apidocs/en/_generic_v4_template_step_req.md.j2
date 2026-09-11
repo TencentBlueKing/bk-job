@@ -1,0 +1,64 @@
+##### script_info
+
+Required when `type` is `1` (script execution).
+
+| Field               | Type   | Required | Description                                                                                                                      |
+|---------------------|--------|----------|------------------------------------------------------------------------------------------------------------------------------------|
+| script_type         | int    | Yes      | Script source. Allowed values: `1` (inline script), `2` (referenced business script), `3` (referenced public script)             |
+| script_id           | string | No       | Referenced script ID. Required when `script_type` is 2 or 3                                                                      |
+| script_version_id   | long   | No       | Referenced script version ID. Required when `script_type` is 2 or 3                                                              |
+| script_content      | string | No       | Script content, Base64 encoded. Required when `script_type` is 1                                                                 |
+| script_language     | int    | No       | Script language. Required when `script_type` is 1. Not needed for referenced scripts (`script_type` 2 or 3): the language of the referenced version is used and any value passed here is ignored. Allowed values: `1` (shell), `2` (bat), `3` (perl), `4` (python), `5` (powershell), `6` (sql) |
+| script_param        | string | No       | Script parameters, Base64 encoded                                                                                                |
+| windows_interpreter | string | No       | Windows interpreter path, only effective on Windows hosts                                                                        |
+| script_timeout      | long   | No       | Script execution timeout in seconds, must be greater than 0                                                                      |
+| is_param_sensitive  | int    | No       | Whether script parameters are sensitive. Allowed values: `0` (no, default), `1` (yes)                                            |
+| is_ignore_error     | int    | No       | Whether to ignore the error and continue with the following steps on failure. Allowed values: `0` (no, default), `1` (yes)       |
+| account             | object | Yes      | Execute account, see `account` below                                                                                             |
+| execute_target      | object | Yes      | Execute targets, see `execute_target` below                                                                                      |
+
+##### file_info
+
+Required when `type` is `2` (file transfer).
+
+| Field                   | Type   | Required | Description                                                                                                                |
+|-------------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------|
+| file_source_list        | array  | Yes      | Source file list, must be non-empty                                                                                        |
+| file_destination        | object | Yes      | Transfer destination                                                                                                       |
+| timeout                 | long   | No       | File transfer timeout in seconds, must be greater than 0                                                                   |
+| transfer_mode           | int    | No       | Transfer mode. Allowed values: `1` (strict), `2` (force), `3` (safe, source IP prefix), `4` (safe, date prefix)            |
+| source_speed_limit      | long   | No       | Upload speed limit on the source side, in MB/s, must be greater than 0                                                     |
+| destination_speed_limit | long   | No       | Download speed limit on the destination side, in MB/s, must be greater than 0                                              |
+| is_ignore_error         | int    | No       | Whether to ignore the error and continue with the following steps on failure. Allowed values: `0` (no, default), `1` (yes) |
+
+###### file_source_list[] element
+
+{% include '_generic_v4_template_file_source_req.md.j2' %}
+
+###### file_destination
+
+| Field          | Type   | Required | Description                                     |
+|----------------|--------|----------|-------------------------------------------------|
+| path           | string | Yes      | Destination path                                |
+| account        | object | Yes      | Execute account, see `account` below            |
+| execute_target | object | Yes      | Destination hosts, see `execute_target` below   |
+
+##### approval_info
+
+Required when `type` is `3` (manual confirmation).
+
+| Field            | Type   | Required | Description                                                                       |
+|------------------|--------|----------|-----------------------------------------------------------------------------------|
+| approval_type    | int    | No       | Approval mode. Allowed values: `1` (any one approver, default), `2` (all approvers) |
+| approval_user    | object | Yes      | Approvers                                                                         |
+| approval_message | string | Yes      | Approval message                                                                  |
+| notify_channel   | array  | No       | Notification channels, elements are string, e.g. `weixin`, `mail`                 |
+
+###### approval_user
+
+| Field     | Type  | Required | Description                                  |
+|-----------|-------|----------|----------------------------------------------|
+| user_list | array | No       | Approver user names, elements are string     |
+| role_list | array | No       | Approver role codes, elements are string     |
+
+At least one of `user_list` and `role_list` must be non-empty.

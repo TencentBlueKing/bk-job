@@ -1,0 +1,205 @@
+### Description
+
+Update the specified job template.
+
+**The request body describes the desired final state of the template, not an incremental patch.** Existing steps that
+are absent from `step_list` are deleted, and existing global variables that are absent from `global_var_list` are
+deleted. The recommended usage is to read the current configuration with `get_job_template_detail`, modify it and
+write the whole thing back.
+
+Prerequisites: the job template exists in the scope; the caller has permission to edit it, and holds the
+corresponding view/use permissions on every referenced resource (scripts, file sources, accounts). When `name` is
+provided, template names must be unique within the same resource scope.
+
+Three cases for the step `id`:
+
+- **An existing step ID**: the step is kept and updated with the request content; its ID stays unchanged
+- **Omitted (absent or null)**: treated as a new step; the server assigns an ID
+- **The step is not listed at all**: the step is removed from the template
+
+Non-positive values such as `-1` and `0` are rejected. A step ID that does not belong to this template results in a
+parameter error naming that ID. Step IDs must be unique within one request.
+
+Global variables are matched by `name`: a matching name updates the existing variable, and existing variables that
+are absent are deleted. **Renaming is not supported** — a rename is equivalent to deleting the old variable and
+adding a new one, which loses the value the variable holds in derived job plans.
+
+The array order of `step_list` is the execution order; reordering the array reorders the steps without changing step
+IDs.
+
+After a template update, job plans derived from it are marked as pending sync (`need_update=true`), but their own
+configuration is not changed automatically. Call `sync_job_plan` to bring a plan up to date.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field           | Type   | Required | Description                                                                                                                           |
+|-----------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type   | string | Yes      | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set)                                                       |
+| bk_scope_id     | string | Yes      | Resource scope ID matching `bk_scope_type` (business ID or business set ID)                                                           |
+| id              | long   | Yes      | Job template ID; must be greater than 0; the template must exist                                                                      |
+| name            | string | No       | Job template name. Omit it or leave it blank to keep the current name; when provided it must be 1–60 characters, must not contain HTML special characters `<`, `>`, `"`, `'`, and must be unique within the same scope |
+| description     | string | No       | Job template description, up to 500 characters                                                                                        |
+| global_var_list | array  | No       | Global variable list; existing variables absent from this list are deleted; variable names must be unique within one request          |
+| step_list       | array  | Yes      | Job step list; the array order is the execution order; must be non-empty; existing steps absent from this list are deleted            |
+
+Template tags are out of scope for this API; the existing tags of the template are kept as they are.
+
+##### global_var_list[] element
+
+{% include '_generic_v4_template_global_var_req.md.j2' %}
+
+##### step_list[] element
+
+| Field         | Type   | Required | Description                                                                                                       |
+|---------------|--------|----------|---------------------------------------------------------------------------------------------------------------------|
+| id            | long   | No       | Step ID. An existing step ID keeps and updates that step; omitting it adds a new step; `-1`, `0` and other non-positive values are rejected |
+| name          | string | Yes      | Step name, 1–60 characters; must not contain HTML special characters `<`, `>`, `"`, `'`                           |
+| type          | int    | Yes      | Step type. Allowed values: `1` (script execution), `2` (file transfer), `3` (manual confirmation)                 |
+| script_info   | object | No       | Script step detail. Required when `type` is 1                                                                     |
+| file_info     | object | No       | File transfer step detail. Required when `type` is 2                                                              |
+| approval_info | object | No       | Manual confirmation step detail. Required when `type` is 3                                                        |
+
+{% include '_generic_v4_template_step_req.md.j2' %}
+
+##### account
+
+| Field       | Type   | Required | Description                                                                          |
+|-------------|--------|----------|--------------------------------------------------------------------------------------|
+| id          | long   | No       | Account ID. Mutually exclusive with `account_var`; `id` wins when both are given     |
+| account_var | string | No       | Name of a global variable of type "execute account" to reference. Mutually exclusive with `id` |
+
+At least one of `id` and `account_var` must be provided.
+
+##### execute_target
+
+{% include '_generic_v4_template_execute_target_req.md.j2' %}
+
+### Request Example
+
+The example below turns the existing steps `101`, `102`, `103` into "keep 101, delete 102, keep 103 and append a new
+manual confirmation step".
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 1000,
+    "name": "my-api-template",
+    "description": "updated by openapi",
+    "global_var_list": [
+        {
+            "name": "TARGET_DIR",
+            "type": 1,
+            "required": 1,
+            "value": "/data/release-v2"
+        }
+    ],
+    "step_list": [
+        {
+            "id": 101,
+            "name": "run-script",
+            "type": 1,
+            "script_info": {
+                "script_type": 2,
+                "script_id": "3a1b0e8f9c2d4e5f",
+                "script_version_id": 5001,
+                "script_timeout": 1000,
+                "account": {
+                    "id": 1
+                },
+                "execute_target": {
+                    "host_list": [
+                        {
+                            "bk_host_id": 10001
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": 103,
+            "name": "transfer-file",
+            "type": 2,
+            "file_info": {
+                "file_source_list": [
+                    {
+                        "file_type": 3,
+                        "file_list": [
+                            "/bucket/config.yaml"
+                        ],
+                        "file_source_id": 7
+                    }
+                ],
+                "file_destination": {
+                    "path": "/data/release",
+                    "account": {
+                        "id": 1
+                    },
+                    "execute_target": {
+                        "host_list": [
+                            {
+                                "bk_host_id": 10001
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "name": "confirm",
+            "type": 3,
+            "approval_info": {
+                "approval_user": {
+                    "user_list": [
+                        "admin"
+                    ]
+                },
+                "approval_message": "confirm to release"
+            }
+        }
+    ]
+}
+```
+
+### Response Example
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "job_template_id": 1000,
+        "name": "my-api-template",
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "last_modify_time": 1738221000000
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field            | Type   | Description                                                                     |
+|------------------|--------|---------------------------------------------------------------------------------|
+| bk_scope_type    | string | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id      | string | Resource scope ID                                                               |
+| job_template_id  | long   | Job template ID                                                                 |
+| name             | string | Job template name                                                               |
+| creator          | string | Creator                                                                         |
+| create_time      | long   | Create time, unix timestamp in milliseconds                                     |
+| last_modify_time | long   | Last modify time, unix timestamp in milliseconds                                |

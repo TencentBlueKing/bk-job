@@ -82,6 +82,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -228,7 +229,8 @@ public class TaskExecuteServiceDryRunTest {
         // 否则用户会在审批通过后才拿到失败
         verify(runningJobResourceQuotaManager).checkResourceQuotaLimit(any(), any());
         verify(taskEvictPolicyExecutor).shouldEvictTask(any());
-        verify(accountService).getAccountPreferCache(anyLong(), any(), any(), any());
+        // 用 atLeastOnce：账号会被查两次（解析回填一次、归属校验一次），这里只关心校验没被 dryRun 跳过
+        verify(accountService, atLeastOnce()).getAccountPreferCache(anyLong(), any(), any(), any());
         verify(taskInstanceExecuteObjectProcessor).processExecuteObjects(any(), any(), any());
         verify(rollingConfigService).validateRollingBatchCountForFastJob(any());
         verify(executeAuthService).authAccountExecutable(any(), any(AppResourceScope.class), anyLong());
@@ -349,8 +351,10 @@ public class TaskExecuteServiceDryRunTest {
             .thenReturn(ResourceQuotaCheckResultEnum.NO_LIMIT);
         when(taskEvictPolicyExecutor.shouldEvictTask(any())).thenReturn(false);
 
+        // appId 必填：账号归属业务校验会比对它，缺省为 null 会被判成跨业务账号
         AccountDTO account = new AccountDTO();
         account.setId(ACCOUNT_ID);
+        account.setAppId(APP_ID);
         account.setAccount("root");
         account.setAlias("root");
         when(accountService.getAccountPreferCache(anyLong(), any(), any(), any()))

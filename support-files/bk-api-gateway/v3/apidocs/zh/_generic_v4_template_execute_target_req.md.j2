@@ -1,0 +1,86 @@
+| 字段                    | 类型     | 必选 | 描述                                                     |
+|-----------------------|--------|----|--------------------------------------------------------|
+| variable              | string | 否  | 引用的「执行目标列表」类型全局变量名称                                    |
+| host_list             | array  | 否  | 静态主机列表                                                 |
+| dynamic_group_list    | array  | 否  | 动态分组列表                                                 |
+| topo_node_list        | array  | 否  | CMDB 拓扑节点列表                                            |
+| container_list        | array  | 否  | 静态容器列表                                                 |
+| container_filter_list | array  | 否  | 容器动态筛选条件列表，多条之间取并集                                     |
+
+执行目标只有「引用变量」和「直接指定」两种形态，二者**互斥**：要么只填 `variable`，要么在其余五个字段中至少填一项非空；两类同时填写会返回参数错误。两类都不填也会返回参数错误。
+
+`variable` 引用的变量必须在**同一请求**的 `global_var_list` 中声明，且 `type` 为 `3`（执行目标列表），否则返回参数错误。注意 `global_var_list` 是全量替换的：更新时把某个变量从列表里去掉就等于删除它，若仍有步骤引用它，整个请求会被拒绝——需要连同引用它的步骤一起改。
+
+> 全局变量的默认值（`global_var_list[].execute_target`）只支持「直接指定」形态，不接受 `variable` 字段，变量的默认值不能再去引用另一个变量。
+
+##### host_list[] 元素
+
+{% include '_generic_v4_host.md.j2' %}
+
+##### dynamic_group_list[] 元素
+
+| 字段 | 类型   | 必选 | 描述     |
+|----|------|----|--------|
+| id | string | 是  | 动态分组 ID |
+
+##### topo_node_list[] 元素
+
+| 字段        | 类型   | 必选 | 描述                                |
+|-----------|------|----|-----------------------------------|
+| id        | long   | 是  | 拓扑节点 ID                           |
+| node_type | string | 是  | 拓扑节点类型。可选值：`module`（模块）、`set`（集群） |
+
+##### container_list[] 元素
+
+| 字段           | 类型     | 必选 | 描述                          |
+|--------------|--------|----|-----------------------------|
+| container_id | long   | 是  | 容器 ID（CMDB 内部 ID）           |
+
+写入时只取 `container_id`。读接口在此基础上还会返回 `container_uid`、`name`、`pod_name`、`namespace`、`cluster_uid`、`node_ip`，它们来自保存时的快照、写入时会被忽略，因此读接口的响应可原样回传给写接口。
+
+容器 ID 在写入时不做校验。若容器不存在或不属于当前业务，读接口仍会返回保存时的内容，但执行该作业时会报「存在无效执行对象」并列出对应的 `container_id`。
+
+##### container_filter_list[] 元素
+
+| 字段              | 类型     | 必选 | 描述                                |
+|-----------------|--------|----|-----------------------------------|
+| name            | string | 否  | 条件名称，最长 60 个字符，仅用于区分多条筛选条件        |
+| kube_topo_list  | array  | 是  | 拓扑路径列表，不能为空；多条路径取并集，且共用同一组 `prop_conditions` |
+| prop_conditions | array  | 否  | 容器字段级筛选条件，条件之间取交集                 |
+
+> 本字段的拓扑用 CMDB 内部数字 ID 表达，与「执行作业」等接口的 `kube_container_filters`（用集群 UID、namespace 名称）形态不同，两者不能互换。
+
+###### kube_topo_list[] 元素
+
+| 字段            | 类型     | 必选 | 描述                                  |
+|---------------|--------|----|-------------------------------------|
+| cluster       | object | 是  | 集群拓扑对象，形如 `{"id": 105}`             |
+| namespace     | object | 否  | namespace 拓扑对象，形如 `{"id": 207}`；不填表示不限定 namespace |
+| workload_list | array  | 否  | workload 拓扑对象列表，元素形如 `{"kind": "deployment", "id": 309}`；不填表示不限定 workload |
+
+集群、namespace、workload 的 ID 均为 CMDB 内部 ID，可在页面上配置一次后通过读接口获取。这些 ID 在写入时不做校验，若不存在或不属于当前业务，执行时该步骤会因筛选不到容器而报「目标执行对象为空」。
+
+###### prop_conditions[] 元素
+
+| 字段    | 类型     | 必选 | 描述          |
+|-------|--------|----|-------------|
+| field | string | 是  | 筛选字段，取值见下表  |
+| value | string | 是  | 取值，匹配方式见下表  |
+
+**本接口不接收运算符**。每个字段的匹配方式是固定的，由服务端按字段补齐，与页面上配置动态条件时的行为完全一致，因此接口创建的条件在页面上能正常回显：
+
+| field                     | 匹配方式  | 说明                          |
+|---------------------------|-------|-----------------------------|
+| `container_name`          | 包含    | 容器名称包含 `value`              |
+| `container_container_uid` | 等值    | 容器运行时 UID 等于 `value`        |
+| `pod_name`                | 包含    | Pod 名称包含 `value`            |
+| `pod_labels`              | 标签选择器 | Pod 标签匹配 `value` 表达式        |
+
+前三个字段的 `value` 支持英文逗号分隔的多值，多值之间取并集，例如 `nginx,redis` 表示名称包含 `nginx` 或包含 `redis`。
+
+**`pod_labels` 的 value 是原生 K8s 标签选择器表达式**，不是普通字符串，写法见 [Kubernetes 官方文档：Label selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors)。等值型与集合型都支持，其中的英文逗号是表达式自身的 AND 分隔符，**不会**被当作多值拆分。表达式在接口侧会被解析校验，不合法直接返回 400。例如：
+
+- `app=nginx` —— 标签 `app` 等于 `nginx`
+- `app=nginx,tier!=frontend` —— 同时满足两个条件
+- `env in (prod, pre)` —— `env` 属于给定集合
+- `!canary` —— 不存在 `canary` 标签

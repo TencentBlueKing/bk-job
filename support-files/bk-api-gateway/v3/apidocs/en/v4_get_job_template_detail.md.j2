@@ -170,7 +170,7 @@ scope.
 
 ##### execute_target
 
-{% include '_generic_v4_execute_target_without_container_resp.md.j2' %}
+{% include '_generic_v4_template_execute_target_resp.md.j2' %}
 
 ##### step_list[] element
 
@@ -218,7 +218,8 @@ scope.
 |------------------|--------|----------------|---------------------------------------------------------------------------------------------------------------------------|
 | file_list        | array  | Yes            | File path list                                                                                                            |
 | file_type        | int    | Yes            | File source type. Optional values: `1` (server file), `2` (local file), `3` (file source file), `4` (Base64-encoded file) |
-| file_source_code | string | No             | File source code                                                                                                          |
+| file_source_id   | int    | No             | File source id; only returned for file source files                                                                       |
+| file_source_code | string | No             | File source code, unique within a business only; only returned for file source files, absent if the file source is deleted |
 | account          | object | No             | Execute account; only returned for server file sources                                                                    |
 | execute_target   | object | No             | Source execute target                                                                                                     |
 

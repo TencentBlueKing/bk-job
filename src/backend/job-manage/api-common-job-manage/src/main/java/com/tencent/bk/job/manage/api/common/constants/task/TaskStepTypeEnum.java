@@ -59,6 +59,18 @@ public enum TaskStepTypeEnum {
         throw new IllegalArgumentException("No TaskStepTypeEnum constant: " + type);
     }
 
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        for (TaskStepTypeEnum stepType : values()) {
+            if (stepType.type == type) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public int getValue() {
         return type;
     }

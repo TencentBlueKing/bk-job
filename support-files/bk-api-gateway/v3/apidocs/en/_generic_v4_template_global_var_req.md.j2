@@ -1,0 +1,24 @@
+| Field          | Type   | Required | Description                                                                                                                                                    |
+|----------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| name           | string | Yes      | Variable name, 1–60 characters; must not contain HTML special characters `<`, `>`, `"`, `'`; must be unique within one request                                 |
+| type           | int    | Yes      | Variable type. Allowed values: `1` (string), `2` (namespace), `3` (execute target list), `4` (ciphertext), `5` (associative array), `6` (index array), `7` (execute account) |
+| description    | string | No       | Variable description                                                                                                                                           |
+| required       | int    | No       | Whether the variable is mandatory at execution time. Allowed values: `0` (no, default), `1` (yes)                                                              |
+| value          | string | No       | Default value for string, namespace, ciphertext, associative array, index array and execute account types; for execute account variables the value is the account ID string |
+| execute_target | object | No       | Default execute targets, only for `type` 3. Same shape as `execute_target` below except that **`variable` is not accepted**: a variable default must be concrete targets and cannot reference another variable |
+
+Ciphertext variables (`type=4`) are always returned as `******` by `get_job_template_detail`. Writing `******` back
+through `update_job_template` while keeping the variable name unchanged is treated as "not modified" and the stored
+value is preserved; provide the new plaintext to change it.
+
+In the two cases below the server has no way to know the original value, so `******` is stored literally as the new
+ciphertext value. Always provide the real plaintext in these cases:
+
+- When calling `create_job_template`. This is especially easy to hit when feeding a `get_job_template_detail`
+  response straight into a request that clones a template.
+- When calling `update_job_template` and renaming a ciphertext variable at the same time. Global variables are
+  matched by name (see the `name` field), so a rename is interpreted as "delete the old variable and add a new one",
+  and the new variable has no original value to inherit.
+
+Neither case returns an error: the request succeeds and reading the template back still shows `******`. The problem
+only surfaces when the job actually runs and receives the literal string `******`.

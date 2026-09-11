@@ -26,8 +26,11 @@ package com.tencent.bk.job.manage.api.esb.impl.v4;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ResolvedSummary;
@@ -36,13 +39,23 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.esb.v4.OpenApiJobPlanV4Resource;
+import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4SyncJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4UpdateJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.resp.OpenApiV4SyncJobPlanResultDTO;
+import com.tencent.bk.job.manage.service.plan.OpenApiV4JobPlanRequestResolver;
 import com.tencent.bk.job.manage.service.plan.PlanGlobalVarSummaryBuilder;
+import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.job.manage.service.plan.TaskPlanSyncService;
 import com.tencent.bk.job.manage.service.plan.V4JobPlanCreateService;
+import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,14 +75,29 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
     private final V4JobPlanCreateService jobPlanCreateService;
     private final AppScopeMappingService appScopeMappingService;
     private final PlanGlobalVarSummaryBuilder globalVarSummaryBuilder;
+    private final TaskPlanService planService;
+    private final TaskTemplateService templateService;
+    private final TaskPlanSyncService planSyncService;
+    private final PlanAuthService planAuthService;
+    private final OpenApiV4JobPlanRequestResolver requestResolver;
 
     @Autowired
     public OpenApiJobPlanV4ResourceImpl(V4JobPlanCreateService jobPlanCreateService,
                                         AppScopeMappingService appScopeMappingService,
-                                        PlanGlobalVarSummaryBuilder globalVarSummaryBuilder) {
+                                        PlanGlobalVarSummaryBuilder globalVarSummaryBuilder,
+                                        TaskPlanService planService,
+                                        TaskTemplateService templateService,
+                                        TaskPlanSyncService planSyncService,
+                                        PlanAuthService planAuthService,
+                                        OpenApiV4JobPlanRequestResolver requestResolver) {
         this.jobPlanCreateService = jobPlanCreateService;
         this.appScopeMappingService = appScopeMappingService;
         this.globalVarSummaryBuilder = globalVarSummaryBuilder;
+        this.planService = planService;
+        this.templateService = templateService;
+        this.planSyncService = planSyncService;
+        this.planAuthService = planAuthService;
+        this.requestResolver = requestResolver;
     }
 
     @Override
@@ -85,7 +113,9 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         if (isDryRun) {
             return EsbV4Response.dryRunSuccess(buildSummary(plan, request, user.getTenantId()));
         }
-        return EsbV4Response.success(toOpenApiV4JobPlanDTO(request.getAppId(), username, plan));
+        return EsbV4Response.success(
+            toOpenApiV4JobPlanDTO(request.getAppId(), username, plan, Boolean.TRUE.equals(plan.getNeedUpdate()))
+        );
     }
 
     private ResolvedSummary buildSummary(TaskPlanInfoDTO plan, V4CreateJobPlanRequest request, String tenantId) {
@@ -147,20 +177,122 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
         summary.addField(allStepsEnabled ? "enable_steps_all" : "enable_steps", String.join("\n", names));
     }
 
-    private OpenApiV4JobPlanDTO toOpenApiV4JobPlanDTO(Long appId, String username, TaskPlanInfoDTO savedPlan) {
+    @Override
+    @AuditEntry(actionId = ActionId.EDIT_JOB_PLAN)
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v4_update_job_plan"})
+    public EsbV4Response<OpenApiV4JobPlanDTO> updateJobPlan(String username,
+                                                            String appCode,
+                                                            @AuditRequestBody V4UpdateJobPlanRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
+        Long appId = request.getAppId();
+        Long planId = request.getJobPlanId();
+
+        TaskPlanInfoDTO existingPlan = getNormalPlan(appId, planId);
+        Long templateId = existingPlan.getTemplateId();
+        TaskTemplateInfoDTO template = templateService.getTaskTemplateById(appId, templateId);
+        if (template == null) {
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
+        }
+
+        User user = JobContextUtil.getUser();
+        // 按方案步骤 ID 寻址，操作对象即方案当前快照，因此模板是否已变更与本次更新无关
+        List<Long> enableSteps = requestResolver.resolveEnableStepsForUpdate(
+            request.getEnableSteps(), existingPlan.getStepList(), planId
+        );
+        List<TaskVariableDTO> variableList =
+            requestResolver.mapVariables(request.getVariables(), template, user.getTenantId());
+
+        // 名称缺省表示不改名，交由 DAO 跳过 NAME 列；只有显式传了才需要查重
+        String planName = StringUtils.stripToNull(request.getName());
+        if (planName != null
+            && Boolean.FALSE.equals(planService.checkPlanName(appId, templateId, planId, planName))) {
+            throw new AlreadyExistsException(ErrorCode.PLAN_NAME_EXIST);
+        }
+
+        TaskPlanInfoDTO planInfoDTO = requestResolver.buildTaskPlanInfoDTO(
+            username, appId, templateId, planName, enableSteps, variableList
+        );
+        planInfoDTO.setId(planId);
+
+        // updateTaskPlan 内部完成 edit_job_plan 鉴权与审计记录，此处不重复鉴权
+        TaskPlanInfoDTO updatedPlan = planService.updateTaskPlan(user, planInfoDTO);
+
+        boolean needUpdate = isPlanStale(template.getVersion(), updatedPlan.getVersion());
+        return EsbV4Response.success(toOpenApiV4JobPlanDTO(appId, username, updatedPlan, needUpdate));
+    }
+
+    @Override
+    @AuditEntry(actionId = ActionId.SYNC_JOB_PLAN)
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v4_sync_job_plan"})
+    public EsbV4Response<OpenApiV4SyncJobPlanResultDTO> syncJobPlan(String username,
+                                                                    String appCode,
+                                                                    @AuditRequestBody V4SyncJobPlanRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
+        Long appId = request.getAppId();
+        Long planId = request.getJobPlanId();
+
+        TaskPlanInfoDTO existingPlan = getNormalPlan(appId, planId);
+        Long templateId = existingPlan.getTemplateId();
+        TaskTemplateInfoDTO template = templateService.getTaskTemplateBasicInfoById(appId, templateId);
+        if (template == null) {
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
+        }
+
+        // TaskPlanSyncService.sync 内部不做鉴权，必须在此显式校验
+        planAuthService.authSyncJobPlan(
+            JobContextUtil.getUser(), request.getAppResourceScope(), templateId, planId, existingPlan.getName()
+        ).denyIfNoPermission();
+
+        // 服务层的版本参数是给页面用的乐观锁，API 语义固定为同步到当前最新版本
+        planSyncService.sync(appId, templateId, planId, template.getVersion());
+
+        OpenApiV4SyncJobPlanResultDTO data = new OpenApiV4SyncJobPlanResultDTO();
+        ResourceScope scope = appScopeMappingService.getScopeByAppId(appId);
+        if (scope != null) {
+            data.setScopeType(scope.getType().getValue());
+            data.setScopeId(scope.getId());
+        }
+        data.setJobPlanId(planId);
+        data.setJobTemplateId(templateId);
+        data.setTemplateVersion(template.getVersion());
+        return EsbV4Response.success(data);
+    }
+
+    /**
+     * 按 (appId, planId) 读取普通执行方案；不存在或为调试方案时抛出方案不存在。
+     *
+     * <p>调试方案是页面调试作业模板时自动生成的内置资源，不对 OpenAPI 暴露。
+     */
+    private TaskPlanInfoDTO getNormalPlan(Long appId, Long planId) {
+        TaskPlanInfoDTO plan = planService.getTaskPlanById(appId, planId);
+        if (plan == null || Boolean.TRUE.equals(plan.getDebug())) {
+            throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
+        }
+        return plan;
+    }
+
+    /** 方案版本落后于模板版本即为待同步；模板无版本号时视为不落后。 */
+    private boolean isPlanStale(String templateVersion, String planVersion) {
+        return StringUtils.isNotEmpty(templateVersion) && !templateVersion.equals(planVersion);
+    }
+
+    private OpenApiV4JobPlanDTO toOpenApiV4JobPlanDTO(Long appId,
+                                                      String username,
+                                                      TaskPlanInfoDTO plan,
+                                                      boolean needUpdate) {
         OpenApiV4JobPlanDTO data = new OpenApiV4JobPlanDTO();
         ResourceScope scope = appScopeMappingService.getScopeByAppId(appId);
         if (scope != null) {
             data.setScopeType(scope.getType().getValue());
             data.setScopeId(scope.getId());
         }
-        data.setJobPlanId(savedPlan.getId());
-        data.setJobPlanName(savedPlan.getName());
-        data.setJobTemplateId(savedPlan.getTemplateId());
-        data.setCreator(savedPlan.getCreator() != null ? savedPlan.getCreator() : username);
-        Long createTimeSeconds = savedPlan.getCreateTime();
+        data.setJobPlanId(plan.getId());
+        data.setJobPlanName(plan.getName());
+        data.setJobTemplateId(plan.getTemplateId());
+        data.setCreator(plan.getCreator() != null ? plan.getCreator() : username);
+        Long createTimeSeconds = plan.getCreateTime();
         data.setCreateTime(createTimeSeconds == null ? null : createTimeSeconds * 1000L);
-        data.setNeedUpdate(Boolean.TRUE.equals(savedPlan.getNeedUpdate()));
+        data.setNeedUpdate(needUpdate);
         return data;
     }
 }

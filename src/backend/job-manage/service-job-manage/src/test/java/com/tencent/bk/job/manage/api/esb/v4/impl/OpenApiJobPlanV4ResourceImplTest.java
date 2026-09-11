@@ -55,9 +55,14 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4JobPlanVariableItem;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4SyncJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4UpdateJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.resp.OpenApiV4SyncJobPlanResultDTO;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
-import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.job.manage.service.plan.OpenApiV4JobPlanRequestResolver;
 import com.tencent.bk.job.manage.service.plan.PlanGlobalVarSummaryBuilder;
+import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.job.manage.service.plan.TaskPlanSyncService;
 import com.tencent.bk.job.manage.service.plan.impl.V4JobPlanCreateServiceImpl;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import org.junit.jupiter.api.AfterEach;
@@ -77,6 +82,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -97,10 +103,12 @@ class OpenApiJobPlanV4ResourceImplTest {
     private static final String SCOPE_TYPE = ResourceScopeTypeEnum.BIZ.getValue();
     private static final String SCOPE_ID = "2";
     private static final Long TEMPLATE_ID = 1000L;
+    private static final Long PLAN_ID = 50001L;
     private static final String PLAN_NAME = "my-plan";
 
     private TaskPlanService planService;
     private TaskTemplateService templateService;
+    private TaskPlanSyncService planSyncService;
     private TemplateAuthService templateAuthService;
     private PlanAuthService planAuthService;
     private AppScopeMappingService appScopeMappingService;
@@ -113,6 +121,7 @@ class OpenApiJobPlanV4ResourceImplTest {
     void setUp() {
         planService = mock(TaskPlanService.class);
         templateService = mock(TaskTemplateService.class);
+        planSyncService = mock(TaskPlanSyncService.class);
         templateAuthService = mock(TemplateAuthService.class);
         planAuthService = mock(PlanAuthService.class);
         appScopeMappingService = mock(AppScopeMappingService.class);
@@ -128,6 +137,8 @@ class OpenApiJobPlanV4ResourceImplTest {
             .thenReturn(AuthResult.pass(testUser));
         when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(0L), any())).thenReturn(true);
 
+        // 解析器用真实实现，保证抽取公共逻辑后创建路径的行为与重构前完全一致
+        OpenApiV4JobPlanRequestResolver requestResolver = new OpenApiV4JobPlanRequestResolver(tenantHostService);
         resource = new OpenApiJobPlanV4ResourceImpl(
             new V4JobPlanCreateServiceImpl(
                 planService,
@@ -135,10 +146,15 @@ class OpenApiJobPlanV4ResourceImplTest {
                 templateAuthService,
                 planAuthService,
                 appScopeMappingService,
-                tenantHostService
+                requestResolver
             ),
             appScopeMappingService,
-            new PlanGlobalVarSummaryBuilder(tenantHostService)
+            new PlanGlobalVarSummaryBuilder(tenantHostService),
+            planService,
+            templateService,
+            planSyncService,
+            planAuthService,
+            requestResolver
         );
         JobContextUtil.setUser(testUser);
     }
@@ -624,4 +640,283 @@ class OpenApiJobPlanV4ResourceImplTest {
         assertThat(captor.getValue().getName()).isEqualTo("trimmed");
     }
 
+    // ------------------------------------------------------------ update_job_plan
+
+    @Test
+    @DisplayName("更新：enable_steps 按方案步骤 ID 生效，未列出的方案步骤不进启用列表")
+    void update_enableSteps_addressed_by_plan_step_id() {
+        stubExistingPlanAndUpdate(Arrays.asList(201L, 202L, 203L), null);
+
+        V4UpdateJobPlanRequest request = buildUpdateRequest(Arrays.asList(201L, 203L));
+        resource.updateJobPlan(USERNAME, APP_CODE, request);
+
+        ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
+        verify(planService).updateTaskPlan(any(User.class), captor.capture());
+        assertThat(captor.getValue().getId()).isEqualTo(PLAN_ID);
+        assertThat(captor.getValue().getTemplateId()).isEqualTo(TEMPLATE_ID);
+        assertThat(captor.getValue().getEnableStepList()).containsExactly(201L, 203L);
+    }
+
+    @Test
+    @DisplayName("更新：enable_steps 传模板步骤 ID 时报错，提示先同步执行方案")
+    void update_rejects_template_step_id_with_sync_hint() {
+        stubExistingPlanAndUpdate(Arrays.asList(201L, 202L), null);
+
+        V4UpdateJobPlanRequest request = buildUpdateRequest(Arrays.asList(201L, 101L));
+
+        assertThatThrownBy(() -> resource.updateJobPlan(USERNAME, APP_CODE, request))
+            .isInstanceOfSatisfying(InvalidParamException.class, e -> {
+                assertThat(errorReason(e)).contains("101");
+                assertThat(errorReason(e)).contains("sync the job plan first");
+            });
+        verify(planService, times(0)).updateTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
+    }
+
+    @Test
+    @DisplayName("更新：方案待同步时照常更新，不被模板变更拦截")
+    void update_allowed_when_plan_is_stale() {
+        TaskPlanInfoDTO existingPlan = buildExistingPlan(Arrays.asList(201L, 202L));
+        existingPlan.setVersion("v1");
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID)).thenReturn(existingPlan);
+        TaskTemplateInfoDTO template = buildTemplate(Arrays.asList(101L, 102L), null);
+        template.setVersion("v2");
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID)).thenReturn(template);
+        when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(PLAN_ID), any())).thenReturn(true);
+        TaskPlanInfoDTO updatedPlan = buildSavedPlan(false);
+        updatedPlan.setVersion("v1");
+        when(planService.updateTaskPlan(any(User.class), any(TaskPlanInfoDTO.class))).thenReturn(updatedPlan);
+
+        OpenApiV4JobPlanDTO data = resource
+            .updateJobPlan(USERNAME, APP_CODE, buildUpdateRequest(Collections.singletonList(201L)))
+            .getData();
+
+        verify(planService).updateTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
+        assertThat(data.getNeedUpdate()).isTrue();
+    }
+
+    @Test
+    @DisplayName("更新：调试方案按方案不存在处理")
+    void update_rejects_debug_plan() {
+        TaskPlanInfoDTO debugPlan = buildExistingPlan(Collections.singletonList(201L));
+        debugPlan.setDebug(true);
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID)).thenReturn(debugPlan);
+
+        assertThatThrownBy(() -> resource.updateJobPlan(
+            USERNAME, APP_CODE, buildUpdateRequest(Collections.singletonList(201L))))
+            .isInstanceOfSatisfying(NotFoundException.class, e ->
+                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.TASK_PLAN_NOT_EXIST));
+        verify(planService, times(0)).updateTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
+    }
+
+    @Test
+    @DisplayName("更新：方案不存在时抛 TASK_PLAN_NOT_EXIST，不查模板")
+    void update_plan_not_exist_throws() {
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID)).thenReturn(null);
+
+        assertThatThrownBy(() -> resource.updateJobPlan(
+            USERNAME, APP_CODE, buildUpdateRequest(Collections.singletonList(201L))))
+            .isInstanceOfSatisfying(NotFoundException.class, e ->
+                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.TASK_PLAN_NOT_EXIST));
+        verify(templateService, times(0)).getTaskTemplateById(anyLong(), anyLong());
+    }
+
+    @Test
+    @DisplayName("更新：重名校验排除方案自身，重名时抛 PLAN_NAME_EXIST")
+    void update_plan_name_exist_throws() {
+        stubExistingPlanAndUpdate(Collections.singletonList(201L), null);
+        when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(PLAN_ID), any())).thenReturn(false);
+
+        assertThatThrownBy(() -> resource.updateJobPlan(
+            USERNAME, APP_CODE, buildUpdateRequest(Collections.singletonList(201L))))
+            .isInstanceOfSatisfying(AlreadyExistsException.class, e ->
+                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.PLAN_NAME_EXIST));
+        verify(planService, times(0)).updateTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
+    }
+
+    @Test
+    @DisplayName("更新：不传 name 时不下发名称、也不做重名校验，DAO 据此保留原名")
+    void update_without_name_keeps_original() {
+        stubExistingPlanAndUpdate(Collections.singletonList(201L), null);
+
+        V4UpdateJobPlanRequest request = buildUpdateRequest(Collections.singletonList(201L));
+        request.setName(null);
+        resource.updateJobPlan(USERNAME, APP_CODE, request);
+
+        ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
+        verify(planService).updateTaskPlan(any(User.class), captor.capture());
+        assertThat(captor.getValue().getName()).isNull();
+        verify(planService, times(0)).checkPlanName(anyLong(), anyLong(), anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("更新：name 传全空白等同于不改名")
+    void update_with_blank_name_keeps_original() {
+        stubExistingPlanAndUpdate(Collections.singletonList(201L), null);
+
+        V4UpdateJobPlanRequest request = buildUpdateRequest(Collections.singletonList(201L));
+        request.setName("   ");
+        resource.updateJobPlan(USERNAME, APP_CODE, request);
+
+        ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
+        verify(planService).updateTaskPlan(any(User.class), captor.capture());
+        assertThat(captor.getValue().getName()).isNull();
+        verify(planService, times(0)).checkPlanName(anyLong(), anyLong(), anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("更新：变量按模板变量名映射后交给服务层")
+    void update_maps_variables_by_template_variable_name() {
+        stubExistingPlanAndUpdate(
+            Collections.singletonList(201L),
+            Collections.singletonList(buildTemplateVar(11L, "TARGET_DIR", TaskVariableTypeEnum.STRING, "/tmp")));
+
+        V4JobPlanVariableItem variable = new V4JobPlanVariableItem();
+        variable.setName("TARGET_DIR");
+        variable.setValue("/data/release");
+        V4UpdateJobPlanRequest request = buildUpdateRequest(Collections.singletonList(201L));
+        request.setVariables(Collections.singletonList(variable));
+
+        resource.updateJobPlan(USERNAME, APP_CODE, request);
+
+        ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
+        verify(planService).updateTaskPlan(any(User.class), captor.capture());
+        assertThat(captor.getValue().getVariableList())
+            .extracting(TaskVariableDTO::getId, TaskVariableDTO::getName, TaskVariableDTO::getDefaultValue)
+            .containsExactly(tuple(11L, "TARGET_DIR", "/data/release"));
+    }
+
+    // ------------------------------------------------------------ sync_job_plan
+
+    @Test
+    @DisplayName("同步：取模板当前版本下发，并在响应中回传该版本")
+    void sync_uses_current_template_version() {
+        stubExistingPlanAndSync("v2");
+
+        OpenApiV4SyncJobPlanResultDTO data = resource
+            .syncJobPlan(USERNAME, APP_CODE, buildSyncRequest())
+            .getData();
+
+        verify(planSyncService).sync(APP_ID, TEMPLATE_ID, PLAN_ID, "v2");
+        assertThat(data.getJobPlanId()).isEqualTo(PLAN_ID);
+        assertThat(data.getJobTemplateId()).isEqualTo(TEMPLATE_ID);
+        assertThat(data.getTemplateVersion()).isEqualTo("v2");
+        assertThat(data.getScopeType()).isEqualTo(SCOPE_TYPE);
+        assertThat(data.getScopeId()).isEqualTo(SCOPE_ID);
+    }
+
+    @Test
+    @DisplayName("同步：无 sync_job_plan 权限时不下发同步")
+    void sync_denied_without_permission() {
+        stubExistingPlanAndSync("v2");
+        when(planAuthService.authSyncJobPlan(
+            any(User.class), any(AppResourceScope.class), eq(TEMPLATE_ID), eq(PLAN_ID), any()))
+            .thenReturn(AuthResult.fail(testUser));
+
+        assertThatThrownBy(() -> resource.syncJobPlan(USERNAME, APP_CODE, buildSyncRequest()));
+        verify(planSyncService, times(0)).sync(anyLong(), anyLong(), anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("同步：方案已是最新版本时不报错，同步照常执行")
+    void sync_is_noop_friendly_when_already_latest() {
+        stubExistingPlanAndSync("v2");
+        TaskPlanInfoDTO plan = buildExistingPlan(Collections.singletonList(201L));
+        plan.setVersion("v2");
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID)).thenReturn(plan);
+
+        assertThat(resource.syncJobPlan(USERNAME, APP_CODE, buildSyncRequest()).getData().getTemplateVersion())
+            .isEqualTo("v2");
+        verify(planSyncService).sync(APP_ID, TEMPLATE_ID, PLAN_ID, "v2");
+    }
+
+    @Test
+    @DisplayName("同步：调试方案按方案不存在处理，不鉴权也不同步")
+    void sync_rejects_debug_plan() {
+        TaskPlanInfoDTO debugPlan = buildExistingPlan(Collections.singletonList(201L));
+        debugPlan.setDebug(true);
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID)).thenReturn(debugPlan);
+
+        assertThatThrownBy(() -> resource.syncJobPlan(USERNAME, APP_CODE, buildSyncRequest()))
+            .isInstanceOfSatisfying(NotFoundException.class, e ->
+                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.TASK_PLAN_NOT_EXIST));
+        verify(planSyncService, times(0)).sync(anyLong(), anyLong(), anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("同步：模板已被删除时抛 TEMPLATE_NOT_EXIST")
+    void sync_template_not_exist_throws() {
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID))
+            .thenReturn(buildExistingPlan(Collections.singletonList(201L)));
+        when(templateService.getTaskTemplateBasicInfoById(APP_ID, TEMPLATE_ID)).thenReturn(null);
+
+        assertThatThrownBy(() -> resource.syncJobPlan(USERNAME, APP_CODE, buildSyncRequest()))
+            .isInstanceOfSatisfying(NotFoundException.class, e ->
+                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.TEMPLATE_NOT_EXIST));
+        verify(planSyncService, times(0)).sync(anyLong(), anyLong(), anyLong(), any());
+    }
+
+    // ------------------------------------------------------------ 更新/同步的构造工具
+
+    private V4UpdateJobPlanRequest buildUpdateRequest(List<Long> enableSteps) {
+        V4UpdateJobPlanRequest request = new V4UpdateJobPlanRequest();
+        request.setScopeType(SCOPE_TYPE);
+        request.setScopeId(SCOPE_ID);
+        request.setJobPlanId(PLAN_ID);
+        request.setName(PLAN_NAME);
+        request.setEnableSteps(enableSteps);
+        return request;
+    }
+
+    private V4SyncJobPlanRequest buildSyncRequest() {
+        V4SyncJobPlanRequest request = new V4SyncJobPlanRequest();
+        request.setScopeType(SCOPE_TYPE);
+        request.setScopeId(SCOPE_ID);
+        request.setJobPlanId(PLAN_ID);
+        return request;
+    }
+
+    private TaskPlanInfoDTO buildExistingPlan(List<Long> planStepIds) {
+        TaskPlanInfoDTO plan = new TaskPlanInfoDTO();
+        plan.setId(PLAN_ID);
+        plan.setAppId(APP_ID);
+        plan.setTemplateId(TEMPLATE_ID);
+        plan.setName(PLAN_NAME);
+        plan.setDebug(false);
+        List<TaskStepDTO> stepList = new ArrayList<>();
+        for (Long stepId : planStepIds) {
+            TaskStepDTO step = new TaskStepDTO();
+            step.setId(stepId);
+            stepList.add(step);
+        }
+        plan.setStepList(stepList);
+        return plan;
+    }
+
+    private void stubExistingPlanAndUpdate(List<Long> planStepIds, List<TaskVariableDTO> templateVariables) {
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID)).thenReturn(buildExistingPlan(planStepIds));
+        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID))
+            .thenReturn(buildTemplate(Collections.singletonList(101L), templateVariables));
+        when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(PLAN_ID), any())).thenReturn(true);
+        when(planService.updateTaskPlan(any(User.class), any(TaskPlanInfoDTO.class)))
+            .thenReturn(buildSavedPlan(false));
+    }
+
+    private void stubExistingPlanAndSync(String templateVersion) {
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID))
+            .thenReturn(buildExistingPlan(Collections.singletonList(201L)));
+        TaskTemplateInfoDTO template = buildTemplate(Collections.singletonList(101L), null);
+        template.setVersion(templateVersion);
+        when(templateService.getTaskTemplateBasicInfoById(APP_ID, TEMPLATE_ID)).thenReturn(template);
+        when(planAuthService.authSyncJobPlan(
+            any(User.class), any(AppResourceScope.class), eq(TEMPLATE_ID), eq(PLAN_ID), any()))
+            .thenReturn(AuthResult.pass(testUser));
+    }
+
+    /**
+     * 参数错误的原因文案在 errorParams 末位，异常自身的 message 为空。
+     */
+    private String errorReason(InvalidParamException e) {
+        Object[] errorParams = e.getErrorParams();
+        return errorParams == null ? "" : String.valueOf(errorParams[errorParams.length - 1]);
+    }
 }

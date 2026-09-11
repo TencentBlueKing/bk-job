@@ -1,0 +1,119 @@
+### Description
+
+Update the specified job plan: its name, the enabled steps and the global variable values.
+
+This API operates on the **current step snapshot of the job plan** and does not require the plan to be in sync with
+its job template. After the template changes (the plan's `need_update` becomes `true`), the plan can still be
+updated directly; only enabling a step newly added to the template requires calling `sync_job_plan` first.
+
+Prerequisites: the job plan exists in the scope; the caller has permission to edit it. When `name` is provided, plan
+names must be unique within the same resource scope and job template.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field         | Type   | Required | Description                                                                                                                                 |
+|---------------|--------|----------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type | string | Yes      | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set)                                                             |
+| bk_scope_id   | string | Yes      | Resource scope ID matching `bk_scope_type` (business ID or business set ID)                                                                 |
+| job_plan_id   | long   | Yes      | Job plan ID; must be greater than 0; the plan must exist                                                                                    |
+| name          | string | No       | Job plan name. Omit it or leave it blank to keep the current name; when provided it must be 1–60 characters, must not contain HTML special characters `<`, `>`, `"`, `'`, and must be unique within the same scope and template |
+| enable_steps  | array  | Yes      | **Plan step** IDs to enable; an empty array is not allowed; steps not listed are disabled; every ID must belong to the plan                 |
+| variables     | array  | No       | Overrides for template global variables, matched by variable name; fails if the name is unknown or the value type does not match the template; variable names must be unique in one request |
+
+The IDs in `enable_steps` are **plan step IDs**, which differ from the template step IDs used by `create_job_plan`;
+they can be read via the v3 API `get_job_plan_detail`. An ID that does not belong to the plan results in an error; to
+enable a step newly added to the job template, call `sync_job_plan` first.
+
+The field is mandatory to prevent accidental clearing: the server disables every step that is not listed, so a
+missing field would be equivalent to disabling all steps of the plan.
+
+##### variables[] element
+
+| Field           | Type    | Required | Description                                                                                                                                                                                                                  |
+|-----------------|---------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| name            | string  | Yes      | Global variable name in the template, matched by name (not by variable ID); must be non-blank                                                                                                                                |
+| value           | string  | No       | Default variable value for string, namespace, ciphertext, associative array, index array, or execute account types in the template; execute account value is the account ID string; ignored when `follow_template` is `true` |
+| execute_target  | object  | No       | Execute targets; only when the template variable is an execute-target list and `follow_template` is `false`; must not be used together with `value`                                                                          |
+| follow_template | boolean | No       | Whether to keep the template default. Allowed values: `true` (use template default), `false` (use `value` or `execute_target` from this request; default `false`). When `true`, `execute_target` must not be provided        |
+
+##### execute_target
+
+{% include '_generic_v4_execute_target_without_container_req.md.j2' %}
+
+### Request Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_plan_id": 50001,
+    "name": "my-api-plan",
+    "enable_steps": [
+        201,
+        203
+    ],
+    "variables": [
+        {
+            "name": "TARGET_DIR",
+            "value": "/data/release-v2",
+            "follow_template": false
+        },
+        {
+            "name": "HOST_TARGET",
+            "follow_template": false,
+            "execute_target": {
+                "host_list": [
+                    {
+                        "bk_host_id": 10001
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
+
+### Response Example
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "job_plan_id": 50001,
+        "job_plan_name": "my-api-plan",
+        "job_template_id": 1000,
+        "creator": "admin",
+        "create_time": 1738220000000,
+        "need_update": false
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field           | Type    | Description                                                                                        |
+|-----------------|---------|----------------------------------------------------------------------------------------------------|
+| bk_scope_type   | string  | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set)                    |
+| bk_scope_id     | string  | Resource scope ID                                                                                  |
+| job_plan_id     | long    | Job plan ID                                                                                        |
+| job_plan_name   | string  | Job plan name                                                                                      |
+| job_template_id | long    | Job template ID                                                                                    |
+| creator         | string  | Creator                                                                                            |
+| create_time     | long    | Create time, unix timestamp in milliseconds                                                        |
+| need_update     | boolean | Whether the plan needs to be synced with the job template. Allowed values: `true` (yes), `false` (no) |
