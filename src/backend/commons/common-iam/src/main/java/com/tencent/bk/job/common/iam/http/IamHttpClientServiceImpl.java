@@ -54,10 +54,6 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     private final HttpHelper httpHelper;
     private final IamConfiguration iamConfiguration;
 
-    public IamHttpClientServiceImpl(IamConfiguration iamConfiguration) {
-        this(iamConfiguration, true);
-    }
-
     public IamHttpClientServiceImpl(IamConfiguration iamConfiguration, boolean sslVerifyEnabled) {
         this.iamConfiguration = iamConfiguration;
         this.httpHelper = HttpHelperFactory.getDefaultHttpHelper(sslVerifyEnabled);

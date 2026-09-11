@@ -127,8 +127,6 @@ import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.Utils;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -181,29 +179,6 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                       }
                   }
             );
-
-    public BizCmdbClient(AppProperties appProperties,
-                         EsbProperties esbProperties,
-                         BkApiGatewayProperties bkApiGatewayProperties,
-                         CmdbConfig cmdbConfig,
-                         String lang,
-                         ThreadPoolExecutor threadPoolExecutor,
-                         ThreadPoolExecutor longTermThreadPoolExecutor,
-                         FlowController flowController,
-                         MeterRegistry meterRegistry) {
-        this(
-            appProperties,
-            esbProperties,
-            bkApiGatewayProperties,
-            cmdbConfig,
-            lang,
-            threadPoolExecutor,
-            longTermThreadPoolExecutor,
-            flowController,
-            meterRegistry,
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
-        );
-    }
 
     public BizCmdbClient(AppProperties appProperties,
                          EsbProperties esbProperties,

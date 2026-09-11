@@ -45,10 +45,8 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import org.apache.commons.collections4.CollectionUtils;
@@ -67,14 +65,6 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
     private final BkApiGatewayProperties.ApiGwConfig bkAIDevConfig;
     private final CustomPaasLoginProperties customPaasLoginProperties;
     private final boolean sslVerifyEnabled;
-
-    public BkAIDevClient(MeterRegistry meterRegistry,
-                         AppProperties appProperties,
-                         CustomPaasLoginProperties customPaasLoginProperties,
-                         BkApiGatewayProperties bkApiGatewayProperties) {
-        this(meterRegistry, appProperties, customPaasLoginProperties, bkApiGatewayProperties,
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_AI_DEV));
-    }
 
     public BkAIDevClient(MeterRegistry meterRegistry,
                          AppProperties appProperties,

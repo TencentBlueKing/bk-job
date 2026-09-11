@@ -41,10 +41,8 @@ import com.tencent.bk.job.common.notice.IBkNoticeClient;
 import com.tencent.bk.job.common.notice.exception.BkNoticeException;
 import com.tencent.bk.job.common.notice.model.AnnouncementDTO;
 import com.tencent.bk.job.common.notice.model.BkNoticeApp;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import org.apache.commons.lang3.StringUtils;
@@ -60,13 +58,6 @@ public class BkNoticeClient extends BkApiClient implements IBkNoticeClient {
 
     private final AppProperties appProperties;
     private final BkApiAuthorization authorization;
-
-    public BkNoticeClient(MeterRegistry meterRegistry,
-                          AppProperties appProperties,
-                          BkApiGatewayProperties bkApiGatewayProperties) {
-        this(meterRegistry, appProperties, bkApiGatewayProperties,
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_NOTICE));
-    }
 
     public BkNoticeClient(MeterRegistry meterRegistry,
                           AppProperties appProperties,

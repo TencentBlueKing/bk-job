@@ -46,8 +46,6 @@ import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.WatchableHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -129,25 +127,6 @@ public class BaseCmdbApiClient {
         interfaceNameMap.put(SEARCH_BUSINESS_SET, "list_business_set");
         interfaceNameMap.put(LIST_KUBE_CONTAINER_BY_TOPO, "list_kube_container_by_topo");
         interfaceNameMap.put(GET_BIZ_KUBE_CACHE_TOPO, "get_biz_kube_cache_topo");
-    }
-
-    protected BaseCmdbApiClient(FlowController flowController,
-                                AppProperties appProperties,
-                                EsbProperties esbProperties,
-                                BkApiGatewayProperties bkApiGatewayProperties,
-                                CmdbConfig cmdbConfig,
-                                MeterRegistry meterRegistry,
-                                String lang) {
-        this(
-            flowController,
-            appProperties,
-            esbProperties,
-            bkApiGatewayProperties,
-            cmdbConfig,
-            meterRegistry,
-            lang,
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
-        );
     }
 
     protected BaseCmdbApiClient(FlowController flowController,

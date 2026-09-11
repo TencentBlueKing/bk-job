@@ -52,8 +52,6 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.util.FlowController;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -72,23 +70,6 @@ import java.util.Set;
 @Slf4j
 public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbClient {
 
-
-    public BizSetCmdbClient(AppProperties appProperties,
-                            EsbProperties esbProperties,
-                            BkApiGatewayProperties bkApiGatewayProperties,
-                            CmdbConfig cmdbConfig,
-                            FlowController flowController,
-                            MeterRegistry meterRegistry) {
-        this(
-            appProperties,
-            esbProperties,
-            bkApiGatewayProperties,
-            cmdbConfig,
-            flowController,
-            meterRegistry,
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
-        );
-    }
 
     public BizSetCmdbClient(AppProperties appProperties,
                             EsbProperties esbProperties,

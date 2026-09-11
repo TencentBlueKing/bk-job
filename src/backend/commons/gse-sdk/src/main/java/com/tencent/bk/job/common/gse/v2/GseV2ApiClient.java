@@ -49,10 +49,8 @@ import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -75,17 +73,6 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
     private static final String URI_ASYNC_TERMINATE_EXECUTE_SCRIPT =
         "/api/v2/task/extensions/async_terminate_execute_script";
     private final BkApiAuthorization gseBkApiAuthorization;
-
-    public GseV2ApiClient(MeterRegistry meterRegistry,
-                          AppProperties appProperties,
-                          BkApiGatewayProperties bkApiGatewayProperties) {
-        this(
-            meterRegistry,
-            appProperties,
-            bkApiGatewayProperties,
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.GSE)
-        );
-    }
 
     public GseV2ApiClient(MeterRegistry meterRegistry,
                           AppProperties appProperties,

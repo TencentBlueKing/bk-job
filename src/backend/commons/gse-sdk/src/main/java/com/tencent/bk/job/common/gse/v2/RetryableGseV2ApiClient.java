@@ -34,8 +34,6 @@ import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.retry.RetryUtils;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,19 +54,6 @@ public class RetryableGseV2ApiClient extends GseV2ApiClient {
      * 重试间隔（单位：秒）
      */
     private final Integer intervalSeconds;
-
-    public RetryableGseV2ApiClient(MeterRegistry meterRegistry,
-                                   AppProperties appProperties,
-                                   BkApiGatewayProperties bkApiGatewayProperties,
-                                   GseV2Properties gseV2Properties) {
-        this(
-            meterRegistry,
-            appProperties,
-            bkApiGatewayProperties,
-            gseV2Properties,
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.GSE)
-        );
-    }
 
     public RetryableGseV2ApiClient(MeterRegistry meterRegistry,
                                    AppProperties appProperties,

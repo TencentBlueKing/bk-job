@@ -41,10 +41,8 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -65,13 +63,6 @@ public class CmsiApiClient extends BkApiClient {
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
 
     private final BkApiAuthorization authorization;
-
-    public CmsiApiClient(EsbProperties esbProperties,
-                         AppProperties appProperties,
-                         MeterRegistry meterRegistry) {
-        this(esbProperties, appProperties, meterRegistry,
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.BK_CMSI));
-    }
 
     public CmsiApiClient(EsbProperties esbProperties,
                          AppProperties appProperties,
