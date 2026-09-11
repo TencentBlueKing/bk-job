@@ -58,8 +58,9 @@ public class RetryableGseV2ApiClient extends GseV2ApiClient {
     public RetryableGseV2ApiClient(MeterRegistry meterRegistry,
                                    AppProperties appProperties,
                                    BkApiGatewayProperties bkApiGatewayProperties,
-                                   GseV2Properties gseV2Properties) {
-        super(meterRegistry, appProperties, bkApiGatewayProperties);
+                                   GseV2Properties gseV2Properties,
+                                   boolean sslVerifyEnabled) {
+        super(meterRegistry, appProperties, bkApiGatewayProperties, sslVerifyEnabled);
         this.maxAttempts = gseV2Properties.getRetry().getMaxAttempts();
         this.intervalSeconds = gseV2Properties.getRetry().getIntervalSeconds();
     }

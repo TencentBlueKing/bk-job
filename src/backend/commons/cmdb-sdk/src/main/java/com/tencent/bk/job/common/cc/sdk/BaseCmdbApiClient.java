@@ -46,8 +46,6 @@ import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.WatchableHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -93,6 +91,7 @@ public class BaseCmdbApiClient {
     private static final Map<String, String> interfaceNameMap = new HashMap<>();
 
     protected final String cmdbSupplierAccount;
+    private final boolean sslVerifyEnabled;
     protected final BkApiAuthorization cmdbBkApiAuthorization;
 
     /**
@@ -136,10 +135,9 @@ public class BaseCmdbApiClient {
                                 BkApiGatewayProperties bkApiGatewayProperties,
                                 CmdbConfig cmdbConfig,
                                 MeterRegistry meterRegistry,
-                                String lang) {
-        WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper(
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
-        );
+                                String lang,
+                                boolean sslVerifyEnabled) {
+        WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper(sslVerifyEnabled);
         this.esbCmdbApiClient = new BkApiClient(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             esbProperties.getService().getUrl(),
@@ -157,14 +155,13 @@ public class BaseCmdbApiClient {
         this.globalFlowController = flowController;
         this.cmdbConfig = cmdbConfig;
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
+        this.sslVerifyEnabled = sslVerifyEnabled;
         this.cmdbBkApiAuthorization = BkApiAuthorization.appAuthorization(
             appProperties.getCode(), appProperties.getSecret(), "admin");
     }
 
     protected WatchableHttpHelper longRetryableHttpHelper() {
-        return HttpHelperFactory.getLongRetryableHttpHelper(
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
-        );
+        return HttpHelperFactory.getLongRetryableHttpHelper(sslVerifyEnabled);
     }
 
 

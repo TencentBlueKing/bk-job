@@ -66,12 +66,6 @@ public class UserMgrApiClient extends BkApiClient {
 
     public UserMgrApiClient(EsbProperties esbProperties,
                             AppProperties appProperties,
-                            MeterRegistry meterRegistry) {
-        this(esbProperties, appProperties, meterRegistry, true);
-    }
-
-    public UserMgrApiClient(EsbProperties esbProperties,
-                            AppProperties appProperties,
                             MeterRegistry meterRegistry,
                             boolean sslVerifyEnabled) {
         super(meterRegistry,

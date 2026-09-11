@@ -35,6 +35,8 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.util.FlowController;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -98,6 +100,7 @@ public class CmdbAutoConfiguration {
                                        ThreadPoolExecutor cmdbThreadPoolExecutor,
                                        ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                        MeterRegistry meterRegistry,
+                                       JobHttpSslVerifyProperties sslVerifyProperties,
                                        ObjectProvider<FlowController> flowControllerProvider) {
         return new BizCmdbClient(
             appProperties,
@@ -108,7 +111,8 @@ public class CmdbAutoConfiguration {
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
-            meterRegistry
+            meterRegistry,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.CMDB)
         );
     }
 
@@ -120,6 +124,7 @@ public class CmdbAutoConfiguration {
                                          ThreadPoolExecutor cmdbThreadPoolExecutor,
                                          ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                          MeterRegistry meterRegistry,
+                                         JobHttpSslVerifyProperties sslVerifyProperties,
                                          ObjectProvider<FlowController> flowControllerProvider) {
         return new BizCmdbClient(
             appProperties,
@@ -130,7 +135,8 @@ public class CmdbAutoConfiguration {
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
-            meterRegistry
+            meterRegistry,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.CMDB)
         );
     }
 
@@ -140,6 +146,7 @@ public class CmdbAutoConfiguration {
                                              BkApiGatewayProperties bkApiGatewayProperties,
                                              CmdbConfig cmdbConfig,
                                              MeterRegistry meterRegistry,
+                                             JobHttpSslVerifyProperties sslVerifyProperties,
                                              ObjectProvider<FlowController> flowControllerProvider) {
         return new BizSetCmdbClient(
             appProperties,
@@ -147,7 +154,8 @@ public class CmdbAutoConfiguration {
             bkApiGatewayProperties,
             cmdbConfig,
             flowControllerProvider.getIfAvailable(),
-            meterRegistry
+            meterRegistry,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.CMDB)
         );
     }
 

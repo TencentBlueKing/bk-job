@@ -51,10 +51,6 @@ public class CustomLoginClient implements ILoginClient {
     private final String customLoginApiUrl;
     private final HttpHelper httpHelper;
 
-    public CustomLoginClient(String customLoginApiUrl) {
-        this(customLoginApiUrl, true);
-    }
-
     public CustomLoginClient(String customLoginApiUrl, boolean sslVerifyEnabled) {
         if (customLoginApiUrl.endsWith("/")) {
             this.customLoginApiUrl = customLoginApiUrl.substring(0, customLoginApiUrl.length() - 1);

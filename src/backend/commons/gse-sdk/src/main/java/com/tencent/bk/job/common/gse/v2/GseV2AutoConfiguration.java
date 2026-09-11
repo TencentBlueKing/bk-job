@@ -27,6 +27,8 @@ package com.tencent.bk.job.common.gse.v2;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.gse.config.GseV2Properties;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -44,9 +46,15 @@ public class GseV2AutoConfiguration {
     @Bean("gseV2ApiClient")
     public GseV2ApiClient gseV2ApiClient(MeterRegistry meterRegistry,
                                          AppProperties appProperties,
-                                         BkApiGatewayProperties bkApiGatewayProperties) {
+                                         BkApiGatewayProperties bkApiGatewayProperties,
+                                         JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init gseV2ApiClient");
-        return new GseV2ApiClient(meterRegistry, appProperties, bkApiGatewayProperties);
+        return new GseV2ApiClient(
+            meterRegistry,
+            appProperties,
+            bkApiGatewayProperties,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.GSE)
+        );
     }
 
     @ConditionalOnProperty(name = "gseV2.retry.enabled", havingValue = "true")
@@ -54,13 +62,15 @@ public class GseV2AutoConfiguration {
     public GseV2ApiClient retryableGseV2ApiClient(MeterRegistry meterRegistry,
                                                   AppProperties appProperties,
                                                   BkApiGatewayProperties bkApiGatewayProperties,
-                                                  GseV2Properties gseV2Properties) {
+                                                  GseV2Properties gseV2Properties,
+                                                  JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init retryableGseV2ApiClient");
         return new RetryableGseV2ApiClient(
             meterRegistry,
             appProperties,
             bkApiGatewayProperties,
-            gseV2Properties
+            gseV2Properties,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.GSE)
         );
     }
 }

@@ -60,10 +60,6 @@ public class StandardLoginClient extends BkApiClient implements ILoginClient {
 
     private final AppProperties appProperties;
 
-    public StandardLoginClient(EsbProperties esbProperties, AppProperties appProperties, MeterRegistry meterRegistry) {
-        this(esbProperties, appProperties, meterRegistry, true);
-    }
-
     public StandardLoginClient(EsbProperties esbProperties,
                                AppProperties appProperties,
                                MeterRegistry meterRegistry,

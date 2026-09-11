@@ -188,7 +188,8 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                          ThreadPoolExecutor threadPoolExecutor,
                          ThreadPoolExecutor longTermThreadPoolExecutor,
                          FlowController flowController,
-                         MeterRegistry meterRegistry) {
+                         MeterRegistry meterRegistry,
+                         boolean sslVerifyEnabled) {
         super(
             flowController,
             appProperties,
@@ -196,7 +197,8 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             bkApiGatewayProperties,
             cmdbConfig,
             meterRegistry,
-            lang
+            lang,
+            sslVerifyEnabled
         );
         this.threadPoolExecutor = threadPoolExecutor;
         this.longTermThreadPoolExecutor = longTermThreadPoolExecutor;
