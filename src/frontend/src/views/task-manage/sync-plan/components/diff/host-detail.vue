@@ -191,7 +191,7 @@
         // 对比主机
         const hostDiffMap = {};
         const hostList = [];
-        const genHostId = host => `${host.cloudAreaInfo.id}_${host.ip}`;
+        const genHostId = host => `${host.cloudArea.id}_${host.ip}`;
         templateValue.hostList.forEach((host) => {
           hostDiffMap[genHostId(host)] = 'new';
           hostList.push(host);

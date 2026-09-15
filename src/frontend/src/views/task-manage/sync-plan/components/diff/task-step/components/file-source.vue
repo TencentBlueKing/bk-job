@@ -330,10 +330,14 @@
                 };
               }
             } else {
-              // 在模板中不存在，表示被删掉了
+              // 模板中的同名文件已经匹配完，执行方案中多出来的这一个表示被删掉了
+              const sameFileKey = `${currentFile.realId}_${Math.random()}_${Math.random()}`;
+              currentFile.sameFileKey = sameFileKey;
+              serverFileDiff[sameFileKey] = {
+                type: 'delete',
+              };
               const index = _.findIndex(serverFileList, _ => _.realId === currentFile.realId);
-              serverFileList.splice(index + 1, 0, deleteServerFile);
-              deleteServerFile = null;
+              serverFileList.splice(index + 1, 0, currentFile);
             }
             continue;
           }
@@ -369,8 +373,9 @@
           }
           return fileItem;
         });
+        // localFileDiff 的值是状态字符串，同步前只需要保留被删除的标记
         const preLocalFileDiff = Object.keys(localFileDiff).reduce((result, key) => {
-          if (localFileDiff[key].type === 'different') {
+          if (localFileDiff[key] === 'delete') {
             result[key] = localFileDiff[key];
           }
           return result;
