@@ -128,6 +128,8 @@
           dynamicGroupList,
           hostList,
           nodeList,
+          containerList = [],
+          containerFilterList = [],
         } = this.localValue.executeObjectsInfo || {};
         const strs = [];
         if (hostList.length > 0) {
@@ -139,7 +141,13 @@
         if (dynamicGroupList.length > 0) {
           strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组_result')}`);
         }
-        return strs.length > 0 ? strs.join('\n') : '--';
+        if (containerList.length > 0) {
+          strs.push(`<span class="number strong">${containerList.length}</span>${I18n.t('个容器_result')}`);
+        }
+        if (containerFilterList.length > 0) {
+          strs.push(`<span class="number strong">${containerFilterList.length}</span>${I18n.t('个容器过滤条件_result')}`);
+        }
+        return strs.length > 0 ? strs.join('，') : '--';
       },
       styles() {
         return {
