@@ -52,10 +52,12 @@ import com.tencent.bk.job.common.artifactory.model.req.Sort;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.exception.FileDownloadException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.error.FileDownloadErrorDTO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
@@ -81,6 +83,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.web.util.UriUtils;
 
@@ -316,7 +319,7 @@ public class ArtifactoryClient {
             ).getMessage();
             log.error(msg, e);
             status = "error";
-            throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+            throw new InternalException("Fail to request ARTIFACTORY data", e, ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
@@ -519,25 +522,68 @@ public class ArtifactoryClient {
         req.setPath(filePath);
         String url = StringUtil.replacePathVariables(URL_DOWNLOAD_GENERIC_FILE, req);
         url = getCompleteUrl(url);
-        CloseableHttpResponse resp;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "download:" + URL_DOWNLOAD_GENERIC_FILE));
             Pair<HttpRequestBase, CloseableHttpResponse> pair = longHttpHelper.getRawResp(false, url, getJsonHeaders());
-            resp = pair.getRight();
-            if (resp.getStatusLine() != null && resp.getStatusLine().getStatusCode() == 200) {
+            CloseableHttpResponse resp = pair.getRight();
+            Integer httpStatusCode = getHttpStatusCode(resp);
+            if (httpStatusCode != null && httpStatusCode == 200) {
                 return Pair.of(resp.getEntity().getContent(), pair.getLeft());
-            } else {
-                log.info("resp.statusLine={},resp.entity={}", resp.getStatusLine(), resp.getEntity());
-                resp.close();
-                throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
+            }
+            try (CloseableHttpResponse response = resp) {
+                throw buildFileDownloadException(response);
             }
         } catch (IOException e) {
             log.error("Fail to getFileInputStream", e);
-            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
+            throw new InternalException(
+                "Fail to get file input stream",
+                e,
+                ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE
+            );
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
+    }
+
+    private Integer getHttpStatusCode(CloseableHttpResponse resp) {
+        return resp.getStatusLine() == null ? null : resp.getStatusLine().getStatusCode();
+    }
+
+    private FileDownloadException buildFileDownloadException(CloseableHttpResponse resp) throws IOException {
+        Integer httpCode = getHttpStatusCode(resp);
+        String fallbackMessage = resp.getStatusLine() == null ? null : resp.getStatusLine().getReasonPhrase();
+        // 下载接口非200时，尝试把底层服务的响应结果拿到，后续写入到文件分发日志中
+        String responseBody = resp.getEntity() == null ? null : EntityUtils.toString(resp.getEntity());
+        ArtifactoryResp<?> artifactoryResp = parseArtifactoryErrorResp(responseBody);
+        return new FileDownloadException(
+            new FileDownloadErrorDTO(
+                httpCode,
+                artifactoryResp == null ? null : String.valueOf(artifactoryResp.getCode()),
+                getErrorMessage(artifactoryResp, fallbackMessage),
+                artifactoryResp == null ? null : artifactoryResp.getTraceId()
+            ),
+            ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE
+        );
+    }
+
+    private ArtifactoryResp<?> parseArtifactoryErrorResp(String responseBody) {
+        if (StringUtils.isBlank(responseBody)) {
+            return null;
+        }
+        try {
+            return JsonUtils.fromJson(responseBody, new TypeReference<ArtifactoryResp<Object>>() {
+            });
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String getErrorMessage(ArtifactoryResp<?> resp, String messageIfRespAbsent) {
+        if (resp != null && StringUtils.isNotBlank(resp.getMessage())) {
+            return resp.getMessage();
+        }
+        return messageIfRespAbsent;
     }
 
     public NodeDTO uploadGenericFileWithStream(
