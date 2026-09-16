@@ -59,13 +59,13 @@
         :id="id"
         :account="account"
         :all-variables="allVariables"
-        :data="data.originFileList" />
+        :data="data.fileSourceList" />
     </div>
     <div
       class="row"
-      :class="diff.destinationFileLocation">
+      :class="diff.destinationPath">
       <span class="label">{{ $t('template.目标路径：') }}</span>
-      <span class="value">{{ data.destinationFileLocation }}</span>
+      <span class="value">{{ data.fileDestination.path }}</span>
     </div>
     <div
       class="row"
@@ -81,12 +81,12 @@
         :account-list="account"
         :account-var="data.fileDestination.accountVar"
         :all-variables="allVariables"
-        :highlight="diff.fileDestination === 'changed'"
+        :highlight="diff.destinationAccount === 'changed'"
         theme="gray" />
     </div>
     <div
       class="row"
-      :class="diff.destination">
+      :class="diff.destinationServer">
       <span class="label">{{ $t('template.执行目标：') }}</span>
       <file-execute-target />
     </div>
