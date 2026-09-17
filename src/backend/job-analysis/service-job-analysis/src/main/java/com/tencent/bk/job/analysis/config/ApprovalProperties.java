@@ -51,6 +51,12 @@ public class ApprovalProperties {
     private Integer ttlHours = 8;
 
     /**
+     * 审批简要内容（approval_content_simple）的最大 UTF-8 字节数。
+     * 企业微信等渠道的展示上限，默认 20480。
+     */
+    private Integer contentSimpleMaxBytes = 20480;
+
+    /**
      * 未指定渠道时的默认渠道
      */
     private ApprovalChannelEnum defaultChannel = ApprovalChannelEnum.IMATE;

@@ -25,12 +25,16 @@
 package com.tencent.bk.job.analysis.approval.channel.model;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
 
 /**
  * 由作业平台渲染、交给审批渠道展示给审批人的审批内容。
  * <p>
  * 这是审批人做判断的唯一信息来源，必须自包含：标题、发起人、风险等级等都已渲染进
  * {@link #approvalContent}，不再单独给结构化字段。
+ * {@link #sections} 仅内部给简要裁剪使用，不暴露到 ESB。
  */
 @Data
 public class ApprovalContent {
@@ -49,4 +53,25 @@ public class ApprovalContent {
      * 不展示则审批人无从判断风险。
      */
     private String approvalContent;
+
+    /**
+     * 渲染时带下来的结构化章节。全文 {@link #approvalContent} 等于按顺序拼接各章 Markdown。
+     */
+    private List<ApprovalContentSection> sections;
+
+    /**
+     * 按渲染顺序拼接章节 Markdown；空列表得到空串。
+     */
+    public static String joinMarkdown(List<ApprovalContentSection> sections) {
+        if (sections == null || sections.isEmpty()) {
+            return StringUtils.EMPTY;
+        }
+        StringBuilder joined = new StringBuilder();
+        for (ApprovalContentSection section : sections) {
+            if (section != null && section.getMarkdown() != null) {
+                joined.append(section.getMarkdown());
+            }
+        }
+        return joined.toString();
+    }
 }

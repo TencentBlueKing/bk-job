@@ -1990,6 +1990,8 @@ analysisConfig:
   approval:
     # 审批任务TTL，单位小时。TTL越长，参数快照在库中驻留越久、动态分组目标的漂移窗口越大
     ttlHours: 8
+    # 审批简要内容的最大UTF-8字节数，企业微信等渠道的展示上限，默认20480
+    contentSimpleMaxBytes: 20480
     # 调用方未指定审批渠道时使用的默认渠道，当前支持的取值：IMATE
     defaultChannel: IMATE
     # 审批任务记录的保留天数。审批记录是安全审计凭据，且参数快照含加密后的敏感数据，保留期越长数据面越大

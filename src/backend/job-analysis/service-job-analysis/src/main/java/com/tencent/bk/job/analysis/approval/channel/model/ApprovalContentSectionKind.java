@@ -22,40 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.esb.v4.resp;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+package com.tencent.bk.job.analysis.approval.channel.model;
 
 /**
- * 取审批内容接口的返回体。
+ * 审批内容渲染产出的章节类型。身份在渲染时声明，简要裁剪按类型整段丢弃，不从 Markdown 反解析。
  * <p>
- * 标题、发起人、风险等级等信息都已渲染进 {@link #approvalContent}，不再单独给结构化字段。
+ * {@link #discardOrder} 越大越先被整章丢弃；0 表示不可整章丢弃（一级标题、操作概要）。
  */
-@Data
-public class V4ApprovalContentDTO {
+public enum ApprovalContentSectionKind {
 
-    @JsonProperty("approval_task_id")
-    private String approvalTaskId;
+    TITLE(0),
+    SUMMARY(0),
+    MULTI_LINE(1),
+    GLOBAL_VARS(2),
+    SCRIPT(3),
+    RAW_PARAMS(4);
 
-    /**
-     * 过期时刻，Unix 时间戳，单位毫秒；过期后不可再放行
-     */
-    @JsonProperty("expire_at")
-    private Long expireAt;
+    private final int discardOrder;
 
-    /**
-     * 审批内容，Markdown 格式，含标题、操作概要表格、执行步骤、脚本内容与原始参数。
-     * <p>
-     * 敏感字段只出现占位符，脚本内容例外、原样展示。始终返回完整渲染结果，不做渠道展示上限裁剪。
-     */
-    @JsonProperty("approval_content")
-    private String approvalContent;
+    ApprovalContentSectionKind(int discardOrder) {
+        this.discardOrder = discardOrder;
+    }
 
-    /**
-     * 审批内容的简要版，Markdown 格式，供企业微信等对展示长度有限制的渠道使用。
-     * 未超出上限时与 {@link #approvalContent} 相同。
-     */
-    @JsonProperty("approval_content_simple")
-    private String approvalContentSimple;
+    public int getDiscardOrder() {
+        return discardOrder;
+    }
+
+    public boolean isDroppable() {
+        return discardOrder > 0;
+    }
 }
