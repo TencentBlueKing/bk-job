@@ -65,12 +65,7 @@ Template tags are out of scope for this API; the existing tags of the template a
 
 ##### account
 
-| Field       | Type   | Required | Description                                                                          |
-|-------------|--------|----------|--------------------------------------------------------------------------------------|
-| id          | long   | No       | Account ID. Mutually exclusive with `account_var`; `id` wins when both are given     |
-| account_var | string | No       | Name of a global variable of type "execute account" to reference. Mutually exclusive with `id` |
-
-At least one of `id` and `account_var` must be provided.
+{% include '_generic_v4_template_account_req.md.j2' %}
 
 ##### execute_target
 

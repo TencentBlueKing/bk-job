@@ -680,7 +680,7 @@ class OpenApiJobPlanV4ResourceImplTest {
         when(planService.getTaskPlanById(APP_ID, PLAN_ID)).thenReturn(existingPlan);
         TaskTemplateInfoDTO template = buildTemplate(Arrays.asList(101L, 102L), null);
         template.setVersion("v2");
-        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID)).thenReturn(template);
+        when(templateService.getTaskTemplateBasicInfoById(APP_ID, TEMPLATE_ID)).thenReturn(template);
         when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(PLAN_ID), any())).thenReturn(true);
         TaskPlanInfoDTO updatedPlan = buildSavedPlan(false);
         updatedPlan.setVersion("v1");
@@ -717,7 +717,7 @@ class OpenApiJobPlanV4ResourceImplTest {
             USERNAME, APP_CODE, buildUpdateRequest(Collections.singletonList(201L))))
             .isInstanceOfSatisfying(NotFoundException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.TASK_PLAN_NOT_EXIST));
-        verify(templateService, times(0)).getTaskTemplateById(anyLong(), anyLong());
+        verify(templateService, times(0)).getTaskTemplateBasicInfoById(anyLong(), anyLong());
     }
 
     @Test
@@ -764,8 +764,8 @@ class OpenApiJobPlanV4ResourceImplTest {
     }
 
     @Test
-    @DisplayName("更新：变量按模板变量名映射后交给服务层")
-    void update_maps_variables_by_template_variable_name() {
+    @DisplayName("更新：变量按方案自身的变量名映射后交给服务层，下发的 id 为模板变量 ID")
+    void update_maps_variables_by_plan_variable_name() {
         stubExistingPlanAndUpdate(
             Collections.singletonList(201L),
             Collections.singletonList(buildTemplateVar(11L, "TARGET_DIR", TaskVariableTypeEnum.STRING, "/tmp")));
@@ -783,6 +783,55 @@ class OpenApiJobPlanV4ResourceImplTest {
         assertThat(captor.getValue().getVariableList())
             .extracting(TaskVariableDTO::getId, TaskVariableDTO::getName, TaskVariableDTO::getDefaultValue)
             .containsExactly(tuple(11L, "TARGET_DIR", "/data/release"));
+    }
+
+    @Test
+    @DisplayName("更新：模板新增而方案尚未同步的变量按不存在拒绝，而不是下发一条匹配不到行的静默改动")
+    void update_rejects_variable_absent_from_plan() {
+        stubExistingPlanAndUpdate(
+            Collections.singletonList(201L),
+            Collections.singletonList(buildTemplateVar(11L, "TARGET_DIR", TaskVariableTypeEnum.STRING, "/tmp")));
+
+        V4JobPlanVariableItem variable = new V4JobPlanVariableItem();
+        variable.setName("NEW_IN_TEMPLATE");
+        variable.setValue("v");
+        V4UpdateJobPlanRequest request = buildUpdateRequest(Collections.singletonList(201L));
+        request.setVariables(Collections.singletonList(variable));
+
+        assertThatThrownBy(() -> resource.updateJobPlan(USERNAME, APP_CODE, request))
+            .isInstanceOfSatisfying(InvalidParamException.class, e -> {
+                assertThat(errorReason(e)).contains("NEW_IN_TEMPLATE");
+                assertThat(errorReason(e)).contains("not exist in plan");
+            });
+        verify(planService, times(0)).updateTaskPlan(any(User.class), any(TaskPlanInfoDTO.class));
+    }
+
+    @Test
+    @DisplayName("更新：模板已删、方案仍保留的变量照样能改，寻址不看模板")
+    void update_allows_variable_removed_from_template() {
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID)).thenReturn(buildExistingPlan(
+            Collections.singletonList(201L),
+            Collections.singletonList(buildTemplateVar(11L, "LEGACY_VAR", TaskVariableTypeEnum.STRING, "/tmp"))));
+        // 模板侧已经没有这个变量了
+        when(templateService.getTaskTemplateBasicInfoById(APP_ID, TEMPLATE_ID))
+            .thenReturn(buildTemplate(Collections.singletonList(101L), Collections.emptyList()));
+        when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(PLAN_ID), any())).thenReturn(true);
+        when(planService.updateTaskPlan(any(User.class), any(TaskPlanInfoDTO.class)))
+            .thenReturn(buildSavedPlan(false));
+
+        V4JobPlanVariableItem variable = new V4JobPlanVariableItem();
+        variable.setName("LEGACY_VAR");
+        variable.setValue("/data/release");
+        V4UpdateJobPlanRequest request = buildUpdateRequest(Collections.singletonList(201L));
+        request.setVariables(Collections.singletonList(variable));
+
+        resource.updateJobPlan(USERNAME, APP_CODE, request);
+
+        ArgumentCaptor<TaskPlanInfoDTO> captor = ArgumentCaptor.forClass(TaskPlanInfoDTO.class);
+        verify(planService).updateTaskPlan(any(User.class), captor.capture());
+        assertThat(captor.getValue().getVariableList())
+            .extracting(TaskVariableDTO::getId, TaskVariableDTO::getName, TaskVariableDTO::getDefaultValue)
+            .containsExactly(tuple(11L, "LEGACY_VAR", "/data/release"));
     }
 
     // ------------------------------------------------------------ sync_job_plan
@@ -876,6 +925,13 @@ class OpenApiJobPlanV4ResourceImplTest {
     }
 
     private TaskPlanInfoDTO buildExistingPlan(List<Long> planStepIds) {
+        return buildExistingPlan(planStepIds, null);
+    }
+
+    /**
+     * 方案变量的 id 存的是模板变量 ID，与 DAO 读出来的一致。
+     */
+    private TaskPlanInfoDTO buildExistingPlan(List<Long> planStepIds, List<TaskVariableDTO> planVariables) {
         TaskPlanInfoDTO plan = new TaskPlanInfoDTO();
         plan.setId(PLAN_ID);
         plan.setAppId(APP_ID);
@@ -889,13 +945,15 @@ class OpenApiJobPlanV4ResourceImplTest {
             stepList.add(step);
         }
         plan.setStepList(stepList);
+        plan.setVariableList(planVariables == null ? new ArrayList<>() : planVariables);
         return plan;
     }
 
-    private void stubExistingPlanAndUpdate(List<Long> planStepIds, List<TaskVariableDTO> templateVariables) {
-        when(planService.getTaskPlanById(APP_ID, PLAN_ID)).thenReturn(buildExistingPlan(planStepIds));
-        when(templateService.getTaskTemplateById(APP_ID, TEMPLATE_ID))
-            .thenReturn(buildTemplate(Collections.singletonList(101L), templateVariables));
+    private void stubExistingPlanAndUpdate(List<Long> planStepIds, List<TaskVariableDTO> planVariables) {
+        when(planService.getTaskPlanById(APP_ID, PLAN_ID))
+            .thenReturn(buildExistingPlan(planStepIds, planVariables));
+        when(templateService.getTaskTemplateBasicInfoById(APP_ID, TEMPLATE_ID))
+            .thenReturn(buildTemplate(Collections.singletonList(101L), null));
         when(planService.checkPlanName(eq(APP_ID), eq(TEMPLATE_ID), eq(PLAN_ID), any())).thenReturn(true);
         when(planService.updateTaskPlan(any(User.class), any(TaskPlanInfoDTO.class)))
             .thenReturn(buildSavedPlan(false));

@@ -189,18 +189,19 @@ public class OpenApiJobPlanV4ResourceImpl implements OpenApiJobPlanV4Resource {
 
         TaskPlanInfoDTO existingPlan = getNormalPlan(appId, planId);
         Long templateId = existingPlan.getTemplateId();
-        TaskTemplateInfoDTO template = templateService.getTaskTemplateById(appId, templateId);
+        // 仅用于回包里的 need_update 判断，不参与本次更新的寻址，取基础信息即可
+        TaskTemplateInfoDTO template = templateService.getTaskTemplateBasicInfoById(appId, templateId);
         if (template == null) {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
 
         User user = JobContextUtil.getUser();
-        // 按方案步骤 ID 寻址，操作对象即方案当前快照，因此模板是否已变更与本次更新无关
+        // 步骤与变量都按方案自身的快照寻址，操作对象是方案，因此模板是否已变更与本次更新无关
         List<Long> enableSteps = requestResolver.resolveEnableStepsForUpdate(
             request.getEnableSteps(), existingPlan.getStepList(), planId
         );
         List<TaskVariableDTO> variableList =
-            requestResolver.mapVariables(request.getVariables(), template, user.getTenantId());
+            requestResolver.mapVariablesForUpdate(request.getVariables(), existingPlan, user.getTenantId());
 
         // 名称缺省表示不改名，交由 DAO 跳过 NAME 列；只有显式传了才需要查重
         String planName = StringUtils.stripToNull(request.getName());

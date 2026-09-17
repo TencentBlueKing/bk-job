@@ -4,8 +4,12 @@
 | type           | int    | Yes      | Variable type. Allowed values: `1` (string), `2` (namespace), `3` (execute target list), `4` (ciphertext), `5` (associative array), `6` (index array), `7` (execute account) |
 | description    | string | No       | Variable description                                                                                                                                           |
 | required       | int    | No       | Whether the variable is mandatory at execution time. Allowed values: `0` (no, default), `1` (yes)                                                              |
-| value          | string | No       | Default value for string, namespace, ciphertext, associative array, index array and execute account types; for execute account variables the value is the account ID string |
+| value          | string | No       | Default value for string, namespace, ciphertext, associative array, index array and execute account types; for execute account variables the value is the account ID string. Omitting it leaves the default value empty and clears any existing one |
 | execute_target | object | No       | Default execute targets, only for `type` 3. Same shape as `execute_target` below except that **`variable` is not accepted**: a variable default must be concrete targets and cannot reference another variable |
+
+For variables other than the execute-target type, `value` is set to null when it is not provided. These write
+APIs follow full-replacement semantics, so omitting the field means "set it to empty", not "keep the current
+value"; send the existing default back to preserve it.
 
 Ciphertext variables (`type=4`) are always returned as `******` by `get_job_template_detail`. Writing `******` back
 through `update_job_template` while keeping the variable name unchanged is treated as "not modified" and the stored

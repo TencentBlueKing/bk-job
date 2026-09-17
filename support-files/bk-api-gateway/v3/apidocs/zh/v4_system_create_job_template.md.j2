@@ -39,12 +39,7 @@
 
 ##### account
 
-| 字段          | 类型     | 必选 | 描述                                        |
-|-------------|--------|----|-------------------------------------------|
-| id          | long   | 否  | 账号 ID。与 `account_var` 二选一，同时填写时以 `id` 为准  |
-| account_var | string | 否  | 引用的「执行账号」类型全局变量名称。与 `id` 二选一             |
-
-`id` 与 `account_var` 至少须填写一项。
+{% include '_generic_v4_template_account_req.md.j2' %}
 
 ##### execute_target
 

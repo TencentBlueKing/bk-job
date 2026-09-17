@@ -91,7 +91,7 @@ public class V4JobPlanCreateServiceImpl implements V4JobPlanCreateService {
 
         List<Long> enableSteps = requestResolver.resolveEnableStepsForCreate(request.getEnableSteps(), template);
         List<TaskVariableDTO> variableList =
-            requestResolver.mapVariables(request.getVariables(), template, operator.getTenantId());
+            requestResolver.mapVariablesForCreate(request.getVariables(), template, operator.getTenantId());
 
         String planName = StringUtils.strip(request.getName());
         if (Boolean.FALSE.equals(

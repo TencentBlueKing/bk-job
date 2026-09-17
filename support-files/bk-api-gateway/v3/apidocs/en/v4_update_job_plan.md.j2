@@ -2,7 +2,7 @@
 
 Update the specified job plan: its name, the enabled steps and the global variable values.
 
-This API operates on the **current step snapshot of the job plan** and does not require the plan to be in sync with
+This API operates on the **current step and variable snapshot of the job plan** and does not require the plan to be in sync with
 its job template. After the template changes (the plan's `need_update` becomes `true`), the plan can still be
 updated directly; only enabling a step newly added to the template requires calling `sync_job_plan` first.
 
@@ -20,7 +20,7 @@ names must be unique within the same resource scope and job template.
 | job_plan_id   | long   | Yes      | Job plan ID; must be greater than 0; the plan must exist                                                                                    |
 | name          | string | No       | Job plan name. Omit it or leave it blank to keep the current name; when provided it must be 1–60 characters, must not contain HTML special characters `<`, `>`, `"`, `'`, and must be unique within the same scope and template |
 | enable_steps  | array  | Yes      | **Plan step** IDs to enable; an empty array is not allowed; steps not listed are disabled; every ID must belong to the plan                 |
-| variables     | array  | No       | Overrides for template global variables, matched by variable name; fails if the name is unknown or the value type does not match the template; variable names must be unique in one request |
+| variables     | array  | No       | Overrides for global variables, matched by name against the **plan's own** variables; fails if the name does not exist in the plan or the value type does not match; variable names must be unique in one request |
 
 The IDs in `enable_steps` are **plan step IDs**, which differ from the template step IDs used by `create_job_plan`;
 they can be read via the v3 API `get_job_plan_detail`. An ID that does not belong to the plan results in an error; to
@@ -29,13 +29,18 @@ enable a step newly added to the job template, call `sync_job_plan` first.
 The field is mandatory to prevent accidental clearing: the server disables every step that is not listed, so a
 missing field would be equivalent to disabling all steps of the plan.
 
+Like `enable_steps`, `variables` is addressed against the plan's own snapshot. A plan's global variables are copied
+from the job template when the plan is created or synced, so a variable added to the template later does not exist in
+the plan until it is synced: passing such a name fails and `sync_job_plan` must be called first. Conversely, a
+variable already removed from the template but still kept by the plan can still be updated here.
+
 ##### variables[] element
 
 | Field           | Type    | Required | Description                                                                                                                                                                                                                  |
 |-----------------|---------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| name            | string  | Yes      | Global variable name in the template, matched by name (not by variable ID); must be non-blank                                                                                                                                |
-| value           | string  | No       | Default variable value for string, namespace, ciphertext, associative array, index array, or execute account types in the template; execute account value is the account ID string; ignored when `follow_template` is `true` |
-| execute_target  | object  | No       | Execute targets; only when the template variable is an execute-target list and `follow_template` is `false`; must not be used together with `value`                                                                          |
+| name            | string  | Yes      | Global variable name in the job plan, matched by name (not by variable ID); must be non-blank                                                                                                                                |
+| value           | string  | No       | Default variable value for string, namespace, ciphertext, associative array, index array, or execute account types; execute account value is the account ID string; ignored when `follow_template` is `true`                 |
+| execute_target  | object  | No       | Execute targets; only when the variable is an execute-target list and `follow_template` is `false`; must not be used together with `value`                                                                                   |
 | follow_template | boolean | No       | Whether to keep the template default. Allowed values: `true` (use template default), `false` (use `value` or `execute_target` from this request; default `false`). When `true`, `execute_target` must not be provided        |
 
 ##### execute_target

@@ -915,6 +915,101 @@ class OpenApiV4JobTemplateWriteConverterTest {
     }
 
     @Test
+    @DisplayName("账号变量引用：步骤引用未声明的账号变量时拒绝")
+    void step_rejects_reference_to_undeclared_account_variable() {
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
+            scriptStepWithAccount(accountVarReq(null, "NO_SUCH_ACCOUNT_VAR"))));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(USERNAME, APP_ID, request))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e))
+                .contains("does not exist").contains("NO_SUCH_ACCOUNT_VAR").contains("run-script"));
+    }
+
+    @Test
+    @DisplayName("账号变量引用：引用的变量存在但类型不是执行账号时拒绝")
+    void step_rejects_account_reference_to_wrong_typed_variable() {
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
+            scriptStepWithAccount(accountVarReq(null, "PLAIN_VAR"))));
+        request.setGlobalVarList(Collections.singletonList(stringVariableReq("PLAIN_VAR", "root")));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(USERNAME, APP_ID, request))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e))
+                .contains("not an execute account").contains("PLAIN_VAR"));
+    }
+
+    @Test
+    @DisplayName("账号变量引用：文件步骤的目标账号与服务器源文件的主机账号同样纳入校验")
+    void file_step_account_variables_are_checked() {
+        when(templateLocalFileService.getFileDetail(anyLong(), anyString()))
+            .thenReturn(new TemplateLocalFileService.LocalFileDetail("md5-value", 1024L));
+
+        V4JobTemplateStepReq destStep = localFileStepReq(Collections.singletonList("2/uuid/tester/a.sh"));
+        destStep.getFileInfo().getFileDestination().setAccount(accountVarReq(null, "NO_SUCH_ACCOUNT_VAR"));
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(
+            USERNAME, APP_ID, createRequest(Collections.singletonList(destStep))))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e))
+                .contains("does not exist").contains("NO_SUCH_ACCOUNT_VAR"));
+
+        V4JobTemplateFileSourceReq fileSource = new V4JobTemplateFileSourceReq();
+        fileSource.setFileType(TaskFileTypeEnum.SERVER.getType());
+        fileSource.setFileList(Collections.singletonList("/tmp/a.txt"));
+        fileSource.setAccount(accountVarReq(null, "NO_SUCH_ACCOUNT_VAR"));
+        fileSource.setExecuteTarget(defaultTargetReq());
+        V4JobTemplateStepReq sourceStep = localFileStepReq(Collections.singletonList("2/uuid/tester/a.sh"));
+        sourceStep.getFileInfo().setFileSourceList(Collections.singletonList(fileSource));
+
+        assertThatThrownBy(() -> converter.toCreateTemplateInfo(
+            USERNAME, APP_ID, createRequest(Collections.singletonList(sourceStep))))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(e -> assertThat(errorReason(e))
+                .contains("does not exist").contains("NO_SUCH_ACCOUNT_VAR"));
+    }
+
+    @Test
+    @DisplayName("账号变量引用：同一请求内声明并引用执行账号变量时通过")
+    void step_accepts_reference_to_declared_account_variable() {
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
+            scriptStepWithAccount(accountVarReq(null, "EXEC_ACCOUNT"))));
+        request.setGlobalVarList(Collections.singletonList(executeAccountVariableReq("EXEC_ACCOUNT", "1")));
+
+        TaskTemplateInfoDTO templateInfo = converter.toCreateTemplateInfo(USERNAME, APP_ID, request);
+
+        assertThat(templateInfo.getStepList().get(0).getScriptStepInfo().getAccountVar())
+            .isEqualTo("EXEC_ACCOUNT");
+    }
+
+    @Test
+    @DisplayName("账号：id 与 account_var 同时传时以 id 为准，account_var 不落库、也不参与引用校验")
+    void account_id_wins_and_clears_account_var() {
+        // 变量未声明也不该报错：account_var 已被忽略，不构成引用
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
+            scriptStepWithAccount(accountVarReq(7L, "NO_SUCH_ACCOUNT_VAR"))));
+
+        TaskTemplateInfoDTO templateInfo = converter.toCreateTemplateInfo(USERNAME, APP_ID, request);
+
+        TaskScriptStepDTO scriptStep = templateInfo.getStepList().get(0).getScriptStepInfo();
+        assertThat(scriptStep.getAccount()).isEqualTo(7L);
+        assertThat(scriptStep.getAccountVar()).isNull();
+    }
+
+    @Test
+    @DisplayName("账号：只传 account_var 时 id 留空，由执行时按变量解析")
+    void account_var_only_leaves_id_null() {
+        V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
+            scriptStepWithAccount(accountVarReq(null, "EXEC_ACCOUNT"))));
+        request.setGlobalVarList(Collections.singletonList(executeAccountVariableReq("EXEC_ACCOUNT", "1")));
+
+        TaskTemplateInfoDTO templateInfo = converter.toCreateTemplateInfo(USERNAME, APP_ID, request);
+
+        TaskScriptStepDTO scriptStep = templateInfo.getStepList().get(0).getScriptStepInfo();
+        assertThat(scriptStep.getAccount()).isNull();
+        assertThat(scriptStep.getAccountVar()).isEqualTo("EXEC_ACCOUNT");
+    }
+
+    @Test
     @DisplayName("容器：执行目标只有容器时不算空，主机维度缺省不报错")
     void container_only_target_is_not_empty() {
         V4CreateJobTemplateRequest request = createRequest(Collections.singletonList(
@@ -1063,6 +1158,24 @@ class OpenApiV4JobTemplateWriteConverterTest {
         return account;
     }
 
+    private V4JobTemplateAccountReq accountVarReq(Long id, String accountVar) {
+        V4JobTemplateAccountReq account = new V4JobTemplateAccountReq();
+        account.setId(id);
+        account.setAccountVar(accountVar);
+        return account;
+    }
+
+    /**
+     * 执行账号类型的全局变量，值为账号 ID 字符串。
+     */
+    private V4JobTemplateGlobalVarReq executeAccountVariableReq(String name, String accountId) {
+        V4JobTemplateGlobalVarReq variable = new V4JobTemplateGlobalVarReq();
+        variable.setName(name);
+        variable.setType(TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType());
+        variable.setValue(accountId);
+        return variable;
+    }
+
     /**
      * 步骤的缺省执行目标。用容器而非主机，避免触发依赖 Spring 上下文的主机明细补全。
      */
@@ -1109,6 +1222,12 @@ class OpenApiV4JobTemplateWriteConverterTest {
     private V4JobTemplateStepReq scriptStepWithTarget(V4JobTemplateExecuteTargetReq target) {
         V4JobTemplateStepReq step = localScriptStepReq();
         step.getScriptInfo().setExecuteTarget(target);
+        return step;
+    }
+
+    private V4JobTemplateStepReq scriptStepWithAccount(V4JobTemplateAccountReq account) {
+        V4JobTemplateStepReq step = localScriptStepReq();
+        step.getScriptInfo().setAccount(account);
         return step;
     }
 }

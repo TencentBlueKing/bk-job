@@ -112,6 +112,7 @@ public class OpenApiV4JobTemplateWriteConverter {
     private static final String PARAM_STEP_LIST = "step_list";
     private static final String PARAM_GLOBAL_VAR_LIST = "global_var_list";
     private static final String PARAM_EXECUTE_TARGET_VARIABLE = "execute_target.variable";
+    private static final String PARAM_ACCOUNT_VARIABLE = "account.account_var";
 
     private final TemplateLocalFileService templateLocalFileService;
     private final ScriptManager scriptManager;
@@ -133,7 +134,7 @@ public class OpenApiV4JobTemplateWriteConverter {
         rejectStepIdOnCreate(request.getStepList());
         List<TaskStepDTO> steps = convertSteps(appId, request.getStepList());
         List<TaskVariableDTO> variables = convertVariables(request.getGlobalVarList(), Collections.emptyMap());
-        checkTargetVariableRefs(steps, variables);
+        checkStepVariableRefs(steps, variables);
         templateInfo.setStepList(steps);
         templateInfo.setVariableList(variables);
         return templateInfo;
@@ -161,7 +162,7 @@ public class OpenApiV4JobTemplateWriteConverter {
         List<TaskVariableDTO> variables = convertVariables(request.getGlobalVarList(), existingVariables);
 
         // 在补 delete 标记前校验：待删除的步骤与变量不参与引用关系
-        checkTargetVariableRefs(steps, variables);
+        checkStepVariableRefs(steps, variables);
 
         steps.addAll(buildDeletedSteps(request.getStepList(), existingSteps));
         templateInfo.setStepList(steps);
@@ -435,44 +436,59 @@ public class OpenApiV4JobTemplateWriteConverter {
     // ---------------------------------------------------------------- 步骤对全局变量的引用
 
     /**
-     * 校验步骤引用的执行目标变量：必须在同一请求的 global_var_list 中声明，且类型为执行目标列表。
+     * 校验步骤引用的全局变量：执行目标变量必须声明为执行目标列表类型，执行账号变量必须声明为执行账号类型。
      * <p>
      * 全量替换语义下「删除变量」是靠不在请求里出现来表达的，删了变量却漏改引用它的步骤很容易发生。
-     * 这种模板能写入成功，直到执行时才会失败（引用不存在的变量报
-     * {@code TASK_INSTANCE_RELATED_HOST_VAR_NOT_EXIST}，引用类型不对的变量则报目标为空），所以在写入前拦下。
+     * 这种模板能写入成功，直到执行时才会失败（引用不存在的目标变量报
+     * {@code TASK_INSTANCE_RELATED_HOST_VAR_NOT_EXIST}，引用类型不对的则报目标为空；账号变量解析不到
+     * 则报账号不存在），所以在写入前拦下。
      */
-    private void checkTargetVariableRefs(List<TaskStepDTO> steps, List<TaskVariableDTO> variables) {
+    private void checkStepVariableRefs(List<TaskStepDTO> steps, List<TaskVariableDTO> variables) {
         Set<String> declaredNames = new HashSet<>();
         Set<String> targetVarNames = new HashSet<>();
+        Set<String> accountVarNames = new HashSet<>();
         for (TaskVariableDTO variable : variables) {
             declaredNames.add(variable.getName());
             if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST) {
                 targetVarNames.add(variable.getName());
+            } else if (variable.getType() == TaskVariableTypeEnum.EXECUTE_ACCOUNT) {
+                accountVarNames.add(variable.getName());
             }
         }
         for (TaskStepDTO step : steps) {
             for (TaskTargetDTO target : collectTargets(step)) {
-                checkTargetVariableRef(target.getVariable(), step.getName(), declaredNames, targetVarNames);
+                checkVariableRef(target.getVariable(), step.getName(), declaredNames, targetVarNames,
+                    PARAM_EXECUTE_TARGET_VARIABLE, "an execute target list (type 3)");
+            }
+            for (String accountVar : collectAccountVars(step)) {
+                checkVariableRef(accountVar, step.getName(), declaredNames, accountVarNames,
+                    PARAM_ACCOUNT_VARIABLE, "an execute account (type 7)");
             }
         }
     }
 
-    private void checkTargetVariableRef(String variable,
-                                        String stepName,
-                                        Set<String> declaredNames,
-                                        Set<String> targetVarNames) {
+    /**
+     * @param expectedNames 允许被引用的变量名，即声明类型与引用位置匹配的那些
+     * @param expectedDesc  期望的变量类型描述，仅用于报错文案
+     */
+    private void checkVariableRef(String variable,
+                                  String stepName,
+                                  Set<String> declaredNames,
+                                  Set<String> expectedNames,
+                                  String paramName,
+                                  String expectedDesc) {
         if (StringUtils.isBlank(variable)) {
             return;
         }
         if (!declaredNames.contains(variable)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{PARAM_EXECUTE_TARGET_VARIABLE,
+                new String[]{paramName,
                     "global variable does not exist: " + variable + ", referenced by step: " + stepName});
         }
-        if (!targetVarNames.contains(variable)) {
+        if (!expectedNames.contains(variable)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{PARAM_EXECUTE_TARGET_VARIABLE,
-                    "global variable is not an execute target list (type 3): " + variable
+                new String[]{paramName,
+                    "global variable is not " + expectedDesc + ": " + variable
                         + ", referenced by step: " + stepName});
         }
     }
@@ -494,6 +510,28 @@ public class OpenApiV4JobTemplateWriteConverter {
         }
         targets.removeIf(Objects::isNull);
         return targets;
+    }
+
+    /**
+     * 步骤中所有可以引用变量的执行账号：脚本步骤的账号、文件步骤的目标账号与各服务器源文件的主机账号。
+     */
+    private List<String> collectAccountVars(TaskStepDTO step) {
+        List<String> accountVars = new ArrayList<>();
+        if (step.getScriptStepInfo() != null) {
+            accountVars.add(step.getScriptStepInfo().getAccountVar());
+        }
+        TaskFileStepDTO fileStep = step.getFileStepInfo();
+        if (fileStep != null) {
+            accountVars.add(fileStep.getExecuteAccountVar());
+            if (fileStep.getOriginFileList() != null) {
+                fileStep.getOriginFileList().stream()
+                    .filter(file -> file.getFileType() == TaskFileTypeEnum.SERVER)
+                    .map(TaskFileInfoDTO::getHostAccountVar)
+                    .forEach(accountVars::add);
+            }
+        }
+        accountVars.removeIf(StringUtils::isBlank);
+        return accountVars;
     }
 
     // ---------------------------------------------------------------- 全局变量
@@ -745,7 +783,15 @@ public class OpenApiV4JobTemplateWriteConverter {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"account", "provide at least one of id and account_var"});
         }
-        accountIdSetter.accept(accountReq.getId());
+        Long accountId = accountReq.getId();
+        if (accountId != null && accountId > 0) {
+            // 两者都传时以 id 为准（与执行侧取账号的优先级一致），account_var 一并清掉，
+            // 否则库里会留下「ID 与变量名各指一个账号」的脏数据
+            accountIdSetter.accept(accountId);
+            accountVarSetter.accept(null);
+            return;
+        }
+        accountIdSetter.accept(null);
         accountVarSetter.accept(StringUtils.trimToNull(accountReq.getAccountVar()));
     }
 

@@ -125,21 +125,47 @@ public class OpenApiV4JobPlanRequestResolver {
     }
 
     /**
+     * 解析创建方案时的变量覆盖项，按名匹配<b>模板变量</b>（方案尚不存在，变量就是从模板复制来的）。
+     */
+    public List<TaskVariableDTO> mapVariablesForCreate(List<V4JobPlanVariableItem> variables,
+                                                       TaskTemplateInfoDTO template,
+                                                       String tenantId) {
+        return mapVariables(variables, template.getVariableList(), tenantId, "template");
+    }
+
+    /**
+     * 解析更新方案时的变量覆盖项，按名匹配<b>方案自身的变量</b>。
+     *
+     * <p>不能改用模板变量匹配：保存时是按 (plan_id, template_variable_id) 做 UPDATE，
+     * 模板新增而方案未同步的变量会匹配不到行，接口返回成功但库里没变。
+     */
+    public List<TaskVariableDTO> mapVariablesForUpdate(List<V4JobPlanVariableItem> variables,
+                                                       TaskPlanInfoDTO plan,
+                                                       String tenantId) {
+        return mapVariables(variables, plan.getVariableList(), tenantId, "plan");
+    }
+
+    /**
      * 按变量名把请求中的变量覆盖项映射为 {@link TaskVariableDTO}。
      *
      * <p>返回的 DTO 以<b>模板变量 ID</b> 作为 id：方案变量表按 template_variable_id 关联，
-     * 创建与更新两条路径都依赖这一点。
+     * 创建与更新两条路径都依赖这一点。方案变量读出来时 id 填的也是 template_variable_id，
+     * 因此这里对两种基准变量一视同仁。
+     *
+     * @param baseVariables 作为匹配基准的变量列表
+     * @param baseDesc      基准变量的来源，仅用于报错文案
      */
-    public List<TaskVariableDTO> mapVariables(List<V4JobPlanVariableItem> variables,
-                                              TaskTemplateInfoDTO template,
-                                              String tenantId) {
+    private List<TaskVariableDTO> mapVariables(List<V4JobPlanVariableItem> variables,
+                                               List<TaskVariableDTO> baseVariables,
+                                               String tenantId,
+                                               String baseDesc) {
         if (CollectionUtils.isEmpty(variables)) {
             return new ArrayList<>();
         }
-        Map<String, TaskVariableDTO> templateVarByName = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(template.getVariableList())) {
-            for (TaskVariableDTO variable : template.getVariableList()) {
-                templateVarByName.put(variable.getName(), variable);
+        Map<String, TaskVariableDTO> baseVarByName = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(baseVariables)) {
+            for (TaskVariableDTO variable : baseVariables) {
+                baseVarByName.put(variable.getName(), variable);
             }
         }
         List<TaskVariableDTO> result = new ArrayList<>(variables.size());
@@ -152,14 +178,14 @@ public class OpenApiV4JobPlanRequestResolver {
                     new Object[]{"variables", "duplicated variable name: " + name}
                 );
             }
-            TaskVariableDTO templateVar = templateVarByName.get(name);
-            if (templateVar == null) {
+            TaskVariableDTO baseVar = baseVarByName.get(name);
+            if (baseVar == null) {
                 throw new InvalidParamException(
                     ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    new Object[]{"variables", "variable name '" + name + "' not exist in template"}
+                    new Object[]{"variables", "variable name '" + name + "' not exist in " + baseDesc}
                 );
             }
-            result.add(toTaskVariableDTO(item, templateVar, tenantId));
+            result.add(toTaskVariableDTO(item, baseVar, tenantId));
         }
         return result;
     }
@@ -192,17 +218,17 @@ public class OpenApiV4JobPlanRequestResolver {
     }
 
     private TaskVariableDTO toTaskVariableDTO(V4JobPlanVariableItem item,
-                                              TaskVariableDTO templateVar,
+                                              TaskVariableDTO baseVar,
                                               String tenantId) {
         TaskVariableDTO dto = new TaskVariableDTO();
-        dto.setId(templateVar.getId());
-        dto.setName(templateVar.getName());
-        dto.setDescription(templateVar.getDescription() == null ? "" : templateVar.getDescription());
-        dto.setChangeable(templateVar.getChangeable());
-        dto.setRequired(templateVar.getRequired());
+        dto.setId(baseVar.getId());
+        dto.setName(baseVar.getName());
+        dto.setDescription(baseVar.getDescription() == null ? "" : baseVar.getDescription());
+        dto.setChangeable(baseVar.getChangeable());
+        dto.setRequired(baseVar.getRequired());
         dto.setDelete(false);
         dto.setFollowTemplate(item.isFollowTemplate());
-        TaskVariableTypeEnum varType = templateVar.getType();
+        TaskVariableTypeEnum varType = baseVar.getType();
         dto.setType(varType);
         if (varType == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST) {
             if (item.isFollowTemplate()) {
