@@ -110,7 +110,11 @@ public class LocalFileDownloadTask implements Callable<Boolean> {
     private Boolean doCall() {
         String filePath = file.getFilePath();
         // 制品库的完整路径
-        NodeDTO nodeDTO = artifactoryClient.queryNodeDetail(artifactoryProject, artifactoryRepo, filePath);
+        NodeDTO nodeDTO = artifactoryClient.queryNodeDetailForFileDownload(
+            artifactoryProject,
+            artifactoryRepo,
+            filePath
+        );
         if (nodeDTO == null) {
             log.warn(
                 "[{}]:File {} not exists in project {} repo {}",

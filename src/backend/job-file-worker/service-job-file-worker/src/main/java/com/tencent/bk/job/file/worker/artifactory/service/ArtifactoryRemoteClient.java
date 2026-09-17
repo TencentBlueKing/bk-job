@@ -35,6 +35,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpRequestBase;
 
 import java.io.InputStream;
+import java.util.List;
 
 @Slf4j
 public class ArtifactoryRemoteClient extends ArtifactoryClient implements RemoteClient {
@@ -45,7 +46,12 @@ public class ArtifactoryRemoteClient extends ArtifactoryClient implements Remote
 
     @Override
     public FileMetaData getFileMetaData(String filePath) {
-        NodeDTO nodeDTO = super.getFileNode(filePath);
+        List<String> pathList = parsePath(filePath);
+        NodeDTO nodeDTO = super.queryNodeDetailForFileDownload(
+            pathList.get(0),
+            pathList.get(1),
+            pathList.get(2)
+        );
         return new FileMetaData(nodeDTO.getSize(), nodeDTO.getMd5());
     }
 
