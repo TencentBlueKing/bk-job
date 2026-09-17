@@ -568,6 +568,8 @@ bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user/prod"
 bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web/prod"
 # 蓝鲸权限中心 API Gateway url
 bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam/prod"
+# 蓝鲸权限中心 v4(RBAC) API Gateway url，走独立地址，不复用 bkIamApiGatewayUrl
+bkIamV4ApiGatewayUrl: "http://bkapi.example.com/api/bk-iam-v4/prod"
 # 消息通知 API Gateway url
 bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi/prod"
 # 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
@@ -931,6 +933,16 @@ job:
     # 分库分表迁移使用，控制是否在mysql 查询条件中加入 task_instance_id 字段作为查询条件
     daoAddTaskInstanceId:
       enabled: true
+    # 是否将鉴权切换到蓝鲸权限中心 v4(RBAC)。默认关闭(走 v3)，可通过热更新逐步灰度到 v4
+    iamV4:
+      enabled: false
+      # 灰度策略(enabled=true 时生效)：
+      #   AlwaysMatchToggleStrategy    —— 全量放开，所有用户始终走 v4
+      #   UsernameWhiteListToggleStrategy —— 按用户名灰度，仅 params.usernameList 中的用户走 v4
+      # strategy:
+      #   id: UsernameWhiteListToggleStrategy
+      #   params:
+      #     usernameList: "admin"
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报

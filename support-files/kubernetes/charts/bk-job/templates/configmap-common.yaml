@@ -102,6 +102,8 @@ data:
         url: {{ .Values.bkLoginApiGatewayUrl }}
       bkIam:
         url: {{ .Values.bkIamApiGatewayUrl }}
+      bkIamV4:
+        url: {{ .Values.bkIamV4ApiGatewayUrl }}
       cmsi:
         url: {{ .Values.bkCmsiApiGatewayUrl }}
     gse:

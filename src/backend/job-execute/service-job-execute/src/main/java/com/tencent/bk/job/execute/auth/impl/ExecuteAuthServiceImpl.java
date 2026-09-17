@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.auth.impl;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
@@ -38,20 +37,21 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.iam.util.IamAuthVersionHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.execute.auth.ExecuteAuthDecision;
+import com.tencent.bk.job.execute.auth.ExecuteAuthExecutor;
+import com.tencent.bk.job.execute.auth.ExecuteAuthResource;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.TopoService;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.helper.AuthHelper;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -63,240 +63,106 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * 执行类鉴权的路由层：按灰度开关在 v3 / v4 执行器间选择，并负责无权限结果与申请信息的组装。
+ *
+ * <p>鉴权判定本身下沉到 {@link ExecuteAuthExecutor}（{@link V3ExecuteAuthExecutor} /
+ * {@link V4ExecuteAuthExecutor}）；无权限详情的构造与版本无关，统一留在本层。</p>
+ */
 @Slf4j
 @Service
 public class ExecuteAuthServiceImpl implements ExecuteAuthService {
-    private final AuthHelper authHelper;
+
+    private final ExecuteAuthExecutor v3Executor;
+    private final ExecuteAuthExecutor v4Executor;
+    private final ExecuteTargetInstanceBuilder executeTargetInstanceBuilder;
     private final ResourceNameQueryService resourceNameQueryService;
     private final AuthService authService;
     private final AppAuthService appAuthService;
     private final JobExecuteConfig jobExecuteConfig;
-    private final TopoService topoService;
 
     @Autowired
-    public ExecuteAuthServiceImpl(AuthHelper authHelper,
+    public ExecuteAuthServiceImpl(@Qualifier("v3ExecuteAuthExecutor")
+                                  ExecuteAuthExecutor v3ExecuteAuthExecutor,
+                                  @Qualifier("v4ExecuteAuthExecutor")
+                                  ExecuteAuthExecutor v4ExecuteAuthExecutor,
+                                  ExecuteTargetInstanceBuilder executeTargetInstanceBuilder,
                                   @Qualifier("jobExecuteResourceNameQueryService")
                                   ResourceNameQueryService resourceNameQueryService,
                                   AuthService authService,
                                   AppAuthService appAuthService,
-                                  JobExecuteConfig jobExecuteConfig,
-                                  TopoService topoService) {
-        this.authHelper = authHelper;
+                                  JobExecuteConfig jobExecuteConfig) {
+        this.v3Executor = v3ExecuteAuthExecutor;
+        this.v4Executor = v4ExecuteAuthExecutor;
+        this.executeTargetInstanceBuilder = executeTargetInstanceBuilder;
         this.resourceNameQueryService = resourceNameQueryService;
         this.authService = authService;
         this.appAuthService = appAuthService;
         this.jobExecuteConfig = jobExecuteConfig;
-        this.topoService = topoService;
         this.authService.setResourceNameQueryService(resourceNameQueryService);
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
 
+    private ExecuteAuthExecutor selectExecutor(User user) {
+        return IamAuthVersionHelper.useV4(user.getUsername()) ? v4Executor : v3Executor;
+    }
+
+    @Override
     public AuthResult authFastExecuteScript(User user,
                                             AppResourceScope appResourceScope,
                                             ExecuteTargetDTO executeTarget) {
-
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
-        if (log.isDebugEnabled()) {
-            log.debug("Auth fast execute script, username:{}, appResourceScope:{}, hostInstances:{}",
-                user.getUsername(), appResourceScope, hostInstanceList);
-        }
-        boolean isAllowed = authHelper.isAllowed(user.getTenantId(),
-            user.getUsername(), ActionId.QUICK_EXECUTE_SCRIPT, null, hostInstanceList);
-
-        if (isAllowed) {
-            return AuthResult.pass(user);
-        }
-
-        AuthResult authResult = AuthResult.fail(user);
-
-        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, executeTarget);
-        authResult.addRequiredPermissions(ActionId.QUICK_EXECUTE_SCRIPT, hostResources);
-        if (log.isDebugEnabled()) {
-            log.debug("Auth execute script, authResult:{}", authResult);
-        }
-        return authResult;
+        return authExecute(user, ActionId.QUICK_EXECUTE_SCRIPT, appResourceScope, null, null, executeTarget);
     }
 
+    @Override
     public AuthResult authFastPushFile(User user,
                                        AppResourceScope appResourceScope,
                                        ExecuteTargetDTO executeTarget) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
-        if (log.isDebugEnabled()) {
-            log.debug("Auth Fast transfer file, username:{}, appResourceScope:{}, hostInstances:{}", user.getUsername(),
-                appResourceScope, hostInstanceList);
-        }
-        boolean isAllowed = authHelper.isAllowed(user.getTenantId(),
-            user.getUsername(), ActionId.QUICK_TRANSFER_FILE, null, hostInstanceList);
-
-        if (isAllowed) {
-            return AuthResult.pass(user);
-        }
-
-        AuthResult authResult = AuthResult.fail(user);
-
-        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(appResourceScope, executeTarget);
-        authResult.addRequiredPermissions(ActionId.QUICK_TRANSFER_FILE, hostResources);
-        if (log.isDebugEnabled()) {
-            log.debug("Auth execute script, authResult:{}", authResult);
-        }
-        return authResult;
+        return authExecute(user, ActionId.QUICK_TRANSFER_FILE, appResourceScope, null, null, executeTarget);
     }
 
-    public AuthResult authExecuteAppScript(User user, AppResourceScope appResourceScope,
-                                           String scriptId, String scriptName, ExecuteTargetDTO executeTarget) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
-
-        InstanceDTO scriptInstance = buildExecutableInstance(appResourceScope, ResourceTypeEnum.SCRIPT, scriptId, null);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Auth execute script, username:{}, appResourceScope:{}, scriptId:{}, scriptInstance:{}, " +
-                    "hostInstances:{}",
-                user.getUsername(), appResourceScope, scriptId, scriptInstance, hostInstanceList);
-        }
-        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
-            ActionId.EXECUTE_SCRIPT, scriptInstance, hostInstanceList);
-
-        if (isAllowed) {
-            return AuthResult.pass(user);
-        }
-
-        AuthResult authResult = AuthResult.fail(user);
-
-        PermissionResource scriptResource = new PermissionResource();
-        scriptResource.setSystemId(SystemId.JOB);
-        scriptResource.setResourceId(scriptId);
-        scriptResource.setResourceType(ResourceTypeEnum.SCRIPT);
-        if (StringUtils.isNotEmpty(scriptName)) {
-            scriptResource.setResourceName(scriptName);
-        } else {
-            scriptResource.setResourceName(resourceNameQueryService.getResourceName(ResourceTypeEnum.SCRIPT, scriptId));
-        }
-        authResult.addRequiredPermission(ActionId.EXECUTE_SCRIPT, scriptResource);
-
-        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, executeTarget);
-        authResult.addRequiredPermissions(ActionId.EXECUTE_SCRIPT, hostResources);
-        if (log.isDebugEnabled()) {
-            log.debug("Auth execute script, authResult:{}", authResult);
-        }
-        return authResult;
+    @Override
+    public AuthResult authExecuteAppScript(User user,
+                                           AppResourceScope appResourceScope,
+                                           String scriptId,
+                                           String scriptName,
+                                           ExecuteTargetDTO executeTarget) {
+        ExecuteAuthResource resource = ExecuteAuthResource.of(
+            ResourceTypeEnum.SCRIPT, scriptId, ActionId.VIEW_SCRIPT);
+        return authExecute(user, ActionId.EXECUTE_SCRIPT, appResourceScope, resource, scriptName, executeTarget);
     }
 
-    private InstanceDTO buildExecutableInstance(AppResourceScope appResourceScope,
-                                                ResourceTypeEnum resourceType,
-                                                String resourceId,
-                                                PathInfoDTO pathInfo) {
-        InstanceDTO executeInstance = new InstanceDTO();
-        executeInstance.setSystem(SystemId.JOB);
-        executeInstance.setType(resourceType.getId());
-        if (pathInfo == null) {
-            executeInstance.setPath(buildAppScopePath(appResourceScope));
-        } else {
-            executeInstance.setPath(pathInfo);
-        }
-        executeInstance.setId(resourceId);
-        return executeInstance;
-    }
-
+    @Override
     public AuthResult authExecutePublicScript(User user,
                                               AppResourceScope appResourceScope,
                                               String scriptId,
                                               String scriptName,
                                               ExecuteTargetDTO executeTarget) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
-
-        InstanceDTO scriptInstance = buildExecutableInstance(
-            appResourceScope, ResourceTypeEnum.PUBLIC_SCRIPT, scriptId, null);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Auth execute public script, username:{}, appResourceScope:{}, scriptId:{}, scriptInstance:{}, " +
-                "hostInstances:{}", user.getUsername(), appResourceScope, scriptId, scriptInstance, hostInstanceList);
-        }
-        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
-            ActionId.EXECUTE_PUBLIC_SCRIPT, scriptInstance, hostInstanceList);
-
-        if (isAllowed) {
-            return AuthResult.pass(user);
-        }
-
-        AuthResult authResult = AuthResult.fail(user);
-
-        PermissionResource scriptResource = new PermissionResource();
-        scriptResource.setSystemId(SystemId.JOB);
-        scriptResource.setResourceId(scriptId);
-        scriptResource.setResourceType(ResourceTypeEnum.PUBLIC_SCRIPT);
-        if (StringUtils.isNotEmpty(scriptName)) {
-            scriptResource.setResourceName(scriptName);
-        } else {
-            scriptResource.setResourceName(resourceNameQueryService.getResourceName(ResourceTypeEnum.PUBLIC_SCRIPT,
-                scriptId));
-        }
-        authResult.addRequiredPermission(ActionId.EXECUTE_PUBLIC_SCRIPT, scriptResource);
-
-        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, executeTarget);
-        authResult.addRequiredPermissions(ActionId.EXECUTE_PUBLIC_SCRIPT, hostResources);
-        if (log.isDebugEnabled()) {
-            log.debug("Auth execute script, authResult:{}", authResult);
-        }
-        return authResult;
+        // 公共脚本默认可见，无伴随的 view 校验
+        ExecuteAuthResource resource = ExecuteAuthResource.of(
+            ResourceTypeEnum.PUBLIC_SCRIPT, scriptId, null);
+        return authExecute(
+            user, ActionId.EXECUTE_PUBLIC_SCRIPT, appResourceScope, resource, scriptName, executeTarget);
     }
 
+    @Override
     public AuthResult authExecutePlan(User user,
                                       AppResourceScope appResourceScope,
                                       Long templateId,
                                       Long planId,
                                       String planName,
                                       ExecuteTargetDTO executeTarget) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
-
-        InstanceDTO planInstance = buildExecutableInstance(
-            appResourceScope,
-            ResourceTypeEnum.PLAN,
-            planId.toString(),
-            buildAppScopeResourcePath(appResourceScope, ResourceTypeEnum.TEMPLATE, templateId.toString()));
-
-        if (log.isDebugEnabled()) {
-            log.debug("Auth execute plan, username:{}, appResourceScope:{}, planId:{}, planInstance:{}," +
-                    " hostInstances:{}",
-                user.getUsername(), appResourceScope, planId, planInstance, hostInstanceList);
-        }
-        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
-            ActionId.LAUNCH_JOB_PLAN, planInstance, hostInstanceList);
-
-        if (isAllowed) {
-            return AuthResult.pass(user);
-        }
-
-        AuthResult authResult = AuthResult.fail(user);
-
-        PermissionResource planResource = new PermissionResource();
-        planResource.setSystemId(SystemId.JOB);
-        planResource.setResourceId(planId.toString());
-        planResource.setResourceType(ResourceTypeEnum.PLAN);
-        if (StringUtils.isNotEmpty(planName)) {
-            planResource.setResourceName(planName);
-        } else {
-            planResource.setResourceName(resourceNameQueryService.getResourceName(ResourceTypeEnum.PLAN,
-                planId.toString()));
-        }
-        authResult.addRequiredPermission(ActionId.LAUNCH_JOB_PLAN, planResource);
-
-        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, executeTarget);
-        authResult.addRequiredPermissions(ActionId.LAUNCH_JOB_PLAN, hostResources);
-        if (log.isDebugEnabled()) {
-            log.debug("Auth execute plan, authResult:{}", authResult);
-        }
-        return authResult;
+        ExecuteAuthResource resource = ExecuteAuthResource.ofChild(
+            ResourceTypeEnum.PLAN, planId.toString(),
+            ResourceTypeEnum.TEMPLATE, templateId.toString(),
+            ActionId.VIEW_JOB_PLAN);
+        return authExecute(user, ActionId.LAUNCH_JOB_PLAN, appResourceScope, resource, planName, executeTarget);
     }
 
     @Override
@@ -304,176 +170,57 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                         AppResourceScope appResourceScope,
                                         Long templateId,
                                         ExecuteTargetDTO executeTarget) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
+        ExecuteAuthResource resource = ExecuteAuthResource.of(
+            ResourceTypeEnum.TEMPLATE, templateId.toString(), ActionId.VIEW_JOB_TEMPLATE);
+        return authExecute(user, ActionId.DEBUG_JOB_TEMPLATE, appResourceScope, resource, null, executeTarget);
+    }
 
-        InstanceDTO jobTemplateInstance = buildExecutableInstance(appResourceScope, ResourceTypeEnum.TEMPLATE,
-            templateId.toString(), null);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Auth execute job template, username:{}, appResourceScope:{}, planId:{}, templateInstance:{}, " +
-                    "hostInstances:{}", user.getUsername(), appResourceScope, templateId, jobTemplateInstance,
-                hostInstanceList);
-        }
-        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(), ActionId.DEBUG_JOB_TEMPLATE,
-            jobTemplateInstance, hostInstanceList);
-
-        if (isAllowed) {
+    /**
+     * 执行类鉴权统一入口：判定下沉到版本执行器，未通过时在本层组装无权限详情。
+     *
+     * @param resourceName 资源展示名，为空时回查
+     */
+    private AuthResult authExecute(User user,
+                                   String actionId,
+                                   AppResourceScope appResourceScope,
+                                   ExecuteAuthResource resource,
+                                   String resourceName,
+                                   ExecuteTargetDTO executeTarget) {
+        ExecuteAuthDecision decision = selectExecutor(user)
+            .authExecute(user, actionId, appResourceScope, resource, executeTarget);
+        if (decision.isPass()) {
             return AuthResult.pass(user);
         }
 
         AuthResult authResult = AuthResult.fail(user);
+        String failedActionId = decision.getFailedActionId();
+        boolean needResource = resource != null
+            && decision.getFailureScope() != ExecuteAuthDecision.FailureScope.EXECUTE_TARGET;
+        boolean needExecuteTarget =
+            decision.getFailureScope() != ExecuteAuthDecision.FailureScope.RESOURCE;
 
-        PermissionResource jobTemplateResource = new PermissionResource();
-        jobTemplateResource.setSystemId(SystemId.JOB);
-        jobTemplateResource.setResourceId(templateId.toString());
-        jobTemplateResource.setResourceType(ResourceTypeEnum.TEMPLATE);
-        jobTemplateResource.setResourceName(resourceNameQueryService.getResourceName(ResourceTypeEnum.TEMPLATE,
-            templateId.toString()));
-        authResult.addRequiredPermission(ActionId.DEBUG_JOB_TEMPLATE, jobTemplateResource);
-
-        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, executeTarget);
-        authResult.addRequiredPermissions(ActionId.DEBUG_JOB_TEMPLATE, hostResources);
+        if (needResource) {
+            authResult.addRequiredPermission(failedActionId, buildResourcePermission(resource, resourceName));
+        }
+        if (needExecuteTarget) {
+            authResult.addRequiredPermissions(failedActionId,
+                convertHostsToPermissionResourceList(appResourceScope, executeTarget));
+        }
         if (log.isDebugEnabled()) {
-            log.debug("Auth execute job template, authResult:{}", authResult);
+            log.debug("Auth execute denied, actionId:{}, decision:{}, authResult:{}",
+                actionId, decision, authResult);
         }
         return authResult;
     }
 
-    private List<InstanceDTO> buildAppTopoNodeHostInstances(AppResourceScope appResourceScope,
-                                                            List<DynamicServerTopoNodeDTO> topoNodes) {
-        long bizId = Long.parseLong(appResourceScope.getId());
-        List<InstanceTopologyDTO> topoNodeTopologyList = topoService.batchGetTopoNodeHierarchy(bizId, topoNodes);
-        Map<String, InstanceTopologyDTO> topoNodeTopologyMap = new HashMap<>();
-        for (InstanceTopologyDTO instanceTopologyDTO : topoNodeTopologyList) {
-            topoNodeTopologyMap.put(instanceTopologyDTO.getUniqueKey(), instanceTopologyDTO);
-        }
-        List<InstanceDTO> topoNodeInstanceList = new ArrayList<>(topoNodes.size());
-        for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
-            String topoNodeKey = topoNode.getUniqueKey();
-            InstanceTopologyDTO nodeTopology = topoNodeTopologyMap.get(topoNodeKey);
-            if (nodeTopology == null) {
-                log.info("Cannot find topoPath for node {}, ignore", topoNodeKey);
-                continue;
-            }
-            InstanceDTO topoNodeInstance = new InstanceDTO();
-            topoNodeInstance.setName(String.valueOf(topoNode.getTopoNodeId()));
-            topoNodeInstance.setType(ResourceTypeEnum.HOST.getId());
-            topoNodeInstance.setSystem(SystemId.CMDB);
-            topoNodeInstance.setPath(buildIamPathForTopoNode(nodeTopology));
-            topoNodeInstanceList.add(topoNodeInstance);
-        }
-        return topoNodeInstanceList;
-    }
-
-    private PathInfoDTO buildIamPathForTopoNode(InstanceTopologyDTO nodeTopology) {
-        List<InstanceTopologyDTO> parents = nodeTopology.getParents();
-        if (parents == null) {
-            parents = Collections.emptyList();
-        }
-        List<InstanceTopologyDTO> pathNodeList = new ArrayList<>(parents);
-        pathNodeList.add(nodeTopology);
-        // 权限路径不支持自定义节点，过滤掉
-        pathNodeList = pathNodeList.stream().filter(parent ->
-            CcNodeTypeEnum.BIZ.getType().equals(parent.getObjectId())
-                || CcNodeTypeEnum.SET.getType().equals(parent.getObjectId())
-                || CcNodeTypeEnum.MODULE.getType().equals(parent.getObjectId())
-        ).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(pathNodeList)) {
-            return null;
-        }
-        return buildPathInfoDTO(pathNodeList);
-    }
-
-    private PathInfoDTO buildPathInfoDTO(List<InstanceTopologyDTO> pathNodeList) {
-        PathInfoDTO rootPathInfo = null;
-        PathInfoDTO endPathInfo = null;
-        for (InstanceTopologyDTO pathNode : pathNodeList) {
-            if (rootPathInfo == null) {
-                rootPathInfo = new PathInfoDTO();
-                rootPathInfo.setType(pathNode.getObjectId());
-                rootPathInfo.setId(pathNode.getInstanceId().toString());
-                endPathInfo = rootPathInfo;
-            } else {
-                PathInfoDTO childPathInfo = new PathInfoDTO();
-                childPathInfo.setType(pathNode.getObjectId());
-                childPathInfo.setId(pathNode.getInstanceId().toString());
-                endPathInfo.setChild(childPathInfo);
-                endPathInfo = childPathInfo;
-            }
-        }
-        return rootPathInfo;
-    }
-
-    private List<InstanceDTO> buildBizStaticHostInstances(AppResourceScope appResourceScope,
-                                                          ExecuteTargetDTO executeTarget) {
-        List<InstanceDTO> hostInstanceList = new ArrayList<>();
-        executeTarget.getStaticIpList().forEach(host -> {
-            InstanceDTO hostInstance = new InstanceDTO();
-            String hostIdStr = host.getHostId().toString();
-            hostInstance.setId(hostIdStr);
-            hostInstance.setType(ResourceTypeEnum.HOST.getId());
-            hostInstance.setSystem(SystemId.CMDB);
-            hostInstance.setName(host.getIp());
-            hostInstance.setPath(
-                buildAppScopeResourcePath(appResourceScope, ResourceTypeEnum.HOST, hostIdStr));
-            hostInstanceList.add(hostInstance);
-        });
-        return hostInstanceList;
-    }
-
-    private List<InstanceDTO> buildHostInstances(AppResourceScope appResourceScope,
-                                                 ExecuteTargetDTO executeObjects) {
-        List<InstanceDTO> hostInstanceList = new ArrayList<>();
-        // 静态IP
-        if (!CollectionUtils.isEmpty(executeObjects.getStaticIpList())) {
-            switch (appResourceScope.getType()) {
-                case BIZ:
-                    hostInstanceList.addAll(buildBizStaticHostInstances(appResourceScope, executeObjects));
-                    break;
-                case BIZ_SET:
-                case TENANT_SET:
-                    InstanceDTO hostInstance = new InstanceDTO();
-                    hostInstance.setType(ResourceTypeEnum.HOST.getId());
-                    hostInstance.setSystem(SystemId.CMDB);
-                    hostInstance.setPath(buildAppScopePath(appResourceScope));
-                    hostInstanceList.add(hostInstance);
-                    break;
-                default:
-                    throw new NotImplementedException(
-                        "Unsupported appScopeType:" + appResourceScope.getType().getValue(),
-                        ErrorCode.NOT_SUPPORT_FEATURE);
-            }
-        }
-        // 动态topo节点
-        List<DynamicServerTopoNodeDTO> topoNodes = executeObjects.getTopoNodes();
-        if (!CollectionUtils.isEmpty(topoNodes)) {
-            hostInstanceList.addAll(buildAppTopoNodeHostInstances(appResourceScope, topoNodes));
-        }
-        // 动态分组
-        if (!CollectionUtils.isEmpty(executeObjects.getDynamicServerGroups())) {
-            executeObjects.getDynamicServerGroups().forEach(serverGroup -> {
-                InstanceDTO serverGroupInstance = new InstanceDTO();
-                serverGroupInstance.setType(ResourceTypeEnum.HOST.getId());
-                serverGroupInstance.setSystem(SystemId.CMDB);
-
-                serverGroupInstance.setPath(
-                    buildAppScopeResourcePath(appResourceScope, ResourceTypeEnum.DYNAMIC_GROUP,
-                        serverGroup.getGroupId())
-                );
-                hostInstanceList.add(serverGroupInstance);
-            });
-        }
-        // 容器：静态容器与动态条件过滤器（containerFilters）均按业务鉴权，构造一次业务维度实例即可
-        if (!CollectionUtils.isEmpty(executeObjects.getStaticContainerList())
-            || !CollectionUtils.isEmpty(executeObjects.getContainerFilters())) {
-            InstanceDTO hostInstance = new InstanceDTO();
-            hostInstance.setType(ResourceTypeEnum.HOST.getId());
-            hostInstance.setSystem(SystemId.CMDB);
-            hostInstance.setPath(buildAppScopePath(appResourceScope));
-            hostInstanceList.add(hostInstance);
-        }
-        return hostInstanceList;
+    private PermissionResource buildResourcePermission(ExecuteAuthResource resource, String resourceName) {
+        PermissionResource permissionResource = new PermissionResource();
+        permissionResource.setSystemId(SystemId.JOB);
+        permissionResource.setResourceId(resource.getResourceId());
+        permissionResource.setResourceType(resource.getResourceType());
+        permissionResource.setResourceName(StringUtils.isNotEmpty(resourceName) ? resourceName
+            : resourceNameQueryService.getResourceName(resource.getResourceType(), resource.getResourceId()));
+        return permissionResource;
     }
 
     private List<PermissionResource> convertBizStaticIpToPermissionResourceList(
@@ -519,7 +266,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostResources;
     }
 
-    private List<PermissionResource> convertTenantSetStaticIpToPermissionResourceList(AppResourceScope appResourceScope) {
+    private List<PermissionResource> convertTenantSetStaticIpToPermissionResourceList(
+        AppResourceScope appResourceScope) {
         List<PermissionResource> hostResources = new ArrayList<>();
         PermissionResource resource = new PermissionResource();
         resource.setResourceId(appResourceScope.getId());
@@ -532,9 +280,10 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostResources;
     }
 
-    private List<PermissionResource> convertTopoNodesToPermissionResourceList(AppResourceScope appResourceScope,
-                                                                              List<DynamicServerTopoNodeDTO> topoNodes) {
-        List<InstanceDTO> hostInstanceList = buildAppTopoNodeHostInstances(appResourceScope, topoNodes);
+    private List<PermissionResource> convertTopoNodesToPermissionResourceList(
+        AppResourceScope appResourceScope, List<DynamicServerTopoNodeDTO> topoNodes) {
+        List<InstanceDTO> hostInstanceList =
+            executeTargetInstanceBuilder.buildAppTopoNodeHostInstances(appResourceScope, topoNodes);
         List<PermissionResource> finalPermissionResourceList = new ArrayList<>();
         for (InstanceDTO instanceDTO : hostInstanceList) {
             List<PermissionResource> permissionResourceList = convert(instanceDTO.getPath());
@@ -570,8 +319,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return permissionResourceList;
     }
 
-    private List<PermissionResource> convertDynamicGroupsToPermissionResourceList(AppResourceScope appResourceScope,
-                                                                                  ExecuteTargetDTO executeTarget) {
+    private List<PermissionResource> convertDynamicGroupsToPermissionResourceList(
+        AppResourceScope appResourceScope, ExecuteTargetDTO executeTarget) {
         List<PermissionResource> hostResources = new ArrayList<>();
         executeTarget.getDynamicServerGroups().forEach(serverGroup -> {
             PermissionResource resource = new PermissionResource();
@@ -693,7 +442,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             return AuthResult.pass(user);
         }
         return authService.auth(user, ActionId.USE_ACCOUNT,
-            ResourceTypeEnum.ACCOUNT, accountId.toString(), buildAppScopeResourcePath(
+            ResourceTypeEnum.ACCOUNT, accountId.toString(), ExecuteIamPathBuilder.buildAppScopeResourcePath(
                 appResourceScope, ResourceTypeEnum.ACCOUNT, accountId.toString()));
     }
 
@@ -729,18 +478,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return true;
     }
 
-    private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
-        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
-            appResourceScope.getId()).build();
-    }
-
-    private PathInfoDTO buildAppScopeResourcePath(AppResourceScope appResourceScope,
-                                                  ResourceTypeEnum resourceType,
-                                                  String resourceId) {
-        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
-            appResourceScope.getId()).child(resourceType.getId(), resourceId).build();
-    }
-
     @Override
     public AuthResult batchAuthAccountExecutable(User user,
                                                  AppResourceScope appResourceScope,
@@ -752,8 +489,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             PermissionResource accountResource = new PermissionResource();
             accountResource.setResourceId(accountId.toString());
             accountResource.setResourceType(ResourceTypeEnum.ACCOUNT);
-            accountResource.setPathInfo(buildAppScopeResourcePath(appResourceScope, ResourceTypeEnum.ACCOUNT,
-                accountId.toString()));
+            accountResource.setPathInfo(ExecuteIamPathBuilder.buildAppScopeResourcePath(
+                appResourceScope, ResourceTypeEnum.ACCOUNT, accountId.toString()));
             return accountResource;
         }).collect(Collectors.toList());
         return appAuthService.batchAuthResources(user, ActionId.USE_ACCOUNT, appResourceScope,
@@ -785,7 +522,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             resource.setResourceType(ResourceTypeEnum.FILE_SOURCE);
             // 别名由上游查询时一并带回，此处不再回查：job-execute 的 ResourceNameQueryService 不认识 FILE_SOURCE
             resource.setResourceName(StringUtils.isNotEmpty(fileSourceName) ? fileSourceName : idStr);
-            resource.setPathInfo(buildAppScopePath(appResourceScope));
+            resource.setPathInfo(ExecuteIamPathBuilder.buildAppScopePath(appResourceScope));
             deniedResources.add(resource);
         });
         if (deniedResources.isEmpty()) {

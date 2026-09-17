@@ -34,6 +34,9 @@ spec:
           - path: "{{ include "job.url.pathRootPrefix" . }}/(iam/.*)"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
+          - path: "{{ include "job.url.pathRootPrefix" . }}/(iamv4/.*)"
+            pathType: ImplementationSpecific
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
           - path: "{{ include "job.url.pathRootPrefix" . }}/(job-.*)"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}

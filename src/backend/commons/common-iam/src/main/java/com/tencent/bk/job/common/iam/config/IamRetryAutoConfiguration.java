@@ -31,8 +31,10 @@ import com.tencent.bk.job.common.constant.BKConstants;
 import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.client.RetryableIamClient;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
+import com.tencent.bk.job.common.retry.RetryExecutor;
 import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerFactory;
 import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerFactory;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +82,31 @@ public class IamRetryAutoConfiguration {
         log.info("Init RetryableIamClient");
         CircuitBreakerFactory circuitBreakerFactory = buildCircuitBreakerFactory(retryProperties);
         return new RetryableIamClient(iamClient, retryPolicy, metricsRecorder, circuitBreakerFactory);
+    }
+
+    /**
+     * IAM v4 HTTP 客户端使用的重试执行器。与 {@link RetryableIamClient} 复用同一套 IAM 重试策略
+     * （指数退避 + 熔断 + metrics）。仅在 IAM 重试开启时(见 {@code IamRetryCondition})创建。
+     */
+    @Bean("iamRetryExecutor")
+    @ConditionalOnMockIamApiDisabled
+    public RetryExecutor iamRetryExecutor(ExternalSystemRetryProperties retryProperties,
+                                          MeterRegistry meterRegistry) {
+        RetryProperties iamRetryProps = retryProperties.getIam();
+        ExponentialBackoffRetryPolicy retryPolicy = ExponentialBackoffRetryPolicy.builder()
+            .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(iamRetryProps))
+            .maxIntervalMs(retryProperties.getSystemMaxIntervalMs(iamRetryProps))
+            .maxAttempts(retryProperties.getSystemMaxAttempts(iamRetryProps))
+            .multiplier(retryProperties.getSystemMultiplier(iamRetryProps))
+            .build();
+        RetryMetricsRecorder metricsRecorder = new RetryMetricsRecorder(
+            meterRegistry,
+            retryProperties.isMetricsEnabled(iamRetryProps)
+        );
+        CircuitBreakerFactory circuitBreakerFactory = buildCircuitBreakerFactory(retryProperties);
+        log.info("Init iamRetryExecutor for IAM v4 http client");
+        return new RetryExecutor(retryPolicy, metricsRecorder,
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_IAM, circuitBreakerFactory);
     }
 
     private CircuitBreakerFactory buildCircuitBreakerFactory(ExternalSystemRetryProperties retryProperties) {

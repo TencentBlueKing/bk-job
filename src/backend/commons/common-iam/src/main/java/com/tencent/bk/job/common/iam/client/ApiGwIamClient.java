@@ -58,7 +58,7 @@ import java.util.List;
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.IAM_API;
 
 /**
- * 通过 APIGW 调用 IAM API 的客户端
+ * 通过 APIGW 调用 IAM V3 API 的客户端
  */
 @Slf4j
 public class ApiGwIamClient extends BkApiV1Client implements IIamClient {

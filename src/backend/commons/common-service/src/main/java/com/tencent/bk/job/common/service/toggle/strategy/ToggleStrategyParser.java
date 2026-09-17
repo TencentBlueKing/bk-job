@@ -49,6 +49,12 @@ public class ToggleStrategyParser {
             case JobInstanceAttrToggleStrategy.STRATEGY_ID:
                 toggleStrategy = new JobInstanceAttrToggleStrategy(strategyConfig.getParams());
                 break;
+            case UsernameWhiteListToggleStrategy.STRATEGY_ID:
+                toggleStrategy = new UsernameWhiteListToggleStrategy(strategyConfig.getParams());
+                break;
+            case AlwaysMatchToggleStrategy.STRATEGY_ID:
+                toggleStrategy = new AlwaysMatchToggleStrategy(strategyConfig.getParams());
+                break;
             case AllMatchToggleStrategy.STRATEGY_ID:
                 toggleStrategy = new AllMatchToggleStrategy(
                     strategyConfig.getStrategies()

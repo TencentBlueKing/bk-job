@@ -25,136 +25,58 @@
 package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.config.JobIamProperties;
-import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.service.AppAuthExecutor;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
-import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
+import com.tencent.bk.job.common.iam.util.IamAuthVersionHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.sdk.iam.constants.ExpressionOperationEnum;
-import com.tencent.bk.sdk.iam.constants.SystemId;
-import com.tencent.bk.sdk.iam.dto.InstanceDTO;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
-import com.tencent.bk.sdk.iam.dto.expression.ExpressionDTO;
-import com.tencent.bk.sdk.iam.dto.resource.RelatedResourceTypeDTO;
-import com.tencent.bk.sdk.iam.helper.AuthHelper;
-import com.tencent.bk.sdk.iam.service.PolicyService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.helpers.FormattingTuple;
-import org.slf4j.helpers.MessageFormatter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 业务范围级鉴权的统一入口 / 路由层。
+ *
+ * <p>持有 v3 / v4 两个 {@link AppAuthExecutor}，按热更灰度开关 {@link IamAuthVersionHelper#useV4(String)}
+ * 选择执行器,只做灰度路由 + 把执行器返回的原始结果包装成 {@link AuthResult}。不构造任何版本相关的资源 DTO,
+ * 也不直接依赖 v3/v4 的 IAM 客户端。</p>
+ */
 @Slf4j
-public class AppAuthServiceImpl extends BasicAuthService implements AppAuthService {
-    private final AuthHelper authHelper;
-    private final BusinessAuthHelper businessAuthHelper;
-    private final PolicyService policyService;
+public class AppAuthServiceImpl extends AbstractAuthResultBuilder implements AppAuthService {
+
+    private final AppAuthExecutor v3Executor;
+    private final AppAuthExecutor v4Executor;
     private final JobIamProperties jobIamProperties;
-    private final IIamClient iamClient;
-    private ResourceNameQueryService resourceNameQueryService;
 
-    public AppAuthServiceImpl(AuthHelper authHelper,
-                              BusinessAuthHelper businessAuthHelper,
-                              PolicyService policyService,
-                              JobIamProperties jobIamProperties,
-                              IIamClient iamClient) {
-        this.authHelper = authHelper;
-        this.businessAuthHelper = businessAuthHelper;
-        this.policyService = policyService;
+    public AppAuthServiceImpl(AppAuthExecutor v3Executor,
+                              AppAuthExecutor v4Executor,
+                              JobIamProperties jobIamProperties) {
+        this.v3Executor = v3Executor;
+        this.v4Executor = v4Executor;
         this.jobIamProperties = jobIamProperties;
-        this.iamClient = iamClient;
+    }
+
+    private AppAuthExecutor pickExecutor(User user) {
+        return IamAuthVersionHelper.useV4(user.getUsername()) ? v4Executor : v3Executor;
+    }
+
+    private AppAuthExecutor pickExecutorByContext() {
+        return IamAuthVersionHelper.useV4(JobContextUtil.getUsername()) ? v4Executor : v3Executor;
     }
 
     @Override
-    public void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService) {
-        this.resourceNameQueryService = resourceNameQueryService;
-        super.setResourceNameQueryService(resourceNameQueryService);
-    }
-
-    @Override
-    public AuthResult auth(User user,
-                           String actionId,
-                           AppResourceScope appResourceScope) {
-        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
-            actionId, buildInstanceWithPath(appResourceScope));
-        if (isAllowed) {
-            return AuthResult.pass(user);
-        } else {
-            return buildFailAuthResult(user, actionId, appResourceScope);
-        }
-    }
-
-    private AuthResult buildFailAuthResult(User user, String actionId, AppResourceScope appResourceScope) {
-        AuthResult authResult = AuthResult.fail(user);
-        ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
-        String resourceId = appResourceScope.getId();
-        String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
-        PermissionResource permissionResource = new PermissionResource(
-            ResourceTypeEnum.BUSINESS, resourceId, resourceName
-        );
-        if (resourceType == ResourceTypeEnum.BUSINESS_SET) {
-            // 层级节点资源类型
-            permissionResource.setType(ResourceTypeId.BUSINESS_SET);
-            permissionResource.setSubResourceType(resourceType.getId());
-        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
-            permissionResource.setType(ResourceTypeId.TENANT_SET);
-            permissionResource.setSubResourceType(resourceType.getId());
-        }
-        permissionResource.setPathInfo(buildResourceScopePath(appResourceScope));
-        authResult.addRequiredPermission(actionId, permissionResource);
-        return authResult;
-    }
-
-    private PathInfoDTO buildResourceScopePath(AppResourceScope appResourceScope) {
-        return IamUtil.buildScopePathInfo(appResourceScope);
-    }
-
-    private InstanceDTO buildInstanceWithPath(AppResourceScope appResourceScope) {
-        InstanceDTO instance = new InstanceDTO();
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
-            instance.setId(appResourceScope.getId());
-            instance.setType(ResourceTypeEnum.BUSINESS.getId());
-            instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
-            instance.setPath(null);
-        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
-            instance.setType(ResourceTypeEnum.BUSINESS.getId());
-            instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
-            instance.setPath(buildResourceScopePath(appResourceScope));
-        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
-            instance.setType(ResourceTypeEnum.BUSINESS.getId());
-            instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
-            instance.setPath(buildResourceScopePath(appResourceScope));
-        } else {
-            FormattingTuple msg = MessageFormatter.format(
-                "not supported resourceType:{}",
-                appResourceScope.getType().getValue());
-            throw new RuntimeException(msg.getMessage());
-        }
-        return instance;
-    }
-
-    private InstanceDTO buildInstance(AppResourceScope appResourceScope) {
-        InstanceDTO instance = new InstanceDTO();
-        instance.setId(appResourceScope.getId());
-        ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
-        instance.setType(resourceType.getId());
-        instance.setSystem(resourceType.getSystemId());
-        return instance;
+    public AuthResult auth(User user, String actionId, AppResourceScope appResourceScope) {
+        boolean isAllowed = pickExecutor(user).auth(user, actionId, appResourceScope);
+        return isAllowed ? AuthResult.pass(user) : buildScopeFailAuthResult(user, actionId, appResourceScope);
     }
 
     @Override
@@ -163,12 +85,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   AppResourceScope appResourceScope,
                                   ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
-        return authHelper.isAllowed(
-            user.getTenantId(),
-            user.getUsername(),
-            actionId,
-            buildAppResourceScopeInstanceList(appResourceScope, resourceType, resourceIdList)
-        );
+        return pickExecutor(user).batchAuth(user, actionId, appResourceScope, resourceType, resourceIdList);
     }
 
     @Override
@@ -177,18 +94,16 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                          AppResourceScope appResourceScope,
                                          List<PermissionResource> resources) {
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
-        List<String> allowResourceIds = authHelper.isAllowed(
-            user.getTenantId(), user.getUsername(), actionId, buildInstanceList(resources));
-        List<String> notAllowResourceIds =
-            resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
-                .map(PermissionResource::getResourceId).collect(Collectors.toList());
-        AuthResult authResult;
-        if (!notAllowResourceIds.isEmpty()) {
-            authResult = buildFailAuthResult(user, actionId, resourceType, notAllowResourceIds);
-        } else {
-            authResult = AuthResult.pass(user);
+        List<String> allowResourceIds =
+            pickExecutor(user).listAllowedResourceIds(user, actionId, appResourceScope, resources);
+        List<String> notAllowResourceIds = resources.stream()
+            .filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
+            .map(PermissionResource::getResourceId)
+            .collect(Collectors.toList());
+        if (notAllowResourceIds.isEmpty()) {
+            return AuthResult.pass(user);
         }
-        return authResult;
+        return buildFailAuthResult(user, actionId, resourceType, notAllowResourceIds);
     }
 
     @Override
@@ -196,56 +111,14 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                                   String actionId,
                                   AppResourceScope appResourceScope,
                                   List<PermissionResource> resourceList) {
-        return authHelper.isAllowed(user.getTenantId(), user.getUsername(), actionId, buildInstanceList(resourceList));
+        return pickExecutor(user).batchAuth(user, actionId, appResourceScope, resourceList);
     }
 
     @Override
     public AppResourceScopeResult getAppResourceScopeList(User user,
                                                           List<AppResourceScope> allAppResourceScopeList) {
-        AppResourceScopeResult result = new AppResourceScopeResult();
-        result.setAppResourceScopeList(new ArrayList<>());
-        result.setAny(false);
-
-        ActionDTO action = new ActionDTO();
-        action.setId(ActionId.ACCESS_BUSINESS);
-        ExpressionDTO expression = policyService.getPolicyByAction(user.getTenantId(),
-            user.getUsername(), action, null);
-        if (ExpressionOperationEnum.ANY == expression.getOperator()) {
-            result.setAny(true);
-        } else {
-            if (StringUtils.isNotBlank(expression.getField())
-                && expression.getField().equals(ResourceTypeId.BIZ + "." + "id")) {
-                if (expression.getValue() instanceof List) {
-                    List<?> list = ((List<?>) expression.getValue());
-                    if (list.size() > 0) {
-                        ((List<String>) expression.getValue()).forEach(id -> {
-                            AppResourceScope appResourceScope = new AppResourceScope(
-                                ResourceScopeTypeEnum.BIZ, id, null);
-                            result.getAppResourceScopeList().add(appResourceScope);
-                        });
-                    }
-                } else if (ExpressionOperationEnum.EQUAL == expression.getOperator()) {
-                    result.getAppResourceScopeList().add(
-                        new AppResourceScope(ResourceScopeTypeEnum.BIZ, String.valueOf(expression.getValue()), null));
-                } else {
-                    result.getAppResourceScopeList().addAll(
-                        businessAuthHelper.getAuthedAppResourceScopeList(expression, allAppResourceScopeList));
-                }
-            } else {
-                result.getAppResourceScopeList().addAll(
-                    businessAuthHelper.getAuthedAppResourceScopeList(expression, allAppResourceScopeList));
-            }
-        }
-        return result;
-    }
-
-    private List<InstanceDTO> buildAppResourceScopeInstanceList(AppResourceScope appResourceScope,
-                                                                ResourceTypeEnum resourceType,
-                                                                List<String> resourceIds) {
-        List<InstanceDTO> instances = new LinkedList<>();
-        resourceIds.forEach(resourceId -> instances.add(buildInstance(resourceType, resourceId,
-            buildResourceScopePath(appResourceScope))));
-        return instances;
+        // TODO v4 关系查询 API 尚未封装，暂固定走 v3
+        return v3Executor.getAppResourceScopeList(user, allAppResourceScopeList);
     }
 
     @Override
@@ -253,17 +126,25 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         if (appResourceScope == null) {
             return jobIamProperties.getWebUrl() + "/apply-join-user-group";
         }
-        ActionDTO action = new ActionDTO();
-        action.setId(ActionId.ACCESS_BUSINESS);
-        List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
-        RelatedResourceTypeDTO businessResourceTypeDTO = new RelatedResourceTypeDTO();
-        businessResourceTypeDTO.setType(ResourceTypeEnum.BUSINESS.getId());
-        businessResourceTypeDTO.setSystemId(SystemId.CMDB);
-        List<InstanceDTO> instanceDTOList = new ArrayList<>();
-        instanceDTOList.add(buildInstance(appResourceScope));
-        businessResourceTypeDTO.setInstance(Collections.singletonList(instanceDTOList));
-        relatedResourceTypes.add(businessResourceTypeDTO);
-        action.setRelatedResourceTypes(relatedResourceTypes);
-        return iamClient.getApplyUrl(Collections.singletonList(action));
+        return pickExecutorByContext().getBusinessApplyUrl(tenantId, appResourceScope);
+    }
+
+    private AuthResult buildScopeFailAuthResult(User user, String actionId, AppResourceScope appResourceScope) {
+        AuthResult authResult = AuthResult.fail(user);
+        ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
+        String resourceId = appResourceScope.getId();
+        String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
+        PermissionResource permissionResource = new PermissionResource(
+            ResourceTypeEnum.BUSINESS, resourceId, resourceName);
+        if (resourceType == ResourceTypeEnum.BUSINESS_SET) {
+            permissionResource.setType(ResourceTypeId.BUSINESS_SET);
+            permissionResource.setSubResourceType(resourceType.getId());
+        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
+            permissionResource.setType(ResourceTypeId.TENANT_SET);
+            permissionResource.setSubResourceType(resourceType.getId());
+        }
+        permissionResource.setPathInfo(IamUtil.buildScopePathInfo(appResourceScope));
+        authResult.addRequiredPermission(actionId, permissionResource);
+        return authResult;
     }
 }

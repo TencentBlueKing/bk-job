@@ -30,9 +30,14 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.ApiGwIamClient;
 import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.http.IamHttpClientServiceImpl;
+import com.tencent.bk.job.common.iam.http.IamV4HttpClientServiceImpl;
+import com.tencent.bk.job.common.iam.http.RetryableIamV4HttpClientService;
+import com.tencent.bk.job.common.retry.RetryExecutor;
 import com.tencent.bk.job.common.iam.mock.MockBusinessAuthHelper;
 import com.tencent.bk.job.common.iam.mock.MockIamClient;
 import com.tencent.bk.job.common.iam.mock.MockPolicyServiceImpl;
+import com.tencent.bk.job.common.iam.service.ActionAuthExecutor;
+import com.tencent.bk.job.common.iam.service.AppAuthExecutor;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
@@ -40,6 +45,10 @@ import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.iam.service.impl.AppAuthServiceImpl;
 import com.tencent.bk.job.common.iam.service.impl.AuthServiceImpl;
 import com.tencent.bk.job.common.iam.service.impl.BusinessAuthServiceImpl;
+import com.tencent.bk.job.common.iam.service.impl.V3ActionAuthExecutor;
+import com.tencent.bk.job.common.iam.service.impl.V3AppAuthExecutor;
+import com.tencent.bk.job.common.iam.service.impl.V4ActionAuthExecutor;
+import com.tencent.bk.job.common.iam.service.impl.V4AppAuthExecutor;
 import com.tencent.bk.job.common.iam.service.impl.WebAuthServiceImpl;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
@@ -54,7 +63,11 @@ import com.tencent.bk.sdk.iam.service.TokenService;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl;
 import com.tencent.bk.sdk.iam.service.impl.TokenServiceImpl;
+import com.tencent.bk.sdk.iamv4.config.IamV4Configuration;
+import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
+import com.tencent.bk.sdk.iamv4.service.impl.IamV4AuthServiceImpl;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -86,6 +99,33 @@ public class IamAutoConfiguration {
             virtualAdminAccountProvider,
             sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.IAM)
         );
+    }
+
+    /**
+     * IAM v4 鉴权服务：走独立的 APIGW 地址（bkIamV4），使用 {@link IamV4Configuration} 与
+     * {@link IamV4HttpClientServiceImpl}。若 IAM 重试开启（存在 iamRetryExecutor bean），
+     * 用 {@link RetryableIamV4HttpClientService} 包一层重试。
+     */
+    @Bean
+    public IamV4AuthService iamV4AuthService(AppProperties appProperties,
+                                             JobIamProperties jobIamProperties,
+                                             BkApiGatewayProperties bkApiGatewayProperties,
+                                             IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                             ObjectProvider<RetryExecutor> iamRetryExecutorProvider) {
+        String v4Url = bkApiGatewayProperties.getBkIamV4().getUrl();
+        IamV4Configuration iamV4Configuration = new IamV4Configuration(
+            jobIamProperties.getSystemId(),
+            appProperties.getCode(),
+            appProperties.getSecret(),
+            v4Url
+        );
+        HttpClientService v4HttpClientService =
+            new IamV4HttpClientServiceImpl(iamV4Configuration, virtualAdminAccountProvider);
+        RetryExecutor iamRetryExecutor = iamRetryExecutorProvider.getIfAvailable();
+        if (iamRetryExecutor != null) {
+            v4HttpClientService = new RetryableIamV4HttpClientService(v4HttpClientService, iamRetryExecutor);
+        }
+        return new IamV4AuthServiceImpl(iamV4Configuration, v4HttpClientService);
     }
 
     @Bean
@@ -123,12 +163,11 @@ public class IamAutoConfiguration {
     @Bean
     public AuthService authService(AuthHelper authHelper,
                                    MessageI18nService i18nService,
-                                   IIamClient iamClient) {
-        return new AuthServiceImpl(
-            authHelper,
-            i18nService,
-            iamClient
-        );
+                                   IIamClient iamClient,
+                                   IamV4AuthService iamV4AuthService) {
+        ActionAuthExecutor v3Executor = new V3ActionAuthExecutor(authHelper, iamClient);
+        ActionAuthExecutor v4Executor = new V4ActionAuthExecutor(iamV4AuthService);
+        return new AuthServiceImpl(v3Executor, v4Executor, i18nService);
     }
 
     @Bean
@@ -136,14 +175,11 @@ public class IamAutoConfiguration {
                                          BusinessAuthHelper businessAuthHelper,
                                          PolicyService policyService,
                                          JobIamProperties jobIamProperties,
-                                         IIamClient iamClient) {
-        return new AppAuthServiceImpl(
-            authHelper,
-            businessAuthHelper,
-            policyService,
-            jobIamProperties,
-            iamClient
-        );
+                                         IIamClient iamClient,
+                                         IamV4AuthService iamV4AuthService) {
+        AppAuthExecutor v3Executor = new V3AppAuthExecutor(authHelper, businessAuthHelper, policyService, iamClient);
+        AppAuthExecutor v4Executor = new V4AppAuthExecutor(iamV4AuthService);
+        return new AppAuthServiceImpl(v3Executor, v4Executor, jobIamProperties);
     }
 
 
