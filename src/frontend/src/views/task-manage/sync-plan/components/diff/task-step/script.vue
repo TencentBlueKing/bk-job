@@ -29,7 +29,7 @@
   <div>
     <div
       class="row"
-      :class="diff.scriptSourceText">
+      :class="diff.scriptSource">
       <span class="label">{{ $t('template.脚本来源：') }}</span>
       <span class="value">{{ data.scriptSourceText }}</span>
     </div>

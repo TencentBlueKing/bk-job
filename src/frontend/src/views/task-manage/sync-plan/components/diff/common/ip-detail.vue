@@ -88,6 +88,11 @@
             :value="executeObjectsInfo" />
         </scroll-faker>
       </div>
+      <template #footer>
+        <bk-button @click="isShowDetail = false">
+          {{ $t('template.关闭') }}
+        </bk-button>
+      </template>
     </jb-dialog>
   </div>
 </template>
@@ -257,7 +262,7 @@
         // 对比主机
         const hostDiffMap = {};
         const hostList = [];
-        const genHostId = host => `${host.cloudAreaInfo.id}:${host.ip}`;
+        const genHostId = host => `${host.cloudArea.id}:${host.ip}`;
         lastValue.hostList.forEach((host) => {
           hostDiffMap[genHostId(host)] = 'new';
           hostList.push(host);

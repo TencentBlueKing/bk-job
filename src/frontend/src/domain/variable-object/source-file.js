@@ -231,7 +231,7 @@ export default class SourceFile {
       textArr.push(getHtml(containerList.length, I18n.t('个容器_result')));
     }
     if (containerFilterList.length > 0) {
-      textArr.push(getHtml(containerFilterList.length, I18n.t('个容器过滤条件_result')));
+      textArr.push(getHtml(containerFilterList.length, I18n.t('个动态分组_result')));
     }
     return `${textArr.join('<span class="sep-location"></span>\n')}`;
   }

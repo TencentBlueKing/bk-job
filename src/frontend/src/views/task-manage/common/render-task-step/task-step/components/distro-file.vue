@@ -195,8 +195,11 @@
     watch: {
       data: {
         handler(newData) {
-          // 本地新建的步骤id为-1，已提交后端保存的id大于0
-          if (!newData.id) {
+          // 步骤数据包含 fileDestination（已保存、编辑过或克隆的步骤，数据为模型结构）
+          // 需要将 fileDestination 拍平回填表单
+          // 注意：克隆步骤的 id 为 -0（falsy），不能通过 id 是否为真值判断
+          if (!newData.fileDestination) {
+            // 本地新建的步骤数据为拍平后的表单结构，直接合并
             this.formData = Object.assign({}, this.formData, newData);
             return;
           }
