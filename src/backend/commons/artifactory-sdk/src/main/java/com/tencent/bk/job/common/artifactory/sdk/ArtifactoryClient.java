@@ -52,10 +52,12 @@ import com.tencent.bk.job.common.artifactory.model.req.Sort;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.exception.FileDownloadException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.error.FileDownloadErrorDTO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
@@ -63,6 +65,7 @@ import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.http.HttpRequest;
+import com.tencent.bk.job.common.util.http.HttpResponse;
 import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -81,6 +84,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.web.util.UriUtils;
 
@@ -316,7 +320,7 @@ public class ArtifactoryClient {
             ).getMessage();
             log.error(msg, e);
             status = "error";
-            throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+            throw new InternalException("Fail to request ARTIFACTORY data", e, ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
@@ -475,7 +479,7 @@ public class ArtifactoryClient {
         return resp.getCode() == 0;
     }
 
-    private List<String> parsePath(String filePath) {
+    protected List<String> parsePath(String filePath) {
         // 解析projectId,repoName,fullPath
         filePath = StringUtil.removePrefixAndSuffix(filePath, "/");
         String[] pathArr = filePath.split("/");
@@ -506,6 +510,41 @@ public class ArtifactoryClient {
         return nodeDTO;
     }
 
+    /**
+     * 查询节点详情，失败时保留底层服务响应体。
+     */
+    public NodeDTO queryNodeDetailForFileDownload(String projectId, String repoName, String fullPath) {
+        QueryNodeDetailReq req = new QueryNodeDetailReq();
+        req.setProjectId(projectId);
+        req.setRepoName(repoName);
+        req.setFullPath(fullPath);
+        String url = StringUtil.replacePathVariables(URL_QUERY_NODE_DETAIL, req);
+        url = getCompleteUrl(url);
+        try {
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", URL_QUERY_NODE_DETAIL));
+            HttpResponse httpResponse = httpHelper.request(
+                HttpRequest.builder(HttpMethodEnum.GET, url + req.toUrlParams())
+                    .setHeaders(getJsonHeaders())
+                    .build()
+            );
+            String responseBody = httpResponse.getEntity();
+            ArtifactoryResp<NodeDTO> artifactoryResp = parseArtifactoryResp(
+                responseBody, new TypeReference<ArtifactoryResp<NodeDTO>>() {
+                }
+            );
+            if (httpResponse.getStatusCode() != 200
+                || artifactoryResp == null
+                || artifactoryResp.getCode() != ArtifactoryInterfaceConsts.RESULT_CODE_OK
+                || artifactoryResp.getData() == null) {
+                throw buildFileDownloadException(httpResponse.getStatusCode(), responseBody, null);
+            }
+            return artifactoryResp.getData();
+        } finally {
+            HttpMetricUtil.clearHttpMetric();
+        }
+    }
+
     public Pair<InputStream, HttpRequestBase> getFileInputStream(String filePath) throws ServiceException {
         List<String> pathList = parsePath(filePath);
         return getFileInputStream(pathList.get(0), pathList.get(1), pathList.get(2));
@@ -519,24 +558,70 @@ public class ArtifactoryClient {
         req.setPath(filePath);
         String url = StringUtil.replacePathVariables(URL_DOWNLOAD_GENERIC_FILE, req);
         url = getCompleteUrl(url);
-        CloseableHttpResponse resp;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "download:" + URL_DOWNLOAD_GENERIC_FILE));
             Pair<HttpRequestBase, CloseableHttpResponse> pair = longHttpHelper.getRawResp(false, url, getJsonHeaders());
-            resp = pair.getRight();
-            if (resp.getStatusLine() != null && resp.getStatusLine().getStatusCode() == 200) {
+            CloseableHttpResponse resp = pair.getRight();
+            Integer httpStatusCode = getHttpStatusCode(resp);
+            if (httpStatusCode != null && httpStatusCode == 200) {
                 return Pair.of(resp.getEntity().getContent(), pair.getLeft());
-            } else {
-                log.info("resp.statusLine={},resp.entity={}", resp.getStatusLine(), resp.getEntity());
-                resp.close();
-                throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
+            }
+            try (CloseableHttpResponse response = resp) {
+                String fallbackMessage = response.getStatusLine() == null ? null :
+                    response.getStatusLine().getReasonPhrase();
+                String responseBody = response.getEntity() == null ? null : EntityUtils.toString(response.getEntity());
+                throw buildFileDownloadException(httpStatusCode, responseBody, fallbackMessage);
             }
         } catch (IOException e) {
             log.error("Fail to getFileInputStream", e);
-            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
+            throw new InternalException(
+                "Fail to get file input stream",
+                e,
+                ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE
+            );
         } finally {
             HttpMetricUtil.clearHttpMetric();
+        }
+    }
+
+    private Integer getHttpStatusCode(CloseableHttpResponse resp) {
+        return resp.getStatusLine() == null ? null : resp.getStatusLine().getStatusCode();
+    }
+
+    private FileDownloadException buildFileDownloadException(Integer httpCode,
+                                                             String responseBody,
+                                                             String fallbackMessage) {
+        ArtifactoryResp<Object> artifactoryResp = parseArtifactoryResp(
+            responseBody, new TypeReference<ArtifactoryResp<Object>>() {
+            }
+        );
+        String errorCode = artifactoryResp == null ? null : String.valueOf(artifactoryResp.getCode());
+        String message = artifactoryResp != null && StringUtils.isNotBlank(artifactoryResp.getMessage())
+            ? artifactoryResp.getMessage()
+            : fallbackMessage;
+        String requestId = artifactoryResp == null ? null : artifactoryResp.getTraceId();
+        return new FileDownloadException(
+            new FileDownloadErrorDTO(
+                httpCode,
+                errorCode,
+                message,
+                requestId
+            ),
+            ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE
+        );
+    }
+
+    private <T> ArtifactoryResp<T> parseArtifactoryResp(String responseBody,
+                                                        TypeReference<ArtifactoryResp<T>> typeReference) {
+        if (StringUtils.isBlank(responseBody)) {
+            return null;
+        }
+        try {
+            return JsonUtils.fromJson(responseBody, typeReference);
+        } catch (Exception e) {
+            log.debug("Fail to parse artifactory response", e);
+            return null;
         }
     }
 

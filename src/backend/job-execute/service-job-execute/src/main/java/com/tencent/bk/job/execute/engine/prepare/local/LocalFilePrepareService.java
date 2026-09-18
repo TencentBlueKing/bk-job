@@ -36,6 +36,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
+import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +60,7 @@ public class LocalFilePrepareService {
     private final LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner;
     private final StepInstanceService stepInstanceService;
     private final ArtifactoryClient artifactoryClient;
+    private final LogService logService;
     private final Map<String, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
     private final ThreadPoolExecutor localFileDownloadExecutor;
     private final ThreadPoolExecutor localFileWatchExecutor;
@@ -71,7 +73,8 @@ public class LocalFilePrepareService {
                                    StepInstanceService stepInstanceService,
                                    @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                    @Qualifier("localFileDownloadExecutor") ThreadPoolExecutor localFileDownloadExecutor,
-                                   @Qualifier("localFileWatchExecutor") ThreadPoolExecutor localFileWatchExecutor) {
+                                   @Qualifier("localFileWatchExecutor") ThreadPoolExecutor localFileWatchExecutor,
+                                   LogService logService) {
         this.fileDistributeConfig = fileDistributeConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
@@ -80,6 +83,7 @@ public class LocalFilePrepareService {
         this.artifactoryClient = artifactoryClient;
         this.localFileDownloadExecutor = localFileDownloadExecutor;
         this.localFileWatchExecutor = localFileWatchExecutor;
+        this.logService = logService;
     }
 
     public void stopPrepareLocalFilesAsync(
@@ -115,7 +119,8 @@ public class LocalFilePrepareService {
             localFileConfigForExecute.getLocalUploadRepo(),
             fileDistributeConfig.getJobDistributeRootPath(),
             localFileDownloadExecutor,
-            localFileWatchExecutor
+            localFileWatchExecutor,
+            logService
         );
         taskMap.put(stepInstance.getUniqueKey(), task);
         task.execute();
