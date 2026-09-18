@@ -684,15 +684,26 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
+    /**
+     * 补充容器的集群与命名空间信息。
+     *
+     * <p>集群/命名空间是按「有效容器」的 ID 从 cmdb 查回来的，所以无效容器（已销毁或不属于当前业务）在这里必然查不到。
+     * 这类容器只跳过 topo 补充，由后续的 {@code checkExecuteObjectExist} 统一报错，不能在此抛异常，
+     * 否则调用方拿到的是空指针而不是「存在无效执行对象」。
+     */
     private void addTopoDetail(Container container,
                                Map<Long, KubeClusterDTO> clusterMap,
                                Map<Long, KubeNamespaceDTO> namespaceMap) {
         KubeClusterDTO cluster = clusterMap.get(container.getClusterId());
-        container.setClusterName(cluster.getName());
-        container.setClusterUID(cluster.getUid());
+        if (cluster != null) {
+            container.setClusterName(cluster.getName());
+            container.setClusterUID(cluster.getUid());
+        }
 
         KubeNamespaceDTO namespace = namespaceMap.get(container.getNamespaceId());
-        container.setNamespace(namespace.getName());
+        if (namespace != null) {
+            container.setNamespace(namespace.getName());
+        }
     }
 
     private void acquireAndSetContainersByStaticContainerList(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
@@ -744,7 +755,8 @@ public class TaskInstanceExecuteObjectProcessor {
             for (TaskVariableDTO variable : variables) {
                 if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
                     && variable.getExecuteTarget() != null) {
-                    resolveContainerFilters(taskInstanceExecuteObjects, taskInstance, null, variable.getExecuteTarget());
+                    resolveContainerFilters(
+                        taskInstanceExecuteObjects, taskInstance, null, variable.getExecuteTarget());
                 }
             }
         }

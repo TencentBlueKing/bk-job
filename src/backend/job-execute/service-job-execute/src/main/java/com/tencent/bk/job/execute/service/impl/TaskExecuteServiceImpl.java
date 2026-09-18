@@ -316,6 +316,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkAndSetAccountInfo(stepInstance, appId);
             watch.stop();
 
+            // 校验账号归属业务。必须排在 checkAndSetAccountInfo 之后：按别名指定的账号要等它回填出 accountId，
+            // 提前调用会让别名这条路径静默漏检
+            watch.start("checkAccountAppScope");
+            checkAccountAppScope(taskInstance, Collections.singletonList(stepInstance));
+            watch.stop();
+
             // 处理执行对象
             watch.start("processExecuteObjects");
             TaskInstanceExecuteObjects taskInstanceExecuteObjects =
@@ -736,6 +742,66 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    /**
+     * 校验步骤引用的每个账号都归属当前业务，不属于则拒绝执行。
+     * <p>
+     * 补的是一个既有的不一致：按别名解析账号走 {@code getSystemAccountByAlias(alias, appId)}、带业务过滤，
+     * 按 ID 解析走 {@code getAccountPreferCache(id, null, null, null)}、不带。而账号 ID 是 API 调用方
+     * 可以任意指定的，跨业务引用必须在执行前拒掉。
+     * <p>
+     * 与「账号不存在」返回同一错误码，否则调用方能借错误码差异探测其他业务的账号 ID 是否存在。
+     * <p>
+     * 前置条件：调用前账号必须已归一成 ID。别名与账号变量两种形态分别由 {@code checkAndSetOsAccountInfo}
+     * 与 {@code resolveStepAccount} 解析并回填 accountId，本方法只认 ID。
+     */
+    private void checkAccountAppScope(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
+        Long appId = taskInstance.getAppId();
+        Set<Long> pendingAccountIds = collectReferencedAccountIds(stepInstanceList);
+        Set<Long> checkedAccountIds = new HashSet<>();
+        while (!pendingAccountIds.isEmpty()) {
+            Set<Long> nextRound = new HashSet<>(); // DB账号关联的system账号集合
+            for (Long accountId : pendingAccountIds) {
+                if (!checkedAccountIds.add(accountId)) {
+                    continue;
+                }
+                AccountDTO account = accountService.getAccountPreferCache(accountId, null, null, null);
+                if (account == null || !appId.equals(account.getAppId())) {
+                    log.warn("Account is not exist or not in current app, accountId={}, accountAppId={}, appId={}",
+                        accountId, account == null ? null : account.getAppId(), appId);
+                    throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray("ID=" + accountId));
+                }
+                // DB 账号依赖的系统账号同样要在本业务内，否则等于借 DB 账号绕开校验
+                Long dbSystemAccountId = account.getDbSystemAccountId();
+                if (dbSystemAccountId != null && dbSystemAccountId > 0) {
+                    nextRound.add(dbSystemAccountId);
+                }
+            }
+            pendingAccountIds = nextRound;
+        }
+    }
+
+    private Set<Long> collectReferencedAccountIds(List<StepInstanceDTO> stepInstanceList) {
+        Set<Long> accountIds = new HashSet<>();
+        if (CollectionUtils.isEmpty(stepInstanceList)) {
+            return accountIds;
+        }
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            addAccountIdIfPresent(accountIds, stepInstance.getAccountId());
+            addAccountIdIfPresent(accountIds, stepInstance.getDbAccountId());
+            if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
+                stepInstance.getFileSourceList()
+                    .forEach(fileSource -> addAccountIdIfPresent(accountIds, fileSource.getAccountId()));
+            }
+        }
+        return accountIds;
+    }
+
+    private void addAccountIdIfPresent(Set<Long> accountIds, Long accountId) {
+        if (accountId != null && accountId > 0) {
+            accountIds.add(accountId);
+        }
+    }
+
     private void checkAndSetOsAccountInfo(StepInstanceDTO stepInstance, Long appId) {
         //设置系统账号信息
         Long systemAccountId = stepInstance.getAccountId();
@@ -766,11 +832,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 Long fileSourceAccountId = fileSource.getAccountId();
                 String fileSourceAccountAlias = fileSource.getAccountAlias();
                 if (fileSourceAccountId != null && fileSourceAccountId > 0) {
-                    AccountDTO systemAccount = accountService.getAccountPreferCache(systemAccountId, null, null, null);
+                    AccountDTO systemAccount =
+                        accountService.getAccountPreferCache(fileSourceAccountId, null, null, null);
                     if (systemAccount == null) {
-                        log.warn("System account is not exist, accountId={}", systemAccountId);
+                        log.warn("File source account is not exist, accountId={}", fileSourceAccountId);
                         throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST,
-                            ArrayUtil.toArray("ID=" + systemAccountId));
+                            ArrayUtil.toArray("ID=" + fileSourceAccountId));
                     }
                     fileSource.setAccountAlias(systemAccount.getAlias());
                     fileSource.setAccount(systemAccount.getAccount());
@@ -778,9 +845,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     AccountDTO systemAccount = accountService.getAccountPreferCache(null,
                         AccountCategoryEnum.SYSTEM, fileSourceAccountAlias, appId);
                     if (systemAccount == null) {
-                        log.warn("System account is not exist, accountId={}", systemAccountId);
+                        log.warn("File source account is not exist, appId={}, accountAlias={}",
+                            appId, fileSourceAccountAlias);
                         throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST,
-                            ArrayUtil.toArray("ID=" + systemAccountId));
+                            ArrayUtil.toArray(fileSourceAccountAlias));
                     }
                     fileSource.setAccountId(systemAccount.getId());
                     fileSource.setAccount(systemAccount.getAccount());
@@ -1345,6 +1413,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 调整超时时间
             stepInstanceList.forEach(this::adjustStepTimeout);
 
+            // 校验账号归属业务。方案执行不走 checkAndSetAccountInfo，账号是 job-manage 组装方案详情时填好的，
+            // 执行侧 resolveStepAccount 见 id > 0 直接原样返回，因此这条入口必须单独校验
+            watch.start("checkAccountAppScope");
+            checkAccountAppScope(taskInstance, stepInstanceList);
+            watch.stop();
+
             // 检查高危脚本
             watch.start("checkDangerousScript");
             batchCheckScriptMatchDangerousRule(
@@ -1783,6 +1857,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
             stepInstanceList.add(stepInstance);
         }
+
+        // 校验账号归属业务。重做直接沿用历史实例里的 accountId、不重新查库，存量的跨业务引用会被原样重放，
+        // 因此这条入口同样要校验
+        checkAccountAppScope(taskInstance, stepInstanceList);
 
         // 检查高危脚本（重做作业是真实执行，命中照常落 dangerous_record）
         batchCheckScriptMatchDangerousRule(operator.getTenantId(), taskInstance, stepInstanceList, false);

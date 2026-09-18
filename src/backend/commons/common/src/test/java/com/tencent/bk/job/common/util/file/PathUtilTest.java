@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,27 +38,40 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PathUtilTest {
 
+    /**
+     * 解析出目录的真实路径。resolveSafely 会对已存在的 baseDir 解析符号链接，
+     * 而 macOS 的临时目录位于符号链接 /var 之下，断言前需要做同样的解析。
+     */
+    private static Path realPath(Path path) {
+        try {
+            return path.toRealPath();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     @Test
     void resolveSafelyAcceptsPathInsideBaseDir(@TempDir Path tempDir) {
         String baseDir = tempDir.toString();
+        Path realBaseDir = realPath(tempDir);
 
         File single = PathUtil.resolveSafely(baseDir, "a1b2c3d4e5f6");
-        assertThat(single.getParentFile()).isEqualTo(tempDir.toFile());
+        assertThat(single.getParentFile()).isEqualTo(realBaseDir.toFile());
 
         File multiLevel = PathUtil.resolveSafely(baseDir, "import" + File.separator + "admin" + File.separator +
             "task.json");
         assertThat(multiLevel.getPath())
-            .isEqualTo(tempDir.resolve("import").resolve("admin").resolve("task.json").toString());
+            .isEqualTo(realBaseDir.resolve("import").resolve("admin").resolve("task.json").toString());
 
         // 存量数据中的文件路径以分隔符开头，语义上仍是相对存储根目录的路径
         File leadingSeparator = PathUtil.resolveSafely(baseDir, File.separator + "import" + File.separator + "admin"
             + File.separator + "task.json");
         assertThat(leadingSeparator.getPath())
-            .isEqualTo(tempDir.resolve("import").resolve("admin").resolve("task.json").toString());
+            .isEqualTo(realBaseDir.resolve("import").resolve("admin").resolve("task.json").toString());
 
         // 文件名中间的 .. 不构成路径穿越
         File dotsInFileName = PathUtil.resolveSafely(baseDir, "task..json");
-        assertThat(dotsInFileName.getPath()).isEqualTo(tempDir.resolve("task..json").toString());
+        assertThat(dotsInFileName.getPath()).isEqualTo(realBaseDir.resolve("task..json").toString());
     }
 
     @Test
@@ -78,7 +93,7 @@ class PathUtilTest {
         // 形如 /etc/passwd 的输入无法与存量相对路径区分，统一按 baseDir 下的相对路径处理，结果不会越出 baseDir
         File target = PathUtil.resolveSafely(tempDir.toString(), File.separator + "etc" + File.separator + "passwd");
 
-        assertThat(target.toPath()).isEqualTo(tempDir.resolve("etc").resolve("passwd"));
+        assertThat(target.toPath()).isEqualTo(realPath(tempDir).resolve("etc").resolve("passwd"));
     }
 
     @Test

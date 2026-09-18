@@ -26,6 +26,10 @@ package com.tencent.bk.job.analysis.api.esb.v4.impl;
 
 import com.tencent.bk.job.analysis.approval.ApprovalTaskService;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContentSection;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContentSectionKind;
+import com.tencent.bk.job.analysis.approval.impl.ApprovalContentSimplifier;
+import com.tencent.bk.job.analysis.config.ApprovalProperties;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalChannelEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalStatusEnum;
@@ -84,7 +88,10 @@ class ApprovalV4ApiSupportTest {
         approvalTaskService = mock(ApprovalTaskService.class);
         MessageI18nService i18nService = mock(MessageI18nService.class);
         when(i18nService.getI18n(anyString())).thenAnswer(invocation -> "i18n:" + invocation.getArgument(0));
-        support = new ApprovalV4ApiSupport(appScopeMappingService, approvalTaskService, i18nService);
+        ApprovalContentSimplifier simplifier =
+            new ApprovalContentSimplifier(new ApprovalProperties(), i18nService);
+        support = new ApprovalV4ApiSupport(
+            appScopeMappingService, approvalTaskService, i18nService, simplifier);
         JobContextUtil.setUser(new User(TENANT_ID, USERNAME, USERNAME));
     }
 
@@ -201,20 +208,23 @@ class ApprovalV4ApiSupportTest {
     }
 
     @Test
-    @DisplayName("取内容返回体只有三个字段，Markdown 正文原样带出")
+    @DisplayName("取内容返回体含完整正文与简要字段，短内容时二者相同")
     void approvalContentKeepsMarkdownOnly() {
         ApprovalContent content = new ApprovalContent();
         content.setApprovalTaskId("task-1");
         content.setExpireAt(1000L);
-        content.setApprovalContent("# 快速执行脚本\n\n| 项目 | 内容 |\n| --- | --- |\n| 账号 | **root** |\n");
+        String markdown = "# 快速执行脚本\n\n| 项目 | 内容 |\n| --- | --- |\n| 账号 | **root** |\n";
+        content.setApprovalContent(markdown);
+        content.setSections(List.of(new ApprovalContentSection(ApprovalContentSectionKind.TITLE, markdown)));
 
         V4ApprovalContentDTO contentDTO = support.toContentDTO(content);
 
         assertThat(contentDTO.getApprovalTaskId()).isEqualTo("task-1");
         assertThat(contentDTO.getExpireAt()).isEqualTo(1000L);
         assertThat(contentDTO.getApprovalContent()).isEqualTo(content.getApprovalContent());
+        assertThat(contentDTO.getApprovalContentSimple()).isEqualTo(content.getApprovalContent());
         assertThat(declaredFieldNames(V4ApprovalContentDTO.class))
-            .containsExactlyInAnyOrder("approvalTaskId", "expireAt", "approvalContent");
+            .containsExactlyInAnyOrder("approvalTaskId", "expireAt", "approvalContent", "approvalContentSimple");
     }
 
     private List<String> declaredFieldNames(Class<?> clazz) {

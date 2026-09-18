@@ -47,8 +47,15 @@ public class V4ApprovalContentDTO {
     /**
      * 审批内容，Markdown 格式，含标题、操作概要表格、执行步骤、脚本内容与原始参数。
      * <p>
-     * 敏感字段只出现占位符，脚本内容例外、原样展示
+     * 敏感字段只出现占位符，脚本内容例外、原样展示。始终返回完整渲染结果，不做渠道展示上限裁剪。
      */
     @JsonProperty("approval_content")
     private String approvalContent;
+
+    /**
+     * 审批内容的简要版，Markdown 格式，供企业微信等对展示长度有限制的渠道使用。
+     * 未超出上限时与 {@link #approvalContent} 相同。
+     */
+    @JsonProperty("approval_content_simple")
+    private String approvalContentSimple;
 }

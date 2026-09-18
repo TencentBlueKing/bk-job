@@ -24,12 +24,16 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.execute.common.cache.WhiteHostCache;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -48,11 +52,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,6 +79,7 @@ class TaskInstanceExecuteObjectProcessorTest {
 
     private TaskInstanceExecuteObjectProcessor processor;
     private Method acquireByContainerFiltersMethod;
+    private Method acquireAndSetContainersMethod;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -95,6 +102,14 @@ class TaskInstanceExecuteObjectProcessorTest {
             Collection.class
         );
         acquireByContainerFiltersMethod.setAccessible(true);
+        acquireAndSetContainersMethod = TaskInstanceExecuteObjectProcessor.class.getDeclaredMethod(
+            "acquireAndSetContainers",
+            TaskInstanceExecuteObjects.class,
+            TaskInstanceDTO.class,
+            List.class,
+            Collection.class
+        );
+        acquireAndSetContainersMethod.setAccessible(true);
     }
 
     @Test
@@ -135,6 +150,66 @@ class TaskInstanceExecuteObjectProcessorTest {
         assertThat(executeTarget.getExecuteObjects().get(0).getContainer()).isEqualTo(container);
         verify(containerService).listContainerByContainerFilter(appId, containerFilter);
         verify(executeObjectSampler).tryToRecordContainerFilterResolvedNum(taskInstance, containerFilter, 1);
+    }
+
+    @Test
+    @DisplayName("静态容器列表中混有无效容器时不抛空指针，无效容器 ID 交由后续存在性校验统一报错")
+    void invalidStaticContainerDoesNotBreakTopoFilling() throws Exception {
+        long appId = 100L;
+        long bizId = 10L;
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setAppId(appId);
+        taskInstance.setId(200L);
+
+        Container validContainer = buildContainer(300L);
+        // 已销毁或不属于当前业务的容器：cmdb 查不到，集群与命名空间也无从解析
+        Container invalidContainer = new Container();
+        invalidContainer.setId(301L);
+
+        ExecuteTargetDTO executeTarget = new ExecuteTargetDTO();
+        executeTarget.setStaticContainerList(Arrays.asList(validContainer, invalidContainer));
+
+        TaskVariableDTO variable = new TaskVariableDTO();
+        variable.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType());
+        variable.setExecuteTarget(executeTarget);
+
+        when(containerService.listContainerByIds(eq(appId), any()))
+            .thenReturn(Collections.singletonList(validContainer));
+        when(appScopeMappingService.getScopeByAppId(appId))
+            .thenReturn(new ResourceScope(ResourceScopeTypeEnum.BIZ, String.valueOf(bizId)));
+        KubeClusterDTO cluster = new KubeClusterDTO();
+        cluster.setId(1L);
+        cluster.setName("cluster-a");
+        cluster.setUid("uid-a");
+        when(bizCmdbClient.listKubeClusters(any())).thenReturn(Collections.singletonList(cluster));
+        KubeNamespaceDTO namespace = new KubeNamespaceDTO();
+        namespace.setId(2L);
+        namespace.setName("ns-a");
+        when(bizCmdbClient.listKubeNamespaces(any())).thenReturn(Collections.singletonList(namespace));
+
+        TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
+        invokeAcquireAndSetContainers(
+            taskInstanceExecuteObjects,
+            taskInstance,
+            Collections.emptyList(),
+            Collections.singletonList(variable)
+        );
+
+        assertThat(taskInstanceExecuteObjects.getNotExistContainerIds()).containsExactly(301L);
+        assertThat(taskInstanceExecuteObjects.getValidContainers()).containsExactly(validContainer);
+        assertThat(validContainer.getClusterName()).isEqualTo("cluster-a");
+        assertThat(validContainer.getClusterUID()).isEqualTo("uid-a");
+        assertThat(validContainer.getNamespace()).isEqualTo("ns-a");
+        assertThat(invalidContainer.getClusterName()).isNull();
+        assertThat(invalidContainer.getNamespace()).isNull();
+    }
+
+    private void invokeAcquireAndSetContainers(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
+                                               TaskInstanceDTO taskInstance,
+                                               List<?> stepInstances,
+                                               Collection<TaskVariableDTO> variables) throws Exception {
+        acquireAndSetContainersMethod.invoke(processor, taskInstanceExecuteObjects, taskInstance, stepInstances,
+            variables);
     }
 
     private void invokeAcquireByContainerFilters(TaskInstanceExecuteObjects taskInstanceExecuteObjects,

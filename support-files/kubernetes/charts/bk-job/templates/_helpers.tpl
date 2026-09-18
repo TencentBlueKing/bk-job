@@ -894,6 +894,7 @@ Mock 的"视为审批通过"ID 列表刻意不在此处下发：它随 common-re
 {{- define "job.analysis.approval.config" -}}
 approval:
   ttlHours: {{ .Values.analysisConfig.approval.ttlHours }}
+  contentSimpleMaxBytes: {{ .Values.analysisConfig.approval.contentSimpleMaxBytes | default 20480 }}
   defaultChannel: {{ .Values.analysisConfig.approval.defaultChannel }}
   maxKeepDays: {{ .Values.analysisConfig.approval.maxKeepDays }}
   fastApproveThresholdMillis: {{ .Values.analysisConfig.approval.fastApproveThresholdMillis }}

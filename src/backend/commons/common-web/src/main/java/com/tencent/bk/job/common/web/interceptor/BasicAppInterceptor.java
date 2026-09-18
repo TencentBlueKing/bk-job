@@ -315,14 +315,14 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
             RepeatableReadWriteHttpServletRequest wrapperRequest =
                 (RepeatableReadWriteHttpServletRequest) request;
             if (StringUtils.isNotBlank(wrapperRequest.getBody())) {
-                ObjectNode jsonBody = (ObjectNode) JsonUtils.toJsonNode(wrapperRequest.getBody());
-                if (jsonBody == null) {
+                JsonNode jsonBody = JsonUtils.toJsonNode(wrapperRequest.getBody());
+                // body 可能是数组或标量（如批量按 ID 查询的接口直接收 List），此时无从解析 appId
+                if (!(jsonBody instanceof ObjectNode)) {
                     return null;
                 }
                 String fieldName = "appId";
                 JsonNode valueNode = jsonBody.get(fieldName);
-                String value = (valueNode == null || valueNode.isNull()) ? null :
-                    jsonBody.get(fieldName).asText();
+                String value = (valueNode == null || valueNode.isNull()) ? null : valueNode.asText();
                 log.debug("Parsed from POST/PUT: {}={}", fieldName, value);
                 return value != null ? Long.parseLong(value) : null;
             } else {
