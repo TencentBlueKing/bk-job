@@ -27,6 +27,9 @@ package com.tencent.bk.job.manage.api.esb.impl.v4;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubePropCondition;
+import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
@@ -41,9 +44,16 @@ import com.tencent.bk.job.manage.model.dto.task.TaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskNodeInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetContainerDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateContainerDTO;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateContainerFilterDTO;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplatePropConditionDTO;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4KubeObjectDTO;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4KubeTopoDTO;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4KubeWorkloadObjectDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.OpenApiV4JobTemplateDetailDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateAccountDTO;
 import com.tencent.bk.job.manage.model.esb.v4.resp.V4JobTemplateApprovalStepDTO;
@@ -59,7 +69,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class OpenApiV4JobTemplateConverter {
@@ -67,8 +80,12 @@ public final class OpenApiV4JobTemplateConverter {
     private OpenApiV4JobTemplateConverter() {
     }
 
+    /**
+     * @param fileSourceCodeMap 文件源 ID 到 code 的映射，缺失的 ID 其 code 返回 null
+     */
     public static OpenApiV4JobTemplateDetailDTO toDetailDTO(TaskTemplateInfoDTO templateInfo,
-                                                           AppScopeMappingService appScopeMappingService) {
+                                                            AppScopeMappingService appScopeMappingService,
+                                                            Map<Integer, String> fileSourceCodeMap) {
         OpenApiV4JobTemplateDetailDTO detail = new OpenApiV4JobTemplateDetailDTO();
         detail.setId(templateInfo.getId());
         ResourceScope scope = appScopeMappingService.getScopeByAppId(templateInfo.getAppId());
@@ -83,8 +100,30 @@ public final class OpenApiV4JobTemplateConverter {
         detail.setLastModifyUser(templateInfo.getLastModifyUser());
         detail.setLastModifyTime(SecondToMillisUtil.toMillis(templateInfo.getLastModifyTime()));
         detail.setGlobalVarList(toGlobalVarList(templateInfo.getVariableList()));
-        detail.setStepList(toStepList(templateInfo.getStepList()));
+        detail.setStepList(toStepList(templateInfo.getStepList(), fileSourceCodeMap));
         return detail;
+    }
+
+    /**
+     * 收集模板里被引用的文件源 ID，供调用方一次性批量反查 code。
+     */
+    public static Set<Integer> extractFileSourceIds(TaskTemplateInfoDTO templateInfo) {
+        if (templateInfo == null || CollectionUtils.isEmpty(templateInfo.getStepList())) {
+            return Collections.emptySet();
+        }
+        Set<Integer> fileSourceIds = new HashSet<>();
+        for (TaskStepDTO step : templateInfo.getStepList()) {
+            TaskFileStepDTO fileStepInfo = step.getFileStepInfo();
+            if (fileStepInfo == null || CollectionUtils.isEmpty(fileStepInfo.getOriginFileList())) {
+                continue;
+            }
+            for (TaskFileInfoDTO fileInfo : fileStepInfo.getOriginFileList()) {
+                if (fileInfo.getFileType() == TaskFileTypeEnum.FILE_SOURCE && fileInfo.getFileSourceId() != null) {
+                    fileSourceIds.add(fileInfo.getFileSourceId());
+                }
+            }
+        }
+        return fileSourceIds;
     }
 
     private static List<V4JobTemplateGlobalVarDTO> toGlobalVarList(List<TaskVariableDTO> variableList) {
@@ -112,14 +151,17 @@ public final class OpenApiV4JobTemplateConverter {
         return globalVar;
     }
 
-    private static List<V4JobTemplateStepDTO> toStepList(List<TaskStepDTO> stepList) {
+    private static List<V4JobTemplateStepDTO> toStepList(List<TaskStepDTO> stepList,
+                                                         Map<Integer, String> fileSourceCodeMap) {
         if (CollectionUtils.isEmpty(stepList)) {
             return Collections.emptyList();
         }
-        return stepList.stream().map(OpenApiV4JobTemplateConverter::toStep).collect(Collectors.toList());
+        return stepList.stream()
+            .map(taskStep -> toStep(taskStep, fileSourceCodeMap))
+            .collect(Collectors.toList());
     }
 
-    private static V4JobTemplateStepDTO toStep(TaskStepDTO taskStep) {
+    private static V4JobTemplateStepDTO toStep(TaskStepDTO taskStep, Map<Integer, String> fileSourceCodeMap) {
         V4JobTemplateStepDTO step = new V4JobTemplateStepDTO();
         step.setId(taskStep.getId());
         step.setName(taskStep.getName());
@@ -129,7 +171,7 @@ public final class OpenApiV4JobTemplateConverter {
                 step.setScriptInfo(toScriptInfo(taskStep.getScriptStepInfo()));
                 break;
             case FILE:
-                step.setFileInfo(toFileInfo(taskStep.getFileStepInfo()));
+                step.setFileInfo(toFileInfo(taskStep.getFileStepInfo(), fileSourceCodeMap));
                 break;
             case APPROVAL:
                 step.setApprovalInfo(toApprovalInfo(taskStep.getApprovalStepInfo()));
@@ -164,14 +206,15 @@ public final class OpenApiV4JobTemplateConverter {
         return scriptInfo;
     }
 
-    private static V4JobTemplateFileStepDTO toFileInfo(TaskFileStepDTO fileStepInfo) {
+    private static V4JobTemplateFileStepDTO toFileInfo(TaskFileStepDTO fileStepInfo,
+                                                       Map<Integer, String> fileSourceCodeMap) {
         if (fileStepInfo == null) {
             return null;
         }
         V4JobTemplateFileStepDTO fileInfo = new V4JobTemplateFileStepDTO();
         if (CollectionUtils.isNotEmpty(fileStepInfo.getOriginFileList())) {
             fileInfo.setFileSourceList(fileStepInfo.getOriginFileList().stream()
-                .map(OpenApiV4JobTemplateConverter::toFileSource)
+                .map(taskFileInfo -> toFileSource(taskFileInfo, fileSourceCodeMap))
                 .collect(Collectors.toList()));
         } else {
             fileInfo.setFileSourceList(Collections.emptyList());
@@ -192,7 +235,8 @@ public final class OpenApiV4JobTemplateConverter {
         return fileInfo;
     }
 
-    private static V4JobTemplateFileSourceDTO toFileSource(TaskFileInfoDTO taskFileInfo) {
+    private static V4JobTemplateFileSourceDTO toFileSource(TaskFileInfoDTO taskFileInfo,
+                                                           Map<Integer, String> fileSourceCodeMap) {
         V4JobTemplateFileSourceDTO fileSource = new V4JobTemplateFileSourceDTO();
         fileSource.setFileList(taskFileInfo.getFileLocation());
         if (taskFileInfo.getFileType() != null) {
@@ -201,6 +245,11 @@ public final class OpenApiV4JobTemplateConverter {
         if (taskFileInfo.getFileType() == TaskFileTypeEnum.SERVER) {
             fileSource.setAccount(toAccount(taskFileInfo.getHostAccount(), taskFileInfo.getHostAccountVar()));
             fileSource.setExecuteTarget(toExecuteTarget(taskFileInfo.getHost()));
+        } else if (taskFileInfo.getFileType() == TaskFileTypeEnum.FILE_SOURCE) {
+            fileSource.setFileSourceId(taskFileInfo.getFileSourceId());
+            if (taskFileInfo.getFileSourceId() != null && fileSourceCodeMap != null) {
+                fileSource.setFileSourceCode(fileSourceCodeMap.get(taskFileInfo.getFileSourceId()));
+            }
         }
         return fileSource;
     }
@@ -238,7 +287,8 @@ public final class OpenApiV4JobTemplateConverter {
     }
 
     /**
-     * 仅映射主机类执行目标（host_list / dynamic_groups / topo_nodes），不含静态容器目标。
+     * 映射执行目标的全部维度：主机（host_list / dynamic_groups / topo_nodes）与容器（静态列表 / 动态筛选）。
+     * 容器信息按落库快照原样返回，不回查 CMDB，因此已删除的容器仍会带出。
      */
     static V4JobTemplateExecuteTargetDTO toExecuteTarget(TaskTargetDTO taskTarget) {
         if (taskTarget == null) {
@@ -266,7 +316,72 @@ public final class OpenApiV4JobTemplateConverter {
                     .collect(Collectors.toList()));
             }
         }
+        if (CollectionUtils.isNotEmpty(taskTarget.getContainerList())) {
+            executeTarget.setContainerList(taskTarget.getContainerList().stream()
+                .map(OpenApiV4JobTemplateConverter::toV4Container)
+                .collect(Collectors.toList()));
+        }
+        if (CollectionUtils.isNotEmpty(taskTarget.getContainerFilters())) {
+            executeTarget.setContainerFilters(taskTarget.getContainerFilters().stream()
+                .map(OpenApiV4JobTemplateConverter::toV4ContainerFilter)
+                .collect(Collectors.toList()));
+        }
         return executeTarget;
+    }
+
+    private static V4JobTemplateContainerDTO toV4Container(TaskTargetContainerDTO container) {
+        V4JobTemplateContainerDTO v4Container = new V4JobTemplateContainerDTO();
+        v4Container.setContainerId(container.getId());
+        v4Container.setContainerUID(container.getContainerId());
+        v4Container.setName(container.getName());
+        v4Container.setPodName(container.getPodName());
+        v4Container.setNamespace(container.getNamespace());
+        v4Container.setClusterUID(container.getClusterUID());
+        v4Container.setNodeIp(container.getNodeIp());
+        return v4Container;
+    }
+
+    private static V4JobTemplateContainerFilterDTO toV4ContainerFilter(KubeContainerFilter filter) {
+        V4JobTemplateContainerFilterDTO v4Filter = new V4JobTemplateContainerFilterDTO();
+        v4Filter.setName(filter.getName());
+        if (CollectionUtils.isNotEmpty(filter.getKubeTopoList())) {
+            v4Filter.setKubeTopoList(filter.getKubeTopoList().stream()
+                .map(OpenApiV4JobTemplateConverter::toV4KubeTopo)
+                .collect(Collectors.toList()));
+        }
+        if (CollectionUtils.isNotEmpty(filter.getPropConditions())) {
+            v4Filter.setPropConditions(filter.getPropConditions().stream()
+                .map(OpenApiV4JobTemplateConverter::toV4PropCondition)
+                .collect(Collectors.toList()));
+        }
+        return v4Filter;
+    }
+
+    /**
+     * 运算符由字段唯一决定，不对外返回；value 恒为标量字符串。
+     */
+    private static V4JobTemplatePropConditionDTO toV4PropCondition(KubePropCondition condition) {
+        Object value = condition.getValue();
+        return new V4JobTemplatePropConditionDTO(
+            condition.getField(),
+            value == null ? null : String.valueOf(value)
+        );
+    }
+
+    private static V4KubeTopoDTO toV4KubeTopo(KubeTopoDTO topo) {
+        V4KubeTopoDTO v4Topo = new V4KubeTopoDTO();
+        if (topo.getCluster() != null) {
+            v4Topo.setCluster(new V4KubeObjectDTO(topo.getCluster().getId()));
+        }
+        if (topo.getNamespace() != null) {
+            v4Topo.setNamespace(new V4KubeObjectDTO(topo.getNamespace().getId()));
+        }
+        if (CollectionUtils.isNotEmpty(topo.getWorkloads())) {
+            v4Topo.setWorkloads(topo.getWorkloads().stream()
+                .map(workload -> new V4KubeWorkloadObjectDTO(workload.getKind(), workload.getId()))
+                .collect(Collectors.toList()));
+        }
+        return v4Topo;
     }
 
     private static OpenApiV4HostDTO toV4Host(ApplicationHostDTO host) {

@@ -1,0 +1,105 @@
+| Field                 | Type   | Required | Description                                                                                                    |
+|-----------------------|--------|----------|----------------------------------------------------------------------------------------------------------------|
+| variable              | string | No       | Name of a global variable of type "execute target list" to reference                                           |
+| host_list             | array  | No       | Static host list                                                                                               |
+| dynamic_group_list    | array  | No       | Dynamic group list                                                                                             |
+| topo_node_list        | array  | No       | CMDB topology node list                                                                                        |
+| container_list        | array  | No       | Static container list                                                                                          |
+| container_filter_list | array  | No       | Container filter list; multiple filters are unioned                                                            |
+
+An execute target is either a variable reference or a set of concrete targets, and the two are **mutually
+exclusive**: either provide `variable` alone, or provide at least one non-empty value among the other five fields.
+Providing both returns a parameter error, and providing neither does as well.
+
+The variable named by `variable` must be declared in the `global_var_list` of the **same request**, with `type` `3`
+(execute target list); otherwise a parameter error is returned. Note that `global_var_list` is replaced as a whole:
+on update, dropping a variable from the list deletes it, and if any step still references it the whole request is
+rejected — the referencing steps have to be updated along with it.
+
+> The default value of a global variable (`global_var_list[].execute_target`) supports concrete targets only. It
+> does not accept `variable`, because a variable default must not reference another variable.
+
+##### host_list[] element
+
+{% include '_generic_v4_host.md.j2' %}
+
+##### dynamic_group_list[] element
+
+| Field | Type   | Required | Description      |
+|-------|--------|----------|------------------|
+| id    | string | Yes      | Dynamic group ID |
+
+##### topo_node_list[] element
+
+| Field     | Type   | Required | Description                                                            |
+|-----------|--------|----------|------------------------------------------------------------------------|
+| id        | long   | Yes      | Topology node ID                                                       |
+| node_type | string | Yes      | Topology node type. Allowed values: `module` (module), `set` (set)     |
+
+##### container_list[] element
+
+| Field        | Type | Required | Description                        |
+|--------------|------|----------|------------------------------------|
+| container_id | long | Yes      | Container ID (CMDB internal ID)    |
+
+Only `container_id` is taken on write. The read API additionally returns `container_uid`, `name`, `pod_name`,
+`namespace`, `cluster_uid` and `node_ip`, which come from the snapshot taken at save time and are ignored on write,
+so a read response can be written back as is.
+
+Container IDs are not validated on write. If a container does not exist or does not belong to the current scope,
+the read API still returns what was saved, but executing the job reports "invalid execute object" together with the
+offending `container_id`.
+
+##### container_filter_list[] element
+
+| Field           | Type   | Required | Description                                                                       |
+|-----------------|--------|----------|-------------------------------------------------------------------------------------|
+| name            | string | No       | Filter name, at most 60 characters, only used to tell multiple filters apart        |
+| kube_topo_list  | array  | Yes      | Topology path list, must not be empty; paths are unioned and share one `prop_conditions` |
+| prop_conditions | array  | No       | Container property conditions, intersected with each other                          |
+
+> The topology here is expressed with CMDB internal numeric IDs, which differs from `kube_container_filters` in APIs
+> such as execute job (cluster UID and namespace name). The two shapes are not interchangeable.
+
+###### kube_topo_list[] element
+
+| Field         | Type   | Required | Description                                                                                     |
+|---------------|--------|----------|---------------------------------------------------------------------------------------------------|
+| cluster       | object | Yes      | Cluster topology object, e.g. `{"id": 105}`                                                     |
+| namespace     | object | No       | Namespace topology object, e.g. `{"id": 207}`; omit it to not narrow down by namespace          |
+| workload_list | array  | No       | Workload topology objects, e.g. `{"kind": "deployment", "id": 309}`; omit it to not narrow down by workload |
+
+Cluster, namespace and workload IDs are all CMDB internal IDs, which can be obtained from the read API after
+configuring the step once on the web console. They are not validated on write; if they do not exist or do not belong
+to the current scope, executing the step reports "target execute object is empty" because no container matches.
+
+###### prop_conditions[] element
+
+| Field | Type   | Required | Description                                   |
+|-------|--------|----------|-----------------------------------------------|
+| field | string | Yes      | Field to filter on, see the table below       |
+| value | string | Yes      | Value, matched as described in the table below |
+
+**This API does not accept an operator.** The match type of each field is fixed and filled in by the server, exactly
+as the web console does, so conditions created through this API render correctly on the web console:
+
+| field                     | Match type      | Description                             |
+|---------------------------|-----------------|-----------------------------------------|
+| `container_name`          | contains        | Container name contains `value`         |
+| `container_container_uid` | equals          | Container runtime UID equals `value`    |
+| `pod_name`                | contains        | Pod name contains `value`               |
+| `pod_labels`              | label selector  | Pod labels match the `value` expression |
+
+For the first three fields, `value` accepts comma-separated multiple values, matched as a union. For example
+`nginx,redis` matches names containing either `nginx` or `redis`.
+
+**The `value` of `pod_labels` is a native Kubernetes label selector expression**, not a plain string. See
+[Kubernetes documentation: Label selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors)
+for the syntax. Both equality-based and set-based selectors are supported. A comma there is the AND separator of the
+expression itself and is **not** treated as a multi-value separator. The expression is parsed and validated by this
+API; an invalid one returns 400. Examples:
+
+- `app=nginx` — label `app` equals `nginx`
+- `app=nginx,tier!=frontend` — both requirements must hold
+- `env in (prod, pre)` — `env` is one of the given values
+- `!canary` — the `canary` label must not exist

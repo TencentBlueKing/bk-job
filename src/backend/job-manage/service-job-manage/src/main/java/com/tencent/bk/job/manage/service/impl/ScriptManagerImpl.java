@@ -155,6 +155,15 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
+    public Map<Long, ScriptDTO> batchGetScriptVersionsByIds(Collection<Long> scriptVersionIds) {
+        if (CollectionUtils.isEmpty(scriptVersionIds)) {
+            return Collections.emptyMap();
+        }
+        return scriptDAO.batchGetScriptVersionsByIds(scriptVersionIds).stream()
+            .collect(Collectors.toMap(ScriptDTO::getScriptVersionId, script -> script, (first, second) -> first));
+    }
+
+    @Override
     public ScriptDTO getScript(Long appId, String scriptId) {
         ScriptDTO script = scriptDAO.getScriptByScriptId(scriptId);
         checkScriptInApp(appId, script);

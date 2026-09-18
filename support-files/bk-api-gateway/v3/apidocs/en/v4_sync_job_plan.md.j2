@@ -1,0 +1,75 @@
+### Description
+
+Sync the specified job plan to the **current latest version** of its job template.
+
+Syncing rebuilds the plan steps from the job template: steps newly added to the template appear in the plan
+(disabled by default), steps removed from the template disappear from the plan, and the remaining steps keep their
+enabled state. Variables with `follow_template` set to `false` keep the values configured in the plan; the others
+follow the template defaults.
+
+This API does not take a template version. The version parameter in the service layer exists for the web console's
+optimistic locking (the user confirms after reviewing a version diff), which has no counterpart for API callers, so
+the semantics here are fixed to "sync to the current latest template version"; the version actually synced to is
+returned in the response.
+
+Calling this API on a plan that is not pending sync (`need_update` is `false`) is not an error — syncing to the
+current version is a no-op.
+
+Prerequisites: the job plan exists in the scope; the caller has permission to sync it.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field         | Type   | Required | Description                                                                     |
+|---------------|--------|----------|---------------------------------------------------------------------------------|
+| bk_scope_type | string | Yes      | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id   | string | Yes      | Resource scope ID matching `bk_scope_type` (business ID or business set ID)     |
+| job_plan_id   | long   | Yes      | Job plan ID; must be greater than 0; the plan must exist                        |
+
+### Request Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_plan_id": 50001
+}
+```
+
+### Response Example
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "job_plan_id": 50001,
+        "job_template_id": 1000,
+        "template_version": "b6b1f5b8d0a94f0e9a0f2c1d3e4f5a6b"
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field            | Type   | Description                                                                     |
+|------------------|--------|---------------------------------------------------------------------------------|
+| bk_scope_type    | string | Resource scope type. Allowed values: `biz` (business), `biz_set` (business set) |
+| bk_scope_id      | string | Resource scope ID                                                               |
+| job_plan_id      | long   | Job plan ID                                                                     |
+| job_template_id  | long   | Job template ID                                                                 |
+| template_version | string | The job template version the plan has been synced to                            |

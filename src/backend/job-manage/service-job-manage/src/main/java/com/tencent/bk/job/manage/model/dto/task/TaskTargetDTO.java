@@ -168,7 +168,10 @@ public class TaskTargetDTO {
         return taskTargetDTO;
     }
 
-    private static void fillHostDetail(TaskTargetDTO target) {
+    /**
+     * 按 hostId 或 cloudId+ip 补全主机明细。直接构造 TaskTargetDTO（不经 VO）的调用方需自行调用。
+     */
+    public static void fillHostDetail(TaskTargetDTO target) {
         if (target.getHostNodeList() == null || CollectionUtils.isEmpty(target.getHostNodeList().getHostList())) {
             return;
         }

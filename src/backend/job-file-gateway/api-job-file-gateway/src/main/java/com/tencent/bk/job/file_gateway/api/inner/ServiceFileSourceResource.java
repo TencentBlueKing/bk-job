@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceBasicInfoDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,5 +68,16 @@ public interface ServiceFileSourceResource {
         @Parameter(description = "租户ID", required = true)
         @RequestHeader(JobCommonHeaders.BK_TENANT_ID) String tenantId,
         @Parameter(description = "Job业务ID", required = true) @PathVariable("appId") Long appId,
+        @Parameter(description = "文件源ID列表", required = true) @RequestBody List<Integer> fileSourceIdList);
+
+    /**
+     * 批量按 ID 查询文件源基本信息，用于按 ID 反查 code。查不到的 ID 不会出现在结果中，
+     * 因此结果条数可能少于入参。
+     */
+    @Operation(summary = "批量查询文件源基本信息")
+    @PostMapping("/service/fileSource/basicInfo/listByIds")
+    InternalResponse<List<ServiceFileSourceBasicInfoDTO>> listFileSourceBasicInfoByIds(
+        @Parameter(description = "租户ID", required = true)
+        @RequestHeader(JobCommonHeaders.BK_TENANT_ID) String tenantId,
         @Parameter(description = "文件源ID列表", required = true) @RequestBody List<Integer> fileSourceIdList);
 }

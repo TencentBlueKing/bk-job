@@ -29,9 +29,14 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobTemplateRequest;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4UpdateJobTemplateRequest;
 import com.tencent.bk.job.manage.model.esb.v4.resp.OpenApiV4JobTemplateDetailDTO;
+import com.tencent.bk.job.manage.model.esb.v4.resp.OpenApiV4JobTemplateWriteResultDTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -71,5 +76,25 @@ public interface OpenApiJobTemplateV4Resource {
         @NotNull(message = "{validation.constraints.InvalidJobTemplateDetailId.message}")
         @Min(value = 1L, message = "{validation.constraints.InvalidJobTemplateDetailId.message}")
         Long id
+    );
+
+    /**
+     * 创建作业模板
+     */
+    @PostMapping("/create_job_template")
+    EsbV4Response<OpenApiV4JobTemplateWriteResultDTO> createJobTemplate(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody @Validated V4CreateJobTemplateRequest request
+    );
+
+    /**
+     * 更新作业模板。请求体为模板的期望终态，未列出的步骤与全局变量会被删除。
+     */
+    @PostMapping("/update_job_template")
+    EsbV4Response<OpenApiV4JobTemplateWriteResultDTO> updateJobTemplate(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody @Validated V4UpdateJobTemplateRequest request
     );
 }
