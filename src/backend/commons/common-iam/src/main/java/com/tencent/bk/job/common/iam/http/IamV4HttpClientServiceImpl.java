@@ -44,6 +44,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
 
 import java.util.List;
@@ -94,7 +96,7 @@ public class IamV4HttpClientServiceImpl implements HttpClientService {
             respStr = httpHelper.requestForSuccessResp(
                     HttpRequest.builder(HttpMethodEnum.POST, buildUrl(uri))
                         .setHeaders(buildHeaders(tenantId, headerList))
-                        .setStringEntity(JsonUtils.toJson(body))
+                        .setHttpEntity(jsonEntity(body))
                         .build())
                 .getEntity();
             return respStr;
@@ -116,7 +118,7 @@ public class IamV4HttpClientServiceImpl implements HttpClientService {
             respStr = httpHelper.requestForSuccessResp(
                     HttpRequest.builder(HttpMethodEnum.PUT, buildUrl(uri))
                         .setHeaders(buildHeaders(tenantId, headerList))
-                        .setStringEntity(JsonUtils.toJson(body))
+                        .setHttpEntity(jsonEntity(body))
                         .build())
                 .getEntity();
             return respStr;
@@ -151,6 +153,13 @@ public class IamV4HttpClientServiceImpl implements HttpClientService {
 
     private String buildUrl(String uri) {
         return iamV4Configuration.getIamV4BaseUrl() + uri;
+    }
+
+    /**
+     * 带上 json 的 Content-Type
+     */
+    private StringEntity jsonEntity(Object body) {
+        return new StringEntity(JsonUtils.toJson(body), ContentType.APPLICATION_JSON);
     }
 
     private Header[] buildHeaders(String tenantId, List<Pair<String, String>> headerList) {

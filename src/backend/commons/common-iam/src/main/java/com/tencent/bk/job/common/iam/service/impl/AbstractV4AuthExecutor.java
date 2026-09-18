@@ -118,7 +118,8 @@ public abstract class AbstractV4AuthExecutor {
 
     /**
      * 把 bk-job 的 {@link PermissionActionResource} 列表转换为 v4 申请权限所需的 {@link V4PermissionDTO} 列表。
-     * 每个资源的父级层级资源({@code parentHierarchicalResources})映射为 v4 的 {@code ancestors}。
+     * 每个资源的父级层级资源({@code parentHierarchicalResources})映射为 v4 的 {@code ancestors}；
+     * 顶层资源没有父级时不传该字段（IAM 拒绝 {@code ancestors: null}）。
      */
     protected List<V4PermissionDTO> buildV4Permissions(List<PermissionActionResource> permissionActionResources) {
         List<V4PermissionDTO> permissions = new ArrayList<>();
@@ -138,21 +139,20 @@ public abstract class AbstractV4AuthExecutor {
     }
 
     protected V4ApplyResourceDTO toV4ApplyResource(PermissionResource resource) {
-        List<V4AncestorDTO> ancestors = null;
+        V4ApplyResourceDTO.V4ApplyResourceDTOBuilder builder = V4ApplyResourceDTO.builder()
+            .id(resource.getResourceId())
+            .type(IamV4ResourceTypeMapper.toV4ResourceTypeId(resolveResourceType(resource)));
         if (CollectionUtils.isNotEmpty(resource.getParentHierarchicalResources())) {
-            ancestors = new ArrayList<>();
+            List<V4AncestorDTO> ancestors = new ArrayList<>();
             for (PermissionResource parent : resource.getParentHierarchicalResources()) {
                 ancestors.add(V4AncestorDTO.builder()
                     .id(parent.getResourceId())
                     .type(IamV4ResourceTypeMapper.toV4ResourceTypeId(resolveResourceType(parent)))
                     .build());
             }
+            builder.ancestors(ancestors);
         }
-        return V4ApplyResourceDTO.builder()
-            .id(resource.getResourceId())
-            .type(IamV4ResourceTypeMapper.toV4ResourceTypeId(resolveResourceType(resource)))
-            .ancestors(ancestors)
-            .build();
+        return builder.build();
     }
 
     private String resolveResourceType(PermissionResource resource) {
