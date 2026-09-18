@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.tencent.bk.job.analysis.approval.ApprovalContentRenderer;
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContentSection;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContentSectionKind;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayMasker;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayParams.PlainTextBlock;
@@ -54,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -168,31 +171,50 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
         ApprovalRiskLevelEnum riskLevel = resolveRiskLevel(summary);
         String title = buildTitle(operationType, app, summary);
 
+        List<ApprovalContentSection> sections =
+            buildSections(task, operationType, app, summary, riskLevel, title);
         ApprovalContent content = new ApprovalContent();
         content.setApprovalTaskId(task.getApprovalTaskId());
         content.setExpireAt(task.getExpireAt());
-        content.setApprovalContent(buildContent(task, operationType, app, summary, riskLevel, title));
+        content.setSections(sections);
+        content.setApprovalContent(ApprovalContent.joinMarkdown(sections));
         return content;
     }
 
-    private String buildContent(ApprovalTaskDTO task,
-                                ApprovalOperationTypeEnum operationType,
-                                BasicApp app,
-                                ResolvedSummary summary,
-                                ApprovalRiskLevelEnum riskLevel,
-                                String title) {
-        StringBuilder content = new StringBuilder();
-        appendHeading(content, 1, title);
-        appendSummary(content, task, operationType, app, summary, riskLevel);
-        appendMultiLineFields(content, summary);
-        appendGlobalVars(content, summary);
+    /**
+     * 按现有顺序产出带类型的已渲染片段。全文等于按顺序拼接；简要裁剪按 kind 整段丢弃，
+     * 不再从 Markdown 反解析章节身份。
+     */
+    private List<ApprovalContentSection> buildSections(ApprovalTaskDTO task,
+                                                       ApprovalOperationTypeEnum operationType,
+                                                       BasicApp app,
+                                                       ResolvedSummary summary,
+                                                       ApprovalRiskLevelEnum riskLevel,
+                                                       String title) {
+        List<ApprovalContentSection> sections = new ArrayList<>();
+        addSection(sections, ApprovalContentSectionKind.TITLE, content -> appendHeading(content, 1, title));
+        addSection(sections, ApprovalContentSectionKind.SUMMARY,
+            content -> appendSummary(content, task, operationType, app, summary, riskLevel));
+        addMultiLineFieldSections(sections, summary);
+        addSection(sections, ApprovalContentSectionKind.GLOBAL_VARS, content -> appendGlobalVars(content, summary));
 
         // 脚本正文与原始参数出自同一份脱敏后的参数：脚本被摘出去单独展示，参数里只留占位符
         List<PlainTextBlock> scriptBlocks = new ArrayList<>();
         String rawParamsJson = renderRawParams(task, operationType, scriptBlocks);
-        appendScripts(content, scriptBlocks);
-        appendRawParams(content, rawParamsJson);
-        return content.toString();
+        addSection(sections, ApprovalContentSectionKind.SCRIPT, content -> appendScripts(content, scriptBlocks));
+        addSection(sections, ApprovalContentSectionKind.RAW_PARAMS, content -> appendRawParams(content, rawParamsJson));
+        return sections;
+    }
+
+    private void addSection(List<ApprovalContentSection> sections,
+                            ApprovalContentSectionKind kind,
+                            Consumer<StringBuilder> writer) {
+        StringBuilder content = new StringBuilder();
+        writer.accept(content);
+        if (content.length() == 0) {
+            return;
+        }
+        sections.add(new ApprovalContentSection(kind, content.toString()));
     }
 
     /**
@@ -644,7 +666,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
     }
 
     /**
-     * 逐行展示的字段在表格里只报条数，明细由 {@link #appendMultiLineFields} 另起章节列出
+     * 逐行展示的字段在表格里只报条数，明细由 {@link #addMultiLineFieldSections} 另起章节列出
      */
     private String summarizeFieldValue(ResolvedSummary.ResolvedField field) {
         if (MULTI_LINE_FIELDS.contains(field.getLabel())) {
@@ -658,9 +680,9 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
      * <p>
      * 走列表而不是表格单元格，是因为审批渠道的 Markdown 渲染器不允许内联 HTML：{@code <br>} 会被原样展示，
      * 而单元格里放真实换行会切断表格。<b>此处不做条数截断</b>：条数上限是人工编排出来的步骤数，
-     * 截掉几行恰好截掉的是本章节唯一要说明的事
+     * 截掉几行恰好截掉的是本章节唯一要说明的事。每段字段单独一章，便于简要裁剪按段丢弃。
      */
-    private void appendMultiLineFields(StringBuilder content, ResolvedSummary summary) {
+    private void addMultiLineFieldSections(List<ApprovalContentSection> sections, ResolvedSummary summary) {
         if (CollectionUtils.isEmpty(summary.getFields())) {
             return;
         }
@@ -672,8 +694,11 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
             if (items.isEmpty()) {
                 continue;
             }
-            appendHeading(content, 2, resolvedFieldLabel(field.getLabel()));
-            appendList(content, items);
+            String heading = resolvedFieldLabel(field.getLabel());
+            addSection(sections, ApprovalContentSectionKind.MULTI_LINE, content -> {
+                appendHeading(content, 2, heading);
+                appendList(content, items);
+            });
         }
     }
 
@@ -853,7 +878,7 @@ public class DefaultApprovalContentRenderer implements ApprovalContentRenderer {
      * 表格单元格里的竖线会切断列，换行会把一行截成两行、整张表从该行起散架：前者转义，后者压成空格。
      * <p>
      * <b>不能换成 {@code <br>}</b>：审批渠道的 Markdown 渲染器不允许内联 HTML，标签会原样展示给审批人。
-     * 本就需要逐行展示的字段走 {@link #appendMultiLineFields} 的列表章节，不进单元格
+     * 本就需要逐行展示的字段走 {@link #addMultiLineFieldSections} 的列表章节，不进单元格
      */
     private String escapeTableCell(String value) {
         return value.replace("|", "\\|")

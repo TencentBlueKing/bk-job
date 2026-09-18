@@ -26,6 +26,8 @@ package com.tencent.bk.job.analysis.approval.impl;
 
 import com.tencent.bk.job.analysis.approval.ApprovalParamsCryptoService;
 import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContent;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContentSection;
+import com.tencent.bk.job.analysis.approval.channel.model.ApprovalContentSectionKind;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalOperationTypeEnum;
 import com.tencent.bk.job.analysis.approval.consts.ApprovalRiskLevelEnum;
 import com.tencent.bk.job.analysis.approval.crypto.ApprovalDisplayMasker;
@@ -164,6 +166,33 @@ class DefaultApprovalContentRendererTest {
             .isLessThan(indexOf(content, SECTION_SCRIPT))
             .isLessThan(indexOf(content, SECTION_RAW_PARAMS));
         assertThat(indexOf(content, SECTION_SCRIPT)).isLessThan(indexOf(content, SECTION_RAW_PARAMS));
+        assertThat(ApprovalContent.joinMarkdown(rendered.getSections())).isEqualTo(content);
+        assertThat(rendered.getSections())
+            .extracting(ApprovalContentSection::getKind)
+            .containsExactly(
+                ApprovalContentSectionKind.TITLE,
+                ApprovalContentSectionKind.SUMMARY,
+                ApprovalContentSectionKind.SCRIPT,
+                ApprovalContentSectionKind.RAW_PARAMS);
+    }
+
+    @Test
+    @DisplayName("含逐行字段与全局变量时，章节拼接仍等于全文")
+    void sectionsWithMultiLineAndGlobalVarsJoinEqualsFull() {
+        ResolvedSummary summary = planSummaryWithGlobalVars();
+        summary.addField("enable_steps", "停止服务\n启动服务");
+        ApprovalContent rendered = renderer.render(
+            buildTask(ApprovalOperationTypeEnum.CREATE_JOB_PLAN, summary, null));
+
+        assertThat(ApprovalContent.joinMarkdown(rendered.getSections()))
+            .isEqualTo(rendered.getApprovalContent());
+        assertThat(rendered.getSections())
+            .extracting(ApprovalContentSection::getKind)
+            .containsExactly(
+                ApprovalContentSectionKind.TITLE,
+                ApprovalContentSectionKind.SUMMARY,
+                ApprovalContentSectionKind.MULTI_LINE,
+                ApprovalContentSectionKind.GLOBAL_VARS);
     }
 
     @Test
