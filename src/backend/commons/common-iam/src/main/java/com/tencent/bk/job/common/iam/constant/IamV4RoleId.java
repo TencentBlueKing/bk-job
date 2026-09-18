@@ -29,6 +29,10 @@ package com.tencent.bk.job.common.iam.constant;
  *
  * <p>v4 取消了 v3 的 {@code related_actions}，改由角色聚合操作，用户按角色申请权限。
  * 各角色包含的操作清单是模型注册数据，见 v4 模型 JSON。</p>
+ *
+ * <p>角色分两类视角：业务 / 平台视角关联 {@code biz} 或不关联资源，横跨多种资源；
+ * 单资源视角只关联单一资源类型，用于按实例授权（含资源创建者授权，见
+ * {@link com.tencent.bk.job.common.iam.util.IamV4CreatorRoleMapper}）。</p>
  */
 public class IamV4RoleId {
 
@@ -52,10 +56,45 @@ public class IamV4RoleId {
      * 平台公共资源管理员（系统级）
      */
     public static final String PLATFORM_ADMIN = "platform_admin";
+    // ---------- 单资源视角：只含所关联资源类型上的操作，按实例授权 ----------
+
     /**
-     * 公共脚本管理
+     * 公共脚本管理员（关联 public_script）
      */
-    public static final String PUBLIC_SCRIPT = "public_script";
+    public static final String PUBLIC_SCRIPT_MANAGER = "public_script_manager";
+
+    /**
+     * 业务脚本管理员（关联 script）
+     */
+    public static final String SCRIPT_MANAGER = "script_manager";
+    /**
+     * 作业模版管理员（关联 job_template）
+     */
+    public static final String JOB_TEMPLATE_MANAGER = "job_template_manager";
+    /**
+     * 执行方案管理员（关联 job_plan）
+     */
+    public static final String JOB_PLAN_MANAGER = "job_plan_manager";
+    /**
+     * 标签管理员（关联 tag）
+     */
+    public static final String TAG_MANAGER = "tag_manager";
+    /**
+     * 定时任务管理员（关联 cron）
+     */
+    public static final String CRON_MANAGER = "cron_manager";
+    /**
+     * 文件源管理员（关联 file_source）
+     */
+    public static final String FILE_SOURCE_MANAGER = "file_source_manager";
+    /**
+     * 凭证管理员（关联 ticket）
+     */
+    public static final String TICKET_MANAGER = "ticket_manager";
+    /**
+     * 执行账号管理员（关联 account）
+     */
+    public static final String ACCOUNT_MANAGER = "account_manager";
 
     private IamV4RoleId() {
     }

@@ -28,15 +28,23 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.ActionAuthExecutor;
+import com.tencent.bk.job.common.iam.util.IamV4CreatorRoleMapper;
 import com.tencent.bk.job.common.iam.util.IamV4ResourceTypeMapper;
 import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
+import com.tencent.bk.sdk.iamv4.constants.IamV4SubjectType;
 import com.tencent.bk.sdk.iamv4.dto.V4ApplyResourceDTO;
+import com.tencent.bk.sdk.iamv4.dto.V4AuthorizationResourceDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4PermissionDTO;
+import com.tencent.bk.sdk.iamv4.dto.V4SubjectDTO;
+import com.tencent.bk.sdk.iamv4.dto.request.V4AuthorizationDTO;
 import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +54,11 @@ import java.util.Map;
  */
 @Slf4j
 public class V4ActionAuthExecutor extends AbstractV4AuthExecutor implements ActionAuthExecutor {
+
+    /**
+     * v4 角色授权的过期时间上限（天）
+     */
+    private static final long MAX_AUTHORIZE_EXPIRE_DAYS = 365;
 
     public V4ActionAuthExecutor(IamV4AuthService iamV4AuthService) {
         super(iamV4AuthService);
@@ -100,10 +113,50 @@ public class V4ActionAuthExecutor extends AbstractV4AuthExecutor implements Acti
         return iamV4AuthService.getApplyUrl(tenantId, buildV4Permissions(permissionActionResources));
     }
 
+    /**
+     * 资源创建者授权：v4 无资源实例注册接口，改为把该资源类型对应的单资源角色连同新建实例授予创建者，
+     * 创建者即拥有该实例上的全部操作（见 openspec design.md D17）。
+     *
+     * <p>授权失败不抛异常、不阻断资源创建主流程，与 v3 保持一致。</p>
+     */
     @Override
     public boolean registerResource(User creator, String id, String name, String type, List<ResourceDTO> ancestors) {
-        // TODO 资源创建者授权待定：IAM v4 通过角色授权(authorize)承载，role_id/expired_at 等语义确认后再实现
-        log.warn("registerResource is not implemented for IAM v4 yet, skip. id={}, name={}, type={}", id, name, type);
-        return true;
+        String v4ResourceTypeId = IamV4ResourceTypeMapper.toV4ResourceTypeId(type);
+        String roleId = IamV4CreatorRoleMapper.getCreatorRole(v4ResourceTypeId);
+        if (roleId == null) {
+            log.warn("No creator role for resource type, skip creator authorization|type={}|id={}",
+                v4ResourceTypeId, id);
+            return false;
+        }
+        V4AuthorizationDTO authorization = V4AuthorizationDTO.builder()
+            .subject(V4SubjectDTO.builder()
+                .type(IamV4SubjectType.USER)
+                .id(creator.getUsername())
+                .build())
+            .roleId(roleId)
+            .relatedResourceTypeId(v4ResourceTypeId)
+            .resources(Collections.singletonList(V4AuthorizationResourceDTO.builder()
+                .type(v4ResourceTypeId)
+                .id(id)
+                .build()))
+            .expiredAt(buildExpiredAt())
+            .build();
+        try {
+            // 创建者授权是 Job 代替用户发起的系统行为，操作人为系统
+            iamV4AuthService.authorize(
+                creator.getTenantId(), SystemId.JOB, Collections.singletonList(authorization));
+            return true;
+        } catch (Exception e) {
+            log.error("Authorize creator failed|username={}|role={}|type={}|id={}|name={}",
+                creator.getUsername(), roleId, v4ResourceTypeId, id, name, e);
+            return false;
+        }
+    }
+
+    /**
+     * 授权过期时间。v3 创建者权限是永久的，而 v4 的 {@code expired_at} 上限为 365 天，故取该上限。
+     */
+    private long buildExpiredAt() {
+        return Instant.now().plus(MAX_AUTHORIZE_EXPIRE_DAYS, ChronoUnit.DAYS).getEpochSecond();
     }
 }

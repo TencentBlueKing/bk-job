@@ -90,7 +90,6 @@
       {"id": "quick_execute_script", "name": "快速执行脚本", "resource_type_id": "host"},
       {"id": "quick_transfer_file", "name": "快速分发文件", "resource_type_id": "host"},
 
-      {"id": "create_public_script", "name": "公共脚本新建", "resource_type_id": ""},
       {"id": "manage_public_script_instance", "name": "公共脚本管理", "resource_type_id": "public_script"},
       {"id": "execute_public_script", "name": "公共脚本执行", "resource_type_id": "host"},
 
@@ -102,13 +101,10 @@
       {"id": "high-risk_detect_rule", "name": "高危语句规则管理", "resource_type_id": ""},
       {"id": "high-risk_detect_record", "name": "高危语句拦截记录查看", "resource_type_id": ""},
       {"id": "service_state_access", "name": "服务状态查看", "resource_type_id": ""}
-    ],
-    "_excluded": {
-      "manage_public_script": "v3 中已标注「停止使用」，v4 不再注册"
-    }
+    ]
   },
   "roles": {
-    "_comment": "v4 预置角色。约束：角色内每个操作关联的资源类型，必须等于角色关联的 resource_type_id 或其子孙。故业务类角色关联 biz——biz 是 script / job_template / cron / account / tag / file_source / ticket / host 的祖先；平台级角色不关联资源。",
+    "_comment": "v4 预置角色分两类：① 业务视角（关联 biz，覆盖其子孙资源上的操作）；② 单资源视角（关联某一资源类型，只含该资源上的操作）。约束：角色内每个操作关联的资源类型，必须等于角色关联的 resource_type_id 或其子孙。故业务类角色关联 biz；单资源角色关联 script / job_template 等；平台级角色不关联资源。新建类操作（create_*）绑定在 biz 上，不能放进单资源角色。",
     "items": [
       {
         "id": "read_only",
@@ -241,20 +237,104 @@
         ]
       },
       {
-        "id": "public_script",
-        "name": "公共脚本管理",
-        "description": "管理公共脚本实例；新建公共脚本为无资源操作，由 platform_admin 承担",
+        "id": "public_script_manager",
+        "name": "公共脚本管理员",
+        "description": "拥有某些公共脚本相关的权限",
         "resource_type_id": "public_script",
         "action_ids": [
           "manage_public_script_instance"
         ]
+      },
+      {
+        "id": "script_manager",
+        "name": "业务脚本管理员",
+        "description": "拥有某些业务脚本相关的权限",
+        "resource_type_id": "script",
+        "action_ids": [
+          "view_script",
+          "manage_script"
+        ]
+      },
+      {
+        "id": "job_template_manager",
+        "name": "作业模版管理员",
+        "description": "拥有某些作业模版相关的权限",
+        "resource_type_id": "job_template",
+        "action_ids": [
+          "view_job_template",
+          "edit_job_template",
+          "delete_job_template",
+          "create_job_plan"
+        ]
+      },
+      {
+        "id": "job_plan_manager",
+        "name": "执行方案管理员",
+        "description": "拥有某些执行方案相关的权限",
+        "resource_type_id": "job_plan",
+        "action_ids": [
+          "view_job_plan",
+          "edit_job_plan",
+          "delete_job_plan",
+          "sync_job_plan"
+        ]
+      },
+      {
+        "id": "tag_manager",
+        "name": "标签管理员",
+        "description": "拥有某些标签相关的权限",
+        "resource_type_id": "tag",
+        "action_ids": [
+          "manage_tag"
+        ]
+      },
+      {
+        "id": "cron_manager",
+        "name": "定时任务管理员",
+        "description": "拥有某些定时任务相关的权限",
+        "resource_type_id": "cron",
+        "action_ids": [
+          "manage_cron"
+        ]
+      },
+      {
+        "id": "file_source_manager",
+        "name": "文件源管理员",
+        "description": "拥有某些文件源相关的权限",
+        "resource_type_id": "file_source",
+        "action_ids": [
+          "view_file_source",
+          "manage_file_source"
+        ]
+      },
+      {
+        "id": "ticket_manager",
+        "name": "凭证管理员",
+        "description": "拥有某些凭证相关的权限",
+        "resource_type_id": "ticket",
+        "action_ids": [
+          "use_ticket",
+          "manage_ticket"
+        ]
+      },
+      {
+        "id": "account_manager",
+        "name": "执行账号管理员",
+        "description": "拥有某些执行账号相关的权限",
+        "resource_type_id": "account",
+        "action_ids": [
+          "use_account",
+          "manage_account"
+        ]
       }
     ],
     "_notes": {
-      "constraint": "IAM v4 规则（接入指南 3.1.4）：角色里每个操作关联的资源类型，必须等于角色关联的资源类型或其子孙。因此关联 biz 的角色不能包含与资源无关的操作（resource_type_id 为空），也不能包含关联非 biz 子孙资源的操作。",
-      "platform_admin_public_script": "两个公共脚本操作因资源类型不同被拆到两个角色：create_public_script 与资源无关，只能进 platform_admin（关联资源为空）；manage_public_script_instance 关联 public_script 资源，只能进 public_script 角色。design.md 原先把两者都列在 public_script 角色里，与 v4 角色约束冲突，已调整。若产品希望「公共脚本管理」角色也能新建，需 IAM 确认角色能否混合无资源操作与资源操作。",
+      "constraint": "IAM v4 规则（接入指南 3.1.4）：角色里每个操作关联的资源类型，必须等于角色关联的资源类型或其子孙。因此关联 biz 的角色不能包含与资源无关的操作（resource_type_id 为空），也不能包含关联非 biz 子孙资源的操作。单资源角色同理，不能包含绑定在 biz / host 上的操作（如 create_script、execute_script）。",
+      "platform_admin_public_script": "两个公共脚本操作因资源类型不同被拆到两个角色：create_public_script 与资源无关，只能进 platform_admin（关联资源为空）；manage_public_script_instance 关联 public_script 资源，只能进 public_script_manager 角色。若产品希望「公共脚本管理员」也能新建，需 IAM 确认角色能否混合无资源操作与资源操作。",
       "dashboard_view": "已确认：运营视图查看是平台级功能权限，归入 platform_admin。因该角色不关联资源，按 v4 规则只能含无资源操作，故 dashboard_view 操作的 resource_type_id 置空，且不再注册 dashboard_view 资源类型。design.md 原先把它列在 read_only / developer / operator 里，与 v4 角色约束冲突，已移除。",
-      "pending": "各角色的操作清单需产品最终确认；本文件按 design.md「角色设计」落地。"
+      "pending": "业务视角角色的操作清单需产品最终确认；单资源视角 9 个角色按产品给定的资源-操作清单落地。",
+      "resource_roles": "单资源角色只含该资源类型上的操作。create_* 绑定 biz、执行类操作绑定 host，均不进入对应管理员角色；授权范围是「某些实例」而非整个业务。",
+      "creator_authorization": "单资源角色同时承载「资源创建者授权」（v3 的 registerResource 在 v4 的等价物）：新建资源后调用 authorize，把该资源类型对应的角色连同新实例 ID 授予创建者，创建者即获得该实例上的全部操作。资源类型 → 角色：script→script_manager、job_template→job_template_manager、job_plan→job_plan_manager、tag→tag_manager、cron→cron_manager、file_source→file_source_manager、ticket→ticket_manager、account→account_manager、public_script→public_script_manager。详见 openspec design.md D17。"
     }
   },
   "instance_views": {
@@ -264,6 +344,6 @@
     "system.managers": "系统管理员列表待确认",
     "system.callback_url": "回调根地址待确认（需权限中心可访问的网关地址）",
     "OQ-BIZ-VIEW": "biz 资源自身是否需额外注册实例视图（当前按 biz / biz_set / tenant_set 三个并列资源类型注册）",
-    "roles": "6 个角色的操作清单待产品最终确认"
+    "roles": "业务视角角色操作清单待产品最终确认；单资源视角 9 个角色已按产品清单落地"
   }
 }
