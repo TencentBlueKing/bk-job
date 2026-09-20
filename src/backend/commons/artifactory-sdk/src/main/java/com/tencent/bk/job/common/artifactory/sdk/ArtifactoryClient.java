@@ -620,7 +620,7 @@ public class ArtifactoryClient {
         try {
             return JsonUtils.fromJson(responseBody, typeReference);
         } catch (Exception e) {
-            log.debug("Fail to parse artifactory response", e);
+            log.warn("Fail to parse artifactory response, responseBody={}", responseBody, e);
             return null;
         }
     }

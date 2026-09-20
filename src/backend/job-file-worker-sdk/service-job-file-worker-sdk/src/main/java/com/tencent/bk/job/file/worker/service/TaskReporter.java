@@ -37,22 +37,12 @@ public interface TaskReporter {
                                     Integer speed,
                                     Integer progress);
 
-    void reportFileDownloadProgressWithContent(String taskId,
-                                               String filePath,
-                                               String downloadPath,
-                                               Long fileSize,
-                                               Integer speed,
-                                               Integer progress,
-                                               String content);
-
     void reportFileDownloadSuccess(String taskId,
                                    String filePath,
                                    String downloadPath,
                                    Long fileSize,
                                    Integer speed,
                                    Integer progress);
-
-    void reportFileDownloadFailure(String taskId, String filePath, String downloadPath);
 
     void reportFileDownloadStopped(String taskId,
                                    String filePath,

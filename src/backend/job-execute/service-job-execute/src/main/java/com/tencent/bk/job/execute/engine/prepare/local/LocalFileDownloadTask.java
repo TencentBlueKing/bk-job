@@ -102,7 +102,8 @@ public class LocalFileDownloadTask implements Callable<Boolean> {
                 file.getFilePath()
             );
             log.error(msg.getMessage(), t);
-            writeFailureLog(FileDownloadException.resolveError(t).toJson());
+            writeFailureLog("Failed to download local file from artifactory, reason="
+                + FileDownloadException.resolveError(t).toJson());
             return false;
         }
     }
@@ -123,7 +124,7 @@ public class LocalFileDownloadTask implements Callable<Boolean> {
                 artifactoryProject,
                 artifactoryRepo
             );
-            writeFailureLog(new FileDownloadErrorDTO(
+            writeFailureLog("Failed to download local file from artifactory, reason=" + new FileDownloadErrorDTO(
                 null,
                 String.valueOf(ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY),
                 "can not find node by filePath: " + filePath,
@@ -185,7 +186,8 @@ public class LocalFileDownloadTask implements Callable<Boolean> {
                 localPath,
                 e
             );
-            writeFailureLog(FileDownloadException.resolveError(e).toJson());
+            writeFailureLog("Failed to download local file from artifactory, reason="
+                + FileDownloadException.resolveError(e).toJson());
         } finally {
             if (req != null) {
                 req.releaseConnection();

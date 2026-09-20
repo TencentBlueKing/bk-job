@@ -50,6 +50,10 @@ public class FileDownloadException extends InternalException {
         this.error = error;
     }
 
+    /**
+     * 解析文件下载链路中的异常，生成可直接写入文件分发日志的失败原因。
+     * 已封装过的下载异常直接返回底层响应信息；其他异常则按通用网络异常和原始异常消息兜底。
+     */
     public static FileDownloadErrorDTO resolveError(Throwable throwable) {
         FileDownloadException downloadException = findCause(throwable, FileDownloadException.class);
         if (downloadException != null) {
@@ -65,6 +69,9 @@ public class FileDownloadException extends InternalException {
         return error;
     }
 
+    /**
+     * 优先识别 DNS、连接超时等链路异常；未命中时使用最底层异常消息
+     */
     private static String resolveMessage(Throwable throwable, ServiceException serviceException) {
         String linkErrorMessage = resolveLinkErrorMessage(throwable);
         if (StringUtils.isNotBlank(linkErrorMessage)) {
@@ -84,6 +91,9 @@ public class FileDownloadException extends InternalException {
         return throwable.getClass().getSimpleName();
     }
 
+    /**
+     * 从异常调用链中查找指定类型异常，用于兼容异常被多层包装的场景
+     */
     private static <T extends Throwable> T findCause(Throwable throwable, Class<T> causeClass) {
         Throwable current = throwable;
         while (current != null) {
@@ -95,6 +105,9 @@ public class FileDownloadException extends InternalException {
         return null;
     }
 
+    /**
+     * 获取最底层异常消息，尽量保留真正触发失败的底层原因
+     */
     private static String getRootMessage(Throwable throwable) {
         String message = null;
         Throwable current = throwable;
@@ -107,6 +120,9 @@ public class FileDownloadException extends InternalException {
         return message;
     }
 
+    /**
+     * 将常见网络链路异常转换成更明确的失败描述
+     */
     private static String resolveLinkErrorMessage(Throwable throwable) {
         UnknownHostException unknownHostException = findCause(throwable, UnknownHostException.class);
         if (unknownHostException != null) {
