@@ -171,6 +171,16 @@
   });
 </script>
 <style lang="postcss">
+.ai-blueking-panel{
+  .shortcut-btns{
+    display: none;
+  }
+  .bk-switcher.is-checked:after {
+    transform: translate(-100%) !important;
+  }
+}
+</style>
+<style lang="postcss">
   .jb-ai {
     position: relative;
     z-index: 999999;

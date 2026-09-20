@@ -75,6 +75,7 @@
         :label="$t('script.脚本内容_label')"
         property="content"
         required>
+        <script-content-tips />
         <div ref="content">
           <ace-editor
             v-model="formData.content"
@@ -122,6 +123,7 @@
   import AceEditor from '@components/ace-editor';
   import JbInput from '@components/jb-input';
   import JbTagSelect from '@components/jb-tag-select';
+  import ScriptContentTips from '@components/task-step/script/script-content-tips';
 
   import I18n from '@/i18n';
 
@@ -131,6 +133,7 @@
       AceEditor,
       JbTagSelect,
       JbInput,
+      ScriptContentTips,
     },
     data() {
       return {
