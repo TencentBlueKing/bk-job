@@ -77,7 +77,7 @@
         required>
         <script-content-tips />
         <div ref="content">
-          <monaco-editor
+          <ace-editor
             v-model="formData.content"
             v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
             :height="contentHeight"
@@ -120,9 +120,9 @@
     scriptVersionRule,
   } from '@utils/validator';
 
+  import AceEditor from '@components/ace-editor';
   import JbInput from '@components/jb-input';
   import JbTagSelect from '@components/jb-tag-select';
-  import MonacoEditor from '@components/monaco-editor';
   import ScriptContentTips from '@components/task-step/script/script-content-tips';
 
   import I18n from '@/i18n';
@@ -130,9 +130,9 @@
   export default {
     name: '',
     components: {
+      AceEditor,
       JbTagSelect,
       JbInput,
-      MonacoEditor,
       ScriptContentTips,
     },
     data() {

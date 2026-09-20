@@ -33,8 +33,8 @@
     required
     :rules="rules">
     <script-content-tips />
-    <monaco-editor
-      ref="monacoEditor"
+    <ace-editor
+      ref="aceEditor"
       v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
       :constants="scriptVariables"
       :lang="lang"
@@ -64,7 +64,7 @@
 
   export default {
     components: {
-      MonacoEditor,
+      AceEditor,
       ScriptContentTips,
     },
     props: {
