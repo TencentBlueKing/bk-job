@@ -117,8 +117,7 @@ public class AppAuthServiceImpl extends AbstractAuthResultBuilder implements App
     @Override
     public AppResourceScopeResult getAppResourceScopeList(User user,
                                                           List<AppResourceScope> allAppResourceScopeList) {
-        // TODO v4 关系查询 API 尚未封装，暂固定走 v3
-        return v3Executor.getAppResourceScopeList(user, allAppResourceScopeList);
+        return pickExecutor(user).getAppResourceScopeList(user, allAppResourceScopeList);
     }
 
     @Override

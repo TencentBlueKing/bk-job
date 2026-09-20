@@ -38,12 +38,16 @@ import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4ApplyResourceDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4PermissionDTO;
+import com.tencent.bk.sdk.iamv4.dto.response.V4AuthorizedResourceDTO;
 import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -97,9 +101,12 @@ public class V4AppAuthExecutor extends AbstractV4AuthExecutor implements AppAuth
     @Override
     public AppResourceScopeResult getAppResourceScopeList(User user,
                                                           List<AppResourceScope> allAppResourceScopeList) {
-        // TODO 需通过关系查询 API(/rbac/.../relations/*) 实现，SDK 尚未封装，暂不支持
-        throw new UnsupportedOperationException(
-            "getAppResourceScopeList is not supported by IAM v4 yet (relations query API pending)");
+        List<V4AuthorizedResourceDTO> authorized = iamV4AuthService.listAuthorizedResources(
+            user.getTenantId(), user.getUsername(), ActionId.ACCESS_BUSINESS);
+        AppResourceScopeResult result = new AppResourceScopeResult();
+        result.setAny(false);
+        result.setAppResourceScopeList(toAppResourceScopes(authorized, allAppResourceScopeList));
+        return result;
     }
 
     @Override
@@ -113,6 +120,50 @@ public class V4AppAuthExecutor extends AbstractV4AuthExecutor implements AppAuth
             .resources(Collections.singletonList(resource))
             .build();
         return iamV4AuthService.getApplyUrl(tenantId, Collections.singletonList(permission));
+    }
+
+    /**
+     * 把 IAM 按类型分组的已授权 ID 转成业务范围。能在全量列表里对上的沿用其 appId。
+     */
+    private List<AppResourceScope> toAppResourceScopes(List<V4AuthorizedResourceDTO> authorized,
+                                                       List<AppResourceScope> allAppResourceScopeList) {
+        Map<String, AppResourceScope> existingByKey = indexByTypeAndId(allAppResourceScopeList);
+        List<AppResourceScope> scopes = new ArrayList<>();
+        if (CollectionUtils.isEmpty(authorized)) {
+            return scopes;
+        }
+        for (V4AuthorizedResourceDTO group : authorized) {
+            if (group == null || !ResourceScopeTypeEnum.isValid(group.getType())) {
+                log.warn("Skip unknown authorized resource type: {}", group == null ? null : group.getType());
+                continue;
+            }
+            if (CollectionUtils.isEmpty(group.getIds())) {
+                continue;
+            }
+            ResourceScopeTypeEnum scopeType = ResourceScopeTypeEnum.from(group.getType());
+            for (String id : group.getIds()) {
+                AppResourceScope existing = existingByKey.get(scopeKey(scopeType, id));
+                scopes.add(existing != null ? existing : new AppResourceScope(scopeType, id, null));
+            }
+        }
+        return scopes;
+    }
+
+    private Map<String, AppResourceScope> indexByTypeAndId(List<AppResourceScope> allAppResourceScopeList) {
+        Map<String, AppResourceScope> existingByKey = new HashMap<>();
+        if (CollectionUtils.isEmpty(allAppResourceScopeList)) {
+            return existingByKey;
+        }
+        for (AppResourceScope scope : allAppResourceScopeList) {
+            if (scope.getType() != null) {
+                existingByKey.put(scopeKey(scope.getType(), scope.getId()), scope);
+            }
+        }
+        return existingByKey;
+    }
+
+    private String scopeKey(ResourceScopeTypeEnum type, String id) {
+        return type.getValue() + ":" + id;
     }
 
     private V4AuthResourceDTO buildV4ResourceFromScope(AppResourceScope appResourceScope) {

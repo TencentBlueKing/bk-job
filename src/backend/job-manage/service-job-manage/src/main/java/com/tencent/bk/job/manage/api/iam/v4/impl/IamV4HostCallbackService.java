@@ -175,7 +175,7 @@ public class IamV4HostCallbackService extends BaseIamV4CallbackService {
         return StringUtils.isNotBlank(cloudIp) ? cloudIp : host.getHostName();
     }
 
-    private List<String> buildHostPaths(ApplicationHostDTO host) {
+    private String buildHostPaths(ApplicationHostDTO host) {
         if (host.getBizId() == null) {
             return null;
         }

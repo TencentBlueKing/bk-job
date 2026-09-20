@@ -39,7 +39,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +47,7 @@ import java.util.Map;
  * IAM v4 鉴权执行器基类：持有 {@link IamV4AuthService}，并提供 v4 资源（{@link V4AuthResourceDTO}）构造。
  *
  * <p>入参中的资源类型与拓扑路径使用业务层通用的（v3）取值，构造 v4 资源时统一经
- * {@link IamV4ResourceTypeMapper} 转换为 v4 资源类型 ID。{@code _bk_iam_path_} 以路径数组承载，
- * 一个实例参与多个实例视图时可携带多条路径。</p>
+ * {@link IamV4ResourceTypeMapper} 转换为 v4 资源类型 ID。{@code _bk_iam_path_} 为单个字符串。</p>
  */
 public abstract class AbstractV4AuthExecutor {
 
@@ -60,24 +58,23 @@ public abstract class AbstractV4AuthExecutor {
     }
 
     protected V4AuthResourceDTO buildV4Resource(String type, String id, PathInfoDTO path) {
-        List<String> v4Paths = path == null ? null : Collections.singletonList(toV4Path(path));
-        return buildV4ResourceWithPaths(type, id, v4Paths);
+        return buildV4ResourceWithPath(type, id, path == null ? null : toV4Path(path));
     }
 
     /**
      * 构造 v4 鉴权资源。
      *
-     * @param type    资源类型（v3 取值，内部转换为 v4）
-     * @param id      资源实例 ID
-     * @param v4Paths 该实例的全部 v4 拓扑路径，可为空
+     * @param type   资源类型（v3 取值，内部转换为 v4）
+     * @param id     资源实例 ID
+     * @param v4Path 该实例的 v4 拓扑路径，可为空
      */
-    protected V4AuthResourceDTO buildV4ResourceWithPaths(String type, String id, List<String> v4Paths) {
+    protected V4AuthResourceDTO buildV4ResourceWithPath(String type, String id, String v4Path) {
         V4AuthResourceDTO.V4AuthResourceDTOBuilder builder = V4AuthResourceDTO.builder()
             .id(id)
             .type(IamV4ResourceTypeMapper.toV4ResourceTypeId(type));
-        if (CollectionUtils.isNotEmpty(v4Paths)) {
+        if (StringUtils.isNotBlank(v4Path)) {
             Map<String, Object> attributes = new HashMap<>();
-            attributes.put(AttributeKey.BK_IAM_PATH, v4Paths);
+            attributes.put(AttributeKey.BK_IAM_PATH, v4Path);
             builder.attributes(attributes);
         }
         return builder.build();

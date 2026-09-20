@@ -51,7 +51,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -242,16 +241,16 @@ public abstract class BaseIamV4CallbackService {
     }
 
     /**
-     * 构造业务下资源的拓扑路径列表，如 {@code ["/biz,2/"]}。
+     * 构造业务下资源的拓扑路径，如 {@code /biz,2/}。
      *
      * <p>路径只含祖先，不含资源实例自身。scope 为空（业务已删除等）时返回 null。</p>
      */
-    protected List<String> buildScopePaths(ResourceScope scope) {
+    protected String buildScopePaths(ResourceScope scope) {
         if (scope == null) {
             return null;
         }
         String scopeType = IamV4ResourceTypeMapper.getV4ResourceTypeIdForScope(scope);
-        return Collections.singletonList("/" + scopeType + "," + scope.getId() + "/");
+        return "/" + scopeType + "," + scope.getId() + "/";
     }
 
     /**

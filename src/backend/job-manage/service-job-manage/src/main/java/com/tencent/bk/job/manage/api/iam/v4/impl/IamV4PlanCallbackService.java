@@ -155,15 +155,14 @@ public class IamV4PlanCallbackService extends BaseIamV4CallbackService {
     }
 
     /**
-     * 构造执行方案的拓扑路径列表，如 {@code ["/biz,2/job_template,10/"]}。路径只含祖先。
+     * 构造执行方案的拓扑路径，如 {@code /biz,2/job_template,10/}。路径只含祖先。
      */
-    private List<String> buildPlanPaths(TaskPlanBasicInfoDTO plan, ResourceScope scope) {
+    private String buildPlanPaths(TaskPlanBasicInfoDTO plan, ResourceScope scope) {
         if (scope == null) {
             return null;
         }
         String scopeType = IamV4ResourceTypeMapper.getV4ResourceTypeIdForScope(scope);
-        String path = "/" + scopeType + "," + scope.getId() + "/"
+        return "/" + scopeType + "," + scope.getId() + "/"
             + IamV4ResourceTypeId.TEMPLATE + "," + plan.getTemplateId() + "/";
-        return Collections.singletonList(path);
     }
 }

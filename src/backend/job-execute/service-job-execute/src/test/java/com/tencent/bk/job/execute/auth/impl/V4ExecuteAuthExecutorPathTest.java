@@ -74,12 +74,11 @@ class V4ExecuteAuthExecutorPathTest {
         bizScope = new AppResourceScope(ResourceScopeTypeEnum.BIZ, "2", 2L);
     }
 
-    @SuppressWarnings("unchecked")
-    private static List<String> pathsOf(V4AuthResourceDTO resource) {
+    private static String pathOf(V4AuthResourceDTO resource) {
         if (resource.getAttributes() == null) {
-            return Collections.emptyList();
+            return null;
         }
-        return (List<String>) resource.getAttributes().get(AttributeKey.BK_IAM_PATH);
+        return (String) resource.getAttributes().get(AttributeKey.BK_IAM_PATH);
     }
 
     @Test
@@ -92,7 +91,7 @@ class V4ExecuteAuthExecutorPathTest {
 
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("100");
-        assertThat(pathsOf(resources.get(0))).containsExactly("/biz,2/");
+        assertThat(pathOf(resources.get(0))).isEqualTo("/biz,2/");
     }
 
     @Test
@@ -106,7 +105,7 @@ class V4ExecuteAuthExecutorPathTest {
 
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("*");
-        assertThat(pathsOf(resources.get(0))).containsExactly("/biz_set,5/");
+        assertThat(pathOf(resources.get(0))).isEqualTo("/biz_set,5/");
     }
 
     @Test
@@ -121,8 +120,8 @@ class V4ExecuteAuthExecutorPathTest {
 
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("*");
-        assertThat(pathsOf(resources.get(0)))
-            .containsExactly("/biz_dynamic_group,2/dynamic_group,dg-1/");
+        assertThat(pathOf(resources.get(0)))
+            .isEqualTo("/biz_dynamic_group,2/dynamic_group,dg-1/");
     }
 
     @Test
@@ -139,8 +138,8 @@ class V4ExecuteAuthExecutorPathTest {
 
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("*");
-        assertThat(pathsOf(resources.get(0)))
-            .containsExactly("/biz_container,2/cluster,100/namespace,45/");
+        assertThat(pathOf(resources.get(0)))
+            .isEqualTo("/biz_container,2/cluster,100/namespace,45/");
     }
 
     @Test
@@ -155,8 +154,8 @@ class V4ExecuteAuthExecutorPathTest {
         List<V4AuthResourceDTO> resources = executor.buildHostAuthResources(bizScope, target);
 
         assertThat(resources).hasSize(1);
-        assertThat(pathsOf(resources.get(0)))
-            .containsExactly("/biz_container,2/cluster,100/namespace,45/");
+        assertThat(pathOf(resources.get(0)))
+            .isEqualTo("/biz_container,2/cluster,100/namespace,45/");
     }
 
     @Test
@@ -171,7 +170,7 @@ class V4ExecuteAuthExecutorPathTest {
         List<V4AuthResourceDTO> resources = executor.buildHostAuthResources(bizScope, target);
 
         assertThat(resources).hasSize(1);
-        assertThat(pathsOf(resources.get(0))).containsExactly("/biz_container,2/cluster,100/");
+        assertThat(pathOf(resources.get(0))).isEqualTo("/biz_container,2/cluster,100/");
     }
 
     @Test
@@ -183,7 +182,7 @@ class V4ExecuteAuthExecutorPathTest {
         List<V4AuthResourceDTO> resources = executor.buildHostAuthResources(bizScope, target);
 
         assertThat(resources).hasSize(1);
-        assertThat(pathsOf(resources.get(0))).containsExactly("/biz_container,2/");
+        assertThat(pathOf(resources.get(0))).isEqualTo("/biz_container,2/");
     }
 
     @Test
@@ -230,7 +229,7 @@ class V4ExecuteAuthExecutorPathTest {
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("*");
         // 末段保留 module 叶子，首段是 biz（拓扑视图与业务下主机视图共用 biz 首段）
-        assertThat(pathsOf(resources.get(0))).containsExactly("/biz,2/set,200/module,300/");
+        assertThat(pathOf(resources.get(0))).isEqualTo("/biz,2/set,200/module,300/");
     }
 
     @Test
@@ -250,7 +249,7 @@ class V4ExecuteAuthExecutorPathTest {
         List<V4AuthResourceDTO> resources = executor.buildHostAuthResources(bizScope, target);
 
         assertThat(resources).hasSize(3);
-        assertThat(resources).flatExtracting(V4ExecuteAuthExecutorPathTest::pathsOf)
+        assertThat(resources).extracting(V4ExecuteAuthExecutorPathTest::pathOf)
             .containsExactlyInAnyOrder(
                 "/biz,2/",
                 "/biz_dynamic_group,2/dynamic_group,dg-1/",

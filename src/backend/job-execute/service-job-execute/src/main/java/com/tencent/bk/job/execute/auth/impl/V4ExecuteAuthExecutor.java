@@ -46,7 +46,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -161,11 +160,11 @@ public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements Exe
      * <ul>
      *     <li><b>默认视图（业务 → 静态主机）</b>：叶子就是主机实例本身，故传<b>真实主机 ID</b>，
      *     {@code _bk_iam_path_} 只到父级、<b>不含</b>主机自身，如
-     *     {@code id="100"}、{@code ["/biz,1/"]}；</li>
+     *     {@code id="100"}、{@code "/biz,1/"}；</li>
      *     <li><b>扩展视图（业务集 / 租户集 / 拓扑节点 / 动态分组 / 容器）</b>：叶子是上级节点、
      *     代表"该节点下的全部主机"，具体是哪台主机无从指定，故传<b>通配 {@code *}</b>，
      *     {@code _bk_iam_path_} <b>含</b>该视图的叶子段，如
-     *     {@code id="*"}、{@code ["/biz_dynamic_group,1/dynamic_group,2/"]}。</li>
+     *     {@code id="*"}、{@code "/biz_dynamic_group,1/dynamic_group,2/"}。</li>
      * </ul>
      */
     List<V4AuthResourceDTO> buildHostAuthResources(AppResourceScope appResourceScope,
@@ -176,14 +175,14 @@ public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements Exe
         if (CollectionUtils.isNotEmpty(executeTarget.getStaticIpList())) {
             if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
                 // 默认视图：叶子即主机，传真实主机 ID，路径只到业务
-                executeTarget.getStaticIpList().forEach(host -> resources.add(buildV4ResourceWithPaths(
+                executeTarget.getStaticIpList().forEach(host -> resources.add(buildV4ResourceWithPath(
                     ResourceTypeEnum.HOST.getId(),
                     String.valueOf(host.getHostId()),
-                    Collections.singletonList(scopePath))));
+                    scopePath)));
             } else {
                 // 业务集 / 租户集视图：叶子就是业务集 / 租户集本身，只能整体鉴权
-                resources.add(buildV4ResourceWithPaths(
-                    ResourceTypeEnum.HOST.getId(), ANY_INSTANCE_ID, Collections.singletonList(scopePath)));
+                resources.add(buildV4ResourceWithPath(
+                    ResourceTypeEnum.HOST.getId(), ANY_INSTANCE_ID, scopePath));
             }
         }
 
@@ -205,15 +204,15 @@ public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements Exe
             executeTarget.getDynamicServerGroups().forEach(serverGroup -> {
                 String path = "/" + IamV4ResourceTypeId.BIZ_DYNAMIC_GROUP + "," + appResourceScope.getId() + "/"
                     + IamV4ResourceTypeId.DYNAMIC_GROUP + "," + serverGroup.getGroupId() + "/";
-                resources.add(buildV4ResourceWithPaths(
-                    ResourceTypeEnum.HOST.getId(), ANY_INSTANCE_ID, Collections.singletonList(path)));
+                resources.add(buildV4ResourceWithPath(
+                    ResourceTypeEnum.HOST.getId(), ANY_INSTANCE_ID, path));
             });
         }
 
         // 容器视图：首段须为 biz_container，末段 namespace（无法定位时降级到 cluster / biz_container）即叶子
         for (String containerPath : buildContainerPaths(appResourceScope, executeTarget)) {
-            resources.add(buildV4ResourceWithPaths(
-                ResourceTypeEnum.HOST.getId(), ANY_INSTANCE_ID, Collections.singletonList(containerPath)));
+            resources.add(buildV4ResourceWithPath(
+                ResourceTypeEnum.HOST.getId(), ANY_INSTANCE_ID, containerPath));
         }
         return resources;
     }
