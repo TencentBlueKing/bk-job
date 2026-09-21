@@ -1,0 +1,91 @@
+{
+  "_comment": "IAM v4 实例视图注册清单。按 resource_type_id 分组，每组内容即注册接口的请求体（数组）：POST /api/v1/open/systems/{system_id}/resource-types/{resource_type_id}/instance-views 。chain 包含资源类型自身；注册资源类型时声明的 ancestors 已自动构成默认视图，故此处只列扩展视图。v4 无资源代理，下列全部视图均由 bk_job 注册，其 list_instance 回调也全部由 bk-job 提供。",
+  "system_id": "bk_job",
+  "instance_views": {
+    "biz": [
+      {
+        "id": "biz_set_biz",
+        "name": "业务集",
+        "chain": ["biz_set"]
+      }
+    ],
+    "host": [
+      {
+        "id": "biz_set_host",
+        "name": "业务集列表",
+        "chain": ["biz_set"]
+      },
+      {
+        "id": "topo_host",
+        "name": "拓扑节点",
+        "chain": ["biz", "set", "module"]
+      },
+      {
+        "id": "dynamic_group_host",
+        "name": "动态分组",
+        "chain": ["biz_dynamic_group", "dynamic_group"]
+      },
+      {
+        "id": "container_host",
+        "name": "业务下容器",
+        "chain": ["biz_container", "cluster", "namespace"]
+      }
+    ],
+    "script": [
+      {
+        "id": "biz_set_script",
+        "name": "业务集下脚本",
+        "chain": ["biz_set", "script"]
+      }
+    ],
+    "job_template": [
+      {
+        "id": "biz_set_job_template",
+        "name": "业务集下作业模板",
+        "chain": ["biz_set", "job_template"]
+      }
+    ],
+    "job_plan": [
+      {
+        "id": "biz_set_job_plan",
+        "name": "业务集下执行方案",
+        "chain": ["biz_set", "job_template", "job_plan"]
+      }
+    ],
+    "cron": [
+      {
+        "id": "biz_set_cron",
+        "name": "业务集下定时任务",
+        "chain": ["biz_set", "cron"]
+      }
+    ],
+    "account": [
+      {
+        "id": "biz_set_account",
+        "name": "业务集下账号",
+        "chain": ["biz_set", "account"]
+      }
+    ],
+    "tag": [
+      {
+        "id": "biz_set_tag",
+        "name": "业务集下标签",
+        "chain": ["biz_set", "tag"]
+      }
+    ],
+    "file_source": [
+      {
+        "id": "biz_set_file_source",
+        "name": "业务集下文件源",
+        "chain": ["biz_set", "file_source"]
+      }
+    ],
+    "ticket": [
+      {
+        "id": "biz_set_ticket",
+        "name": "业务集下凭证",
+        "chain": ["biz_set", "ticket"]
+      }
+    ]
+  }
+}

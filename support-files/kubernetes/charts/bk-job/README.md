@@ -121,6 +121,9 @@ bitnami/rabbitmq
 | `job.http.ssl.verify.systems.bkCmsi`    | 调用蓝鲸消息管理 CMSI 时是否校验证书，留空则继承全局配置    | `true`       |
 | `job.http.ssl.verify.systems.bkAiDev`    | 调用蓝鲸 AI 开发平台时是否校验证书，留空则继承全局配置    | `true`       |
 | `job.migration.iamModel.enabled`    | 是否开启权限模型migration    | `true`       |
+| `job.migration.iamV4.enabled`    | 是否走进 IAM v4 模型 migrate（与运行时鉴权灰度分开）    | `false`       |
+| `job.migration.iamV4.registerModel`    | 是否调用 IAM v4 创建接口注册权限模型（只能跑一次）    | `false`       |
+| `job.migration.iamV4.managers`    | IAM v4 系统管理员，逗号分隔    | ``       |
 | `job.migration.mysqlSchema.enabled`    | 是否开启Mysql数据库结构migration    | `true`       |
 | `job.web.domain` | 主站域名（前端与Web API使用）    | `job.example.com`       |
 | `job.web.apiDomain` | 暴露给其他上层系统（ESB、ApiGW）的API地址    | `api.job.example.com`       |

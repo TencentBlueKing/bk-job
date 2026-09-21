@@ -123,6 +123,29 @@ function migrateIamModel(){
   done
 }
 
+function migrateIamV4Model(){
+  echo "begin to migrate iam v4 model"
+  echo "BK_IAM_V4_APIGATEWAY_URL=${BK_IAM_V4_APIGATEWAY_URL}"
+  echo "BK_JOB_API_URL=${BK_JOB_API_URL}"
+  echo "BK_JOB_TENANT_ENABLED=${BK_JOB_TENANT_ENABLED}"
+  echo "BK_JOB_MIGRATION_IAM_V4_REGISTER_MODEL=${BK_JOB_MIGRATION_IAM_V4_REGISTER_MODEL}"
+  if [[ "${BK_JOB_MIGRATION_IAM_V4_REGISTER_MODEL}" != "true" ]]; then
+    echo "skip register iam v4 model, BK_JOB_MIGRATION_IAM_V4_REGISTER_MODEL is not true"
+    return
+  fi
+  python3 ./bkiamv4/do_migrate.py \
+    -t "${BK_IAM_V4_APIGATEWAY_URL}" \
+    -a "${BK_JOB_APP_CODE}" \
+    -s "${BK_JOB_APP_SECRET}" \
+    --job-host "${BK_JOB_API_URL}" \
+    --tenant-enabled "${BK_JOB_TENANT_ENABLED}" \
+    --managers "${BK_IAM_V4_MANAGERS}"
+  exitCode=$?
+  if [ "$exitCode" -ne "0" ]; then
+    echo "migrateIamV4Model exitCode=$exitCode"
+  fi
+}
+
 echo "BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED=${BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED}"
 if [[ "${BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED}" == "true" ]];then
   migrateMySQL
@@ -135,6 +158,13 @@ if [[ "${BK_JOB_MIGRATION_IAM_MODEL_ENABLED}" == "true" ]];then
   migrateIamModel
 else
   echo "skip migrateIamModel"
+fi
+
+echo "BK_JOB_MIGRATION_IAM_V4_ENABLED=${BK_JOB_MIGRATION_IAM_V4_ENABLED}"
+if [[ "${BK_JOB_MIGRATION_IAM_V4_ENABLED}" == "true" ]];then
+  migrateIamV4Model
+else
+  echo "skip migrateIamV4Model"
 fi
 
 echo "sleep ${BK_JOB_SLEEP_SECONDS_AFTER_MIGRATION}s after migration"

@@ -991,6 +991,14 @@ job:
     iamModel:
       # 是否开启权限模型migration
       enabled: true
+    # IAM v4 模型迁移。与运行时鉴权灰度 job.features.iamV4.enabled 分开
+    iamV4:
+      # 是否走进 v4 模型 migrate 这段
+      enabled: false
+      # 是否调用 IAM v4 创建接口注册权限模型。只能跑一次，首次部署开，之后关
+      registerModel: false
+      # 系统管理员，逗号分隔；空则 managers 传空数组
+      managers: ""
     mysqlSchema:
       # 是否开启Mysql数据库结构migration
       enabled: true
