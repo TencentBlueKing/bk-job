@@ -51,7 +51,7 @@ public interface VersionBranchResource {
      * 按版本分支查询
      */
     @GetMapping
-    VersionBranchDTO get(@RequestParam(value = "versionBranch", required = false) String versionBranch);
+    VersionBranchDTO get(@RequestParam("versionBranch") String versionBranch);
 
     /**
      * 全量列表，不分页，按 versionBranch 升序
@@ -71,5 +71,5 @@ public interface VersionBranchResource {
      * 按版本分支物理删除
      */
     @PostMapping("/delete")
-    DeleteVersionBranchResp delete(@RequestParam(value = "versionBranch", required = false) String versionBranch);
+    DeleteVersionBranchResp delete(@RequestParam("versionBranch") String versionBranch);
 }

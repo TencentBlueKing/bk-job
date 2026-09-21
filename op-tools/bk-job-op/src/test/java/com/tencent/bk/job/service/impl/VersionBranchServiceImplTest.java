@@ -152,6 +152,24 @@ class VersionBranchServiceImplTest {
     }
 
     @Test
+    void createShouldRejectOverlongPipelineCmd() {
+        VersionBranchReq req = sampleReq("3.10.x");
+        req.setDevBranchDeployPipelineCmd("c".repeat(65536));
+        OpApiException ex = assertThrows(OpApiException.class, () -> service.create(req));
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getHttpStatus());
+        assertTrue(ex.getMessage().contains("devBranchDeployPipelineCmd length"));
+    }
+
+    @Test
+    void createShouldRejectOverlongPipelineCmdDesc() {
+        VersionBranchReq req = sampleReq("3.10.x");
+        req.setDevBranchDeployPipelineCmdDesc("d".repeat(65536));
+        OpApiException ex = assertThrows(OpApiException.class, () -> service.create(req));
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getHttpStatus());
+        assertTrue(ex.getMessage().contains("devBranchDeployPipelineCmdDesc length"));
+    }
+
+    @Test
     void getShouldReturnRow() {
         VersionBranchDTO dto = sampleDto("3.10.x");
         when(versionBranchMapper.selectByVersionBranch("3.10.x")).thenReturn(dto);
@@ -180,7 +198,6 @@ class VersionBranchServiceImplTest {
         req.setDevBranch(null);
         req.setDevBranchDeployPipelineCmd(null);
         req.setDevBranchDeployPipelineCmdDesc(null);
-        when(versionBranchMapper.countByVersionBranch("3.10.x")).thenReturn(1);
         when(versionBranchMapper.updateByVersionBranch(any(VersionBranchDTO.class))).thenReturn(1);
 
         VersionBranchDTO persisted = sampleDto("3.10.x");
@@ -207,10 +224,10 @@ class VersionBranchServiceImplTest {
     @Test
     void updateShouldReturnNotFound() {
         VersionBranchReq req = sampleReq("missing");
-        when(versionBranchMapper.countByVersionBranch("missing")).thenReturn(0);
+        when(versionBranchMapper.updateByVersionBranch(any(VersionBranchDTO.class))).thenReturn(0);
         OpApiException ex = assertThrows(OpApiException.class, () -> service.update(req));
         assertEquals(HttpStatus.NOT_FOUND, ex.getHttpStatus());
-        verify(versionBranchMapper, never()).updateByVersionBranch(any());
+        verify(versionBranchMapper, never()).selectByVersionBranch(any());
     }
 
     @Test

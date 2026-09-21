@@ -74,6 +74,7 @@ class ApiExceptionHandlerTest {
             handler.handleDuplicateKeyException(new DuplicateKeyException("dup"));
         assertEquals(HttpStatus.CONFLICT, resp.getStatusCode());
         assertEquals("Conflict", resp.getBody().get("error"));
+        assertEquals("resource already exists", resp.getBody().get("message"));
         assertEquals(409, resp.getBody().get("status"));
     }
 

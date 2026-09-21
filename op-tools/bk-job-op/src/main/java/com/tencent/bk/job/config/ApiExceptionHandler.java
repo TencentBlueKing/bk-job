@@ -55,7 +55,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(DuplicateKeyException.class)
     public ResponseEntity<Map<String, Object>> handleDuplicateKeyException(DuplicateKeyException ex) {
-        return buildError(HttpStatus.CONFLICT, "Conflict", "versionBranch already exists");
+        return buildError(HttpStatus.CONFLICT, "Conflict", "resource already exists");
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)

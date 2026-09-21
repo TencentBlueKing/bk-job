@@ -44,6 +44,7 @@ public class VersionBranchServiceImpl implements VersionBranchService {
     private static final int VERSION_BRANCH_MAX_LEN = 64;
     private static final int DESCRIPTION_MAX_LEN = 512;
     private static final int DEV_BRANCH_MAX_LEN = 128;
+    private static final int PIPELINE_CMD_MAX_LEN = 65535;
 
     private final VersionBranchMapper versionBranchMapper;
 
@@ -89,11 +90,11 @@ public class VersionBranchServiceImpl implements VersionBranchService {
     @Override
     public VersionBranchDTO update(VersionBranchReq req) {
         VersionBranchDTO dto = buildFromReq(req);
-        if (versionBranchMapper.countByVersionBranch(dto.getVersionBranch()) == 0) {
+        dto.setLastModifyTime(System.currentTimeMillis());
+        int affected = versionBranchMapper.updateByVersionBranch(dto);
+        if (affected == 0) {
             throw notFound(dto.getVersionBranch());
         }
-        dto.setLastModifyTime(System.currentTimeMillis());
-        versionBranchMapper.updateByVersionBranch(dto);
         return versionBranchMapper.selectByVersionBranch(dto.getVersionBranch());
     }
 
@@ -133,11 +134,16 @@ public class VersionBranchServiceImpl implements VersionBranchService {
     }
 
     private void validateContentFields(VersionBranchReq req) {
-        if (req.getDescription() != null && req.getDescription().length() > DESCRIPTION_MAX_LEN) {
-            throw new OpApiException(HttpStatus.BAD_REQUEST, "description length must be <= " + DESCRIPTION_MAX_LEN);
-        }
-        if (req.getDevBranch() != null && req.getDevBranch().length() > DEV_BRANCH_MAX_LEN) {
-            throw new OpApiException(HttpStatus.BAD_REQUEST, "devBranch length must be <= " + DEV_BRANCH_MAX_LEN);
+        validateMaxLength(req.getDescription(), DESCRIPTION_MAX_LEN, "description");
+        validateMaxLength(req.getDevBranch(), DEV_BRANCH_MAX_LEN, "devBranch");
+        validateMaxLength(req.getDevBranchDeployPipelineCmd(), PIPELINE_CMD_MAX_LEN, "devBranchDeployPipelineCmd");
+        validateMaxLength(
+            req.getDevBranchDeployPipelineCmdDesc(), PIPELINE_CMD_MAX_LEN, "devBranchDeployPipelineCmdDesc");
+    }
+
+    private void validateMaxLength(String value, int maxLen, String fieldName) {
+        if (value != null && value.length() > maxLen) {
+            throw new OpApiException(HttpStatus.BAD_REQUEST, fieldName + " length must be <= " + maxLen);
         }
     }
 

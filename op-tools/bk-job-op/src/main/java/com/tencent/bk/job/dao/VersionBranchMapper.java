@@ -41,6 +41,14 @@ import java.util.List;
 @Mapper
 public interface VersionBranchMapper {
 
+    String SELECT_COLUMNS = "version_branch AS versionBranch, "
+        + "description AS description, "
+        + "dev_branch AS devBranch, "
+        + "dev_branch_deploy_pipeline_cmd AS devBranchDeployPipelineCmd, "
+        + "dev_branch_deploy_pipeline_cmd_desc AS devBranchDeployPipelineCmdDesc, "
+        + "create_time AS createTime, "
+        + "last_modify_time AS lastModifyTime";
+
     @Insert("INSERT INTO version_branch ("
         + "version_branch, description, dev_branch, "
         + "dev_branch_deploy_pipeline_cmd, dev_branch_deploy_pipeline_cmd_desc, "
@@ -52,31 +60,13 @@ public interface VersionBranchMapper {
         + ")")
     int insert(VersionBranchDTO dto);
 
-    @Select("SELECT "
-        + "version_branch AS versionBranch, "
-        + "description AS description, "
-        + "dev_branch AS devBranch, "
-        + "dev_branch_deploy_pipeline_cmd AS devBranchDeployPipelineCmd, "
-        + "dev_branch_deploy_pipeline_cmd_desc AS devBranchDeployPipelineCmdDesc, "
-        + "create_time AS createTime, "
-        + "last_modify_time AS lastModifyTime "
-        + "FROM version_branch "
-        + "WHERE version_branch = #{versionBranch}")
+    @Select("SELECT " + SELECT_COLUMNS + " FROM version_branch WHERE version_branch = #{versionBranch}")
     VersionBranchDTO selectByVersionBranch(@Param("versionBranch") String versionBranch);
 
     @Select("SELECT COUNT(1) FROM version_branch WHERE version_branch = #{versionBranch}")
     int countByVersionBranch(@Param("versionBranch") String versionBranch);
 
-    @Select("SELECT "
-        + "version_branch AS versionBranch, "
-        + "description AS description, "
-        + "dev_branch AS devBranch, "
-        + "dev_branch_deploy_pipeline_cmd AS devBranchDeployPipelineCmd, "
-        + "dev_branch_deploy_pipeline_cmd_desc AS devBranchDeployPipelineCmdDesc, "
-        + "create_time AS createTime, "
-        + "last_modify_time AS lastModifyTime "
-        + "FROM version_branch "
-        + "ORDER BY version_branch ASC")
+    @Select("SELECT " + SELECT_COLUMNS + " FROM version_branch ORDER BY version_branch ASC")
     List<VersionBranchDTO> selectAll();
 
     @Update("UPDATE version_branch SET "
