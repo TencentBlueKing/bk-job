@@ -114,7 +114,10 @@
     },
     data() {
       return {
-        formData: { ...this.data },
+        formData: {
+          ...this.data,
+          defaultTargetValue: new ExecuteTargetModel(this.data.defaultTargetValue),
+        },
         isShowChooseIp: false,
       };
     },
