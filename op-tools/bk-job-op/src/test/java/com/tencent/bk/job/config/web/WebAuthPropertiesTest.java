@@ -28,7 +28,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * 白名单与配置归一化行为。核心是「白名单为空默认全拒」，不允许退化为默认放行。
@@ -97,22 +96,14 @@ class WebAuthPropertiesTest {
     }
 
     @Test
-    @DisplayName("附加参数按k=v切分，格式错误时启动即失败")
-    void shouldParseExtraParamsAndFailFastOnBadFormat() {
-        WebAuthProperties properties = new WebAuthProperties();
-        WebAuthProperties.Verify verify = properties.getAuth().getLogin().getVerify();
-        verify.setExtraQueryParams("bk_app_code=bk-job-op, bk_app_secret=s3cret");
-        verify.setExtraHeaders("X-Bk-Tenant-Id=default");
-        properties.init();
+    @DisplayName("登录配置的默认值与统一登录服务协议一致")
+    void shouldUseCustomLoginProtocolDefaults() {
+        WebAuthProperties.Login login = new WebAuthProperties().getAuth().getLogin();
 
-        assertThat(verify.getNormalizedExtraQueryParams())
-            .containsEntry("bk_app_code", "bk-job-op")
-            .containsEntry("bk_app_secret", "s3cret");
-        assertThat(verify.getNormalizedExtraHeaders()).containsEntry("X-Bk-Tenant-Id", "default");
-        assertThat(verify.getNormalizedInvalidHttpStatuses()).containsExactlyInAnyOrder(400, 401, 403);
-
-        WebAuthProperties badProperties = new WebAuthProperties();
-        badProperties.getAuth().getLogin().getVerify().setExtraHeaders("no-equals-sign");
-        assertThatThrownBy(badProperties::init).isInstanceOf(IllegalStateException.class);
+        assertThat(login.getTokenName()).isEqualTo("bk_ticket");
+        assertThat(login.getAppCode()).isEqualTo("job");
+        assertThat(login.getRedirectParamName()).isEqualTo("c_url");
+        assertThat(login.getApiUrl()).isEmpty();
+        assertThat(login.getLoginUrl()).isEmpty();
     }
 }

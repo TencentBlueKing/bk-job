@@ -112,7 +112,7 @@ public class WebAuthInterceptor implements HandlerInterceptor {
         if (cookies == null) {
             return null;
         }
-        String cookieName = webAuthProperties.getAuth().getTicketCookieName();
+        String cookieName = webAuthProperties.getAuth().getLogin().getTokenName();
         for (Cookie cookie : cookies) {
             if (cookieName.equals(cookie.getName())) {
                 return cookie.getValue();
@@ -181,16 +181,13 @@ public class WebAuthInterceptor implements HandlerInterceptor {
     }
 
     private String buildLoginUrl(HttpServletRequest request) {
-        WebAuthProperties.Page page = webAuthProperties.getAuth().getLogin().getPage();
-        String pageUrl = page.getUrl();
+        WebAuthProperties.Login login = webAuthProperties.getAuth().getLogin();
+        String pageUrl = login.getLoginUrl();
         if (StringUtils.isBlank(pageUrl)) {
             return null;
         }
-        if (!page.isAppendRedirect()) {
-            return pageUrl;
-        }
         String separator = pageUrl.contains("?") ? "&" : "?";
-        return pageUrl + separator + page.getRedirectParamName() + "="
+        return pageUrl + separator + login.getRedirectParamName() + "="
             + URLEncoder.encode(buildCurrentUrl(request), StandardCharsets.UTF_8);
     }
 

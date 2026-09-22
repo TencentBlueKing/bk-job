@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
- * updateTime 字段的向后兼容性。Redis中存量数据是本字段新增之前写入的，不含该字段。
+ * updateTime 字段的序列化契约。外部脚本裸调 GET/POST /issueStatus，响应体字段名与类型不得变化。
  */
 class IssueStatusRespTest {
 

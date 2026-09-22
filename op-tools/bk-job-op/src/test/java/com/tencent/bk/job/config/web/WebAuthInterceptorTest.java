@@ -61,7 +61,7 @@ class WebAuthInterceptorTest {
     private WebAuthProperties newProperties(String whitelist, String loginPageUrl) {
         WebAuthProperties properties = new WebAuthProperties();
         properties.getAuth().setWhitelist(whitelist);
-        properties.getAuth().getLogin().getPage().setUrl(loginPageUrl);
+        properties.getAuth().getLogin().setLoginUrl(loginPageUrl);
         properties.init();
         return properties;
     }

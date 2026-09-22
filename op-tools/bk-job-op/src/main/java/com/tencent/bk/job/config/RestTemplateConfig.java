@@ -64,8 +64,8 @@ public class RestTemplateConfig {
      */
     @Bean("loginRestTemplate")
     public RestTemplate loginRestTemplate(
-        @Value("${job.op.web.auth.login.verify.connect-timeout-ms:2000}") int loginConnectTimeoutMs,
-        @Value("${job.op.web.auth.login.verify.read-timeout-ms:3000}") int loginReadTimeoutMs) {
+        @Value("${job.op.web.auth.login.connect-timeout-ms:2000}") int loginConnectTimeoutMs,
+        @Value("${job.op.web.auth.login.read-timeout-ms:3000}") int loginReadTimeoutMs) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(Duration.ofMillis(loginConnectTimeoutMs));
         requestFactory.setReadTimeout(Duration.ofMillis(loginReadTimeoutMs));
