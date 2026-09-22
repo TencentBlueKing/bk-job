@@ -159,14 +159,19 @@ class IamV4Client(object):
         except requests.exceptions.RequestException as exc:
             print("http request error: %s" % exc)
             return False, str(exc)
+        if resp.status_code >= 400:
+            print("http status %s: %s" % (resp.status_code, resp.text[:200]))
+            return False, "status_code is %s" % resp.status_code
+        if not (200 <= resp.status_code < 300):
+            print("unexpected http status %s: %s" % (resp.status_code, resp.text[:200]))
+            return False, "status_code is %s" % resp.status_code
+        if not resp.content:
+            return True, "ok"
         try:
             body = resp.json()
         except ValueError:
             print("invalid json response: status=%s body=%s" % (resp.status_code, resp.text[:200]))
             return False, "invalid json response"
-        if resp.status_code != 200:
-            print("http status %s: %s" % (resp.status_code, body))
-            return False, "status_code is %s" % resp.status_code
         error = body.get("error")
         if error:
             message = error.get("message") if isinstance(error, dict) else str(error)
@@ -178,80 +183,99 @@ class IamV4Client(object):
             return False, message
         return True, "ok"
 
+    def register_system(self, system):
+        return self.post("/api/v1/open/rbac/model/systems/", system)
 
-def do_migrate(model_dir, gateway_url, app_code, app_secret, job_host, managers):
+    def register_resource_types(self, system_id, resource_types):
+        path = "/api/v1/open/rbac/model/systems/{system_id}/resource-types/".format(system_id=system_id)
+        return self.post(path, resource_types)
+
+    def register_actions(self, system_id, actions):
+        path = "/api/v1/open/rbac/model/systems/{system_id}/actions/".format(system_id=system_id)
+        return self.post(path, actions)
+
+    def register_roles(self, system_id, roles):
+        path = "/api/v1/open/rbac/model/systems/{system_id}/roles/".format(system_id=system_id)
+        return self.post(path, roles)
+
+    def register_instance_selections(self, system_id, resource_type_id, views):
+        path = "/api/v1/open/mgmt/systems/{system_id}/resource-types/{resource_type_id}/instance-selections/".format(
+            system_id=system_id, resource_type_id=resource_type_id
+        )
+        return self.post(path, views)
+
+
+def accept_step(ok, message, step_name, ignore_fail):
+    if ok:
+        print("%s success" % step_name)
+        return True
+    print("%s fail: %s" % (step_name, message))
+    if ignore_fail:
+        print("ignoreFail=true, skip %s and continue" % step_name)
+        return True
+    return False
+
+
+def load_model_payloads(model_dir, app_code, job_host, managers):
     model_path = os.path.join(model_dir, "model.json")
     views_path = os.path.join(model_dir, "instance-views.json")
     if not os.path.isfile(model_path):
-        print("model file not found: %s" % model_path)
-        return False
+        raise ValueError("model file not found: %s" % model_path)
     if not os.path.isfile(views_path):
-        print("instance-views file not found: %s" % views_path)
-        return False
+        raise ValueError("instance-views file not found: %s" % views_path)
 
     model = load_json(model_path)
     views_file = load_json(views_path)
     system_id = model.get("system_id") or (model.get("system") or {}).get("id")
     if not system_id:
-        print("system_id is required")
-        return False
+        raise ValueError("system_id is required")
 
+    return {
+        "system_id": system_id,
+        "system": render_system(model["system"], app_code, job_host, managers),
+        "resource_types": clean_resource_types(model.get("resource_types") or []),
+        "actions": clean_actions(model.get("actions") or []),
+        "roles": expand_roles(model.get("roles") or [], model.get("actions") or []),
+        "instance_views": clean_instance_views(views_file.get("instance_views") or {}),
+    }
+
+
+def do_migrate(model_dir, gateway_url, app_code, app_secret, job_host, managers, ignore_fail):
     try:
-        system = render_system(model["system"], app_code, job_host, managers)
-        resource_types = clean_resource_types(model.get("resource_types") or [])
-        actions = clean_actions(model.get("actions") or [])
-        roles = expand_roles(model.get("roles") or [], model.get("actions") or [])
-        instance_views = clean_instance_views(views_file.get("instance_views") or {})
+        payloads = load_model_payloads(model_dir, app_code, job_host, managers)
     except (KeyError, ValueError) as exc:
         print("invalid model json: %s" % exc)
         return False
 
     client = IamV4Client(app_code, app_secret, gateway_url)
+    system_id = payloads["system_id"]
 
-    ok, message = client.post("/api/v1/open/rbac/model/systems/", system)
-    if not ok:
-        print("register system fail: %s" % message)
+    ok, message = client.register_system(payloads["system"])
+    if not accept_step(ok, message, "register system [%s]" % system_id, ignore_fail):
         return False
-    print("register system [%s] success" % system_id)
 
-    ok, message = client.post(
-        "/api/v1/open/rbac/model/systems/{system_id}/resource-types/".format(system_id=system_id),
-        resource_types,
-    )
-    if not ok:
-        print("register resource types fail: %s" % message)
+    ok, message = client.register_resource_types(system_id, payloads["resource_types"])
+    if not accept_step(
+        ok, message, "register resource types count=%s" % len(payloads["resource_types"]), ignore_fail
+    ):
         return False
-    print("register resource types success, count=%s" % len(resource_types))
 
-    ok, message = client.post(
-        "/api/v1/open/rbac/model/systems/{system_id}/actions/".format(system_id=system_id),
-        actions,
-    )
-    if not ok:
-        print("register actions fail: %s" % message)
+    ok, message = client.register_actions(system_id, payloads["actions"])
+    if not accept_step(ok, message, "register actions count=%s" % len(payloads["actions"]), ignore_fail):
         return False
-    print("register actions success, count=%s" % len(actions))
 
-    ok, message = client.post(
-        "/api/v1/open/rbac/model/systems/{system_id}/roles/".format(system_id=system_id),
-        roles,
-    )
-    if not ok:
-        print("register roles fail: %s" % message)
+    ok, message = client.register_roles(system_id, payloads["roles"])
+    if not accept_step(ok, message, "register roles count=%s" % len(payloads["roles"]), ignore_fail):
         return False
-    print("register roles success, count=%s" % len(roles))
 
-    for resource_type_id, views in instance_views.items():
+    for resource_type_id, views in payloads["instance_views"].items():
         if not views:
             continue
-        path = "/api/v1/open/systems/{system_id}/resource-types/{resource_type_id}/instance-views".format(
-            system_id=system_id, resource_type_id=resource_type_id
-        )
-        ok, message = client.post(path, views)
-        if not ok:
-            print("register instance views fail: type=%s error=%s" % (resource_type_id, message))
+        ok, message = client.register_instance_selections(system_id, resource_type_id, views)
+        if not accept_step(
+            ok, message, "register instance selections type=%s count=%s" % (resource_type_id, len(views)), ignore_fail
+        ):
             return False
-        print("register instance views success: type=%s count=%s" % (resource_type_id, len(views)))
     return True
 
 
@@ -274,6 +298,12 @@ def main():
     )
     parser.add_argument("--managers", dest="managers", default="", help="comma-separated system managers")
     parser.add_argument(
+        "--ignore-fail",
+        dest="ignore_fail",
+        default="true",
+        help="true: registration failure skips the step and does not fail the job",
+    )
+    parser.add_argument(
         "--model-dir",
         dest="model_dir",
         default="",
@@ -283,7 +313,8 @@ def main():
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     model_dir = args.model_dir or resolve_model_dir(script_dir, args.tenant_enabled)
-    print("start migrate iam v4 model, dir=%s" % model_dir)
+    ignore_fail = str(args.ignore_fail).lower() == "true"
+    print("start migrate iam v4 model, dir=%s ignoreFail=%s" % (model_dir, ignore_fail))
     ok = do_migrate(
         model_dir=model_dir,
         gateway_url=args.gateway_url,
@@ -291,6 +322,7 @@ def main():
         app_secret=args.app_secret,
         job_host=args.job_host,
         managers=parse_managers(args.managers),
+        ignore_fail=ignore_fail,
     )
     if not ok:
         print("do migrate iam v4 fail")

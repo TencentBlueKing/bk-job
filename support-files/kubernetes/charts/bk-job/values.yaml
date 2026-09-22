@@ -546,8 +546,10 @@ bkLoginUrl: "http://paas.example.com/login/"
 bkCmdbUrl: "http://cmdb.example.com"
 # 用户管理页面 url
 bkUserUrl: "http://bk-user.example.com"
-# 蓝鲸 IAM url
+# 蓝鲸 IAM url（v3 页面）
 bkIamUrl: "http://bkiam.example.com"
+# 蓝鲸 IAM v4 页面 url
+bkIamV4Url: "http://bkiamv4.example.com"
 # 蓝鲸制品库 url
 bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
@@ -741,6 +743,11 @@ cmdb:
 ## 权限中心配置
 iam:
   # 作业平台注册到IAM的系统ID
+  systemId: bk_job
+
+## 权限中心 v4 配置
+iamv4:
+  # 作业平台注册到 IAM v4 的系统 ID
   systemId: bk_job
 
 ## 操作审计配置
@@ -997,6 +1004,8 @@ job:
       enabled: false
       # 是否调用 IAM v4 创建接口注册权限模型。只能跑一次，首次部署开，之后关
       registerModel: false
+      # 注册失败是否跳过该步并继续，不改变 Job exitCode
+      ignoreFail: true
       # 系统管理员，逗号分隔；空则 managers 传空数组
       managers: ""
     mysqlSchema:

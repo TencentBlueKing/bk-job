@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iamv4.callback.V4CallbackAuthUtil;
 import com.tencent.bk.sdk.iamv4.callback.constants.V4CallbackMethod;
+import com.tencent.bk.sdk.iamv4.callback.dto.request.V4CallbackFilterDTO;
 import com.tencent.bk.sdk.iamv4.callback.dto.request.V4CallbackPageDTO;
 import com.tencent.bk.sdk.iamv4.callback.dto.request.V4CallbackParentDTO;
 import com.tencent.bk.sdk.iamv4.callback.dto.request.V4CallbackRequestDTO;
@@ -218,6 +219,51 @@ public abstract class BaseIamV4CallbackService {
             throw new IllegalArgumentException("Unrecognized parent resource type: " + parent.getType());
         }
         return new ResourceScope(scopeType, parent.getId());
+    }
+
+    /**
+     * 从 list_instance 的 ancestors 解析 CMDB bizId。
+     *
+     * <p>祖先里的业务首段可能是 {@code biz} / {@code biz_container} / {@code biz_dynamic_group}，
+     * 按类型查找，不依赖位置。biz_set / tenant_set 不是 CMDB 业务，会被跳过。</p>
+     */
+    protected long parseAncestorBizId(V4CallbackFilterDTO filter) {
+        if (filter == null || filter.getAncestors() == null || filter.getAncestors().isEmpty()) {
+            throw new IllegalArgumentException("Ancestors with biz is required for listing instances");
+        }
+        for (V4CallbackParentDTO ancestor : filter.getAncestors()) {
+            if (ancestor == null || StringUtils.isBlank(ancestor.getType()) || StringUtils.isBlank(ancestor.getId())) {
+                continue;
+            }
+            ResourceScopeTypeEnum scopeType = SCOPE_TYPE_BY_PARENT_TYPE.get(ancestor.getType());
+            if (scopeType != ResourceScopeTypeEnum.BIZ) {
+                continue;
+            }
+            try {
+                return Long.parseLong(ancestor.getId());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Illegal ancestor biz id: " + ancestor.getId());
+            }
+        }
+        throw new IllegalArgumentException("Biz ancestor is required for listing instances");
+    }
+
+    /**
+     * 解析 list_instance 的直接上级实例 ID，并校验类型。
+     */
+    protected long parseParentInstanceId(V4CallbackParentDTO parent, String expectedType) {
+        if (parent == null || StringUtils.isBlank(parent.getType()) || StringUtils.isBlank(parent.getId())) {
+            throw new IllegalArgumentException("Parent " + expectedType + " is required");
+        }
+        if (!expectedType.equals(parent.getType())) {
+            throw new IllegalArgumentException(
+                "Unexpected parent type: " + parent.getType() + ", expected " + expectedType);
+        }
+        try {
+            return Long.parseLong(parent.getId());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Illegal parent id: " + parent.getId());
+        }
     }
 
     /**

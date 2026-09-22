@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.config.JobIamProperties;
+import com.tencent.bk.job.common.iam.config.JobIamV4Properties;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
@@ -39,6 +40,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,13 +58,16 @@ public class AppAuthServiceImpl extends AbstractAuthResultBuilder implements App
     private final AppAuthExecutor v3Executor;
     private final AppAuthExecutor v4Executor;
     private final JobIamProperties jobIamProperties;
+    private final JobIamV4Properties jobIamV4Properties;
 
     public AppAuthServiceImpl(AppAuthExecutor v3Executor,
                               AppAuthExecutor v4Executor,
-                              JobIamProperties jobIamProperties) {
+                              JobIamProperties jobIamProperties,
+                              JobIamV4Properties jobIamV4Properties) {
         this.v3Executor = v3Executor;
         this.v4Executor = v4Executor;
         this.jobIamProperties = jobIamProperties;
+        this.jobIamV4Properties = jobIamV4Properties;
     }
 
     private AppAuthExecutor pickExecutor(User user) {
@@ -122,10 +127,22 @@ public class AppAuthServiceImpl extends AbstractAuthResultBuilder implements App
 
     @Override
     public String getBusinessApplyUrl(String tenantId, AppResourceScope appResourceScope) {
+        if (IamAuthVersionHelper.useV4(JobContextUtil.getUsername())
+            && StringUtils.isNotBlank(jobIamV4Properties.getWebUrl())) {
+            return buildV4ApplyPageUrl();
+        }
         if (appResourceScope == null) {
             return jobIamProperties.getWebUrl() + "/apply-join-user-group";
         }
         return pickExecutorByContext().getBusinessApplyUrl(tenantId, appResourceScope);
+    }
+
+    private String buildV4ApplyPageUrl() {
+        String base = jobIamV4Properties.getWebUrl();
+        while (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + "/permission/apply";
     }
 
     private AuthResult buildScopeFailAuthResult(User user, String actionId, AppResourceScope appResourceScope) {

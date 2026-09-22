@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.iam.service.ActionAuthExecutor;
 import com.tencent.bk.job.common.iam.util.IamV4CreatorRoleMapper;
 import com.tencent.bk.job.common.iam.util.IamV4ResourceTypeMapper;
 import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
@@ -105,7 +106,7 @@ public class V4ActionAuthExecutor extends AbstractV4AuthExecutor implements Acti
             .actionId(actionId)
             .resources(Collections.singletonList(resource))
             .build();
-        return iamV4AuthService.getApplyUrl(null, Collections.singletonList(permission));
+        return iamV4AuthService.getApplyUrl(JobContextUtil.getTenantId(), Collections.singletonList(permission));
     }
 
     @Override

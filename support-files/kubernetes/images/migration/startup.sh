@@ -139,7 +139,8 @@ function migrateIamV4Model(){
     -s "${BK_JOB_APP_SECRET}" \
     --job-host "${BK_JOB_API_URL}" \
     --tenant-enabled "${BK_JOB_TENANT_ENABLED}" \
-    --managers "${BK_IAM_V4_MANAGERS}"
+    --managers "${BK_IAM_V4_MANAGERS}" \
+    --ignore-fail "${BK_JOB_MIGRATION_IAM_V4_IGNORE_FAIL:-true}"
   exitCode=$?
   if [ "$exitCode" -ne "0" ]; then
     echo "migrateIamV4Model exitCode=$exitCode"

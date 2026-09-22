@@ -1,5 +1,5 @@
 {
-  "_comment": "IAM v4 实例视图注册清单。按 resource_type_id 分组，每组内容即注册接口的请求体（数组）：POST /api/v1/open/systems/{system_id}/resource-types/{resource_type_id}/instance-views 。chain 包含资源类型自身；注册资源类型时声明的 ancestors 已自动构成默认视图，故此处只列扩展视图。v4 无资源代理，下列全部视图均由 bk_job 注册，其 list_instance 回调也全部由 bk-job 提供。",
+  "_comment": "IAM v4 实例视图注册清单。按 resource_type_id 分组，每组内容即注册接口的请求体（数组）：POST /api/v1/open/mgmt/systems/{system_id}/resource-types/{resource_type_id}/instance-selections/ 。chain 包含资源类型自身；注册资源类型时声明的 ancestors 已自动构成默认视图，故此处只列扩展视图。v4 无资源代理，下列全部视图均由 bk_job 注册，其 list_instance 回调也全部由 bk-job 提供。",
   "system_id": "bk_job",
   "instance_views": {
     "biz": [

@@ -78,6 +78,8 @@ spec:
               value: {{ .Values.job.migration.iamV4.enabled | quote }}
             - name: BK_JOB_MIGRATION_IAM_V4_REGISTER_MODEL
               value: {{ .Values.job.migration.iamV4.registerModel | quote }}
+            - name: BK_JOB_MIGRATION_IAM_V4_IGNORE_FAIL
+              value: {{ .Values.job.migration.iamV4.ignoreFail | quote }}
             - name: BK_IAM_V4_MANAGERS
               value: {{ .Values.job.migration.iamV4.managers | quote }}
             {{- if .Values.job.migration.mysqlSchema.extraOptions }}

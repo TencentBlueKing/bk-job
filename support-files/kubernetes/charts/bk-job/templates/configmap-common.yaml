@@ -120,6 +120,9 @@ data:
     iam:
       web-url: {{ .Values.bkIamUrl }}
       system-id: {{ .Values.iam.systemId }}
+    iamv4:
+      web-url: {{ .Values.bkIamV4Url }}
+      system-id: {{ .Values.iamv4.systemId }}
     audit:
       enabled: {{ .Values.audit.enabled }}
       system-id: {{ .Values.audit.systemId }}

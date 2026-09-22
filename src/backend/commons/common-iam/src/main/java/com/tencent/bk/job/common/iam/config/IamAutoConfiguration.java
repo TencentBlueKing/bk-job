@@ -74,7 +74,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 @Import({IamAspectConfiguration.class, IamInterceptorConfiguration.class})
-@EnableConfigurationProperties(JobIamProperties.class)
+@EnableConfigurationProperties({JobIamProperties.class, JobIamV4Properties.class})
 public class IamAutoConfiguration {
 
     @Bean
@@ -108,13 +108,13 @@ public class IamAutoConfiguration {
      */
     @Bean
     public IamV4AuthService iamV4AuthService(AppProperties appProperties,
-                                             JobIamProperties jobIamProperties,
+                                             JobIamV4Properties jobIamV4Properties,
                                              BkApiGatewayProperties bkApiGatewayProperties,
                                              IVirtualAdminAccountProvider virtualAdminAccountProvider,
                                              ObjectProvider<RetryExecutor> iamRetryExecutorProvider) {
         String v4Url = bkApiGatewayProperties.getBkIamV4().getUrl();
         IamV4Configuration iamV4Configuration = new IamV4Configuration(
-            jobIamProperties.getSystemId(),
+            jobIamV4Properties.getSystemId(),
             appProperties.getCode(),
             appProperties.getSecret(),
             v4Url
@@ -175,11 +175,12 @@ public class IamAutoConfiguration {
                                          BusinessAuthHelper businessAuthHelper,
                                          PolicyService policyService,
                                          JobIamProperties jobIamProperties,
+                                         JobIamV4Properties jobIamV4Properties,
                                          IIamClient iamClient,
                                          IamV4AuthService iamV4AuthService) {
         AppAuthExecutor v3Executor = new V3AppAuthExecutor(authHelper, businessAuthHelper, policyService, iamClient);
         AppAuthExecutor v4Executor = new V4AppAuthExecutor(iamV4AuthService);
-        return new AppAuthServiceImpl(v3Executor, v4Executor, jobIamProperties);
+        return new AppAuthServiceImpl(v3Executor, v4Executor, jobIamProperties, jobIamV4Properties);
     }
 
 

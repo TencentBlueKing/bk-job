@@ -140,4 +140,10 @@ public class JobManageConfig {
 
     @Value("${iam.web-url:bkiam.example.com}")
     private String bkIamWebUrl;
+
+    /**
+     * 权限中心 v4 页面地址，未配置时 relatedSystemUrls 仍回落 v3
+     */
+    @Value("${iamv4.web-url:}")
+    private String bkIamV4WebUrl;
 }
