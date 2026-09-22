@@ -40,7 +40,7 @@ out/
 src/main/resources/application-*.yml
 
 ### OP Web前端 ###
-# 前端构建产物，由 src/frontend 的 npm run build 生成，不入库
+# 前端构建产物，由 ../frontend 的 npm run build 生成，不入库
 # 注意：static 下的 403.html 与 503-login-unconfigured.html 是后端手写的静态提示页，必须入库
 src/main/resources/static/index.html
 src/main/resources/static/js/
@@ -48,7 +48,4 @@ src/main/resources/static/css/
 src/main/resources/static/img/
 src/main/resources/static/fonts/
 src/main/resources/static/assets/
-src/frontend/node_modules/
-src/frontend/dist/
-src/frontend/*.log
 

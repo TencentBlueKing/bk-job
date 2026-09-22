@@ -4,7 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
 
 // 构建产物直接落到 Spring Boot 的静态资源目录，由 OP 自身托管
-const OUTPUT_DIR = path.resolve(__dirname, '../main/resources/static');
+const OUTPUT_DIR = path.resolve(__dirname, '../backend/src/main/resources/static');
 
 // 后端自用的静态提示页，由 Java 代码 forward，不是前端构建产物，清理时必须保留
 const KEEP_FILES = /^(403\.html|503-login-unconfigured\.html)$/;

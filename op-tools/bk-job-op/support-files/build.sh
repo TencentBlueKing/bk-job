@@ -21,6 +21,8 @@ MAVEN_REPO=""
 SKIP_FRONTEND=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# 后端Gradle工程位于 src/backend，与 src/frontend 并列
+BACKEND_DIR="${PROJECT_ROOT}/src/backend"
 BUILD_TEMP_DIR="${SCRIPT_DIR}/docker-build"
 
 # 颜色输出
@@ -128,12 +130,13 @@ log_info "=========================================="
 log_info "开始构建 bk-job-op Docker镜像"
 log_info "=========================================="
 log_info "项目目录: ${PROJECT_ROOT}"
+log_info "后端目录: ${BACKEND_DIR}"
 log_info "镜像名称: ${FULL_IMAGE_NAME}"
 log_info "构建时间: $(date '+%Y-%m-%d %H:%M:%S')"
 log_info "=========================================="
 
-# 切换到项目根目录
-cd "${PROJECT_ROOT}"
+# 切换到后端工程目录
+cd "${BACKEND_DIR}"
 
 # 清理旧的临时构建目录
 if [ -d "${BUILD_TEMP_DIR}" ]; then
@@ -147,8 +150,8 @@ mkdir -p "${BUILD_TEMP_DIR}"
 
 # 使用 Gradle 编译项目
 log_info "开始编译项目..."
-if [ -f "${PROJECT_ROOT}/gradlew" ]; then
-    chmod +x "${PROJECT_ROOT}/gradlew"
+if [ -f "${BACKEND_DIR}/gradlew" ]; then
+    chmod +x "${BACKEND_DIR}/gradlew"
     
     # 构建Gradle命令参数
     GRADLE_ARGS="clean build -x test"
@@ -167,14 +170,14 @@ if [ -f "${PROJECT_ROOT}/gradlew" ]; then
         log_info "将同时构建前端（首次构建会下载Node与npm依赖，耗时较长）"
     fi
     
-    "${PROJECT_ROOT}/gradlew" ${GRADLE_ARGS}
+    "${BACKEND_DIR}/gradlew" ${GRADLE_ARGS}
 else
     log_error "找不到 gradlew 文件"
     exit 1
 fi
 
 # 查找编译产物
-JAR_FILE=$(find "${PROJECT_ROOT}/build/libs" -name "*.jar" -type f | grep -v "plain" | head -n 1)
+JAR_FILE=$(find "${BACKEND_DIR}/build/libs" -name "*.jar" -type f | grep -v "plain" | head -n 1)
 if [ -z "$JAR_FILE" ]; then
     log_error "找不到编译产物 JAR 文件"
     exit 1
