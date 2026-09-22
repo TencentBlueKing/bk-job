@@ -1,7 +1,9 @@
 package com.tencent.bk.job.controller;
 
+import com.tencent.bk.job.consts.WebPaths;
 import com.tencent.bk.job.model.IssueStatusResp;
 import com.tencent.bk.job.model.SetIssueStatusReq;
+import com.tencent.bk.job.service.model.PageData;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,5 +34,20 @@ public interface IssueStatusResource {
     @PostMapping("/issueStatus")
     IssueStatusResp setIssueStatus(
         @RequestBody SetIssueStatusReq req
+    );
+
+    /**
+     * 分页查询Issue状态列表
+     *
+     * @param idKeyword Issue标识关键字，对id做大小写不敏感的模糊匹配，为空表示不过滤
+     * @param start     分页起始位置，从0开始，非法值被纠正为0
+     * @param pageSize  每页大小，非法值被纠正为默认值20，超过200时收敛为200
+     * @return 分页后的Issue状态列表
+     */
+    @GetMapping(WebPaths.ISSUE_STATUS_LIST)
+    PageData<IssueStatusResp> listIssueStatus(
+        @RequestParam(value = "idKeyword", required = false) String idKeyword,
+        @RequestParam(value = "start", required = false, defaultValue = "0") Integer start,
+        @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize
     );
 }

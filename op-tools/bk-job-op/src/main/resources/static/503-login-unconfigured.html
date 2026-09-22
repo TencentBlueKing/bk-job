@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>登录服务暂不可用 - BK-JOB OP</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft Yahei", "PingFang SC", Arial, sans-serif;
+      background: #f5f7fa;
+      color: #63656e;
+    }
+    .panel {
+      max-width: 640px;
+      margin: 120px auto;
+      padding: 40px;
+      background: #fff;
+      border-radius: 2px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .code {
+      font-size: 64px;
+      font-weight: bold;
+      color: #ea3636;
+      line-height: 1;
+      text-align: center;
+    }
+    .title {
+      margin: 20px 0 12px;
+      font-size: 20px;
+      color: #313238;
+      text-align: center;
+    }
+    .desc {
+      font-size: 14px;
+      line-height: 26px;
+    }
+    code {
+      padding: 1px 4px;
+      background: #f0f1f5;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+<div class="panel">
+  <div class="code">503</div>
+  <div class="title">登录服务暂不可用</div>
+  <p class="desc">
+    BK-JOB OP 无法完成登录态校验，可能是以下原因之一：
+  </p>
+  <ol class="desc">
+    <li>统一登录页地址未配置：请配置 <code>job.op.web.auth.login.page.url</code>（环境变量 <code>JOB_OP_WEB_LOGIN_PAGE_URL</code>）。</li>
+    <li>登录态校验接口未配置：请配置 <code>job.op.web.auth.login.verify.url</code>（环境变量 <code>JOB_OP_WEB_LOGIN_VERIFY_URL</code>）。</li>
+    <li>登录服务暂时不可达或响应超时：请稍后重试，或联系管理员查看 OP 服务日志。</li>
+  </ol>
+  <p class="desc">
+    配置项完整清单见 OP 服务的 <code>application.yml</code> 中的 <code>job.op.web</code> 配置块，修改后需重启服务生效。
+  </p>
+</div>
+</body>
+</html>

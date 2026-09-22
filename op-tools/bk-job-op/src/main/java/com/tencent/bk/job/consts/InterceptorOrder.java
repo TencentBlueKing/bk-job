@@ -42,6 +42,11 @@ public class InterceptorOrder {
          * API认证 Key
          */
         public static final int API_AUTH = 2;
+
+        /**
+         * OP Web页面认证（登录态Cookie + 用户白名单）
+         */
+        public static final int WEB_AUTH = 3;
     }
 
     /**

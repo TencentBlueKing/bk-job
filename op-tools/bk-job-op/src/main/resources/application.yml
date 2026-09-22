@@ -51,6 +51,12 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+    # actuator端点无需鉴权即可访问，而配置中可能含有密钥，这里显式声明不回显配置值
+    # （Spring Boot 3 的默认值也是NEVER，显式写出避免被后续改动无意放开）
+    env:
+      show-values: NEVER
+    configprops:
+      show-values: NEVER
   info:
     env:
       enabled: true
@@ -66,6 +72,60 @@ mcp:
 api:
   auth:
     apiKey: "job-op-api-key"
+
+# OP Web页面配置
+job:
+  op:
+    web:
+      # 页面总开关。
+      # true：托管前端静态页面与SPA路由回落；
+      # false：仅关闭页面入口，/issueStatus/list 与 /web/userInfo 仍可访问且仍受登录态+白名单保护。
+      # 注意：这不是安全开关，安全边界由接口鉴权保证。
+      enabled: ${JOB_OP_WEB_ENABLED:true}
+      auth:
+        # 承载登录态的Cookie名称
+        ticket-cookie-name: ${JOB_OP_WEB_TICKET_COOKIE_NAME:bk_ticket}
+        # 逗号分隔的用户白名单。留空表示任何人都不允许访问，绝不是放行所有人
+        whitelist: ${JOB_OP_WEB_AUTH_WHITELIST:}
+        # 是否允许白名单中的 "*" 通配所有已登录用户。仅供本地调试，生产必须为false
+        allow-wildcard: ${JOB_OP_WEB_AUTH_ALLOW_WILDCARD:false}
+        login:
+          page:
+            # 统一登录页地址，未登录时302跳转的目标。留空时页面请求返回503提示页
+            url: ${JOB_OP_WEB_LOGIN_PAGE_URL:}
+            # 回跳参数名，登录成功后由登录页带用户跳回。常见取值：c_url / redirect_url / next
+            redirect-param-name: ${JOB_OP_WEB_LOGIN_REDIRECT_PARAM:c_url}
+            # 是否在跳转登录页时附加回跳参数。某些登录页不支持回跳，置false则只跳登录页
+            append-redirect: ${JOB_OP_WEB_LOGIN_APPEND_REDIRECT:true}
+          verify:
+            # ticket校验接口完整URL。留空时所有Web访问都被视为未登录，且不会发起HTTP请求
+            url: ${JOB_OP_WEB_LOGIN_VERIFY_URL:}
+            # HTTP方法：GET / POST
+            method: ${JOB_OP_WEB_LOGIN_VERIFY_METHOD:GET}
+            # ticket在请求中的参数名
+            ticket-param-name: ${JOB_OP_WEB_LOGIN_VERIFY_TICKET_PARAM:bk_ticket}
+            # ticket的传递位置：QUERY（URL查询参数）/ HEADER（请求头）/ BODY_JSON（JSON请求体字段）
+            ticket-param-in: ${JOB_OP_WEB_LOGIN_VERIFY_TICKET_IN:QUERY}
+            # 附加查询参数，逗号分隔的 k=v 列表，如 bk_app_code=bk-job-op,bk_app_secret=xxx
+            # 含密钥时必须通过环境变量/Secret注入，不要写进代码仓库
+            extra-query-params: ${JOB_OP_WEB_LOGIN_VERIFY_EXTRA_QUERY:}
+            # 附加请求头，逗号分隔的 k=v 列表，如 X-Bk-Tenant-Id=default
+            extra-headers: ${JOB_OP_WEB_LOGIN_VERIFY_EXTRA_HEADERS:}
+            # 用户名在响应JSON中的路径，点号分隔，如 data.bk_username / data.user.username
+            username-json-path: ${JOB_OP_WEB_LOGIN_VERIFY_USERNAME_PATH:data.bk_username}
+            # 被判定为“ticket无效”（而非“服务异常”）的HTTP状态码，逗号分隔
+            invalid-http-statuses: ${JOB_OP_WEB_LOGIN_VERIFY_INVALID_STATUSES:400,401,403}
+            # 业务返回码字段路径，留空表示不做业务码校验（只看HTTP状态码与是否取到用户名）
+            result-json-path: ${JOB_OP_WEB_LOGIN_VERIFY_RESULT_PATH:}
+            # 业务返回码的成功取值，逗号分隔，按字符串比较
+            result-success-values: ${JOB_OP_WEB_LOGIN_VERIFY_RESULT_SUCCESS:0,true}
+            connect-timeout-ms: ${JOB_OP_WEB_LOGIN_CONNECT_TIMEOUT_MS:2000}
+            read-timeout-ms: ${JOB_OP_WEB_LOGIN_READ_TIMEOUT_MS:3000}
+          cache:
+            # 有效ticket的缓存秒数
+            valid-seconds: ${JOB_OP_WEB_LOGIN_CACHE_SECONDS:300}
+            # 无效ticket的负缓存秒数
+            invalid-seconds: ${JOB_OP_WEB_LOGIN_INVALID_CACHE_SECONDS:30}
 
 # BK API网关统一配置
 bkApiGateway:
