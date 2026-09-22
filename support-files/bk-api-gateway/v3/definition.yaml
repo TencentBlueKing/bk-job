@@ -134,6 +134,7 @@ grant_permissions:
       - system_create_file_source
       - system_create_account
       - system_get_account_list
+      - system_operate_step_instance
   # 监控平台
   - bk_app_code: "{{ environ.BK_MONITOR_APP_CODE }}"
     grant_dimension: "resource"
