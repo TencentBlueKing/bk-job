@@ -34,6 +34,9 @@ import java.util.List;
  * <p>
  * 只支持按完整Tag列表删除，不支持按版本前缀删除：前缀删除等价于一键清空整个版本系列，
  * 调用方可先list_tags再按列表删除，多一次调用换掉误删全系列的风险。
+ * <p>
+ * 5个分桶互斥，条数之和恒等于totalCount：
+ * deletedTags + notFoundTags + duplicatedTags + ignoredTags + invalidTags == totalCount。
  */
 @Data
 public class BatchDeleteTagResp {
@@ -67,6 +70,11 @@ public class BatchDeleteTagResp {
      * 格式合法但库中不存在的归一化Tag，删除幂等，不视为失败
      */
     private List<String> notFoundTags = new ArrayList<>();
+
+    /**
+     * 批内重复出现、只删一次的归一化Tag；其首次出现的那条按实际结果落在deletedTags或notFoundTags
+     */
+    private List<String> duplicatedTags = new ArrayList<>();
 
     /**
      * 不纳管的Tag，保留原始输入值。这类Tag本就不会入库，无需删除

@@ -56,8 +56,9 @@ import java.util.Set;
  * 也正因为允许部分成功，这里不引入事务语义。
  * <p>
  * 所有可预期的业务错误都以HTTP 200 + result=false + message返回，不抛异常：
- * McpGlobalExceptionHandler是全局advice，对非/mcp请求会把IllegalArgumentException包装后重新抛出，
- * 在/api控制器里抛异常只会得到500而不是400。
+ * 项目已有ApiExceptionHandler（@RestControllerAdvice，仅作用于controller包）可把IllegalArgumentException
+ * 映射为400，本实现仍选择分桶返回而非抛异常，是因为批量接口允许部分成功——单个Tag的结果需要按
+ * 新增/已存在/批内重复/不纳管/非法分桶逐条回传，抛异常只能表达"整批失败"，无法表达部分成功。
  */
 @Slf4j
 @Service
@@ -83,10 +84,10 @@ public class RepoTagServiceImpl implements RepoTagService {
         resp.setResult(true);
         resp.setTotalCount(tagList.size());
         Map<String, RepoTagDTO> candidates = classify(tagList, resp.getIgnoredTags(), resp.getInvalidTags(),
-            resp.getExistedTags());
+            resp.getDuplicatedTags());
         if (candidates.isEmpty()) {
-            log.info("Add repo tags: totalCount={}, addedCount=0, ignored={}, invalid={}",
-                resp.getTotalCount(), resp.getIgnoredTags(), resp.getInvalidTags());
+            log.info("Add repo tags: totalCount={}, addedCount=0, duplicated={}, ignored={}, invalid={}",
+                resp.getTotalCount(), resp.getDuplicatedTags(), resp.getIgnoredTags(), resp.getInvalidTags());
             return resp;
         }
 
@@ -104,9 +105,10 @@ public class RepoTagServiceImpl implements RepoTagService {
             repoTagMapper.batchInsert(toInsert, System.currentTimeMillis());
         }
         resp.setAddedCount(resp.getAddedTags().size());
-        log.info("Add repo tags: totalCount={}, addedCount={}, added={}, existed={}, ignored={}, invalid={}",
+        log.info("Add repo tags: totalCount={}, addedCount={}, added={}, existed={}, duplicated={}, ignored={}, "
+                + "invalid={}",
             resp.getTotalCount(), resp.getAddedCount(), resp.getAddedTags(), resp.getExistedTags(),
-            resp.getIgnoredTags(), resp.getInvalidTags());
+            resp.getDuplicatedTags(), resp.getIgnoredTags(), resp.getInvalidTags());
         return resp;
     }
 
@@ -123,12 +125,11 @@ public class RepoTagServiceImpl implements RepoTagService {
         BatchDeleteTagResp resp = new BatchDeleteTagResp();
         resp.setResult(true);
         resp.setTotalCount(tagList.size());
-        // 批内重复的Tag只需删一次，重复项无需单独告知调用方，故这里丢弃重复明细
         Map<String, RepoTagDTO> candidates = classify(tagList, resp.getIgnoredTags(), resp.getInvalidTags(),
-            new ArrayList<>());
+            resp.getDuplicatedTags());
         if (candidates.isEmpty()) {
-            log.info("Delete repo tags: totalCount={}, deletedCount=0, ignored={}, invalid={}",
-                resp.getTotalCount(), resp.getIgnoredTags(), resp.getInvalidTags());
+            log.info("Delete repo tags: totalCount={}, deletedCount=0, duplicated={}, ignored={}, invalid={}",
+                resp.getTotalCount(), resp.getDuplicatedTags(), resp.getIgnoredTags(), resp.getInvalidTags());
             return resp;
         }
 
@@ -144,9 +145,10 @@ public class RepoTagServiceImpl implements RepoTagService {
             repoTagMapper.batchDelete(resp.getDeletedTags());
         }
         resp.setDeletedCount(resp.getDeletedTags().size());
-        log.info("Delete repo tags: totalCount={}, deletedCount={}, deleted={}, notFound={}, ignored={}, invalid={}",
+        log.info("Delete repo tags: totalCount={}, deletedCount={}, deleted={}, notFound={}, duplicated={}, "
+                + "ignored={}, invalid={}",
             resp.getTotalCount(), resp.getDeletedCount(), resp.getDeletedTags(), resp.getNotFoundTags(),
-            resp.getIgnoredTags(), resp.getInvalidTags());
+            resp.getDuplicatedTags(), resp.getIgnoredTags(), resp.getInvalidTags());
         return resp;
     }
 

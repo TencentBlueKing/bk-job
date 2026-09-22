@@ -48,6 +48,8 @@ import org.springframework.web.bind.annotation.RequestParam;
  * {@code X-Job-Op-Api-Key}，缺失或错误时返回401。
  * <p>
  * 错误约定：除鉴权失败外一律返回HTTP 200，业务与参数错误体现为响应体的 {@code result=false} + {@code message}。
+ * <p>
+ * 分桶对账：两个批量接口的5个分桶互斥且条数之和恒等于 {@code totalCount}，调用方可据此对账。
  */
 @RequestMapping("/api/repoTag")
 public interface RepoTagResource {
@@ -57,10 +59,11 @@ public interface RepoTagResource {
      * <p>
      * 允许部分成功：不纳管的Tag进ignoredTags，格式非法的进invalidTags，整批继续写入其余Tag。
      * 其中四段式历史Tag（如v3.3.4.1）会稳定出现在ignoredTags中，属预期噪声，调用方不应据此告警。
-     * 单批上限1000条，超限直接拒绝而不截断。重复写入幂等，重复项进existedTags。
+     * 单批上限1000条，超限直接拒绝而不截断。重复写入幂等：与库中已有的重复进existedTags，
+     * 同一批内的重复进duplicatedTags。
      *
      * @param req Tag列表请求体
-     * @return 写入结果，含新增/已存在/不纳管/非法4个分桶明细
+     * @return 写入结果，含新增/已存在/批内重复/不纳管/非法5个分桶明细
      */
     @PostMapping("/batch_add_tags")
     BatchAddTagResp batchAddTags(@RequestBody BatchTagReq req);
@@ -70,9 +73,10 @@ public interface RepoTagResource {
      * <p>
      * 只支持按完整Tag列表删除，不支持按版本前缀删除——前缀删除等价于一键清空整个版本系列，
      * 调用方可先list_tags再按列表删除。删除幂等，库中不存在的合法Tag进notFoundTags。
+     * 同一批内重复的Tag只删一次，重复项进duplicatedTags。
      *
      * @param req Tag列表请求体
-     * @return 删除结果，含已删除/库中不存在/不纳管/非法4个分桶明细
+     * @return 删除结果，含已删除/库中不存在/批内重复/不纳管/非法5个分桶明细
      */
     @PostMapping("/batch_delete_tags")
     BatchDeleteTagResp batchDeleteTags(@RequestBody BatchTagReq req);

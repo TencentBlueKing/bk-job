@@ -83,12 +83,24 @@ class RepoTagServiceImplTest {
         return list;
     }
 
+    private static void assertAddBucketSum(BatchAddTagResp resp) {
+        assertEquals(resp.getTotalCount(), resp.getAddedTags().size() + resp.getExistedTags().size()
+                + resp.getDuplicatedTags().size() + resp.getIgnoredTags().size() + resp.getInvalidTags().size(),
+            "五个分桶互斥，条数之和应等于totalCount");
+    }
+
+    private static void assertDeleteBucketSum(BatchDeleteTagResp resp) {
+        assertEquals(resp.getTotalCount(), resp.getDeletedTags().size() + resp.getNotFoundTags().size()
+                + resp.getDuplicatedTags().size() + resp.getIgnoredTags().size() + resp.getInvalidTags().size(),
+            "五个分桶互斥，条数之和应等于totalCount");
+    }
+
     @Nested
     @DisplayName("批量写入Tag")
     class BatchAddTest {
 
         @Test
-        @DisplayName("混合输入按新增/已存在/不纳管/非法四个桶归类，允许部分成功")
+        @DisplayName("混合输入按新增/已存在/批内重复/不纳管/非法五个桶归类，允许部分成功")
         void testBucketing() {
             when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.singletonList("v3.10.1"));
 
@@ -102,8 +114,10 @@ class RepoTagServiceImplTest {
             assertEquals(2, resp.getAddedCount());
             assertEquals(Arrays.asList("v3.10.2", "v3.10.1-alpha.2"), resp.getAddedTags());
             assertEquals(Collections.singletonList("v3.10.1"), resp.getExistedTags());
+            assertTrue(resp.getDuplicatedTags().isEmpty());
             assertEquals(Arrays.asList("v3.10.4-devgray.1", "v3.3.4.1"), resp.getIgnoredTags());
             assertEquals(Arrays.asList("v3.10.1-Alpha.1", "3.10.x"), resp.getInvalidTags());
+            assertAddBucketSum(resp);
         }
 
         @Test
@@ -128,7 +142,7 @@ class RepoTagServiceImplTest {
         }
 
         @Test
-        @DisplayName("批内大小写重复归一化后只写一条，重复项计入existedTags")
+        @DisplayName("批内大小写重复归一化后只写一条，重复项计入duplicatedTags")
         void testInBatchDuplicate() {
             when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.emptyList());
 
@@ -137,7 +151,9 @@ class RepoTagServiceImplTest {
             assertEquals(3, resp.getTotalCount());
             assertEquals(1, resp.getAddedCount());
             assertEquals(Collections.singletonList("v3.10.1"), resp.getAddedTags());
-            assertEquals(Arrays.asList("v3.10.1", "v3.10.1"), resp.getExistedTags());
+            assertTrue(resp.getExistedTags().isEmpty(), "批内重复不应混进existedTags");
+            assertEquals(Arrays.asList("v3.10.1", "v3.10.1"), resp.getDuplicatedTags());
+            assertAddBucketSum(resp);
         }
 
         @Test
@@ -150,6 +166,8 @@ class RepoTagServiceImplTest {
 
             assertEquals(0, resp.getAddedCount());
             assertEquals(Arrays.asList("v3.10.1", "v3.10.1-rc.1"), resp.getExistedTags());
+            assertTrue(resp.getDuplicatedTags().isEmpty(), "库中已存在与批内重复互斥");
+            assertAddBucketSum(resp);
             verify(repoTagMapper, never()).batchInsert(anyList(), anyLong());
         }
 
@@ -193,7 +211,7 @@ class RepoTagServiceImplTest {
     class BatchDeleteTest {
 
         @Test
-        @DisplayName("混合输入按已删除/库中不存在/不纳管/非法四个桶归类")
+        @DisplayName("混合输入按已删除/库中不存在/批内重复/不纳管/非法五个桶归类")
         void testBucketing() {
             when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.singletonList("v3.10.1"));
 
@@ -205,9 +223,27 @@ class RepoTagServiceImplTest {
             assertEquals(1, resp.getDeletedCount());
             assertEquals(Collections.singletonList("v3.10.1"), resp.getDeletedTags());
             assertEquals(Collections.singletonList("v3.10.2"), resp.getNotFoundTags());
+            assertTrue(resp.getDuplicatedTags().isEmpty());
             assertEquals(Collections.singletonList("v9.9.9-codev.10"), resp.getIgnoredTags());
             assertEquals(Collections.singletonList("v3.10.1-Alpha.1"), resp.getInvalidTags());
+            assertDeleteBucketSum(resp);
             verify(repoTagMapper).batchDelete(Collections.singletonList("v3.10.1"));
+        }
+
+        @Test
+        @DisplayName("批内大小写重复归一化后只删一条，重复项计入duplicatedTags")
+        void testInBatchDuplicate() {
+            when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.singletonList("v99.51.1"));
+
+            BatchDeleteTagResp resp = repoTagService.batchDeleteTags(Arrays.asList("v99.51.1", "V99.51.1"));
+
+            assertTrue(resp.isResult());
+            assertEquals(2, resp.getTotalCount());
+            assertEquals(1, resp.getDeletedCount());
+            assertEquals(Collections.singletonList("v99.51.1"), resp.getDeletedTags());
+            assertEquals(Collections.singletonList("v99.51.1"), resp.getDuplicatedTags());
+            assertDeleteBucketSum(resp);
+            verify(repoTagMapper).batchDelete(Collections.singletonList("v99.51.1"));
         }
 
         @Test

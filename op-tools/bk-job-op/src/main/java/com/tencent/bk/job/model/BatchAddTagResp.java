@@ -32,8 +32,11 @@ import java.util.List;
 /**
  * 批量写入仓库Tag的响应体
  * <p>
- * 参数校验不通过时result为false；参数校验通过即为true，此时单个Tag的处理结果由4个分桶字段体现，
+ * 参数校验不通过时result为false；参数校验通过即为true，此时单个Tag的处理结果由5个分桶字段体现，
  * 允许部分成功——全量同步场景下必然混入大量不纳管/非法Tag，整批拒绝会让接口不可用。
+ * <p>
+ * 5个分桶互斥，条数之和恒等于totalCount：
+ * addedTags + existedTags + duplicatedTags + ignoredTags + invalidTags == totalCount。
  */
 @Data
 public class BatchAddTagResp {
@@ -64,9 +67,14 @@ public class BatchAddTagResp {
     private List<String> addedTags = new ArrayList<>();
 
     /**
-     * 库中已存在（含批内重复）而未重复写入的归一化Tag
+     * 库中已存在、本次未重复写入的归一化Tag。不含批内重复，批内重复见duplicatedTags
      */
     private List<String> existedTags = new ArrayList<>();
+
+    /**
+     * 批内重复出现、已被去重的归一化Tag；其首次出现的那条按实际结果落在addedTags或existedTags
+     */
+    private List<String> duplicatedTags = new ArrayList<>();
 
     /**
      * 不纳管的Tag，保留原始输入值。包含开发自测临时先行版与四段式历史Tag，属预期噪声，调用方不应据此告警
