@@ -18,6 +18,7 @@ PUSH_IMAGE=false
 USERNAME=""
 PASSWORD=""
 MAVEN_REPO=""
+SKIP_FRONTEND=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 BUILD_TEMP_DIR="${SCRIPT_DIR}/docker-build"
@@ -53,6 +54,7 @@ show_help() {
   -w, --password PASS  镜像仓库密码 (推送时需要)
   -m, --maven-repo URL 指定Maven仓库地址 (例如: https://maven.example.com/repository/public/)
   -p, --push           构建后推送到镜像仓库
+      --skip-frontend  跳过OP Web前端构建 (镜像中不包含Web页面，仅调试后端时使用)
   -h, --help           显示帮助信息
 
 示例:
@@ -87,6 +89,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -p|--push)
             PUSH_IMAGE=true
+            shift
+            ;;
+        --skip-frontend)
+            SKIP_FRONTEND=true
             shift
             ;;
         -h|--help)
@@ -151,6 +157,14 @@ if [ -f "${PROJECT_ROOT}/gradlew" ]; then
     if [ -n "$MAVEN_REPO" ]; then
         log_info "使用自定义Maven仓库: ${MAVEN_REPO}"
         GRADLE_ARGS="${GRADLE_ARGS} -PmavenRepoUrl=${MAVEN_REPO}"
+    fi
+
+    # 前端构建开关
+    if [ "$SKIP_FRONTEND" = true ]; then
+        log_warn "已跳过前端构建，产出的镜像不包含OP Web页面"
+        GRADLE_ARGS="${GRADLE_ARGS} -PskipFrontend"
+    else
+        log_info "将同时构建前端（首次构建会下载Node与npm依赖，耗时较长）"
     fi
     
     "${PROJECT_ROOT}/gradlew" ${GRADLE_ARGS}

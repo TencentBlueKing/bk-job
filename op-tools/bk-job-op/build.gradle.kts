@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.5.5"
     id("io.spring.dependency-management") version "1.1.7"
+    id("com.github.node-gradle.node") version "7.1.0"
 }
 
 group = "com.tencent.bk.job"
@@ -53,4 +54,49 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+// ---------------------------------------------------------------------------
+// OP Web页面前端构建
+// 只改后端时可用 ./gradlew build -PskipFrontend 跳过，避免下载Node与npm依赖
+// ---------------------------------------------------------------------------
+val skipFrontend = project.hasProperty("skipFrontend")
+val frontendDir = file("src/frontend")
+
+node {
+    // 与 src/frontend/.nvmrc 保持一致
+    version.set("16.20.2")
+    download.set(true)
+    nodeProjectDir.set(frontendDir)
+}
+
+val npmInstallFrontend by tasks.registering(com.github.gradle.node.npm.task.NpmTask::class) {
+    args.set(listOf("install", "--no-audit", "--no-fund"))
+    workingDir.set(frontendDir)
+    inputs.files(
+        file("src/frontend/package.json"),
+        file("src/frontend/package-lock.json")
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(file("src/frontend/node_modules"))
+}
+
+// webpack 直接把产物写进 src/main/resources/static（清理时保留后端自用的静态提示页）
+val buildFrontend by tasks.registering(com.github.gradle.node.npm.task.NpmTask::class) {
+    dependsOn(npmInstallFrontend)
+    args.set(listOf("run", "build"))
+    workingDir.set(frontendDir)
+    inputs.dir(file("src/frontend/src")).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(
+        file("src/frontend/webpack.config.js"),
+        file("src/frontend/index.html"),
+        file("src/frontend/.babelrc"),
+        file("src/frontend/.browserslistrc")
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(file("src/main/resources/static"))
+}
+
+tasks.named("processResources") {
+    if (!skipFrontend) {
+        dependsOn(buildFrontend)
+    }
 }
