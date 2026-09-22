@@ -93,7 +93,9 @@ class TemplateLocalFileServiceTest {
 
         ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
         verify(artifactoryClient).getFileNode(pathCaptor.capture());
-        assertThat(pathCaptor.getValue()).isEqualTo(PROJECT + "/" + REPO + "/" + filePath);
+        // 拼接使用 File.separator，分隔符随平台变化属设计行为，此处归一化后只校验前缀组成与顺序
+        assertThat(pathCaptor.getValue().replace('\\', '/'))
+            .isEqualTo(PROJECT + "/" + REPO + "/" + filePath);
     }
 
     @Test
