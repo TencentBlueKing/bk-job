@@ -114,10 +114,7 @@
     },
     data() {
       return {
-        formData: {
-          ...this.data,
-          defaultTargetValue: new ExecuteTargetModel(this.data.defaultTargetValue),
-        },
+        formData: { ...this.data },
         isShowChooseIp: false,
       };
     },
@@ -181,7 +178,10 @@
        * @param { executeObjectsInfo } 主机信息
        */
       handleExecuteObjectsInfoChange(executeObjectsInfo) {
-        this.formData.defaultTargetValue.executeObjectsInfo = executeObjectsInfo;
+        this.formData.defaultTargetValue = {
+          ...this.formData.defaultTargetValue,
+          executeObjectsInfo,
+        };
       },
       /**
        * @desc 显示 IP 选择器
@@ -197,7 +197,10 @@
        */
       handleClearDefault() {
         const { executeObjectsInfo } = new ExecuteTargetModel({});
-        this.formData.defaultTargetValue.executeObjectsInfo = executeObjectsInfo;
+        this.formData.defaultTargetValue = {
+          ...this.formData.defaultTargetValue,
+          executeObjectsInfo,
+        };
       },
       /**
        * @desc 保存变量
