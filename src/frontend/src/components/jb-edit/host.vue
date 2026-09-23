@@ -125,15 +125,9 @@
           return '--';
         }
         const {
-<<<<<<< HEAD
-          dynamicGroupList,
-          hostList,
-          nodeList,
-=======
           hostList = [],
           nodeList = [],
           dynamicGroupList = [],
->>>>>>> b25c659fb0 (fix: 容器支持动态分组条件筛选 #4505)
           containerList = [],
           containerFilterList = [],
         } = this.localValue.executeObjectsInfo || {};
