@@ -22,36 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.service;
+package com.tencent.bk.job.common.model.error;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface TaskReporter {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class FileDownloadErrorDTO {
 
-    void reportFileDownloadStart(String taskId, String filePath, String downloadPath);
+    private Integer httpCode;
+    private String errorCode;
+    private String message;
+    private String requestId;
 
-    void reportFileDownloadProgress(String taskId,
-                                    String filePath,
-                                    String downloadPath,
-                                    Long fileSize,
-                                    Integer speed,
-                                    Integer progress);
-
-    void reportFileDownloadSuccess(String taskId,
-                                   String filePath,
-                                   String downloadPath,
-                                   Long fileSize,
-                                   Integer speed,
-                                   Integer progress);
-
-    void reportFileDownloadStopped(String taskId,
-                                   String filePath,
-                                   String downloadPath,
-                                   Long fileSize,
-                                   Integer progress);
-
-    void reportFileDownloadFailure(String taskId, String filePath, String downloadPath, String content);
-
-    void reportWorkerOffLine(List<String> taskIdList, String content);
+    public String toJson() {
+        return JsonUtils.toJson(this);
+    }
 
 }

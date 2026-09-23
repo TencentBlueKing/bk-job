@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file.worker.service;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.FileDownloadException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.file.FileUtil;
@@ -190,12 +191,14 @@ class DownloadFileTask extends Thread {
                     log.info("stop {} quitely, wait to be reDispatch", filePath);
                 }
             } else {
-                if (t instanceof ServiceException) {
-                    taskReporter.reportFileDownloadProgressWithContent(taskId, filePath, downloadPath, fileSize.get(),
-                        speed.get(), process.get(), ((ServiceException) t).getI18nMessage());
-                }
                 log.error("Fail to download file:filePath={},downloadPath={}", filePath, downloadPath, t);
-                taskReporter.reportFileDownloadFailure(taskId, filePath, downloadPath);
+                taskReporter.reportFileDownloadFailure(
+                    taskId,
+                    filePath,
+                    downloadPath,
+                    "Failed to download file from third file source, reason="
+                        + FileDownloadException.resolveError(t).toJson()
+                );
             }
         } finally {
             if (taskEventListener != null) {
