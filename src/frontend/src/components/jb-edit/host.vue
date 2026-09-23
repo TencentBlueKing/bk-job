@@ -125,9 +125,15 @@
           return '--';
         }
         const {
+<<<<<<< HEAD
           dynamicGroupList,
           hostList,
           nodeList,
+=======
+          hostList = [],
+          nodeList = [],
+          dynamicGroupList = [],
+>>>>>>> b25c659fb0 (fix: 容器支持动态分组条件筛选 #4505)
           containerList = [],
           containerFilterList = [],
         } = this.localValue.executeObjectsInfo || {};
@@ -145,9 +151,9 @@
           strs.push(`<span class="number strong">${containerList.length}</span>${I18n.t('个容器_result')}`);
         }
         if (containerFilterList.length > 0) {
-          strs.push(`<span class="number strong">${containerFilterList.length}</span>${I18n.t('个容器过滤条件_result')}`);
+          strs.push(`<span class="number strong">${containerFilterList.length}</span>${I18n.t('个动态分组_result')}`);
         }
-        return strs.length > 0 ? strs.join('，') : '--';
+        return strs.length > 0 ? strs.join('\n') : '--';
       },
       styles() {
         return {
