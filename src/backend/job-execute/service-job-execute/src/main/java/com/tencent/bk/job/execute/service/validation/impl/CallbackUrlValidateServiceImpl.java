@@ -29,6 +29,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.execute.config.CheckCallbackUrlConfig;
 import com.tencent.bk.job.execute.dao.CallbackUrlWhiteInfoDAO;
 import com.tencent.bk.job.execute.service.validation.CallbackUrlValidateService;
@@ -53,6 +54,7 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
     private final CheckCallbackUrlConfig config;
     private final BkConfig bkConfig;
     private final CallbackUrlWhiteInfoDAO callbackUrlWhiteInfoDAO;
+    private HttpUrlSafetyUtils.HostResolver hostResolver = HttpUrlSafetyUtils.DEFAULT_HOST_RESOLVER;
 
     /**
      * DB 白名单缓存：全量 baseUrl 列表，TTL 由 config.dbCacheTtlSeconds 决定（默认 60s）
@@ -109,16 +111,17 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
         if (uri.getRawUserInfo() != null) {
             return false;
         }
-        // 2. 关闭白名单校验时，仅做合法性校验
+        boolean internal = HttpUrlSafetyUtils.isResolvedToInternalAddress(host, hostResolver);
+        // 2. 关闭白名单时仍拒绝环回/内网/链路本地地址
         if (!config.isEnabled()) {
-            return true;
+            return !internal;
         }
-        // 3. 命中配置白名单 baseUrl
+        // 3. 命中配置白名单 baseUrl（显式白名单可覆盖内网地址）
         if (matchAnyBaseUrl(uri, config.getAllowedBaseUrls())) {
             return true;
         }
-        // 4. 命中当前环境 bkDomain 子域
-        if (isHostOfCurrentEnv(host)) {
+        // 4. 命中当前环境 bkDomain 子域，且解析结果不是内网地址
+        if (!internal && isHostOfCurrentEnv(host)) {
             return true;
         }
         // 5. 命中 DB 白名单 baseUrl（带缓存）
@@ -128,22 +131,7 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
 
     @Override
     public void validateWhitelistBaseUrl(String baseUrl) {
-        if (StringUtils.isBlank(baseUrl)
-            || !(baseUrl.startsWith("http://") || baseUrl.startsWith("https://"))) {
-            throw new InvalidParamException(
-                ErrorCode.CALLBACK_URL_WHITELIST_INVALID_BASE_URL, baseUrl);
-        }
-        // 还要保证后续的字符不是空：至少要有 host
-        URI uri = parseUri(baseUrl);
-        if (uri == null || StringUtils.isBlank(uri.getHost())) {
-            throw new InvalidParamException(
-                ErrorCode.CALLBACK_URL_WHITELIST_INVALID_BASE_URL, baseUrl);
-        }
-        // baseUrl 不允许带 userinfo / query / fragment：这些片段会让匹配语义模糊，
-        // 也提供了 https://trusted.com@evil.com 这类构造空间
-        if (uri.getRawUserInfo() != null
-            || StringUtils.isNotEmpty(uri.getRawQuery())
-            || StringUtils.isNotEmpty(uri.getRawFragment())) {
+        if (!HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl(baseUrl)) {
             throw new InvalidParamException(
                 ErrorCode.CALLBACK_URL_WHITELIST_INVALID_BASE_URL, baseUrl);
         }
@@ -161,12 +149,14 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
      */
     private boolean isHostOfCurrentEnv(String host) {
         String bkDomain = bkConfig == null ? null : bkConfig.getBkDomain();
-        if (StringUtils.isBlank(bkDomain) || StringUtils.isBlank(host)) {
+        if (StringUtils.isBlank(bkDomain)) {
             return false;
         }
-        String trimmedDomain = bkDomain.trim();
-        return host.equalsIgnoreCase(trimmedDomain)
-            || host.toLowerCase().endsWith("." + trimmedDomain.toLowerCase());
+        return HttpUrlSafetyUtils.isHostOrChildHost(host, bkDomain.trim());
+    }
+
+    void setHostResolver(HttpUrlSafetyUtils.HostResolver hostResolver) {
+        this.hostResolver = hostResolver;
     }
 
     /**

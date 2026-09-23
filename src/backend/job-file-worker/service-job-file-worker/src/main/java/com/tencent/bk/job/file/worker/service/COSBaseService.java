@@ -24,9 +24,13 @@
 
 package com.tencent.bk.job.file.worker.service;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.dto.CommonCredential;
+import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.file.worker.cos.JobTencentInnerCOSClient;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
+import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -37,17 +41,26 @@ import java.util.Map;
 public class COSBaseService {
 
     public JobTencentInnerCOSClient getCOSClientFromBaseReq(BaseReq req) {
-        // endPointDomain
-        // appId
         CommonCredential credential = req.getCredential();
         Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
         log.debug("req={}", req);
+        String endPointDomain = getEndPointDomain(req);
+        checkEndPointDomain(endPointDomain);
         return new JobTencentInnerCOSClient(credential.getAccessKey(), credential.getSecretKey(),
-            getEndPointDomain(req), fileSourceInfoMap.get("app_id").toString());
+            endPointDomain, fileSourceInfoMap.get("app_id").toString());
     }
 
     public String getEndPointDomain(BaseReq req) {
         Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
-        return (String) (fileSourceInfoMap.get("end_point_domain"));
+        return (String) fileSourceInfoMap.get(FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN);
+    }
+
+    private void checkEndPointDomain(String endPointDomain) {
+        String host = HttpUrlSafetyUtils.parseHttpUrlOrBareHost(endPointDomain);
+        if (host == null || HttpUrlSafetyUtils.isResolvedToDangerousAddress(host,
+            HttpUrlSafetyUtils.DEFAULT_HOST_RESOLVER)) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                new String[]{FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN});
+        }
     }
 }

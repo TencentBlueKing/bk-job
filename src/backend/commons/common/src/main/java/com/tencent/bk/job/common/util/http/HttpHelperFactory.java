@@ -21,20 +21,30 @@ public class HttpHelperFactory {
     private static final CloseableHttpClient RETRYABLE_HTTP_CLIENT_INSECURE;
     private static final CloseableHttpClient LONG_RETRYABLE_HTTP_CLIENT;
     private static final CloseableHttpClient LONG_RETRYABLE_HTTP_CLIENT_INSECURE;
+    private static final CloseableHttpClient DEFAULT_HTTP_CLIENT_NO_REDIRECT;
+    private static final CloseableHttpClient DEFAULT_HTTP_CLIENT_NO_REDIRECT_INSECURE;
+    private static final CloseableHttpClient LONG_RETRYABLE_HTTP_CLIENT_NO_REDIRECT;
+    private static final CloseableHttpClient LONG_RETRYABLE_HTTP_CLIENT_NO_REDIRECT_INSECURE;
 
     static {
-        DEFAULT_HTTP_CLIENT = createClient(false, null, 15000, true);
-        DEFAULT_HTTP_CLIENT_INSECURE = createClient(false, null, 15000, false);
-        RETRYABLE_HTTP_CLIENT = createClient(true, new JobHttpRequestRetryHandler(), 15000, true);
-        RETRYABLE_HTTP_CLIENT_INSECURE = createClient(true, new JobHttpRequestRetryHandler(), 15000, false);
-        LONG_RETRYABLE_HTTP_CLIENT = createClient(true, new JobHttpRequestRetryHandler(), 35000, true);
-        LONG_RETRYABLE_HTTP_CLIENT_INSECURE = createClient(true, new JobHttpRequestRetryHandler(), 35000, false);
+        DEFAULT_HTTP_CLIENT = createClient(false, null, 15000, true, false);
+        DEFAULT_HTTP_CLIENT_INSECURE = createClient(false, null, 15000, false, false);
+        RETRYABLE_HTTP_CLIENT = createClient(true, new JobHttpRequestRetryHandler(), 15000, true, false);
+        RETRYABLE_HTTP_CLIENT_INSECURE = createClient(true, new JobHttpRequestRetryHandler(), 15000, false, false);
+        LONG_RETRYABLE_HTTP_CLIENT = createClient(true, new JobHttpRequestRetryHandler(), 35000, true, false);
+        LONG_RETRYABLE_HTTP_CLIENT_INSECURE = createClient(true, new JobHttpRequestRetryHandler(), 35000, false, false);
+        DEFAULT_HTTP_CLIENT_NO_REDIRECT = createClient(false, null, 15000, true, true);
+        DEFAULT_HTTP_CLIENT_NO_REDIRECT_INSECURE = createClient(false, null, 15000, false, true);
+        LONG_RETRYABLE_HTTP_CLIENT_NO_REDIRECT = createClient(true, new JobHttpRequestRetryHandler(), 35000, true, true);
+        LONG_RETRYABLE_HTTP_CLIENT_NO_REDIRECT_INSECURE =
+            createClient(true, new JobHttpRequestRetryHandler(), 35000, false, true);
     }
 
     private static CloseableHttpClient createClient(boolean allowRetry,
                                                     HttpRequestRetryHandler retryHandler,
                                                     int socketTimeout,
-                                                    boolean sslVerifyEnabled) {
+                                                    boolean sslVerifyEnabled,
+                                                    boolean disableRedirects) {
         return JobHttpClientFactory.createHttpClient(
             15000,
             15000,
@@ -45,7 +55,9 @@ public class HttpHelperFactory {
             allowRetry,
             retryHandler,
             httpClientBuilder -> {
-                // do nothing
+                if (disableRedirects) {
+                    httpClientBuilder.disableRedirectHandling();
+                }
             },
             sslVerifyEnabled);
     }
@@ -72,6 +84,15 @@ public class HttpHelperFactory {
         return getWatchableExtHelper(baseHttpHelper);
     }
 
+    /**
+     * 禁止自动跟随跳转的 HttpHelper，避免 3xx 把请求带到内网地址。
+     */
+    public static WatchableHttpHelper getDefaultHttpHelperNoRedirect(boolean sslVerifyEnabled) {
+        HttpHelper baseHttpHelper = new BaseHttpHelper(
+            sslVerifyEnabled ? DEFAULT_HTTP_CLIENT_NO_REDIRECT : DEFAULT_HTTP_CLIENT_NO_REDIRECT_INSECURE);
+        return getWatchableExtHelper(baseHttpHelper);
+    }
+
     @SuppressWarnings("unused")
     public static WatchableHttpHelper getRetryableHttpHelper() {
         return getRetryableHttpHelper(JobHttpSslVerifyConfig.isGlobalVerifyEnabled());
@@ -90,6 +111,15 @@ public class HttpHelperFactory {
     public static WatchableHttpHelper getLongRetryableHttpHelper(boolean sslVerifyEnabled) {
         HttpHelper baseHttpHelper = new BaseHttpHelper(
             sslVerifyEnabled ? LONG_RETRYABLE_HTTP_CLIENT : LONG_RETRYABLE_HTTP_CLIENT_INSECURE);
+        return getWatchableExtHelper(baseHttpHelper);
+    }
+
+    /**
+     * 禁止自动跟随跳转的长超时 HttpHelper。
+     */
+    public static WatchableHttpHelper getLongRetryableHttpHelperNoRedirect(boolean sslVerifyEnabled) {
+        HttpHelper baseHttpHelper = new BaseHttpHelper(
+            sslVerifyEnabled ? LONG_RETRYABLE_HTTP_CLIENT_NO_REDIRECT : LONG_RETRYABLE_HTTP_CLIENT_NO_REDIRECT_INSECURE);
         return getWatchableExtHelper(baseHttpHelper);
     }
 

@@ -30,7 +30,6 @@ import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceWhiteInfoDAO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -39,7 +38,6 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -68,6 +66,9 @@ class FileSourceValidateServiceImplTest {
         DNS.put("anylocal.bkrepo.example.com", AddressType.ANY_LOCAL);
         DNS.put("multicast.bkrepo.example.com", AddressType.MULTICAST);
         DNS.put("ula.bkrepo.example.com", AddressType.IPV6_ULA);
+        DNS.put("cos.example.com", AddressType.PUBLIC);
+        DNS.put("loopback.cos.example.com", AddressType.LOOPBACK);
+        DNS.put("sitelocal.cos.example.com", AddressType.SITE_LOCAL);
     }
 
     /**
@@ -95,16 +96,15 @@ class FileSourceValidateServiceImplTest {
         artifactoryConfig.setArtifactoryBaseUrl(envBaseUrl);
         whiteInfoDAO = mock(FileSourceWhiteInfoDAO.class);
         when(whiteInfoDAO.exists(anyString(), anyString())).thenReturn(false);
-        return new FileSourceValidateServiceImpl(artifactoryConfig, whiteInfoDAO) {
-            @Override
-            InetAddress[] resolveHost(String host) throws UnknownHostException {
-                AddressType type = DNS.get(host);
-                if (type == null) {
-                    throw new UnknownHostException(host);
-                }
-                return new InetAddress[]{mockAddress(type)};
+        FileSourceValidateServiceImpl service = new FileSourceValidateServiceImpl(artifactoryConfig, whiteInfoDAO);
+        service.setHostResolver(host -> {
+            AddressType type = DNS.get(host);
+            if (type == null) {
+                throw new UnknownHostException(host);
             }
-        };
+            return new InetAddress[]{mockAddress(type)};
+        });
+        return service;
     }
 
     @ParameterizedTest
@@ -219,23 +219,29 @@ class FileSourceValidateServiceImplTest {
         assertThatCode(() -> service.checkBkArtifactoryBaseUrl(url)).doesNotThrowAnyException();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"127.0.0.1", "127.0.0.2", "127.0.0.255"})
-    @DisplayName("真实环回地址判定为内网地址")
-    void shouldDetectLoopbackAddress(String ip) throws UnknownHostException {
-        assertThat(FileSourceValidateServiceImpl.isInternalAddress(InetAddress.getByName(ip))).isTrue();
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = AddressType.class, names = "PUBLIC", mode = EnumSource.Mode.EXCLUDE)
-    @DisplayName("环回/内网/链路本地/通配/组播/IPv6唯一本地地址判定为内网地址")
-    void shouldDetectInternalAddress(AddressType type) {
-        assertThat(FileSourceValidateServiceImpl.isInternalAddress(mockAddress(type))).isTrue();
+    @Test
+    @DisplayName("COS 接入点为合法域名时应放行，环回应拦截，站点本地地址可放行")
+    void shouldValidateCosEndPointDomain() {
+        FileSourceValidateServiceImpl service = buildService(ENV_BASE_URL);
+        assertThatCode(() -> service.checkCosEndPointDomain("cos.example.com")).doesNotThrowAnyException();
+        assertThatCode(() -> service.checkCosEndPointDomain("https://cos.example.com")).doesNotThrowAnyException();
+        assertThatCode(() -> service.checkCosEndPointDomain("sitelocal.cos.example.com")).doesNotThrowAnyException();
+        assertThatThrownBy(() -> service.checkCosEndPointDomain("loopback.cos.example.com"))
+            .isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> service.checkCosEndPointDomain("ftp://cos.example.com"))
+            .isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> service.checkCosEndPointDomain("127.0.0.1"))
+            .isInstanceOf(InvalidParamException.class);
     }
 
     @Test
-    @DisplayName("非内网地址不判定为内网地址")
-    void shouldNotDetectPublicAddress() {
-        assertThat(FileSourceValidateServiceImpl.isInternalAddress(mockAddress(AddressType.PUBLIC))).isFalse();
+    @DisplayName("写入白名单的制品库根地址必须是合法 http(s) URL")
+    void shouldValidateWhiteBaseUrlFormat() {
+        FileSourceValidateServiceImpl service = buildService(ENV_BASE_URL);
+        assertThatCode(() -> service.validateWhiteBaseUrl("https://other.example.com")).doesNotThrowAnyException();
+        assertThatThrownBy(() -> service.validateWhiteBaseUrl("ftp://other.example.com"))
+            .isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> service.validateWhiteBaseUrl("http://user@other.example.com"))
+            .isInstanceOf(InvalidParamException.class);
     }
 }

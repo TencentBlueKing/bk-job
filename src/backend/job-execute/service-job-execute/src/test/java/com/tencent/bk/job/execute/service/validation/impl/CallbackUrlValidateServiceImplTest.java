@@ -71,6 +71,14 @@ class CallbackUrlValidateServiceImplTest {
         Method init = CallbackUrlValidateServiceImpl.class.getDeclaredMethod("init");
         init.setAccessible(true);
         init.invoke(service);
+        service.setHostResolver(host -> {
+            if ("127.0.0.1".equals(host) || "localhost".equalsIgnoreCase(host)) {
+                return new java.net.InetAddress[]{java.net.InetAddress.getByName("127.0.0.1")};
+            }
+            java.net.InetAddress pub = mock(java.net.InetAddress.class);
+            when(pub.getAddress()).thenReturn(new byte[4]);
+            return new java.net.InetAddress[]{pub};
+        });
     }
 
     @Nested
@@ -120,11 +128,11 @@ class CallbackUrlValidateServiceImplTest {
     class EnabledFalse {
 
         @Test
-        @DisplayName("关闭白名单后任意合法 http(s) URL 都放行")
-        void anyValidHttpUrlPasses() {
+        @DisplayName("关闭白名单后拒绝环回/内网地址，其它合法 http(s) URL 放行")
+        void anyValidHttpUrlPassesExceptInternal() {
             config.setEnabled(false);
             assertThat(service.isValid("http://anyone.evil.com/")).isTrue();
-            assertThat(service.isValid("https://127.0.0.1:8080/cb")).isTrue();
+            assertThat(service.isValid("https://127.0.0.1:8080/cb")).isFalse();
         }
 
         @Test
@@ -236,6 +244,21 @@ class CallbackUrlValidateServiceImplTest {
         void bkDomainBlank() {
             bkConfig.setBkDomain("");
             assertThat(service.isValid("http://any.bktencent.com/cb")).isFalse();
+        }
+
+        @Test
+        @DisplayName("当前环境子域解析为环回地址时应拦截")
+        void rejectLoopbackSubdomainOfBkDomain() {
+            bkConfig.setBkDomain("bktencent.com");
+            assertThat(service.isValid("http://127.0.0.1/cb")).isFalse();
+        }
+
+        @Test
+        @DisplayName("显式白名单可覆盖环回地址")
+        void whitelistCanAllowLoopback() {
+            bkConfig.setBkDomain("bktencent.com");
+            config.setAllowedBaseUrls(Collections.singletonList("http://127.0.0.1/"));
+            assertThat(service.isValid("http://127.0.0.1/cb")).isTrue();
         }
     }
 

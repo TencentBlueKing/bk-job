@@ -17,6 +17,7 @@ import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@ValidFileSourceInfo
 public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
 
     /**
@@ -46,7 +47,6 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      */
     @Schema(description = "文件源信息Map")
     @JsonProperty(value = "access_params")
-    @ValidFileSourceInfo
     private Map<String, Object> accessParams = new HashMap<>();
     /**
      * 文件源凭证Id
