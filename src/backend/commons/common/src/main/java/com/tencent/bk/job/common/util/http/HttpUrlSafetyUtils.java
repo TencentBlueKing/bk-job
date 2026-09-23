@@ -26,6 +26,8 @@ package com.tencent.bk.job.common.util.http;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -33,11 +35,22 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
- * 用户可控 URL 的安全解析与地址判定，用于 SSRF 防护。
+ * URL 安全解析与地址判定。
+ * <p>
+ * 用户可控 URL（制品库 / 回调等）走 {@link #parseHttpUrlHost(String)}、
+ * {@link #isDangerousAddress(InetAddress)} 等接口，默认拒绝环回与内网。
+ * 内部服务互调（file-gateway ↔ file-worker）走 {@link #parseSafeInternalHttpUri(String)}，
+ * 允许 K8s Service/Pod DNS 与集群/回环 IP，只拒绝链路本地、通配与组播。
  */
 public final class HttpUrlSafetyUtils {
+
+    private static final Pattern DNS_1123_HOST = Pattern.compile(
+        "(?i)^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$"
+    );
+    private static final Pattern IPV4_LITERAL = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3}");
 
     private HttpUrlSafetyUtils() {
     }
@@ -190,6 +203,107 @@ public final class HttpUrlSafetyUtils {
             && StringUtils.isEmpty(uri.getRawFragment());
     }
 
+    /**
+     * 将内部 HTTP 目标解析为绝对 URI；不合法时返回 null。
+     */
+    public static URI parseSafeInternalHttpUri(String url) {
+        return parseSafeInternalHttpUri(url, DEFAULT_HOST_RESOLVER);
+    }
+
+    public static URI parseSafeInternalHttpUri(String url, HostResolver resolver) {
+        if (StringUtils.isBlank(url) || resolver == null) {
+            return null;
+        }
+        URI uri;
+        try {
+            uri = new URI(url);
+        } catch (URISyntaxException e) {
+            return null;
+        }
+        if (!uri.isAbsolute()) {
+            return null;
+        }
+        String scheme = uri.getScheme();
+        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+            return null;
+        }
+        if (StringUtils.isNotEmpty(uri.getRawUserInfo())) {
+            return null;
+        }
+        String host = uri.getHost();
+        if (!isAllowedServiceHost(host)) {
+            return null;
+        }
+        int port = uri.getPort();
+        if (port == 0 || port < -1 || port > 65535) {
+            return null;
+        }
+        InetAddress[] addresses;
+        try {
+            addresses = resolver.resolve(host);
+        } catch (UnknownHostException e) {
+            return null;
+        }
+        if (addresses == null || addresses.length == 0) {
+            return null;
+        }
+        for (InetAddress address : addresses) {
+            if (isBlockedInternalHttpTarget(address)) {
+                return null;
+            }
+        }
+        return uri;
+    }
+
+    /**
+     * 拼进 {@code http://host:port/...} 前校验 host：只允许 IP 或 DNS-1123 主机名，禁止 path/userinfo 注入。
+     */
+    public static boolean isAllowedServiceHost(String host) {
+        if (StringUtils.isBlank(host)) {
+            return false;
+        }
+        String normalized = stripIpv6Brackets(host.trim());
+        if (containsForbiddenHostChars(normalized)) {
+            return false;
+        }
+        if (isIpv4Literal(normalized) || isIpv6Literal(normalized)) {
+            return true;
+        }
+        if (normalized.length() > 253) {
+            return false;
+        }
+        return DNS_1123_HOST.matcher(normalized).matches();
+    }
+
+    /**
+     * 把裸 IPv6 包成 URL host 形态。
+     */
+    public static String hostForUrl(String host) {
+        if (StringUtils.isBlank(host)) {
+            return host;
+        }
+        String trimmed = host.trim();
+        if (trimmed.startsWith("[")) {
+            return trimmed;
+        }
+        if (isIpv6Literal(trimmed)) {
+            return "[" + trimmed + "]";
+        }
+        return trimmed;
+    }
+
+    /**
+     * 拒绝链路本地（含云 metadata）、通配与组播。回环与站点本地对内部 Worker 调用是合法目标。
+     */
+    public static boolean isBlockedInternalHttpTarget(InetAddress address) {
+        if (address == null) {
+            return true;
+        }
+        return address.isAnyLocalAddress()
+            || address.isLinkLocalAddress()
+            || address.isMulticastAddress();
+    }
+
     private static boolean isResolvedTo(String host, HostResolver hostResolver, boolean includeSiteLocal) {
         if (StringUtils.isBlank(host)) {
             return true;
@@ -219,5 +333,43 @@ public final class HttpUrlSafetyUtils {
     private static boolean isIpv6UniqueLocalAddress(InetAddress address) {
         byte[] bytes = address.getAddress();
         return bytes != null && bytes.length == 16 && (bytes[0] & 0xfe) == 0xfc;
+    }
+
+    private static String stripIpv6Brackets(String host) {
+        if (host.startsWith("[") && host.endsWith("]") && host.length() > 2) {
+            return host.substring(1, host.length() - 1);
+        }
+        return host;
+    }
+
+    private static boolean containsForbiddenHostChars(String host) {
+        return host.indexOf('/') >= 0
+            || host.indexOf('?') >= 0
+            || host.indexOf('#') >= 0
+            || host.indexOf('@') >= 0
+            || host.indexOf(' ') >= 0
+            || host.indexOf('\\') >= 0;
+    }
+
+    private static boolean isIpv4Literal(String host) {
+        if (!IPV4_LITERAL.matcher(host).matches()) {
+            return false;
+        }
+        try {
+            return InetAddress.getByName(host) instanceof Inet4Address;
+        } catch (UnknownHostException e) {
+            return false;
+        }
+    }
+
+    private static boolean isIpv6Literal(String host) {
+        if (host.indexOf(':') < 0) {
+            return false;
+        }
+        try {
+            return InetAddress.getByName(host) instanceof Inet6Address;
+        } catch (UnknownHostException e) {
+            return false;
+        }
     }
 }

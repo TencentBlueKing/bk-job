@@ -28,8 +28,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -115,5 +117,87 @@ class HttpUrlSafetyUtilsTest {
         assertThat(HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl("http://user@bkrepo.example.com")).isFalse();
         assertThat(HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl("http://bkrepo.example.com?x=1")).isFalse();
         assertThat(HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl("http://bkrepo.example.com#x")).isFalse();
+    }
+
+    @Test
+    @DisplayName("允许 k8s Service 短名与带命名空间的主机名")
+    void allowKubernetesDnsHost() {
+        assertThat(HttpUrlSafetyUtils.isAllowedServiceHost("bk-job-file-worker")).isTrue();
+        assertThat(HttpUrlSafetyUtils.isAllowedServiceHost(
+            "bk-job-file-worker-abcde.bk-job-file-worker.bk-job-gray")).isTrue();
+        assertThat(HttpUrlSafetyUtils.isAllowedServiceHost(
+            "bk-job-file-worker.bk-job-gray.svc.cluster.local")).isTrue();
+    }
+
+    @Test
+    @DisplayName("允许 IP 字面量，拒绝 host 中夹带 path/userinfo")
+    void allowIpLiteralRejectHostInjection() {
+        assertThat(HttpUrlSafetyUtils.isAllowedServiceHost("127.0.0.1")).isTrue();
+        assertThat(HttpUrlSafetyUtils.isAllowedServiceHost("127.0.0.1/latest/meta-data")).isFalse();
+        assertThat(HttpUrlSafetyUtils.isAllowedServiceHost("worker.svc@127.0.0.1")).isFalse();
+        assertThat(HttpUrlSafetyUtils.isAllowedServiceHost("worker.svc?x=1")).isFalse();
+        assertThat(HttpUrlSafetyUtils.isAllowedServiceHost("")).isFalse();
+    }
+
+    @Test
+    @DisplayName("IPv6 字面量拼 URL 时自动加中括号")
+    void wrapIpv6HostForUrl() {
+        assertThat(HttpUrlSafetyUtils.hostForUrl("::1")).isEqualTo("[::1]");
+        assertThat(HttpUrlSafetyUtils.hostForUrl("bk-job-file-worker")).isEqualTo("bk-job-file-worker");
+        assertThat(HttpUrlSafetyUtils.hostForUrl("[::1]")).isEqualTo("[::1]");
+    }
+
+    @Test
+    @DisplayName("只允许 http/https，拒绝 userinfo 与其它协议")
+    void rejectNonHttpAndUserInfo() {
+        assertThat(HttpUrlSafetyUtils.parseSafeInternalHttpUri("ftp://127.0.0.1/x")).isNull();
+        assertThat(HttpUrlSafetyUtils.parseSafeInternalHttpUri("file:///etc/passwd")).isNull();
+        assertThat(HttpUrlSafetyUtils.parseSafeInternalHttpUri("http://user@example.com/x")).isNull();
+        assertThat(HttpUrlSafetyUtils.parseSafeInternalHttpUri("/relative")).isNull();
+        assertThat(HttpUrlSafetyUtils.parseSafeInternalHttpUri(null)).isNull();
+    }
+
+    @Test
+    @DisplayName("回环地址允许（同机/本地部署 Worker）")
+    void allowLoopbackLiteral() {
+        URI uri = HttpUrlSafetyUtils.parseSafeInternalHttpUri("http://127.0.0.1:19809/actuator/health");
+        assertThat(uri).isNotNull();
+        assertThat(uri.getHost()).isEqualTo("127.0.0.1");
+        assertThat(uri.getPort()).isEqualTo(19809);
+    }
+
+    @Test
+    @DisplayName("解析到链路本地地址时拒绝")
+    void rejectResolvedLinkLocal() throws UnknownHostException {
+        InetAddress linkLocal = Mockito.mock(InetAddress.class);
+        Mockito.when(linkLocal.isLinkLocalAddress()).thenReturn(true);
+        Mockito.when(linkLocal.isAnyLocalAddress()).thenReturn(false);
+        Mockito.when(linkLocal.isMulticastAddress()).thenReturn(false);
+
+        URI uri = HttpUrlSafetyUtils.parseSafeInternalHttpUri(
+            "http://bk-job-file-worker.bk-job-gray:19809/actuator/health",
+            host -> new InetAddress[]{linkLocal}
+        );
+        assertThat(uri).isNull();
+        assertThat(HttpUrlSafetyUtils.isBlockedInternalHttpTarget(linkLocal)).isTrue();
+    }
+
+    @Test
+    @DisplayName("K8s 主机名解析到站点本地地址时允许")
+    void allowResolvedSiteLocalForK8sHost() throws UnknownHostException {
+        InetAddress siteLocal = Mockito.mock(InetAddress.class);
+        Mockito.when(siteLocal.isLinkLocalAddress()).thenReturn(false);
+        Mockito.when(siteLocal.isAnyLocalAddress()).thenReturn(false);
+        Mockito.when(siteLocal.isMulticastAddress()).thenReturn(false);
+
+        URI uri = HttpUrlSafetyUtils.parseSafeInternalHttpUri(
+            "http://bk-job-file-worker.bk-job-gray:19809/worker/api/list",
+            host -> {
+                assertThat(host).isEqualTo("bk-job-file-worker.bk-job-gray");
+                return new InetAddress[]{siteLocal};
+            }
+        );
+        assertThat(uri).isNotNull();
+        assertThat(HttpUrlSafetyUtils.isBlockedInternalHttpTarget(siteLocal)).isFalse();
     }
 }
