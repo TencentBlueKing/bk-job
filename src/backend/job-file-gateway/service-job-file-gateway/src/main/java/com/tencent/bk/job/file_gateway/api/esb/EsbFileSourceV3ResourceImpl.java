@@ -24,7 +24,6 @@ import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbGetFileSourceDetailV3
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
-import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,17 +37,14 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
 
     private final FileSourceService fileSourceService;
     private final AppScopeMappingService appScopeMappingService;
-    private final FileSourceValidateService fileSourceValidateService;
     private final FileSourceAuthService fileSourceAuthService;
 
     @Autowired
     public EsbFileSourceV3ResourceImpl(FileSourceService fileSourceService,
                                        AppScopeMappingService appScopeMappingService,
-                                       FileSourceValidateService fileSourceValidateService,
                                        FileSourceAuthService fileSourceAuthService) {
         this.fileSourceService = fileSourceService;
         this.appScopeMappingService = appScopeMappingService;
-        this.fileSourceValidateService = fileSourceValidateService;
         this.fileSourceAuthService = fileSourceAuthService;
     }
 
@@ -155,7 +151,6 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
             throw new FailedPreconditionException(ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS, new String[]{code});
         }
         checkCommonParam(req);
-        checkBkArtifactoryBaseUrlIfNeed(req);
     }
 
     private Integer checkUpdateParamAndGetId(EsbCreateOrUpdateFileSourceV3Req req) {
@@ -173,15 +168,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
                 new String[]{"type"});
         }
-        checkBkArtifactoryBaseUrlIfNeed(req);
         return id;
-    }
-
-    private void checkBkArtifactoryBaseUrlIfNeed(EsbCreateOrUpdateFileSourceV3Req req) {
-        if (req.isBlueKingArtifactoryType()) {
-            // 制品库类型的文件源需要校验根地址
-            fileSourceValidateService.checkBkArtifactoryBaseUrl(req.getBkArtifactoryBaseUrl());
-        }
     }
 
     private FileSourceDTO buildFileSourceDTO(String username,

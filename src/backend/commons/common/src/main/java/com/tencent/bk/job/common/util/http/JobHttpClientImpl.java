@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.util.http;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.model.http.HttpReq;
@@ -34,9 +35,10 @@ import org.apache.http.Header;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+
+import java.net.URI;
 
 @Slf4j
 public class JobHttpClientImpl implements JobHttpClient {
@@ -50,8 +52,9 @@ public class JobHttpClientImpl implements JobHttpClient {
     @Override
     public String get(HttpReq req) {
         logReq(req);
+        URI uri = toSafeUri(req);
         ResponseEntity<String> respEntity = restTemplate.getForEntity(
-            req.getUrl(),
+            uri,
             String.class
         );
         if (respEntity.getStatusCode() == HttpStatus.OK) {
@@ -75,8 +78,9 @@ public class JobHttpClientImpl implements JobHttpClient {
         }
         String requestJson = req.getBody();
         HttpEntity<String> entity = new HttpEntity<>(requestJson, httpHeaders);
+        URI uri = toSafeUri(req);
         ResponseEntity<String> respEntity = restTemplate.postForEntity(
-            req.getUrl(),
+            uri,
             entity,
             String.class
         );
@@ -87,6 +91,20 @@ public class JobHttpClientImpl implements JobHttpClient {
         }
         logAndThrow(respEntity);
         return null;
+    }
+
+    /**
+     * 使用 {@link URI} 发起请求，避免 RestTemplate 把 String URL 当 URI template 展开；
+     * 同时拦截非 http(s)、userinfo、危险解析地址。
+     */
+    private URI toSafeUri(HttpReq req) {
+        String url = req == null ? null : req.getUrl();
+        URI uri = HttpUrlSafetyUtils.parseSafeInternalHttpUri(url);
+        if (uri == null) {
+            log.warn("Reject unsafe internal http url");
+            throw new InternalException(ErrorCode.INTERNAL_HTTP_URL_INVALID);
+        }
+        return uri;
     }
 
     private void logReq(HttpReq req) {

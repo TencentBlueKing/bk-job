@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.security.consts.JwtConsts;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
+import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
@@ -57,7 +58,11 @@ public class BaseRemoteFileReqGenServiceImpl {
     protected String getCompleteUrl(FileWorkerDTO fileWorkerDTO, String url) {
         String host = fileWorkerDTO.getAccessHost();
         Integer port = fileWorkerDTO.getAccessPort();
-        return "http://" + host + ":" + port.toString() + "/worker/api" + url;
+        if (!HttpUrlSafetyUtils.isAllowedServiceHost(host)
+            || port == null || port <= 0 || port > 65535) {
+            throw new IllegalArgumentException("invalid file-worker access address");
+        }
+        return "http://" + HttpUrlSafetyUtils.hostForUrl(host) + ":" + port + "/worker/api" + url;
     }
 
     protected String fillBaseReqGetUrl(BaseReq req,

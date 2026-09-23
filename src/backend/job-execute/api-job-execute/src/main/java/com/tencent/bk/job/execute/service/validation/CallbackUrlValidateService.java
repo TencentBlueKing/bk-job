@@ -37,7 +37,7 @@ public interface CallbackUrlValidateService {
      * 校验顺序：
      * <ol>
      *   <li>URL 基本合法性（scheme 必须为 http/https，host 非空）；</li>
-     *   <li>若开关 {@code job.execute.check-callback-url.enabled=false}，仅做合法性校验，跳过白名单匹配；</li>
+     *   <li>若开关 {@code job.execute.check-callback-url.enabled=false}，仍拒绝环回/内网地址，但跳过白名单匹配；</li>
      *   <li>命中配置 {@code allowedBaseUrls} 中任一 baseUrl 前缀；</li>
      *   <li>命中当前部署环境域名 {@code bk.bkDomain} 或其子域名；</li>
      *   <li>命中 DB 白名单 {@code callback_url_white_info.base_url} 中任一前缀（带缓存）。</li>

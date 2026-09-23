@@ -26,19 +26,28 @@ package com.tencent.bk.job.file_gateway.service.validation.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.file_gateway.config.ArtifactoryConfig;
+import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
+import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.file_gateway.consts.FileSourceWhiteInfoTypeConsts;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceWhiteInfoDAO;
 import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Map;
+
+@Slf4j
 @Service
 public class FileSourceValidateServiceImpl implements FileSourceValidateService {
 
     private final ArtifactoryConfig artifactoryConfig;
     private final FileSourceWhiteInfoDAO fileSourceWhiteInfoDAO;
+    private HttpUrlSafetyUtils.HostResolver hostResolver = this::resolveHost;
 
     @Autowired
     public FileSourceValidateServiceImpl(ArtifactoryConfig artifactoryConfig,
@@ -48,39 +57,71 @@ public class FileSourceValidateServiceImpl implements FileSourceValidateService 
     }
 
     @Override
-    public void checkBkArtifactoryBaseUrl(String baseUrl) {
-        // 1.默认允许对接当前环境的蓝鲸制品库或其子域名
-        if (isUrlOrChildUrlOfCurrentEnv(baseUrl)) {
+    public void checkFileSource(String fileSourceTypeCode, Map<String, Object> fileSourceInfoMap) {
+        if (FileSourceTypeEnum.isBlueKingArtifactory(fileSourceTypeCode)) {
+            checkBkArtifactoryBaseUrl(getString(fileSourceInfoMap, FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL));
             return;
         }
-        // 2.对接其他环境蓝鲸制品库需要添加白名单
+        if (FileSourceTypeEnum.isTencentCloudCos(fileSourceTypeCode)) {
+            checkCosEndPointDomain(getString(fileSourceInfoMap, FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN));
+        }
+    }
+
+    @Override
+    public void checkBkArtifactoryBaseUrl(String baseUrl) {
+        String host = HttpUrlSafetyUtils.parseHttpUrlHost(baseUrl);
+        if (host == null) {
+            throw new InvalidParamException(ErrorCode.BK_ARTIFACTORY_BASE_URL_INVALID);
+        }
+        String envHost = HttpUrlSafetyUtils.parseHttpUrlHost(artifactoryConfig.getArtifactoryBaseUrl());
+        if (HttpUrlSafetyUtils.isHostOrChildHost(host, envHost)
+            && !HttpUrlSafetyUtils.isResolvedToInternalAddress(host, hostResolver)) {
+            return;
+        }
         boolean existsWhiteInfo = fileSourceWhiteInfoDAO.exists(
             FileSourceWhiteInfoTypeConsts.BK_ARTIFACTORY_BASE_URL,
             baseUrl
         );
         if (!existsWhiteInfo) {
+            log.info("BkArtifactory baseUrl is not allowed: {}", baseUrl);
             throw new InvalidParamException(ErrorCode.BK_ARTIFACTORY_BASE_URL_INVALID);
         }
     }
 
-    /**
-     * 判断URL是否为当前环境制品库的地址或子域名地址
-     *
-     * @param url 目标URL
-     * @return 布尔值
-     */
-    private boolean isUrlOrChildUrlOfCurrentEnv(String url) {
-        String baseUrlOfCurrentEnv = artifactoryConfig.getArtifactoryBaseUrl();
-        if (baseUrlOfCurrentEnv.equals(url)) {
-            return true;
+    @Override
+    public void checkCosEndPointDomain(String endPointDomain) {
+        String host = HttpUrlSafetyUtils.parseHttpUrlOrBareHost(endPointDomain);
+        if (host == null) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                new String[]{FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN});
         }
-        String urlWithoutScheme = StringUtil.removeHttpOrHttpsSchemeOfUrl(baseUrlOfCurrentEnv);
-        int indexOfPath = urlWithoutScheme.indexOf("/");
-        String domain = urlWithoutScheme;
-        if (indexOfPath != -1) {
-            domain = urlWithoutScheme.substring(0, indexOfPath);
+        if (HttpUrlSafetyUtils.isResolvedToDangerousAddress(host, hostResolver)) {
+            log.info("COS endPointDomain is not allowed: {}", endPointDomain);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                new String[]{FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN});
         }
-        String suffix = "." + domain.trim();
-        return url.endsWith(suffix);
+    }
+
+    @Override
+    public void validateWhiteBaseUrl(String baseUrl) {
+        if (!HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl(baseUrl)) {
+            throw new InvalidParamException(ErrorCode.BK_ARTIFACTORY_BASE_URL_INVALID);
+        }
+    }
+
+    InetAddress[] resolveHost(String host) throws UnknownHostException {
+        return InetAddress.getAllByName(host);
+    }
+
+    void setHostResolver(HttpUrlSafetyUtils.HostResolver hostResolver) {
+        this.hostResolver = hostResolver;
+    }
+
+    private static String getString(Map<String, Object> fileSourceInfoMap, String key) {
+        if (fileSourceInfoMap == null) {
+            return null;
+        }
+        Object value = fileSourceInfoMap.get(key);
+        return value == null ? null : String.valueOf(value);
     }
 }

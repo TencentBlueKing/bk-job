@@ -36,6 +36,7 @@ import com.tencent.bk.job.file_gateway.dao.filesource.CurrentTenantFileSourceDAO
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
+import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -93,11 +94,13 @@ class FileSourceServiceImplTest {
         currentTenantFileSourceDAO = mock(CurrentTenantFileSourceDAO.class);
         fileWorkerDAO = mock(FileWorkerDAO.class);
         fileSourceAuthService = mock(FileSourceAuthService.class);
+        FileSourceValidateService fileSourceValidateService = mock(FileSourceValidateService.class);
         fileSourceService = new FileSourceServiceImpl(
             fileSourceTypeDAO,
             currentTenantFileSourceDAO,
             fileWorkerDAO,
-            fileSourceAuthService
+            fileSourceAuthService,
+            fileSourceValidateService
         );
 
         // updateFileSourceById 中通过 ActionAuditContext.current().setOriginInstance(FileSourceDTO.toEsbFileSourceV3DTO(..))

@@ -41,7 +41,6 @@ import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbGetFileSourceDetailV3Req;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
-import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,7 +80,6 @@ class EsbFileSourceV3ResourceImplTest {
 
     private FileSourceService fileSourceService;
     private AppScopeMappingService appScopeMappingService;
-    private FileSourceValidateService fileSourceValidateService;
     private FileSourceAuthService fileSourceAuthService;
     private EsbFileSourceV3ResourceImpl resource;
 
@@ -102,12 +100,10 @@ class EsbFileSourceV3ResourceImplTest {
     void setUp() {
         fileSourceService = mock(FileSourceService.class);
         appScopeMappingService = mock(AppScopeMappingService.class);
-        fileSourceValidateService = mock(FileSourceValidateService.class);
         fileSourceAuthService = mock(FileSourceAuthService.class);
         resource = new EsbFileSourceV3ResourceImpl(
             fileSourceService,
             appScopeMappingService,
-            fileSourceValidateService,
             fileSourceAuthService
         );
 
