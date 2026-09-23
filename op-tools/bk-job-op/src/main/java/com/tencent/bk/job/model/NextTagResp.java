@@ -51,7 +51,7 @@ public class NextTagResp {
      *     <li>先行版分支为x.y.z-{type}，即在同一个修订号内递增先行号</li>
      *     <li>稳定版分支为x.y，即在同一个小版本内递增修订号</li>
      * </ul>
-     * 这与list_tags中prefix的粒度（传什么就是什么）不是同一个概念。
+     * 这与listTags中prefix的粒度（传什么就是什么）不是同一个概念。
      */
     private String series;
 

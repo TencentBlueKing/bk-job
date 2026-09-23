@@ -101,10 +101,19 @@ public class RepoTagServiceImpl implements RepoTagService {
                 resp.getAddedTags().add(entry.getKey());
             }
         }
+        int insertedRows = 0;
         if (!toInsert.isEmpty()) {
-            repoTagMapper.batchInsert(toInsert, System.currentTimeMillis());
+            insertedRows = repoTagMapper.batchInsert(toInsert, System.currentTimeMillis());
         }
-        resp.setAddedCount(resp.getAddedTags().size());
+        resp.setAddedCount(insertedRows);
+        if (insertedRows < toInsert.size()) {
+            // INSERT IGNORE不返回被忽略的行，无法定位是哪几条，故只纠正计数、不回查明细
+            int skipped = toInsert.size() - insertedRows;
+            resp.setMessage(String.format("%d of %d tags in addedTags were concurrently inserted by another "
+                + "request, addedCount is based on affected rows", skipped, toInsert.size()));
+            log.warn("Concurrent insert detected: toInsert={}, insertedRows={}, skipped={}",
+                toInsert.size(), insertedRows, skipped);
+        }
         log.info("Add repo tags: totalCount={}, addedCount={}, added={}, existed={}, duplicated={}, ignored={}, "
                 + "invalid={}",
             resp.getTotalCount(), resp.getAddedCount(), resp.getAddedTags(), resp.getExistedTags(),
@@ -141,10 +150,19 @@ public class RepoTagServiceImpl implements RepoTagService {
                 resp.getNotFoundTags().add(tag);
             }
         }
+        int deletedRows = 0;
         if (!resp.getDeletedTags().isEmpty()) {
-            repoTagMapper.batchDelete(resp.getDeletedTags());
+            deletedRows = repoTagMapper.batchDelete(resp.getDeletedTags());
         }
-        resp.setDeletedCount(resp.getDeletedTags().size());
+        resp.setDeletedCount(deletedRows);
+        if (deletedRows < resp.getDeletedTags().size()) {
+            // 并发删除同一批Tag时，另一方已先删除，此处只纠正计数、不回查明细
+            int skipped = resp.getDeletedTags().size() - deletedRows;
+            resp.setMessage(String.format("%d of %d tags in deletedTags were concurrently deleted by another "
+                + "request, deletedCount is based on affected rows", skipped, resp.getDeletedTags().size()));
+            log.warn("Concurrent delete detected: toDelete={}, deletedRows={}, skipped={}",
+                resp.getDeletedTags().size(), deletedRows, skipped);
+        }
         log.info("Delete repo tags: totalCount={}, deletedCount={}, deleted={}, notFound={}, duplicated={}, "
                 + "ignored={}, invalid={}",
             resp.getTotalCount(), resp.getDeletedCount(), resp.getDeletedTags(), resp.getNotFoundTags(),

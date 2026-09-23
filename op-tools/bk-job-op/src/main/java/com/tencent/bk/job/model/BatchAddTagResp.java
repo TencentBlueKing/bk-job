@@ -37,6 +37,7 @@ import java.util.List;
  * <p>
  * 5个分桶互斥，条数之和恒等于totalCount：
  * addedTags + existedTags + duplicatedTags + ignoredTags + invalidTags == totalCount。
+ * 该恒等式按列表条数成立，与addedCount无关。
  */
 @Data
 public class BatchAddTagResp {
@@ -47,7 +48,7 @@ public class BatchAddTagResp {
     private boolean result;
 
     /**
-     * result为false时的原因说明
+     * result为false时的原因说明；result为true时为补充提示（如并发导致addedCount小于addedTags条数），无提示时为null
      */
     private String message;
 
@@ -57,12 +58,12 @@ public class BatchAddTagResp {
     private int totalCount;
 
     /**
-     * 实际新增入库条数
+     * 实际新增入库条数，取INSERT IGNORE的影响行数；并发下可能小于addedTags的条数
      */
     private int addedCount;
 
     /**
-     * 新增入库的归一化Tag
+     * 本次判定为库中不存在并提交插入的归一化Tag。并发下可能有个别条目被其它请求抢先插入，故条数可能大于addedCount
      */
     private List<String> addedTags = new ArrayList<>();
 

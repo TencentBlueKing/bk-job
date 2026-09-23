@@ -33,10 +33,11 @@ import java.util.List;
  * 批量删除仓库Tag的响应体
  * <p>
  * 只支持按完整Tag列表删除，不支持按版本前缀删除：前缀删除等价于一键清空整个版本系列，
- * 调用方可先list_tags再按列表删除，多一次调用换掉误删全系列的风险。
+ * 调用方可先listTags再按列表删除，多一次调用换掉误删全系列的风险。
  * <p>
  * 5个分桶互斥，条数之和恒等于totalCount：
  * deletedTags + notFoundTags + duplicatedTags + ignoredTags + invalidTags == totalCount。
+ * 该恒等式按列表条数成立，与deletedCount无关。
  */
 @Data
 public class BatchDeleteTagResp {
@@ -47,7 +48,7 @@ public class BatchDeleteTagResp {
     private boolean result;
 
     /**
-     * result为false时的原因说明
+     * result为false时的原因说明；result为true时为补充提示（如并发导致deletedCount小于deletedTags条数），无提示时为null
      */
     private String message;
 
@@ -57,12 +58,12 @@ public class BatchDeleteTagResp {
     private int totalCount;
 
     /**
-     * 实际删除条数
+     * 实际删除条数，取DELETE的影响行数；并发下可能小于deletedTags的条数
      */
     private int deletedCount;
 
     /**
-     * 已删除的归一化Tag
+     * 本次判定为库中存在并提交删除的归一化Tag。并发下可能有个别条目被其它请求抢先删除，故条数可能大于deletedCount
      */
     private List<String> deletedTags = new ArrayList<>();
 

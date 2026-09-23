@@ -61,38 +61,43 @@ public interface RepoTagResource {
      * 其中四段式历史Tag（如v3.3.4.1）会稳定出现在ignoredTags中，属预期噪声，调用方不应据此告警。
      * 单批上限1000条，超限直接拒绝而不截断。重复写入幂等：与库中已有的重复进existedTags，
      * 同一批内的重复进duplicatedTags。
+     * <p>
+     * addedCount以数据库影响行数为准，addedTags是本次判定为不存在并提交插入的明细：并发写同一批Tag时
+     * 另一方可能抢先插入，此时addedCount会小于addedTags的条数，message中会给出提示。
      *
      * @param req Tag列表请求体
      * @return 写入结果，含新增/已存在/批内重复/不纳管/非法5个分桶明细
      */
-    @PostMapping("/batch_add_tags")
+    @PostMapping("/batchAddTags")
     BatchAddTagResp batchAddTags(@RequestBody BatchTagReq req);
 
     /**
      * 批量删除Tag
      * <p>
      * 只支持按完整Tag列表删除，不支持按版本前缀删除——前缀删除等价于一键清空整个版本系列，
-     * 调用方可先list_tags再按列表删除。删除幂等，库中不存在的合法Tag进notFoundTags。
+     * 调用方可先listTags再按列表删除。删除幂等，库中不存在的合法Tag进notFoundTags。
      * 同一批内重复的Tag只删一次，重复项进duplicatedTags。
+     * <p>
+     * deletedCount同样以数据库影响行数为准，并发删除时可能小于deletedTags的条数，message中会给出提示。
      *
      * @param req Tag列表请求体
      * @return 删除结果，含已删除/库中不存在/批内重复/不纳管/非法5个分桶明细
      */
-    @PostMapping("/batch_delete_tags")
+    @PostMapping("/batchDeleteTags")
     BatchDeleteTagResp batchDeleteTags(@RequestBody BatchTagReq req);
 
     /**
      * 按版本前缀查询Tag
      * <p>
      * 这里的前缀粒度由调用方决定：传3.10.1返回该修订号下的全部Tag（含稳定版与各类先行版），
-     * 传3.10.1-alpha只返回alpha先行版。注意与next_tag中"系列"的含义区别（见该接口说明）。
+     * 传3.10.1-alpha只返回alpha先行版。注意与nextTag中"系列"的含义区别（见该接口说明）。
      * 命中数超过1000条时截断返回并置truncated=true，此时应收窄prefix重查。
      *
      * @param prefix 版本前缀，支持x、x.y、x.y.z、x.y.z-{alpha|beta|rc}四种形态，可带v/V前缀
      * @param order  排序方向，asc为最旧在前，缺省或其余值均按desc（最新在前）处理
      * @return 按语义序排列的Tag列表
      */
-    @GetMapping("/list_tags")
+    @GetMapping("/listTags")
     TagListResp listTags(@RequestParam(value = "prefix", required = false) String prefix,
                          @RequestParam(value = "order", required = false) String order);
 
@@ -118,6 +123,6 @@ public interface RepoTagResource {
      * @param series 版本系列，可带v/V前缀
      * @return 下一个Tag的建议值，以及推导所依据的当前最大Tag
      */
-    @GetMapping("/next_tag")
+    @GetMapping("/nextTag")
     NextTagResp nextTag(@RequestParam(value = "series", required = false) String series);
 }

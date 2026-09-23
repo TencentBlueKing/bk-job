@@ -48,6 +48,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -103,6 +104,7 @@ class RepoTagServiceImplTest {
         @DisplayName("混合输入按新增/已存在/批内重复/不纳管/非法五个桶归类，允许部分成功")
         void testBucketing() {
             when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.singletonList("v3.10.1"));
+            when(repoTagMapper.batchInsert(anyList(), anyLong())).thenReturn(2);
 
             BatchAddTagResp resp = repoTagService.batchAddTags(Arrays.asList(
                 "v3.10.1", "V3.10.2", "v3.10.1-alpha.2",
@@ -124,6 +126,7 @@ class RepoTagServiceImplTest {
         @DisplayName("只把合法Tag交给DAO，结构化列随Tag一并落库")
         void testOnlyValidTagsInserted() {
             when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.emptyList());
+            when(repoTagMapper.batchInsert(anyList(), anyLong())).thenReturn(1);
 
             repoTagService.batchAddTags(Arrays.asList("V3.10.3-alpha.11", "v3.3.4.1"));
 
@@ -145,6 +148,7 @@ class RepoTagServiceImplTest {
         @DisplayName("批内大小写重复归一化后只写一条，重复项计入duplicatedTags")
         void testInBatchDuplicate() {
             when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.emptyList());
+            when(repoTagMapper.batchInsert(anyList(), anyLong())).thenReturn(1);
 
             BatchAddTagResp resp = repoTagService.batchAddTags(Arrays.asList("V3.10.1", "v3.10.1", " 3.10.1 "));
 
@@ -154,6 +158,34 @@ class RepoTagServiceImplTest {
             assertTrue(resp.getExistedTags().isEmpty(), "批内重复不应混进existedTags");
             assertEquals(Arrays.asList("v3.10.1", "v3.10.1"), resp.getDuplicatedTags());
             assertAddBucketSum(resp);
+        }
+
+        @Test
+        @DisplayName("addedCount取DB影响行数：并发下小于addedTags条数并在message中提示")
+        void testAddedCountFromAffectedRows() {
+            when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.emptyList());
+            when(repoTagMapper.batchInsert(anyList(), anyLong())).thenReturn(1);
+
+            BatchAddTagResp resp = repoTagService.batchAddTags(Arrays.asList("v3.10.1", "v3.10.2"));
+
+            assertTrue(resp.isResult(), "并发抢插不影响请求受理");
+            assertEquals(1, resp.getAddedCount(), "addedCount应取INSERT IGNORE的影响行数");
+            assertEquals(2, resp.getAddedTags().size(), "addedTags是提交插入的明细，不回查纠正");
+            assertNotNull(resp.getMessage());
+            assertTrue(resp.getMessage().contains("concurrently"));
+            assertAddBucketSum(resp);
+        }
+
+        @Test
+        @DisplayName("全部插入成功时不带并发提示，message为null")
+        void testNoMessageWhenAllInserted() {
+            when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.emptyList());
+            when(repoTagMapper.batchInsert(anyList(), anyLong())).thenReturn(2);
+
+            BatchAddTagResp resp = repoTagService.batchAddTags(Arrays.asList("v3.10.1", "v3.10.2"));
+
+            assertEquals(2, resp.getAddedCount());
+            assertNull(resp.getMessage(), "正常路径不应设置message");
         }
 
         @Test
@@ -214,6 +246,7 @@ class RepoTagServiceImplTest {
         @DisplayName("混合输入按已删除/库中不存在/批内重复/不纳管/非法五个桶归类")
         void testBucketing() {
             when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.singletonList("v3.10.1"));
+            when(repoTagMapper.batchDelete(anyList())).thenReturn(1);
 
             BatchDeleteTagResp resp = repoTagService.batchDeleteTags(Arrays.asList(
                 "V3.10.1", "v3.10.2", "v9.9.9-codev.10", "v3.10.1-Alpha.1"));
@@ -234,6 +267,7 @@ class RepoTagServiceImplTest {
         @DisplayName("批内大小写重复归一化后只删一条，重复项计入duplicatedTags")
         void testInBatchDuplicate() {
             when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.singletonList("v99.51.1"));
+            when(repoTagMapper.batchDelete(anyList())).thenReturn(1);
 
             BatchDeleteTagResp resp = repoTagService.batchDeleteTags(Arrays.asList("v99.51.1", "V99.51.1"));
 
@@ -242,8 +276,25 @@ class RepoTagServiceImplTest {
             assertEquals(1, resp.getDeletedCount());
             assertEquals(Collections.singletonList("v99.51.1"), resp.getDeletedTags());
             assertEquals(Collections.singletonList("v99.51.1"), resp.getDuplicatedTags());
+            assertNull(resp.getMessage(), "正常路径不应设置message");
             assertDeleteBucketSum(resp);
             verify(repoTagMapper).batchDelete(Collections.singletonList("v99.51.1"));
+        }
+
+        @Test
+        @DisplayName("deletedCount取DB影响行数：并发下小于deletedTags条数并在message中提示")
+        void testDeletedCountFromAffectedRows() {
+            when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.singletonList("v3.10.1"));
+            when(repoTagMapper.batchDelete(anyList())).thenReturn(0);
+
+            BatchDeleteTagResp resp = repoTagService.batchDeleteTags(Collections.singletonList("v3.10.1"));
+
+            assertTrue(resp.isResult(), "并发抢删不影响请求受理");
+            assertEquals(0, resp.getDeletedCount(), "deletedCount应取DELETE的影响行数");
+            assertEquals(Collections.singletonList("v3.10.1"), resp.getDeletedTags());
+            assertNotNull(resp.getMessage());
+            assertTrue(resp.getMessage().contains("concurrently"));
+            assertDeleteBucketSum(resp);
         }
 
         @Test
@@ -395,7 +446,7 @@ class RepoTagServiceImplTest {
     class ConsistencyTest {
 
         @Test
-        @DisplayName("list_tags的最大值与next_tag的推导依据一致")
+        @DisplayName("listTags的最大值与nextTag的推导依据一致")
         void testMaxTagConsistency() {
             List<RepoTagDTO> tags = tagsOf("v3.10.3-alpha.2", "v3.10.3-alpha.11", "v3.10.3-beta.1", "v3.10.3");
             when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), isNull())).thenReturn(tags);
