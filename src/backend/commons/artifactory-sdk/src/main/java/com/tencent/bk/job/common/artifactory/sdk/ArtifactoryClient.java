@@ -531,7 +531,7 @@ public class ArtifactoryClient {
         String errorCode = artifactoryResp == null ? null : String.valueOf(artifactoryResp.getCode());
         String message = artifactoryResp == null ? null : artifactoryResp.getMessage();
         if (StringUtils.isBlank(message)) {
-            message = StringUtils.isNotBlank(responseBody) ? responseBody : fallbackMessage;
+            message = StringUtils.isNotBlank(responseBody) ? getSimplifiedStrForLog(responseBody) : fallbackMessage;
         }
         String requestId = artifactoryResp == null ? null : artifactoryResp.getTraceId();
         return new FileDownloadException(
