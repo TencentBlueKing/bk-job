@@ -143,8 +143,8 @@ public class ArtifactoryClient {
         this.username = username;
         this.password = password;
         this.meterRegistry = meterRegistry;
-        this.httpHelper = HttpHelperFactory.getDefaultHttpHelper(sslVerifyEnabled);
-        this.longHttpHelper = HttpHelperFactory.getLongRetryableHttpHelper(sslVerifyEnabled);
+        this.httpHelper = HttpHelperFactory.getDefaultHttpHelperNoRedirect(sslVerifyEnabled);
+        this.longHttpHelper = HttpHelperFactory.getLongRetryableHttpHelperNoRedirect(sslVerifyEnabled);
     }
 
     private String getCompleteUrl(String url) {

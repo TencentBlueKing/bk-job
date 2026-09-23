@@ -37,4 +37,14 @@ public enum FileSourceTypeEnum {
     public static boolean isBlueKingArtifactory(String fileSourceTypeCode) {
         return BLUEKING_ARTIFACTORY.name().equals(fileSourceTypeCode);
     }
+
+    /**
+     * 根据文件源类型编码判断是否为腾讯云 COS 文件源
+     *
+     * @param fileSourceTypeCode 文件源类型编码
+     * @return 布尔值
+     */
+    public static boolean isTencentCloudCos(String fileSourceTypeCode) {
+        return TENCENT_CLOUD_COS.name().equals(fileSourceTypeCode);
+    }
 }

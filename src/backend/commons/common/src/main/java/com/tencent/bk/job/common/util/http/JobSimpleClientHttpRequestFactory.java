@@ -22,22 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
+package com.tencent.bk.job.common.util.http;
 
-import com.tencent.bk.job.common.util.http.JobSimpleClientHttpRequestFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
-@Configuration
-public class RestTemplateConfig {
-    @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        JobSimpleClientHttpRequestFactory requestFactory = new JobSimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(5000);
-        requestFactory.setReadTimeout(15000);
-        restTemplate.setRequestFactory(requestFactory);
-        return restTemplate;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+
+/**
+ * 禁止自动跟随 3xx，避免校验通过的目标再被重定向到链路本地等危险地址。
+ */
+public class JobSimpleClientHttpRequestFactory extends SimpleClientHttpRequestFactory {
+
+    @Override
+    protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
+        super.prepareConnection(connection, httpMethod);
+        connection.setInstanceFollowRedirects(false);
     }
 }

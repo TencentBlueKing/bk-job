@@ -569,6 +569,8 @@ public class ErrorCode {
     public static final int FILE_WORKER_CONNECTIVITY_CHECK_FAIL = 1260022;
     // 文件源[id={0}]已被禁用
     public static final int FILE_SOURCE_DISABLED = 1260023;
+    // 内部HTTP请求目标地址不合法
+    public static final int INTERNAL_HTTP_URL_INVALID = 1260024;
 
     // 文件网关 end
     // 文件代理 start

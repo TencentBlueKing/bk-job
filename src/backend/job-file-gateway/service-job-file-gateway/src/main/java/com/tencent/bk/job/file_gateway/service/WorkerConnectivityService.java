@@ -26,6 +26,7 @@ package com.tencent.bk.job.file_gateway.service;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
+import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.file_gateway.model.req.inner.ConnectivityCheckReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ConnectivityCheckResult;
@@ -138,7 +139,11 @@ public class WorkerConnectivityService {
 
     @SuppressWarnings("HttpUrlsUsage")
     private String buildHealthUrl(String accessHost, Integer accessPort) {
-        return "http://" + accessHost + ":" + accessPort + WORKER_HEALTH_PATH;
+        if (!HttpUrlSafetyUtils.isAllowedServiceHost(accessHost)
+            || accessPort == null || accessPort <= 0 || accessPort > 65535) {
+            throw new IllegalArgumentException("invalid worker access address");
+        }
+        return "http://" + HttpUrlSafetyUtils.hostForUrl(accessHost) + ":" + accessPort + WORKER_HEALTH_PATH;
     }
 
     /**

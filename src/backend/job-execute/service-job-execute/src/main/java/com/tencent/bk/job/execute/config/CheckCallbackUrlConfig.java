@@ -49,7 +49,7 @@ public class CheckCallbackUrlConfig {
     /**
      * 是否启用 callback url 白名单校验。默认 false。
      * <p>
-     * 关闭后，仅校验 URL 基本合法性（scheme/host 非空等），不做白名单匹配。
+     * 关闭后，仍校验 URL 基本合法性，并拒绝环回/内网/链路本地地址；不做白名单匹配。
      */
     private boolean enabled = false;
 
