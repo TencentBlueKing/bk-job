@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.prepare.third;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.DistributeFileFromExternalAgentException;
+import com.tencent.bk.job.common.exception.DistributeFileSourceHostException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -463,7 +463,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             }
             String message = "Selected external agent source host not found, stepInstanceId=" +
                 stepInstance.getId() + ", fileSourceTaskId=" + fileSourceTaskId;
-            throw new DistributeFileFromExternalAgentException(message, ErrorCode.INTERNAL_ERROR);
+            throw new DistributeFileSourceHostException(message, ErrorCode.INTERNAL_ERROR);
         }
         return thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
             fileSourceTaskStatusDTO.getCloudId(),
