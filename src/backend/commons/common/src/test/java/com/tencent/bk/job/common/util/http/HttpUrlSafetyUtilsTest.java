@@ -110,6 +110,26 @@ class HttpUrlSafetyUtilsTest {
     }
 
     @Test
+    @DisplayName("解析为环回应视为 loopback，站点本地不视为 loopback")
+    void isResolvedToLoopbackAddressShouldOnlyMatchLoopback() throws UnknownHostException {
+        InetAddress loopback = mock(InetAddress.class);
+        when(loopback.isLoopbackAddress()).thenReturn(true);
+        InetAddress siteLocal = mock(InetAddress.class);
+        when(siteLocal.isLoopbackAddress()).thenReturn(false);
+        when(siteLocal.isSiteLocalAddress()).thenReturn(true);
+        when(siteLocal.getAddress()).thenReturn(new byte[4]);
+
+        assertThat(HttpUrlSafetyUtils.isResolvedToLoopbackAddress(
+            "loopback.example.com", host -> new InetAddress[]{loopback})).isTrue();
+        assertThat(HttpUrlSafetyUtils.isResolvedToLoopbackAddress(
+            "sitelocal.example.com", host -> new InetAddress[]{siteLocal})).isFalse();
+        assertThat(HttpUrlSafetyUtils.isResolvedToLoopbackAddress(
+            "unresolvable.example.com", host -> {
+                throw new UnknownHostException(host);
+            })).isTrue();
+    }
+
+    @Test
     void isValidWhitelistHttpBaseUrl() {
         assertThat(HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl("http://bkrepo.example.com")).isTrue();
         assertThat(HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl("https://bkrepo.example.com/generic")).isTrue();

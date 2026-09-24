@@ -72,12 +72,17 @@ class CallbackUrlValidateServiceImplTest {
         init.setAccessible(true);
         init.invoke(service);
         service.setHostResolver(host -> {
-            if ("127.0.0.1".equals(host) || "localhost".equalsIgnoreCase(host)) {
+            if ("127.0.0.1".equals(host)
+                || "localhost".equalsIgnoreCase(host)
+                || host.startsWith("loopback.")) {
                 return new java.net.InetAddress[]{java.net.InetAddress.getByName("127.0.0.1")};
             }
-            java.net.InetAddress pub = mock(java.net.InetAddress.class);
-            when(pub.getAddress()).thenReturn(new byte[4]);
-            return new java.net.InetAddress[]{pub};
+            java.net.InetAddress address = mock(java.net.InetAddress.class);
+            when(address.getAddress()).thenReturn(new byte[4]);
+            if (host.startsWith("sitelocal.")) {
+                when(address.isSiteLocalAddress()).thenReturn(true);
+            }
+            return new java.net.InetAddress[]{address};
         });
     }
 
@@ -109,35 +114,32 @@ class CallbackUrlValidateServiceImplTest {
         }
 
         @Test
-        @DisplayName("包含 userinfo 的 URL 全局拒绝（防 SSRF 绕过）")
+        @DisplayName("开关开启时包含 userinfo 的 URL 拒绝（防 SSRF 绕过）")
         void rejectUserinfoInjection() {
-            // 即使 enabled=false，userinfo 形态依然全局拦截
-            config.setEnabled(false);
+            config.setAllowedBaseUrls(Collections.singletonList("https://trusted.com/"));
             assertThat(service.isValid("https://trusted.com@evil.com/cb")).isFalse();
             assertThat(service.isValid("https://user:pass@evil.com/cb")).isFalse();
             assertThat(service.isValid("http://api.example.com@evil.com/cb")).isFalse();
-            // enabled=true 且看似命中白名单的 userinfo 形态依然拦截
-            config.setEnabled(true);
-            config.setAllowedBaseUrls(Collections.singletonList("https://trusted.com/"));
-            assertThat(service.isValid("https://trusted.com@evil.com/cb")).isFalse();
+            assertThat(service.isValid("https://user:pass@trusted.com/cb")).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("isValid - enabled=false 时仅校验合法性")
+    @DisplayName("isValid - enabled=false 时仅做基础合法性校验")
     class EnabledFalse {
 
         @Test
-        @DisplayName("关闭白名单后拒绝环回/内网地址，其它合法 http(s) URL 放行")
-        void anyValidHttpUrlPassesExceptInternal() {
+        @DisplayName("关闭开关后合法 http(s) URL 放行，含环回地址与 userinfo")
+        void validHttpUrlPassesIncludingLoopbackAndUserinfo() {
             config.setEnabled(false);
             assertThat(service.isValid("http://anyone.evil.com/")).isTrue();
-            assertThat(service.isValid("https://127.0.0.1:8080/cb")).isFalse();
+            assertThat(service.isValid("https://127.0.0.1:8080/cb")).isTrue();
+            assertThat(service.isValid("https://user:pass@trusted.com/cb")).isTrue();
         }
 
         @Test
-        @DisplayName("关闭白名单后非法 scheme 仍然拒绝")
-        void invalidStillRejected() {
+        @DisplayName("关闭开关后非法 scheme 仍拒绝")
+        void invalidSchemeStillRejected() {
             config.setEnabled(false);
             assertThat(service.isValid("ftp://x")).isFalse();
         }
@@ -251,6 +253,14 @@ class CallbackUrlValidateServiceImplTest {
         void rejectLoopbackSubdomainOfBkDomain() {
             bkConfig.setBkDomain("bktencent.com");
             assertThat(service.isValid("http://127.0.0.1/cb")).isFalse();
+            assertThat(service.isValid("http://loopback.bktencent.com/cb")).isFalse();
+        }
+
+        @Test
+        @DisplayName("当前环境子域解析为局域网地址时应放行")
+        void allowSiteLocalSubdomainOfBkDomain() {
+            bkConfig.setBkDomain("bktencent.com");
+            assertThat(service.isValid("http://sitelocal.bktencent.com/cb")).isTrue();
         }
 
         @Test

@@ -26,6 +26,7 @@ package com.tencent.bk.job.file_gateway.service.validation.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.file_gateway.config.ArtifactoryConfig;
 import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
@@ -71,11 +72,11 @@ public class FileSourceValidateServiceImpl implements FileSourceValidateService 
     public void checkBkArtifactoryBaseUrl(String baseUrl) {
         String host = HttpUrlSafetyUtils.parseHttpUrlHost(baseUrl);
         if (host == null) {
-            throw new InvalidParamException(ErrorCode.BK_ARTIFACTORY_BASE_URL_INVALID);
+            rejectBkArtifactory(baseUrl, "invalid http(s) URL or host");
         }
         String envHost = HttpUrlSafetyUtils.parseHttpUrlHost(artifactoryConfig.getArtifactoryBaseUrl());
-        if (HttpUrlSafetyUtils.isHostOrChildHost(host, envHost)
-            && !HttpUrlSafetyUtils.isResolvedToInternalAddress(host, hostResolver)) {
+        boolean envMatch = HttpUrlSafetyUtils.isHostOrChildHost(host, envHost);
+        if (envMatch && !HttpUrlSafetyUtils.isResolvedToLoopbackAddress(host, hostResolver)) {
             return;
         }
         boolean existsWhiteInfo = fileSourceWhiteInfoDAO.exists(
@@ -83,8 +84,11 @@ public class FileSourceValidateServiceImpl implements FileSourceValidateService 
             baseUrl
         );
         if (!existsWhiteInfo) {
-            log.info("BkArtifactory baseUrl is not allowed: {}", baseUrl);
-            throw new InvalidParamException(ErrorCode.BK_ARTIFACTORY_BASE_URL_INVALID);
+            String reason = envMatch
+                ? "host matches current env artifactory domain but resolved to loopback or failed to resolve, "
+                + "and not in whitelist"
+                : "host is not current env artifactory domain/subdomain and not in whitelist";
+            rejectBkArtifactory(baseUrl, reason);
         }
     }
 
@@ -92,14 +96,24 @@ public class FileSourceValidateServiceImpl implements FileSourceValidateService 
     public void checkCosEndPointDomain(String endPointDomain) {
         String host = HttpUrlSafetyUtils.parseHttpUrlOrBareHost(endPointDomain);
         if (host == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-                new String[]{FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN});
+            rejectCos(endPointDomain, "invalid host or URL");
         }
         if (HttpUrlSafetyUtils.isResolvedToDangerousAddress(host, hostResolver)) {
-            log.info("COS endPointDomain is not allowed: {}", endPointDomain);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-                new String[]{FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN});
+            rejectCos(endPointDomain, "resolved to loopback/link-local/any-local/multicast or failed to resolve");
         }
+    }
+
+    private void rejectBkArtifactory(String baseUrl, String reason) {
+        log.warn("BkArtifactory baseUrl rejected: reason={}, baseUrl={}",
+            reason, LogUtil.sanitizeForLog(baseUrl, 512));
+        throw new InvalidParamException(ErrorCode.BK_ARTIFACTORY_BASE_URL_INVALID);
+    }
+
+    private void rejectCos(String endPointDomain, String reason) {
+        log.warn("COS endPointDomain rejected: reason={}, endPointDomain={}",
+            reason, LogUtil.sanitizeForLog(endPointDomain, 512));
+        throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+            new String[]{FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN});
     }
 
     @Override
