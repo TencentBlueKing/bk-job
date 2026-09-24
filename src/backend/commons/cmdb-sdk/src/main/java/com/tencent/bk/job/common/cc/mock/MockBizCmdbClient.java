@@ -62,7 +62,8 @@ public class MockBizCmdbClient implements IBizCmdbClient {
                              ObjectProvider<FlowController> flowControllerProvider,
                              TenantEnvService tenantEnvService,
                              IVirtualAdminAccountProvider virtualAdminAccountProvider,
-                             Tracer tracer) {
+                             Tracer tracer,
+                             boolean sslVerifyEnabled) {
         this.proxy = new BizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -73,7 +74,8 @@ public class MockBizCmdbClient implements IBizCmdbClient {
             meterRegistry,
             tenantEnvService,
             virtualAdminAccountProvider,
-            tracer
+            tracer,
+            sslVerifyEnabled
         );
     }
 

@@ -39,6 +39,8 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
@@ -104,7 +106,8 @@ public class CmdbAutoConfiguration {
                                         ObjectProvider<FlowController> flowControllerProvider,
                                         TenantEnvService tenantEnvService,
                                         IVirtualAdminAccountProvider virtualAdminAccountProvider,
-                                        Tracer tracer) {
+                                        Tracer tracer,
+                                        JobHttpSslVerifyProperties sslVerifyProperties) {
         return new BizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -115,7 +118,8 @@ public class CmdbAutoConfiguration {
             meterRegistry,
             tenantEnvService,
             virtualAdminAccountProvider,
-            tracer
+            tracer,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.CMDB)
         );
     }
 
@@ -126,7 +130,8 @@ public class CmdbAutoConfiguration {
                                               MeterRegistry meterRegistry,
                                               ObjectProvider<FlowController> flowControllerProvider,
                                               TenantEnvService tenantEnvService,
-                                              IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                                              IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                              JobHttpSslVerifyProperties sslVerifyProperties) {
         return new BizSetCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -134,7 +139,8 @@ public class CmdbAutoConfiguration {
             flowControllerProvider.getIfAvailable(),
             meterRegistry,
             tenantEnvService,
-            virtualAdminAccountProvider
+            virtualAdminAccountProvider,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.CMDB)
         );
     }
 
@@ -146,7 +152,8 @@ public class CmdbAutoConfiguration {
                                                     MeterRegistry meterRegistry,
                                                     ObjectProvider<FlowController> flowControllerProvider,
                                                     TenantEnvService tenantEnvService,
-                                                    IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                                                    IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                                    JobHttpSslVerifyProperties sslVerifyProperties) {
         return new TenantSetCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -154,7 +161,8 @@ public class CmdbAutoConfiguration {
             flowControllerProvider.getIfAvailable(),
             meterRegistry,
             tenantEnvService,
-            virtualAdminAccountProvider
+            virtualAdminAccountProvider,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.CMDB)
         );
     }
 
@@ -169,7 +177,8 @@ public class CmdbAutoConfiguration {
                                               ObjectProvider<FlowController> flowControllerProvider,
                                               TenantEnvService tenantEnvService,
                                               IVirtualAdminAccountProvider virtualAdminAccountProvider,
-                                              Tracer tracer) {
+                                              Tracer tracer,
+                                              JobHttpSslVerifyProperties sslVerifyProperties) {
         return new MockBizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -180,7 +189,8 @@ public class CmdbAutoConfiguration {
             flowControllerProvider,
             tenantEnvService,
             virtualAdminAccountProvider,
-            tracer
+            tracer,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.CMDB)
         );
     }
 
