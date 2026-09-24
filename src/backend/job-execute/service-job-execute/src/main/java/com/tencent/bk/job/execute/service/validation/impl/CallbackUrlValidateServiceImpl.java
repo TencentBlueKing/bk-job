@@ -29,6 +29,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.execute.config.CheckCallbackUrlConfig;
 import com.tencent.bk.job.execute.dao.CallbackUrlWhiteInfoDAO;
@@ -98,35 +99,72 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
         // 1. 基本合法性校验
         URI uri = parseUri(callbackUrl);
         if (uri == null) {
-            return false;
+            return reject(callbackUrl, "malformed URL");
         }
         String scheme = uri.getScheme();
         String host = uri.getHost();
         if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
             || StringUtils.isBlank(host)) {
-            return false;
+            return reject(callbackUrl, "scheme must be http/https and host must be present");
         }
-        // 全局拒绝包含 userinfo 的 URL：阻断 https://trusted.com@evil.com/x 类 SSRF 绕过。
-        // 合法回调不应携带 userinfo，统一在此拦截
-        if (uri.getRawUserInfo() != null) {
-            return false;
-        }
-        boolean internal = HttpUrlSafetyUtils.isResolvedToInternalAddress(host, hostResolver);
-        // 2. 关闭白名单时仍拒绝环回/内网/链路本地地址
+        // 开关关闭时仅做基础合法性校验（scheme/host），环回地址也不再拦截
         if (!config.isEnabled()) {
-            return !internal;
+            return true;
         }
-        // 3. 命中配置白名单 baseUrl（显式白名单可覆盖内网地址）
+        // 开关开启时拒绝 userinfo：阻断 https://trusted.com@evil.com/x 类 SSRF 绕过。
+        // 关闭开关可给必须携带 userinfo 的存量回调留口子
+        if (uri.getRawUserInfo() != null) {
+            return reject(callbackUrl, "userinfo is not allowed");
+        }
+        // 2. 命中配置白名单 baseUrl（显式白名单可覆盖环回地址）
         if (matchAnyBaseUrl(uri, config.getAllowedBaseUrls())) {
             return true;
         }
-        // 4. 命中当前环境 bkDomain 子域，且解析结果不是内网地址
-        if (!internal && isHostOfCurrentEnv(host)) {
+        // 3. 命中 DB 白名单 baseUrl（带缓存）
+        if (matchAnyBaseUrl(uri, dbBaseUrlCache.get(CACHE_KEY))) {
             return true;
         }
-        // 5. 命中 DB 白名单 baseUrl（带缓存）
-        List<String> dbBaseUrls = dbBaseUrlCache.get(CACHE_KEY);
-        return matchAnyBaseUrl(uri, dbBaseUrls);
+        // 4. 命中当前环境 bkDomain 子域时只拦环回，局域网 IP 放行
+        if (isHostOfCurrentEnv(host)) {
+            if (HttpUrlSafetyUtils.isResolvedToLoopbackAddress(host, hostResolver)) {
+                return reject(callbackUrl,
+                    "host matches current env domain but resolved to loopback or failed to resolve");
+            }
+            return true;
+        }
+        return reject(callbackUrl,
+            "not in config/DB whitelist and host is not current env domain or its subdomain");
+    }
+
+    private boolean reject(String callbackUrl, String reason) {
+        log.warn("Callback url rejected: reason={}, callbackUrl={}", reason, toLogUrl(callbackUrl));
+        return false;
+    }
+
+    /**
+     * 打日志前去掉 userinfo，并截断控制字符，避免凭据泄露和日志注入。
+     */
+    private static String toLogUrl(String callbackUrl) {
+        if (callbackUrl == null) {
+            return "";
+        }
+        try {
+            URI uri = new URI(callbackUrl);
+            if (uri.getRawUserInfo() != null) {
+                callbackUrl = new URI(
+                    uri.getScheme(),
+                    null,
+                    uri.getHost(),
+                    uri.getPort(),
+                    uri.getPath(),
+                    uri.getQuery(),
+                    uri.getFragment()
+                ).toString();
+            }
+        } catch (URISyntaxException ignored) {
+            // 解析失败则原样截断后输出
+        }
+        return LogUtil.sanitizeForLog(callbackUrl, 512);
     }
 
     @Override

@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Worker连通性回探结果
- * Gateway 主动访问 Worker 的健康检查端点后，将本次回探结果通过该对象返回给 Worker。
+ * Gateway 解析 Worker 访问地址后，将本次回探结果通过该对象返回给 Worker。
  */
 @NoArgsConstructor
 @AllArgsConstructor

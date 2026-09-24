@@ -48,32 +48,18 @@ import static org.mockito.Mockito.when;
 class JobHttpClientImplTest {
 
     @Test
-    @DisplayName("GET 使用 URI 而非 String，避免 URI template 展开")
-    void getUsesUriNotStringTemplate() {
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("ok", HttpStatus.OK));
-
-        JobHttpClientImpl client = new JobHttpClientImpl(restTemplate);
-        HttpReq req = new HttpReq();
-        req.setUrl("http://127.0.0.1:19809/actuator/health");
-
-        assertEquals("ok", client.get(req));
-        verify(restTemplate).getForEntity(URI.create("http://127.0.0.1:19809/actuator/health"), String.class);
-        verify(restTemplate, never()).getForEntity(any(String.class), eq(String.class));
-    }
-
-    @Test
     @DisplayName("非法协议在发请求前被拒绝")
     void rejectNonHttpBeforeRequest() {
         RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         JobHttpClientImpl client = new JobHttpClientImpl(restTemplate);
         HttpReq req = new HttpReq();
         req.setUrl("ftp://127.0.0.1/x");
+        req.setBody("{}");
+        req.setHeaders(new org.apache.http.Header[0]);
 
-        InternalException ex = assertThrows(InternalException.class, () -> client.get(req));
+        InternalException ex = assertThrows(InternalException.class, () -> client.post(req));
         assertEquals(ErrorCode.INTERNAL_HTTP_URL_INVALID, ex.getErrorCode());
-        verify(restTemplate, never()).getForEntity(any(URI.class), eq(String.class));
+        verify(restTemplate, never()).postForEntity(any(URI.class), any(HttpEntity.class), eq(String.class));
     }
 
     @Test

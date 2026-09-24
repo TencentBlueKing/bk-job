@@ -31,8 +31,8 @@ import lombok.NoArgsConstructor;
 
 /**
  * Worker连通性回探请求
- * File-Worker 在启动阶段调用此请求，要求 File-Gateway 主动回探 Worker 的健康检查端点，
- * 以此判定 Worker 是否真正可以被 Gateway 集群访问（替代 Worker 本地自检）。
+ * File-Worker 在启动阶段调用此请求，要求 File-Gateway 在本 Pod 内解析 Worker 的访问地址，
+ * 以此判定 Gateway 集群是否已能解析到该 Worker。Gateway 不会向该地址发起连接。
  */
 @NoArgsConstructor
 @AllArgsConstructor
