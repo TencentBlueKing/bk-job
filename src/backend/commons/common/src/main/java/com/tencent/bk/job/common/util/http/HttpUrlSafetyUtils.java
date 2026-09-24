@@ -182,6 +182,33 @@ public final class HttpUrlSafetyUtils {
     }
 
     /**
+     * 解析结果是否包含环回地址。解析失败、空结果按失败关闭视为环回。
+     * <p>
+     * 当前环境域名匹配场景只拦环回，不拦站点本地等局域网地址。
+     */
+    public static boolean isResolvedToLoopbackAddress(String host, HostResolver hostResolver) {
+        if (StringUtils.isBlank(host)) {
+            return true;
+        }
+        HostResolver resolver = hostResolver == null ? DEFAULT_HOST_RESOLVER : hostResolver;
+        InetAddress[] addresses;
+        try {
+            addresses = resolver.resolve(host);
+        } catch (UnknownHostException e) {
+            return true;
+        }
+        if (addresses == null || addresses.length == 0) {
+            return true;
+        }
+        for (InetAddress address : addresses) {
+            if (address == null || address.isLoopbackAddress()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 白名单根地址格式：http(s)、必须有 host、禁止 userinfo/query/fragment。
      */
     public static boolean isValidWhitelistHttpBaseUrl(String baseUrl) {

@@ -116,7 +116,7 @@ class FileSourceValidateServiceImplTest {
         "http://sub.bkrepo.example.com",
         "http://sub.bkrepo.example.com:8080/bkrepo"
     })
-    @DisplayName("当前环境制品库域名及其子域名且解析为非内网地址时应放行")
+    @DisplayName("当前环境制品库域名及其子域名且解析为非环回地址时应放行")
     void shouldAllowCurrentEnvHost(String url) {
         FileSourceValidateServiceImpl service = buildService(ENV_BASE_URL);
         assertThatCode(() -> service.checkBkArtifactoryBaseUrl(url)).doesNotThrowAnyException();
@@ -173,26 +173,35 @@ class FileSourceValidateServiceImplTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-        "http://loopback.bkrepo.example.com",
         "http://sitelocal.bkrepo.example.com",
         "http://linklocal.bkrepo.example.com/latest/meta-data/",
         "http://anylocal.bkrepo.example.com",
         "http://multicast.bkrepo.example.com",
-        "http://ula.bkrepo.example.com",
+        "http://ula.bkrepo.example.com"
+    })
+    @DisplayName("当前环境子域名解析为局域网等非环回地址时应放行")
+    void shouldAllowLanResolvedEnvHost(String url) {
+        FileSourceValidateServiceImpl service = buildService(ENV_BASE_URL);
+        assertThatCode(() -> service.checkBkArtifactoryBaseUrl(url)).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "http://loopback.bkrepo.example.com",
         "http://unresolvable.bkrepo.example.com"
     })
-    @DisplayName("当前环境子域名但解析为环回/内网/链路本地地址或无法解析时应拦截")
-    void shouldRejectInternalResolvedHost(String url) {
+    @DisplayName("当前环境子域名解析为环回地址或无法解析时应拦截")
+    void shouldRejectLoopbackOrUnresolvableEnvHost(String url) {
         FileSourceValidateServiceImpl service = buildService(ENV_BASE_URL);
         assertThatThrownBy(() -> service.checkBkArtifactoryBaseUrl(url))
             .isInstanceOf(InvalidParamException.class);
     }
 
     @Test
-    @DisplayName("解析为内网地址的地址在白名单中时应放行")
-    void shouldAllowInternalResolvedHostInWhiteList() {
+    @DisplayName("解析为环回地址的地址在白名单中时应放行")
+    void shouldAllowLoopbackResolvedHostInWhiteList() {
         FileSourceValidateServiceImpl service = buildService(ENV_BASE_URL);
-        String url = "http://sitelocal.bkrepo.example.com";
+        String url = "http://loopback.bkrepo.example.com";
         when(whiteInfoDAO.exists(anyString(), eq(url))).thenReturn(true);
         assertThatCode(() -> service.checkBkArtifactoryBaseUrl(url)).doesNotThrowAnyException();
     }
