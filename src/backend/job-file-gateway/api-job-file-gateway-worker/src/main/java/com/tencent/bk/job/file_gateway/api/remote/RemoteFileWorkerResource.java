@@ -63,8 +63,8 @@ public interface RemoteFileWorkerResource {
         @Parameter(description = "Worker下线携带的需要重调度的任务信息") @RequestBody OffLineAndReDispatchReq offLineAndReDispatchReq);
 
     @Operation(summary = "Worker连通性回探",
-        description = "Worker在启动阶段调用，由Gateway主动回探Worker的健康检查端点，"
-            + "用于替代Worker本地自检，避免Pod间DNS缓存时间差导致的访问失败")
+        description = "Worker在启动阶段调用，由Gateway在本Pod内解析Worker的访问地址，"
+            + "避免Pod间DNS缓存时间差导致的访问失败；Worker健康状态由Worker自行判断")
     @PostMapping("/connectivityCheck")
     Response<ConnectivityCheckResult> connectivityCheck(
         @Parameter(description = "Worker连通性回探请求") @RequestBody ConnectivityCheckReq req);
