@@ -95,6 +95,8 @@ public class ErrorCode {
     public static final int CAN_NOT_FIND_REPO_IN_ARTIFACTORY = 1214003;
     // 制品库认证失败，请检查文件源凭证配置
     public static final int ARTIFACTORY_AUTH_FAILED = 1214004;
+    // 制品库文件上传失败，详情：{0}
+    public static final int ARTIFACTORY_UPLOAD_GENERIC_FILE_ERROR = 1214005;
 
     // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
