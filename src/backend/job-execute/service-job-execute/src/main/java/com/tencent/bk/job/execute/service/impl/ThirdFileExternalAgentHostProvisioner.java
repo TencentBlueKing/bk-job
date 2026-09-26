@@ -42,6 +42,11 @@ public class ThirdFileExternalAgentHostProvisioner implements ThirdFileDistribut
     }
 
     @Override
+    public boolean shouldReuseSelectedSourceHost() {
+        return true;
+    }
+
+    @Override
     public HostDTO getThirdFileDistributeSourceHost(Long cloudId, String protocol, String ip) {
         log.debug("distribute third file from external agent host");
         return externalAgentService.getDistributeSourceHost();
