@@ -50,7 +50,7 @@ public class CheckCallbackUrlConfig {
      * 是否启用 callback url 白名单校验。默认 true。
      * <p>
      * 关闭后仍做 URL 基本合法性校验（http/https、host 非空），
-     * 跳过 userinfo、白名单与环境域名匹配，环回地址也不再拦截。
+     * 跳过 userinfo、白名单与环境域名匹配，环回或通配地址也不再拦截。
      */
     private boolean enabled = true;
 

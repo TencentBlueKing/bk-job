@@ -92,41 +92,62 @@ class HttpUrlSafetyUtilsTest {
         assertThat(HttpUrlSafetyUtils.isHostOrChildHost("a..bkrepo.example.com", "bkrepo.example.com")).isFalse();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"127.0.0.1", "127.0.0.2", "127.0.0.255"})
-    void loopbackShouldBeInternalAndDangerous(String ip) throws UnknownHostException {
-        InetAddress address = InetAddress.getByName(ip);
-        assertThat(HttpUrlSafetyUtils.isInternalAddress(address)).isTrue();
-        assertThat(HttpUrlSafetyUtils.isDangerousAddress(address)).isTrue();
+    private static boolean resolvedToLocalHost(InetAddress... addresses) {
+        return HttpUrlSafetyUtils.isResolvedToLocalHostAddress("target.example.com", host -> addresses);
     }
 
     @Test
-    void siteLocalShouldBeInternalButNotDangerous() {
-        InetAddress address = mock(InetAddress.class);
-        when(address.isSiteLocalAddress()).thenReturn(true);
-        when(address.getAddress()).thenReturn(new byte[4]);
-        assertThat(HttpUrlSafetyUtils.isInternalAddress(address)).isTrue();
-        assertThat(HttpUrlSafetyUtils.isDangerousAddress(address)).isFalse();
-    }
-
-    @Test
-    @DisplayName("解析为环回应视为 loopback，站点本地不视为 loopback")
-    void isResolvedToLoopbackAddressShouldOnlyMatchLoopback() throws UnknownHostException {
+    @DisplayName("解析为环回或通配地址时视为本机地址")
+    void isResolvedToLocalHostAddressShouldMatchLoopbackAndAnyLocal() throws UnknownHostException {
         InetAddress loopback = mock(InetAddress.class);
         when(loopback.isLoopbackAddress()).thenReturn(true);
-        InetAddress siteLocal = mock(InetAddress.class);
-        when(siteLocal.isLoopbackAddress()).thenReturn(false);
-        when(siteLocal.isSiteLocalAddress()).thenReturn(true);
-        when(siteLocal.getAddress()).thenReturn(new byte[4]);
 
-        assertThat(HttpUrlSafetyUtils.isResolvedToLoopbackAddress(
-            "loopback.example.com", host -> new InetAddress[]{loopback})).isTrue();
-        assertThat(HttpUrlSafetyUtils.isResolvedToLoopbackAddress(
-            "sitelocal.example.com", host -> new InetAddress[]{siteLocal})).isFalse();
-        assertThat(HttpUrlSafetyUtils.isResolvedToLoopbackAddress(
+        assertThat(resolvedToLocalHost(loopback)).isTrue();
+        assertThat(resolvedToLocalHost(InetAddress.getByName("127.0.0.1"))).isTrue();
+        assertThat(resolvedToLocalHost(InetAddress.getByAddress(new byte[4]))).isTrue();
+        assertThat(resolvedToLocalHost(InetAddress.getByAddress(new byte[16]))).isTrue();
+    }
+
+    @Test
+    @DisplayName("解析失败、空结果或空地址时按失败关闭视为本机地址")
+    void isResolvedToLocalHostAddressShouldFailClosed() {
+        assertThat(HttpUrlSafetyUtils.isResolvedToLocalHostAddress(
             "unresolvable.example.com", host -> {
                 throw new UnknownHostException(host);
             })).isTrue();
+        assertThat(resolvedToLocalHost()).isTrue();
+        assertThat(HttpUrlSafetyUtils.isResolvedToLocalHostAddress("target.example.com", host -> null)).isTrue();
+        assertThat(resolvedToLocalHost((InetAddress) null)).isTrue();
+        assertThat(HttpUrlSafetyUtils.isResolvedToLocalHostAddress(" ", host -> new InetAddress[0])).isTrue();
+    }
+
+    @Test
+    @DisplayName("站点本地、链路本地、组播、IPv6 ULA 地址均放行")
+    void isResolvedToLocalHostAddressShouldAllowOtherInternalAddresses() throws UnknownHostException {
+        InetAddress siteLocal = mock(InetAddress.class);
+        when(siteLocal.isSiteLocalAddress()).thenReturn(true);
+        InetAddress multicast = mock(InetAddress.class);
+        when(multicast.isMulticastAddress()).thenReturn(true);
+        byte[] ula = new byte[16];
+        ula[0] = (byte) 0xfd;
+        ula[15] = 1;
+
+        assertThat(resolvedToLocalHost(siteLocal)).isFalse();
+        assertThat(resolvedToLocalHost(
+            InetAddress.getByAddress(new byte[]{(byte) 169, (byte) 254, 1, 2}))).isFalse();
+        assertThat(resolvedToLocalHost(multicast)).isFalse();
+        assertThat(resolvedToLocalHost(InetAddress.getByAddress(ula))).isFalse();
+    }
+
+    @Test
+    @DisplayName("多个解析结果中只要有一个通配地址即视为本机地址")
+    void isResolvedToLocalHostAddressShouldMatchAnyOfMultipleAddresses() throws UnknownHostException {
+        InetAddress siteLocal = mock(InetAddress.class);
+        when(siteLocal.isSiteLocalAddress()).thenReturn(true);
+
+        assertThat(resolvedToLocalHost(siteLocal, InetAddress.getByAddress(new byte[4]))).isTrue();
+        assertThat(resolvedToLocalHost(
+            InetAddress.getByAddress(new byte[]{(byte) 169, (byte) 254, 1, 2}), siteLocal)).isFalse();
     }
 
     @Test
@@ -137,6 +158,57 @@ class HttpUrlSafetyUtilsTest {
         assertThat(HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl("http://user@bkrepo.example.com")).isFalse();
         assertThat(HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl("http://bkrepo.example.com?x=1")).isFalse();
         assertThat(HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl("http://bkrepo.example.com#x")).isFalse();
+    }
+
+    @Test
+    @DisplayName("日志输出的 URL 应去掉 userinfo")
+    void toLogSafeUrlShouldStripUserInfo() {
+        assertThat(HttpUrlSafetyUtils.toLogSafeUrl("http://u:secretPwd@example.com/path?x=1", 512))
+            .isEqualTo("http://example.com/path?x=1");
+        assertThat(HttpUrlSafetyUtils.toLogSafeUrl("https://user:secretPwd@example.com:8443/a@b", 512))
+            .isEqualTo("https://example.com:8443/a@b");
+        assertThat(HttpUrlSafetyUtils.toLogSafeUrl("user:secretPwd@cos.example.com", 512))
+            .isEqualTo("cos.example.com");
+        assertThat(HttpUrlSafetyUtils.toLogSafeUrl("secretUser@cos.example.com:8080", 512))
+            .isEqualTo("cos.example.com:8080");
+        assertThat(HttpUrlSafetyUtils.toLogSafeUrl(null, 512)).isEqualTo("");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "http://example.com/path?x=1",
+        "https://example.com:8443/a@b#frag",
+        "cos.example.com",
+        "cos.example.com:8080"
+    })
+    @DisplayName("无 userinfo 时日志输出与原串一致")
+    void toLogSafeUrlShouldKeepUrlWithoutUserInfo(String url) {
+        assertThat(HttpUrlSafetyUtils.toLogSafeUrl(url, 512)).isEqualTo(url);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "http://u:secretPwd@exa mple.com/x",
+        "http://u:secret/Pwd@example.com/x",
+        "http://u:secretPwd@ex_ample.com",
+        "u:secretPwd@exa mple.com",
+        "http://u:secretPwd@@example.com",
+        "user:secretPwd@cos.example.com:notaport"
+    })
+    @DisplayName("畸形 URL 也不能在日志中输出密码")
+    void toLogSafeUrlShouldNotLeakPasswordForMalformedUrl(String url) {
+        assertThat(HttpUrlSafetyUtils.toLogSafeUrl(url, 512))
+            .doesNotContain("secret")
+            .doesNotContain("@");
+    }
+
+    @Test
+    @DisplayName("日志输出的 URL 应去掉控制字符并截断")
+    void toLogSafeUrlShouldSanitize() {
+        assertThat(HttpUrlSafetyUtils.toLogSafeUrl("http://u:p@example.com/a\r\nb", 512))
+            .isEqualTo("http://example.com/ab");
+        assertThat(HttpUrlSafetyUtils.toLogSafeUrl("http://example.com/abcdef", 18))
+            .isEqualTo("http://example.com...");
     }
 
     @Test

@@ -554,6 +554,8 @@ public class ErrorCode {
     public static final int FILE_SOURCE_DISABLED = 1260023;
     // 内部HTTP请求目标地址不合法
     public static final int INTERNAL_HTTP_URL_INVALID = 1260024;
+    // 文件源类型[{0}]尚未支持
+    public static final int FILE_SOURCE_TYPE_NOT_SUPPORTED = 1260025;
 
     // 文件网关 end
     // 文件代理 start

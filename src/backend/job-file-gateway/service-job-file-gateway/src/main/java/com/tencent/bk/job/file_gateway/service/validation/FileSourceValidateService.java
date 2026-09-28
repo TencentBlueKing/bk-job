@@ -28,7 +28,7 @@ import java.util.Map;
 
 public interface FileSourceValidateService {
     /**
-     * 按文件源类型校验接入参数
+     * 按文件源类型校验接入参数：目前仅支持蓝鲸制品库（校验根地址），其他类型直接拒绝
      *
      * @param fileSourceTypeCode 文件源类型编码
      * @param fileSourceInfoMap  文件源信息
@@ -41,13 +41,6 @@ public interface FileSourceValidateService {
      * @param baseUrl 根地址
      */
     void checkBkArtifactoryBaseUrl(String baseUrl);
-
-    /**
-     * 检查 COS 接入点域名是否合法
-     *
-     * @param endPointDomain 接入点域名或 URL
-     */
-    void checkCosEndPointDomain(String endPointDomain);
 
     /**
      * 检查写入白名单的制品库根地址格式
