@@ -109,6 +109,20 @@ class V4ExecuteAuthExecutorPathTest {
     }
 
     @Test
+    @DisplayName("租户集视图：叶子即租户集本身，实例 ID 传通配 *")
+    void tenantSetStaticHostPath() {
+        AppResourceScope tenantSetScope = new AppResourceScope(ResourceScopeTypeEnum.TENANT_SET, "1", 1L);
+        ExecuteTargetDTO target = new ExecuteTargetDTO();
+        target.setStaticIpList(Collections.singletonList(new HostDTO(100L)));
+
+        List<V4AuthResourceDTO> resources = executor.buildHostAuthResources(tenantSetScope, target);
+
+        assertThat(resources).hasSize(1);
+        assertThat(resources.get(0).getId()).isEqualTo("*");
+        assertThat(pathOf(resources.get(0))).isEqualTo("/tenant_set,1/");
+    }
+
+    @Test
     @DisplayName("动态分组：首段为 biz_dynamic_group，与业务下主机视图区分")
     void dynamicGroupPathUsesDedicatedFirstSegment() {
         ExecuteTargetDTO target = new ExecuteTargetDTO();

@@ -164,9 +164,10 @@ public class IamAutoConfiguration {
     public AuthService authService(AuthHelper authHelper,
                                    MessageI18nService i18nService,
                                    IIamClient iamClient,
-                                   IamV4AuthService iamV4AuthService) {
+                                   IamV4AuthService iamV4AuthService,
+                                   JobIamV4Properties jobIamV4Properties) {
         ActionAuthExecutor v3Executor = new V3ActionAuthExecutor(authHelper, iamClient);
-        ActionAuthExecutor v4Executor = new V4ActionAuthExecutor(iamV4AuthService);
+        ActionAuthExecutor v4Executor = new V4ActionAuthExecutor(iamV4AuthService, jobIamV4Properties);
         return new AuthServiceImpl(v3Executor, v4Executor, i18nService);
     }
 

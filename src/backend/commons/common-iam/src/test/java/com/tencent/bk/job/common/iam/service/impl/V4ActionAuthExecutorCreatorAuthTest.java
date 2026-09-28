@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.iam.config.JobIamV4Properties;
 import com.tencent.bk.job.common.iam.constant.IamV4ResourceTypeId;
 import com.tencent.bk.job.common.iam.constant.IamV4RoleId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
@@ -68,7 +69,7 @@ class V4ActionAuthExecutorCreatorAuthTest {
     @BeforeEach
     void setUp() {
         iamV4AuthService = mock(IamV4AuthService.class);
-        executor = new V4ActionAuthExecutor(iamV4AuthService);
+        executor = new V4ActionAuthExecutor(iamV4AuthService, new JobIamV4Properties());
     }
 
     @ParameterizedTest(name = "{0} -> {1}")

@@ -128,21 +128,13 @@ public class AppAuthServiceImpl extends AbstractAuthResultBuilder implements App
     @Override
     public String getBusinessApplyUrl(String tenantId, AppResourceScope appResourceScope) {
         if (IamAuthVersionHelper.useV4(JobContextUtil.getUsername())
-            && StringUtils.isNotBlank(jobIamV4Properties.getWebUrl())) {
-            return buildV4ApplyPageUrl();
+            && StringUtils.isNotBlank(jobIamV4Properties.getApplyPageUrl())) {
+            return jobIamV4Properties.getApplyPageUrl();
         }
         if (appResourceScope == null) {
             return jobIamProperties.getWebUrl() + "/apply-join-user-group";
         }
         return pickExecutorByContext().getBusinessApplyUrl(tenantId, appResourceScope);
-    }
-
-    private String buildV4ApplyPageUrl() {
-        String base = jobIamV4Properties.getWebUrl();
-        while (base.endsWith("/")) {
-            base = base.substring(0, base.length() - 1);
-        }
-        return base + "/permission/apply";
     }
 
     private AuthResult buildScopeFailAuthResult(User user, String actionId, AppResourceScope appResourceScope) {

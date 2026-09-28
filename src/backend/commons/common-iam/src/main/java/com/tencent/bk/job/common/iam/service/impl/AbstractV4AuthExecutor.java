@@ -51,6 +51,11 @@ import java.util.Map;
  */
 public abstract class AbstractV4AuthExecutor {
 
+    /**
+     * 额外实例视图没有具体实例时，IAM 要求 {@code resource.id} 非空，传通配 {@code *}。
+     */
+    protected static final String ANY_INSTANCE_ID = "*";
+
     protected final IamV4AuthService iamV4AuthService;
 
     protected AbstractV4AuthExecutor(IamV4AuthService iamV4AuthService) {

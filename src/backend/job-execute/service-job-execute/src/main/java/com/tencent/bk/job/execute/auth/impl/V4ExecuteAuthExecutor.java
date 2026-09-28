@@ -71,11 +71,6 @@ import java.util.Set;
 @Slf4j
 public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements ExecuteAuthExecutor {
 
-    /**
-     * 扩展实例视图下的实例 ID 通配符：叶子是上级节点、代表其下全部主机，无法指定具体是哪一台
-     */
-    private static final String ANY_INSTANCE_ID = "*";
-
     private final ExecuteTargetInstanceBuilder executeTargetInstanceBuilder;
 
     public V4ExecuteAuthExecutor(IamV4AuthService iamV4AuthService,

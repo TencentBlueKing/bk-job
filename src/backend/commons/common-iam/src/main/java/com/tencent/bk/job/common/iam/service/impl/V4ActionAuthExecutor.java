@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.iam.config.JobIamV4Properties;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -31,14 +32,11 @@ import com.tencent.bk.job.common.iam.service.ActionAuthExecutor;
 import com.tencent.bk.job.common.iam.util.IamV4CreatorRoleMapper;
 import com.tencent.bk.job.common.iam.util.IamV4ResourceTypeMapper;
 import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
 import com.tencent.bk.sdk.iamv4.constants.IamV4SubjectType;
-import com.tencent.bk.sdk.iamv4.dto.V4ApplyResourceDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4AuthorizationResourceDTO;
-import com.tencent.bk.sdk.iamv4.dto.V4PermissionDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4SubjectDTO;
 import com.tencent.bk.sdk.iamv4.dto.request.V4AuthorizationDTO;
 import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
@@ -61,8 +59,12 @@ public class V4ActionAuthExecutor extends AbstractV4AuthExecutor implements Acti
      */
     private static final long MAX_AUTHORIZE_EXPIRE_DAYS = 365;
 
-    public V4ActionAuthExecutor(IamV4AuthService iamV4AuthService) {
+    private final JobIamV4Properties jobIamV4Properties;
+
+    public V4ActionAuthExecutor(IamV4AuthService iamV4AuthService,
+                                JobIamV4Properties jobIamV4Properties) {
         super(iamV4AuthService);
+        this.jobIamV4Properties = jobIamV4Properties;
     }
 
     @Override
@@ -97,16 +99,18 @@ public class V4ActionAuthExecutor extends AbstractV4AuthExecutor implements Acti
         return extractAllowedResourceIds(resultMap);
     }
 
+    /**
+     * 无具体实例 ID。v4 申请接口要求 {@code resources[].id}，这里直接给权限中心申请页。
+     */
     @Override
     public String getApplyUrl(String actionId, ResourceTypeEnum resourceType) {
-        V4ApplyResourceDTO resource = V4ApplyResourceDTO.builder()
-            .type(IamV4ResourceTypeMapper.toV4ResourceTypeId(resourceType))
-            .build();
-        V4PermissionDTO permission = V4PermissionDTO.builder()
-            .actionId(actionId)
-            .resources(Collections.singletonList(resource))
-            .build();
-        return iamV4AuthService.getApplyUrl(JobContextUtil.getTenantId(), Collections.singletonList(permission));
+        String applyPageUrl = jobIamV4Properties.getApplyPageUrl();
+        if (applyPageUrl == null) {
+            log.warn("IAM v4 web url is blank, cannot build permission apply page|actionId={}|resourceType={}",
+                actionId, resourceType);
+            return null;
+        }
+        return applyPageUrl;
     }
 
     @Override

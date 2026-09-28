@@ -171,7 +171,8 @@ public class V4AppAuthExecutor extends AbstractV4AuthExecutor implements AppAuth
             return buildV4Resource(ResourceTypeEnum.BUSINESS.getId(), appResourceScope.getId(), null);
         } else if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
             || appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
-            return buildV4Resource(ResourceTypeEnum.BUSINESS.getId(), null,
+            // 业务集 / 租户集是业务的额外实例视图：鉴权对象仍是 biz，没有具体业务实例，id 传 *
+            return buildV4Resource(ResourceTypeEnum.BUSINESS.getId(), ANY_INSTANCE_ID,
                 IamUtil.buildScopePathInfo(appResourceScope));
         } else {
             FormattingTuple msg = MessageFormatter.format(

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.iam.config.JobIamV4Properties;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
@@ -44,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * 无权限申请资源：顶层资源不传 ancestors，避免 IAM 拒绝 ancestors: null。
@@ -59,7 +61,18 @@ class AbstractV4AuthExecutorApplyResourceTest {
     @BeforeEach
     void setUp() {
         iamV4AuthService = mock(IamV4AuthService.class);
-        executor = new V4ActionAuthExecutor(iamV4AuthService);
+        JobIamV4Properties jobIamV4Properties = new JobIamV4Properties();
+        jobIamV4Properties.setWebUrl("http://bkiam-v4.example.com/");
+        executor = new V4ActionAuthExecutor(iamV4AuthService, jobIamV4Properties);
+    }
+
+    @Test
+    @DisplayName("没有实例 ID 时不调申请接口，直接给权限中心申请页")
+    void applyWithoutInstanceIdGoesToPermissionPage() {
+        String url = executor.getApplyUrl(ActionId.ACCESS_BUSINESS, ResourceTypeEnum.BUSINESS);
+
+        assertThat(url).isEqualTo("http://bkiam-v4.example.com/permission/apply");
+        verifyNoInteractions(iamV4AuthService);
     }
 
     @Test

@@ -47,4 +47,21 @@ public class JobIamV4Properties {
      */
     private String webUrl;
 
+    /**
+     * 无具体实例时的申请页：{@code {webUrl}/permission/apply}。
+     * v4 申请接口要求 resources[].id，没有实例 ID 时不能调接口。
+     *
+     * @return 页面地址；未配置 webUrl 时返回 null
+     */
+    public String getApplyPageUrl() {
+        if (webUrl == null || webUrl.isBlank()) {
+            return null;
+        }
+        String base = webUrl;
+        while (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + "/permission/apply";
+    }
+
 }
