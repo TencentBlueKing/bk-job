@@ -26,7 +26,10 @@ package com.tencent.bk.job.file.worker.artifactory.service;
 
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import com.tencent.bk.job.file.worker.service.RemoteClient;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -40,7 +43,16 @@ import java.io.InputStream;
 public class ArtifactoryRemoteClient extends ArtifactoryClient implements RemoteClient {
 
     public ArtifactoryRemoteClient(String baseUrl, String username, String password, MeterRegistry meterRegistry) {
-        super(baseUrl, username, password, meterRegistry);
+        super(requireSafeRemoteBaseUrl(baseUrl), username, password, meterRegistry);
+    }
+
+    private static String requireSafeRemoteBaseUrl(String baseUrl) {
+        String host = HttpUrlSafetyUtils.parseHttpUrlHost(baseUrl);
+        if (host == null || HttpUrlSafetyUtils.isResolvedToDangerousAddress(host,
+            HttpUrlSafetyUtils.DEFAULT_HOST_RESOLVER)) {
+            throw new InvalidParamException(ErrorCode.BK_ARTIFACTORY_BASE_URL_INVALID);
+        }
+        return baseUrl;
     }
 
     @Override

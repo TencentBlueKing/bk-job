@@ -33,6 +33,7 @@ import com.tencent.bk.job.file.worker.state.WorkerStateMachine;
 import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
 import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
 import com.tencent.bk.job.file.worker.task.connectivity.ConnectivityCheckTask;
+import com.tencent.bk.job.file.worker.task.health.SelfHealthCheckTask;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ConnectivityCheckResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +43,9 @@ import org.springframework.stereotype.Component;
 /**
  * 等待Worker可被外界访问的事件处理器，实现检查与等待逻辑。
  * <p>
- * 判定方式由「Worker 本地自检 /actuator/health」改为「调用 File-Gateway 连通性回探接口」：
- * Gateway 主动访问当前 Worker 的健康端点，仅当 Worker 连续 N 次回探均成功，
- * 才认为 Worker 已真正可被 Gateway 集群访问（规避 K8s 各 Pod 间 DNS 缓存时间差导致的瞬时不可达）。
+ * 每轮需同时满足：Worker 进程内自检健康状态为 UP，且 File-Gateway 能在其 Pod 内解析 Worker 访问地址。
+ * 仅当连续 N 轮都满足，才认为 Worker 可被 Gateway 集群访问并上报心跳
+ * （规避 K8s 各 Pod 间 DNS 缓存时间差导致的瞬时不可达）。
  */
 @Slf4j
 @Component
@@ -53,16 +54,19 @@ public class WaitAccessEventHandler implements EventHandler {
     private final WorkerEventService workerEventService;
     private final WorkerStateMachine workerStateMachine;
     private final ConnectivityCheckTask connectivityCheckTask;
+    private final SelfHealthCheckTask selfHealthCheckTask;
     private final AccessReadyProperties accessReadyProperties;
 
     @Autowired
     public WaitAccessEventHandler(@Lazy WorkerEventService workerEventService,
                                   WorkerStateMachine workerStateMachine,
                                   ConnectivityCheckTask connectivityCheckTask,
+                                  SelfHealthCheckTask selfHealthCheckTask,
                                   AccessReadyProperties accessReadyProperties) {
         this.workerEventService = workerEventService;
         this.workerStateMachine = workerStateMachine;
         this.connectivityCheckTask = connectivityCheckTask;
+        this.selfHealthCheckTask = selfHealthCheckTask;
         this.accessReadyProperties = accessReadyProperties;
     }
 
@@ -95,11 +99,11 @@ public class WaitAccessEventHandler implements EventHandler {
     }
 
     /**
-     * 通过反复调用 Gateway 连通性回探接口判定 access-ready：
+     * 每轮同时检查 Worker 自身健康与 Gateway 地址解析，两者都成功才计一次成功：
      * <ul>
      *     <li>连续成功 {@code requiredSuccessCount} 次 → 视为达成，立即返回 true；</li>
-     *     <li>任意一次失败 → 连续成功计数清零，等待 {@code checkIntervalMs} 后重试；</li>
-     *     <li>成功但未达连续阈值 → 立即发起下一次回探，不等待；</li>
+     *     <li>任意一项失败 → 连续成功计数清零，等待 {@code checkIntervalMs} 后重试；</li>
+     *     <li>成功但未达连续阈值 → 立即发起下一轮检查，不等待；</li>
      *     <li>累计尝试次数达到 {@code maxCheckCount} → 返回 false，由事件循环重新入队。</li>
      * </ul>
      */
@@ -111,22 +115,21 @@ public class WaitAccessEventHandler implements EventHandler {
         int totalAttempts = 0;
         while (totalAttempts < maxCheckCount) {
             totalAttempts++;
-            ConnectivityCheckResult result = connectivityCheckTask.doCheck();
-            if (result != null && Boolean.TRUE.equals(result.getSuccess())) {
+            String failReason = checkOnce();
+            if (failReason == null) {
                 consecutiveSuccess++;
                 log.info(
-                    "ConnectivityCheck success, consecutive={}/{}, totalAttempts={}/{}",
+                    "AccessCheck success, consecutive={}/{}, totalAttempts={}/{}",
                     consecutiveSuccess, requiredSuccessCount, totalAttempts, maxCheckCount
                 );
                 if (consecutiveSuccess >= requiredSuccessCount) {
                     return true;
                 }
-                // 成功立即发起下一次回探，不 sleep，避免节流过严拖慢启动
+                // 成功立即发起下一轮检查，不 sleep，避免节流过严拖慢启动
             } else {
-                String gatewayErrorMessage = (result == null) ? "null result" : result.getErrorMessage();
                 String logMessage = I18nUtil.getI18nMessage(
                     String.valueOf(ErrorCode.FILE_WORKER_CONNECTIVITY_CHECK_FAIL),
-                    new Object[]{gatewayErrorMessage}
+                    new Object[]{failReason}
                 );
                 log.info(
                     "{}, consecutive reset to 0 (was {}), totalAttempts={}/{}",
@@ -139,9 +142,24 @@ public class WaitAccessEventHandler implements EventHandler {
             }
         }
         log.warn(
-            "ConnectivityCheck reached maxCheckCount={} without {} consecutive successes, will re-enqueue",
+            "AccessCheck reached maxCheckCount={} without {} consecutive successes, will re-enqueue",
             maxCheckCount, requiredSuccessCount
         );
         return false;
+    }
+
+    /**
+     * @return 两项检查都成功时返回 null，否则返回失败原因
+     */
+    private String checkOnce() {
+        String selfUnhealthyReason = selfHealthCheckTask.checkUnhealthyReason();
+        if (selfUnhealthyReason != null) {
+            return selfUnhealthyReason;
+        }
+        ConnectivityCheckResult result = connectivityCheckTask.doCheck();
+        if (result != null && Boolean.TRUE.equals(result.getSuccess())) {
+            return null;
+        }
+        return "gateway: " + (result == null ? "null result" : result.getErrorMessage());
     }
 }

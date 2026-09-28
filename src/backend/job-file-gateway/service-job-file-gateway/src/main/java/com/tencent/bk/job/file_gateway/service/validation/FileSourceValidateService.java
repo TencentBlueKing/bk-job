@@ -24,11 +24,35 @@
 
 package com.tencent.bk.job.file_gateway.service.validation;
 
+import java.util.Map;
+
 public interface FileSourceValidateService {
+    /**
+     * 按文件源类型校验接入参数
+     *
+     * @param fileSourceTypeCode 文件源类型编码
+     * @param fileSourceInfoMap  文件源信息
+     */
+    void checkFileSource(String fileSourceTypeCode, Map<String, Object> fileSourceInfoMap);
+
     /**
      * 检查对接的蓝鲸制品库根地址是否合法
      *
      * @param baseUrl 根地址
      */
     void checkBkArtifactoryBaseUrl(String baseUrl);
+
+    /**
+     * 检查 COS 接入点域名是否合法
+     *
+     * @param endPointDomain 接入点域名或 URL
+     */
+    void checkCosEndPointDomain(String endPointDomain);
+
+    /**
+     * 检查写入白名单的制品库根地址格式
+     *
+     * @param baseUrl 根地址
+     */
+    void validateWhiteBaseUrl(String baseUrl);
 }

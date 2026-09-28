@@ -89,8 +89,7 @@ public class CallbackListener extends BaseJobMqListener {
         try {
             log.info("Handle callback, taskInstanceId: {}, callbackDTO: {}", taskInstanceId, callbackDTO);
             validateUrl(callbackUrl);
-            // 出口侧白名单兜底校验：阻断历史脏数据或异常路径写入的 callbackUrl
-            // 即使入参未走 @ValidCallbackUrl 校验也不会真正发起 SSRF 请求
+            // 出口侧白名单兜底：开关开启时阻断历史脏数据或未走 @ValidCallbackUrl 的 callbackUrl
             if (!callbackUrlValidateService.isValid(callbackUrl)) {
                 log.warn(
                     "Callback url rejected by whitelist on egress, taskInstanceId={}, callbackUrl={}",
