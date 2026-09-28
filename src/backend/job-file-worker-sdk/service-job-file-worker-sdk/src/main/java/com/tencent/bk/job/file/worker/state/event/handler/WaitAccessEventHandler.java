@@ -43,9 +43,9 @@ import org.springframework.stereotype.Component;
 /**
  * 等待Worker可被外界访问的事件处理器，实现检查与等待逻辑。
  * <p>
- * 每轮需同时满足：Worker 进程内自检健康状态为 UP，且 File-Gateway 能在其 Pod 内解析 Worker 访问地址。
- * 仅当连续 N 轮都满足，才认为 Worker 可被 Gateway 集群访问并上报心跳
- * （规避 K8s 各 Pod 间 DNS 缓存时间差导致的瞬时不可达）。
+ * 每轮需同时满足：Worker 进程内自检健康状态为 UP，且 File-Gateway 能在其 Pod 内解析 Worker 访问地址、
+ * 解析结果包含 Worker 当前 IP。仅当连续 N 轮都满足，才认为 Worker 可被 Gateway 集群访问并上报心跳
+ * （规避 K8s 各 Pod 间 DNS 缓存时间差及缓存仍指向旧 IP 导致的不可达）。
  */
 @Slf4j
 @Component

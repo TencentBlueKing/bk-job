@@ -63,9 +63,7 @@ public class FileSourceValidateServiceImpl implements FileSourceValidateService 
             checkBkArtifactoryBaseUrl(getString(fileSourceInfoMap, FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL));
             return;
         }
-        if (FileSourceTypeEnum.isTencentCloudCos(fileSourceTypeCode)) {
-            checkCosEndPointDomain(getString(fileSourceInfoMap, FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN));
-        }
+        rejectUnsupportedType(fileSourceTypeCode);
     }
 
     @Override
@@ -76,7 +74,7 @@ public class FileSourceValidateServiceImpl implements FileSourceValidateService 
         }
         String envHost = HttpUrlSafetyUtils.parseHttpUrlHost(artifactoryConfig.getArtifactoryBaseUrl());
         boolean envMatch = HttpUrlSafetyUtils.isHostOrChildHost(host, envHost);
-        if (envMatch && !HttpUrlSafetyUtils.isResolvedToLoopbackAddress(host, hostResolver)) {
+        if (envMatch && !HttpUrlSafetyUtils.isResolvedToLocalHostAddress(host, hostResolver)) {
             return;
         }
         boolean existsWhiteInfo = fileSourceWhiteInfoDAO.exists(
@@ -85,35 +83,25 @@ public class FileSourceValidateServiceImpl implements FileSourceValidateService 
         );
         if (!existsWhiteInfo) {
             String reason = envMatch
-                ? "host matches current env artifactory domain but resolved to loopback or failed to resolve, "
+                ? "host matches current env artifactory domain but resolved to loopback/any-local address "
+                + "or failed to resolve, "
                 + "and not in whitelist"
                 : "host is not current env artifactory domain/subdomain and not in whitelist";
             rejectBkArtifactory(baseUrl, reason);
         }
     }
 
-    @Override
-    public void checkCosEndPointDomain(String endPointDomain) {
-        String host = HttpUrlSafetyUtils.parseHttpUrlOrBareHost(endPointDomain);
-        if (host == null) {
-            rejectCos(endPointDomain, "invalid host or URL");
-        }
-        if (HttpUrlSafetyUtils.isResolvedToDangerousAddress(host, hostResolver)) {
-            rejectCos(endPointDomain, "resolved to loopback/link-local/any-local/multicast or failed to resolve");
-        }
-    }
-
     private void rejectBkArtifactory(String baseUrl, String reason) {
         log.warn("BkArtifactory baseUrl rejected: reason={}, baseUrl={}",
-            reason, LogUtil.sanitizeForLog(baseUrl, 512));
+            reason, HttpUrlSafetyUtils.toLogSafeUrl(baseUrl, 512));
         throw new InvalidParamException(ErrorCode.BK_ARTIFACTORY_BASE_URL_INVALID);
     }
 
-    private void rejectCos(String endPointDomain, String reason) {
-        log.warn("COS endPointDomain rejected: reason={}, endPointDomain={}",
-            reason, LogUtil.sanitizeForLog(endPointDomain, 512));
-        throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-            new String[]{FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN});
+    private void rejectUnsupportedType(String fileSourceTypeCode) {
+        log.warn("FileSource rejected: reason=file source type not supported, fileSourceTypeCode={}",
+            LogUtil.sanitizeForLog(fileSourceTypeCode, 64));
+        throw new InvalidParamException(ErrorCode.FILE_SOURCE_TYPE_NOT_SUPPORTED,
+            new String[]{fileSourceTypeCode});
     }
 
     @Override
