@@ -39,9 +39,11 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -253,6 +255,36 @@ public class IpUtils {
         }
         log.error("no available ip, plz check net interface");
         return null;
+    }
+
+    /**
+     * 获取本机所有网卡上的 IP 地址（IPv4 与 IPv6），排除环回、链路本地与通配地址，IPv6 去掉 scope id
+     *
+     * @return 去重后的 IP 列表，获取失败时为空列表
+     */
+    public static List<String> listMachineIps() {
+        Set<String> ips = new LinkedHashSet<>();
+        try {
+            Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
+            if (netInterfaces == null) {
+                return new ArrayList<>(ips);
+            }
+            while (netInterfaces.hasMoreElements()) {
+                Enumeration<InetAddress> addresses = netInterfaces.nextElement().getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress address = addresses.nextElement();
+                    if (address.isLoopbackAddress() || address.isLinkLocalAddress() || address.isAnyLocalAddress()) {
+                        continue;
+                    }
+                    String ip = address.getHostAddress();
+                    int scopeIndex = ip.indexOf('%');
+                    ips.add(scopeIndex < 0 ? ip : ip.substring(0, scopeIndex));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Fail to list machine ips", e);
+        }
+        return new ArrayList<>(ips);
     }
 
     interface IpExtracter {
