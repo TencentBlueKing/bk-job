@@ -48,7 +48,7 @@ public class ArtifactoryRemoteClient extends ArtifactoryClient implements Remote
 
     private static String requireSafeRemoteBaseUrl(String baseUrl) {
         String host = HttpUrlSafetyUtils.parseHttpUrlHost(baseUrl);
-        if (host == null || HttpUrlSafetyUtils.isResolvedToDangerousAddress(host,
+        if (host == null || HttpUrlSafetyUtils.isResolvedToLocalHostAddress(host,
             HttpUrlSafetyUtils.DEFAULT_HOST_RESOLVER)) {
             throw new InvalidParamException(ErrorCode.BK_ARTIFACTORY_BASE_URL_INVALID);
         }

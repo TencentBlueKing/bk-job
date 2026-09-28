@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.file_gateway.service;
 
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.file_gateway.model.req.inner.ConnectivityCheckReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ConnectivityCheckResult;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +35,16 @@ import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Worker 连通性回探服务
  * 由 File-Worker 在启动期反复调用，File-Gateway 在本 Pod 内解析请求中携带的 accessHost，
- * 借此证明该 Gateway Pod 已能解析到新 Worker 的地址。
+ * 并校验解析结果包含 Worker 上报的当前 IP，借此证明该 Gateway Pod 已能解析到新 Worker 的最新地址，
+ * 而不是 DNS 缓存中的旧 IP。
  * 通过 Worker 侧对 Gateway 集群做"连续 N 次成功"判定，可规避 K8s 各 Pod 间 DNS 缓存
  * 时间差导致的瞬时不可达问题。
  * <p>
@@ -68,9 +75,12 @@ public class WorkerConnectivityService {
     }
 
     /**
-     * 在当前 Gateway Pod 内解析 Worker 的访问地址。
+     * 在当前 Gateway Pod 内解析 Worker 的访问地址，并校验解析结果包含 Worker 上报的当前 IP。
+     * <p>
+     * Worker 重启后 IP 变化，而 Gateway 的 JVM/CoreDNS 缓存可能仍返回旧 IP，此时解析依然"成功"。
+     * 因此请求携带 expectedIps 时，要求解析结果与之有交集才算成功；未携带时（老版本 Worker）仅校验可解析。
      *
-     * @param req 回探请求，携带 Worker 的访问地址
+     * @param req 回探请求，携带 Worker 的访问地址与当前实际 IP 列表
      * @return 回探结果（成功/失败 + 失败描述）
      */
     public ConnectivityCheckResult check(ConnectivityCheckReq req) {
@@ -78,27 +88,78 @@ public class WorkerConnectivityService {
         // Worker 侧连续 N 次成功探测是否真的被 ClusterIP Service 分散到了多个 Gateway Pod
         log.info(
             "Handle connectivity check: handledByGatewayPod={}, " +
-                "fromWorker(clusterName={}, accessHost={}, accessPort={})",
+                "fromWorker(clusterName={}, accessHost={}, accessPort={}, expectedIps={})",
             podHostname,
             req.getClusterName(),
             req.getAccessHost(),
-            req.getAccessPort()
+            req.getAccessPort(),
+            req.getExpectedIps()
         );
         String accessHost = req.getAccessHost();
         if (!HttpUrlSafetyUtils.isAllowedServiceHost(accessHost)) {
             return fail(req, "invalid worker access host");
         }
+        InetAddress[] addresses;
         try {
-            InetAddress[] addresses = hostResolver.resolve(accessHost.trim());
-            if (addresses == null || addresses.length == 0) {
-                return fail(req, "UnknownHostException: no address resolved for " + accessHost);
-            }
-            return new ConnectivityCheckResult(true, null);
+            addresses = hostResolver.resolve(accessHost.trim());
         } catch (UnknownHostException e) {
             return fail(req, "UnknownHostException: " + e.getMessage());
         } catch (Exception e) {
             return fail(req, e.getClass().getSimpleName() + ": " + e.getMessage());
         }
+        if (addresses == null || addresses.length == 0) {
+            return fail(req, "UnknownHostException: no address resolved for " + accessHost);
+        }
+        Set<String> resolvedIps = new LinkedHashSet<>();
+        for (InetAddress address : addresses) {
+            if (address != null) {
+                resolvedIps.add(normalizeIp(address));
+            }
+        }
+        Set<String> expectedIps = parseExpectedIps(req.getExpectedIps());
+        log.info(
+            "Worker access host resolved, accessHost={}, resolvedIps={}, expectedIps={}",
+            accessHost,
+            resolvedIps,
+            expectedIps
+        );
+        if (expectedIps.isEmpty() || !Collections.disjoint(resolvedIps, expectedIps)) {
+            return new ConnectivityCheckResult(true, null);
+        }
+        return fail(req, "resolved addresses " + resolvedIps + " do not contain expected ips "
+            + expectedIps + ", gateway DNS cache may be stale");
+    }
+
+    /**
+     * 将 Worker 上报的 IP 规范化，非 IP 字面量直接忽略，保证不会因此触发 DNS 解析
+     */
+    private static Set<String> parseExpectedIps(List<String> expectedIps) {
+        Set<String> result = new LinkedHashSet<>();
+        if (expectedIps == null) {
+            return result;
+        }
+        for (String ip : expectedIps) {
+            String trimmedIp = StringUtils.trim(ip);
+            if (!IpUtils.isValidIpAddress(trimmedIp)) {
+                log.info("Ignore invalid expected ip: {}", LogUtil.sanitizeForLog(ip, 64));
+                continue;
+            }
+            try {
+                result.add(normalizeIp(InetAddress.getByName(trimmedIp)));
+            } catch (UnknownHostException e) {
+                log.info("Ignore invalid expected ip: {}", LogUtil.sanitizeForLog(ip, 64));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 统一 IP 文本表示（如 IPv6 压缩/非压缩形式），并去掉 IPv6 scope id
+     */
+    private static String normalizeIp(InetAddress address) {
+        String hostAddress = address.getHostAddress();
+        int scopeIndex = hostAddress.indexOf('%');
+        return scopeIndex < 0 ? hostAddress : hostAddress.substring(0, scopeIndex);
     }
 
     private ConnectivityCheckResult fail(ConnectivityCheckReq req, String errorMessage) {

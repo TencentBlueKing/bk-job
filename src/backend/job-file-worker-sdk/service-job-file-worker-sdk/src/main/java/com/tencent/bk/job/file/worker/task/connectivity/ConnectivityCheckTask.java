@@ -50,7 +50,8 @@ import java.util.List;
 /**
  * 连通性回探任务。
  * 由 Worker 调用 File-Gateway 的 /remote/fileWorker/connectivityCheck 接口，
- * 让 Gateway 在其 Pod 内解析当前 Worker 的访问地址，从而判定 Gateway 集群是否已能解析到该 Worker。
+ * 让 Gateway 在其 Pod 内解析当前 Worker 的访问地址并校验解析结果包含 Worker 当前 IP，
+ * 从而判定 Gateway 集群是否已能解析到该 Worker 的最新地址。
  * 与 {@link com.tencent.bk.job.file.worker.task.heartbeat.HeartBeatTask} 平级。
  */
 @Slf4j
@@ -81,14 +82,16 @@ public class ConnectivityCheckTask {
 
     /**
      * 构造连通性回探请求体，使用与心跳一致的 accessHost/accessPort，
-     * 确保 Gateway 解析的地址与后续心跳所注册的访问地址完全一致。
+     * 确保 Gateway 解析的地址与后续心跳所注册的访问地址完全一致；
+     * 同时上报 Worker 当前实际 IP，由 Gateway 校验解析结果已指向最新地址而非 DNS 缓存中的旧 IP。
      */
-    private ConnectivityCheckReq buildReq() {
+    ConnectivityCheckReq buildReq() {
         ConnectivityCheckReq req = new ConnectivityCheckReq();
         req.setClusterName(clusterProperties.getName());
         // 二进制部署环境与K8s环境差异处理，与心跳逻辑保持一致
         req.setAccessHost(environmentService.getAccessHost());
         req.setAccessPort(workerConfig.getAccessPort());
+        req.setExpectedIps(environmentService.getExpectedIps());
         return req;
     }
 
