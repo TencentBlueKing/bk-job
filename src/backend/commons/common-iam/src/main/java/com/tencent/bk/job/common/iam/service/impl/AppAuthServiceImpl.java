@@ -127,11 +127,11 @@ public class AppAuthServiceImpl extends AbstractAuthResultBuilder implements App
 
     @Override
     public String getBusinessApplyUrl(String tenantId, AppResourceScope appResourceScope) {
-        if (IamAuthVersionHelper.useV4(JobContextUtil.getUsername())
-            && StringUtils.isNotBlank(jobIamV4Properties.getApplyPageUrl())) {
-            return jobIamV4Properties.getApplyPageUrl();
-        }
         if (appResourceScope == null) {
+            if (IamAuthVersionHelper.useV4(JobContextUtil.getUsername())
+                && StringUtils.isNotBlank(jobIamV4Properties.getApplyPageUrl())) {
+                return jobIamV4Properties.getApplyPageUrl();
+            }
             return jobIamProperties.getWebUrl() + "/apply-join-user-group";
         }
         return pickExecutorByContext().getBusinessApplyUrl(tenantId, appResourceScope);
