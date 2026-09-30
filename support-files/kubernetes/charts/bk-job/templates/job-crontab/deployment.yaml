@@ -70,8 +70,10 @@ spec:
           imagePullPolicy: {{ .Values.crontabConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
-            {{- if not .Values.crontabConfig.database.host }}
-            {{- include "job.kms.mariadb.env" . | nindent 12 }}
+            {{- if .Values.crontabConfig.database.host }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "crontabdb" "rabbitmq" "redis")) | nindent 12 }}
+            {{- else }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "mariadb" "rabbitmq" "redis")) | nindent 12 }}
             {{- end }}
             - name: BK_JOB_APP_NAME
               value: "job-crontab"
@@ -94,18 +96,12 @@ spec:
             - name: job-storage
               mountPath: {{ .Values.persistence.localStorage.path }}
             {{- if .Values.crontabConfig.database.host }}
-            - name: crontabdb
-              mountPath: /etc/secrets/crontabdb
-              readOnly: true
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "crontabdb" "credential" "crontabdb" "mountPath" "/etc/secrets/crontabdb" "context" .) | nindent 12 }}
             {{- else }}
-            {{- include "job.mariadb.passwordVolumeMount" . | nindent 12 }}
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "mariadb" "credential" "mariadb" "mountPath" "/etc/secrets/mariadb" "context" .) | nindent 12 }}
             {{- end }}
-            - name: rabbitmq
-              mountPath: /etc/secrets/rabbitmq
-              readOnly: true
-            - name: redis
-              mountPath: /etc/secrets/redis
-              readOnly: true
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "rabbitmq" "credential" "rabbitmq" "mountPath" "/etc/secrets/rabbitmq" "context" .) | nindent 12 }}
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "redis" "credential" "redis" "mountPath" "/etc/secrets/redis" "context" .) | nindent 12 }}
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
             {{- include "job.redis.certsVolumeMount" . | nindent 12 }}
@@ -115,18 +111,12 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "job.storage.pvc.name" . }}
         {{- if .Values.crontabConfig.database.host }}
-        - name: crontabdb
-          secret:
-            secretName: {{ include "job.crontabdb.secretName" . }}
+        {{- include "job.kms.secretVolume" (dict "volume" "crontabdb" "credential" "crontabdb" "secretName" (include "job.crontabdb.secretName" .) "context" .) | nindent 8 }}
         {{- else }}
-        {{- include "job.mariadb.passwordVolume" . | nindent 8 }}
+        {{- include "job.kms.secretVolume" (dict "volume" "mariadb" "credential" "mariadb" "secretName" (include "job.mariadb.secretName" .) "context" .) | nindent 8 }}
         {{- end }}
-        - name: rabbitmq
-          secret:
-            secretName: {{ include "job.rabbitmq.secretName" . }}
-        - name: redis
-          secret:
-            secretName: {{ include "job.redis.secretName" . }}
+        {{- include "job.kms.secretVolume" (dict "volume" "rabbitmq" "credential" "rabbitmq" "secretName" (include "job.rabbitmq.secretName" .) "context" .) | nindent 8 }}
+        {{- include "job.kms.secretVolume" (dict "volume" "redis" "credential" "redis" "secretName" (include "job.redis.secretName" .) "context" .) | nindent 8 }}
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
         {{- include "job.redis.certsVolume" . | nindent 8 }}

@@ -69,7 +69,7 @@ spec:
             - name: spring.rabbitmq.port
               value: {{ include "job.rabbitmq.port" . | quote }}
             - name: spring.rabbitmq.username
-              value: {{ include "job.rabbitmq.username" . }}
+              value: {{ include "job.rabbitmq.usernameLiteral" . }}
             - name: spring.rabbitmq.password
               value: {{ include "job.rabbitmq.passwordKey" . }}
             - name: spring.rabbitmq.virtual-host
@@ -90,7 +90,7 @@ spec:
       volumes:
         - name: rabbitmq
           secret:
-            secretName: {{ include "job.rabbitmq.secretName" . }}
+            secretName: {{ include "job.configWatcher.rabbitmq.secretName" . }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
 
 {{- end }}
