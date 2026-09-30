@@ -69,6 +69,7 @@ spec:
           imagePullPolicy: {{ .Values.executeConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
+            {{- include "job.kms.mariadb.env" . | nindent 12 }}
             {{- if .Values.executeConfig.extraEnv }}
             {{- include "job.service.extra.env" .Values.executeConfig.extraEnv | nindent 12 }}
             {{- end }}
@@ -98,9 +99,7 @@ spec:
               mountPath: {{ .Values.fileDistribute.hostPath }}
             - name: job-storage
               mountPath: {{ .Values.persistence.localStorage.path }}
-            - name: mariadb
-              mountPath: /etc/secrets/mariadb
-              readOnly: true
+            {{- include "job.mariadb.passwordVolumeMount" . | nindent 12 }}
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
@@ -118,9 +117,7 @@ spec:
         - name: job-storage
           persistentVolumeClaim:
             claimName: {{ include "job.storage.pvc.name" . }}
-        - name: mariadb
-          secret:
-            secretName: {{ include "job.mariadb.secretName" . }}
+        {{- include "job.mariadb.passwordVolume" . | nindent 8 }}
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}

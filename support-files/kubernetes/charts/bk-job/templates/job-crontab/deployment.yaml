@@ -70,6 +70,9 @@ spec:
           imagePullPolicy: {{ .Values.crontabConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
+            {{- if not .Values.crontabConfig.database.host }}
+            {{- include "job.kms.mariadb.env" . | nindent 12 }}
+            {{- end }}
             - name: BK_JOB_APP_NAME
               value: "job-crontab"
             - name: BK_JOB_JVM_OPTION
@@ -95,9 +98,7 @@ spec:
               mountPath: /etc/secrets/crontabdb
               readOnly: true
             {{- else }}
-            - name: mariadb
-              mountPath: /etc/secrets/mariadb
-              readOnly: true
+            {{- include "job.mariadb.passwordVolumeMount" . | nindent 12 }}
             {{- end }}
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
@@ -118,9 +119,7 @@ spec:
           secret:
             secretName: {{ include "job.crontabdb.secretName" . }}
         {{- else }}
-        - name: mariadb
-          secret:
-            secretName: {{ include "job.mariadb.secretName" . }}
+        {{- include "job.mariadb.passwordVolume" . | nindent 8 }}
         {{- end }}
         - name: rabbitmq
           secret:
