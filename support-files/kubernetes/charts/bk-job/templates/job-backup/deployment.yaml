@@ -69,7 +69,7 @@ spec:
           imagePullPolicy: {{ .Values.backupConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
-            {{- include "job.kms.mariadb.env" . | nindent 12 }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "mariadb" "rabbitmq" "redis" "mongodb" "archive-mariadb")) | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-backup"
             - name: BK_JOB_JVM_OPTION
@@ -90,21 +90,13 @@ spec:
           volumeMounts:
             - name: job-storage
               mountPath: {{ .Values.persistence.localStorage.path }}
-            {{- include "job.mariadb.passwordVolumeMount" . | nindent 12 }}
-            {{- if .Values.backupConfig.archive.execute.enabled }}
-            - name: archive-mariadb
-              mountPath: /etc/secrets/archive-mariadb
-              readOnly: true
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "mariadb" "credential" "mariadb" "mountPath" "/etc/secrets/mariadb" "context" .) | nindent 12 }}
+            {{- if eq (include "job.archiveMariadb.required" .) "true" }}
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "archive-mariadb" "credential" "archive-mariadb" "mountPath" "/etc/secrets/archive-mariadb" "context" .) | nindent 12 }}
             {{- end }}
-            - name: rabbitmq
-              mountPath: /etc/secrets/rabbitmq
-              readOnly: true
-            - name: redis
-              mountPath: /etc/secrets/redis
-              readOnly: true
-            - name: mongodb
-              mountPath: /etc/secrets/mongodb
-              readOnly: true
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "rabbitmq" "credential" "rabbitmq" "mountPath" "/etc/secrets/rabbitmq" "context" .) | nindent 12 }}
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "redis" "credential" "redis" "mountPath" "/etc/secrets/redis" "context" .) | nindent 12 }}
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "mongodb" "credential" "mongodb" "mountPath" "/etc/secrets/mongodb" "context" .) | nindent 12 }}
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.backup.archive.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
@@ -116,21 +108,13 @@ spec:
         - name: job-storage
           persistentVolumeClaim:
             claimName: {{ include "job.storage.pvc.name" . }}
-        {{- include "job.mariadb.passwordVolume" . | nindent 8 }}
-        {{- if .Values.backupConfig.archive.execute.enabled }}
-        - name: archive-mariadb
-          secret:
-            secretName: {{ include "job.archiveMariadb.secretName" . }}
+        {{- include "job.kms.secretVolume" (dict "volume" "mariadb" "credential" "mariadb" "secretName" (include "job.mariadb.secretName" .) "context" .) | nindent 8 }}
+        {{- if eq (include "job.archiveMariadb.required" .) "true" }}
+        {{- include "job.kms.secretVolume" (dict "volume" "archive-mariadb" "credential" "archive-mariadb" "secretName" (include "job.archiveMariadb.secretName" .) "context" .) | nindent 8 }}
         {{- end }}
-        - name: rabbitmq
-          secret:
-            secretName: {{ include "job.rabbitmq.secretName" . }}
-        - name: redis
-          secret:
-            secretName: {{ include "job.redis.secretName" . }}
-        - name: mongodb
-          secret:
-            secretName: {{ include "job.mongodb.secretName" . }}
+        {{- include "job.kms.secretVolume" (dict "volume" "rabbitmq" "credential" "rabbitmq" "secretName" (include "job.rabbitmq.secretName" .) "context" .) | nindent 8 }}
+        {{- include "job.kms.secretVolume" (dict "volume" "redis" "credential" "redis" "secretName" (include "job.redis.secretName" .) "context" .) | nindent 8 }}
+        {{- include "job.kms.secretVolume" (dict "volume" "mongodb" "credential" "mongodb" "secretName" (include "job.mongodb.secretName" .) "context" .) | nindent 8 }}
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.backup.archive.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}

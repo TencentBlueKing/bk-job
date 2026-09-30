@@ -53,11 +53,14 @@ serviceAccount:
   ## If not set and create is true, a name is generated using the fullname template
   ##
   name:
-## 蓝鲸 KMS。默认关闭，仍使用 Chart 渲染的明文 Secret。
-## 当前只接外部 MariaDB：kms.enabled=true 且 mariadb.enabled=false、未指定 existingPasswordSecret 时，
-## 明文 Secret 不渲染，改为 SecretStore + ExternalSecret。信封内 JSON 的 key 须与现网 Secret 一致：
-## mariadb-password、mariadb-truststore-password、mariadb-keystore-password。
-## role 与 remoteKey 由运维在 KMS 创建凭证后填入。
+## 蓝鲸 KMS。默认关闭，仍使用 Chart 渲染的明文 Secret，用户名仍写在 ConfigMap。
+## 某一凭证同时满足：kms.enabled=true、该中间件不用集群内子 Chart、且没有 existingPasswordSecret 时，
+## 对应明文 Secret 不渲染，改为该凭证自己的 SecretStore + ExternalSecret。
+## ESO 写出的 Secret 在原名后加 -kms，例如 external-mariadb 对应 external-mariadb-kms。
+## 信封 JSON 除原有密码 key 外，还要带用户名（Redis 没有用户名）：
+## mariadb-username、rabbitmq-username、mongodb-username、crontab-db-username、archive-mariadb-username。
+## 填了 externalMongoDB.uri 时不接管 MongoDB。migration 作业不解密，migration-db 保持明文 Secret。
+## role 与 remoteKey 由运维在 KMS 创建凭证后填入。未接管的凭证留空即可。
 kms:
   enabled: false
   server: ""
@@ -71,6 +74,21 @@ kms:
   refreshInterval: "1h"
   credentials:
     mariadb:
+      role: ""
+      remoteKey: ""
+    redis:
+      role: ""
+      remoteKey: ""
+    rabbitmq:
+      role: ""
+      remoteKey: ""
+    mongodb:
+      role: ""
+      remoteKey: ""
+    crontabdb:
+      role: ""
+      remoteKey: ""
+    archiveMariadb:
       role: ""
       remoteKey: ""
 rbac:
