@@ -53,6 +53,26 @@ serviceAccount:
   ## If not set and create is true, a name is generated using the fullname template
   ##
   name:
+## 蓝鲸 KMS。默认关闭，仍使用 Chart 渲染的明文 Secret。
+## 当前只接外部 MariaDB：kms.enabled=true 且 mariadb.enabled=false、未指定 existingPasswordSecret 时，
+## 明文 Secret 不渲染，改为 SecretStore + ExternalSecret。信封内 JSON 的 key 须与现网 Secret 一致：
+## mariadb-password、mariadb-truststore-password、mariadb-keystore-password。
+## role 与 remoteKey 由运维在 KMS 创建凭证后填入。
+kms:
+  enabled: false
+  server: ""
+  path: "secret"
+  tls:
+    enabled: false
+    existingSecret: ""
+    certCAFilename: "ca.pem"
+    certFilename: ""
+    certKeyFilename: ""
+  refreshInterval: "1h"
+  credentials:
+    mariadb:
+      role: ""
+      remoteKey: ""
 rbac:
   create: true
 

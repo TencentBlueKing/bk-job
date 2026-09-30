@@ -235,6 +235,59 @@ Return the migrate mysqlSchema admin password
 {{- end -}}
 
 {{/*
+外部 MariaDB 是否改由 KMS 同步。集群内 MariaDB、或用户自带 existingPasswordSecret 时不接管。
+*/}}
+{{- define "job.kms.mariadb.active" -}}
+{{- $kms := .Values.kms | default dict -}}
+{{- if and $kms.enabled (not .Values.mariadb.enabled) (not .Values.externalMariaDB.existingPasswordSecret) -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
+开启 KMS 时注入 MariaDB 这一份凭证的私钥。信封由 volume 挂到 /etc/kms/mariadb/envelope。
+*/}}
+{{- define "job.kms.mariadb.env" -}}
+{{- if eq (include "job.kms.mariadb.active" .) "true" }}
+- name: ENABLE_KMS
+  value: "true"
+- name: BK_JOB_KMS_CREDENTIALS
+  value: mariadb
+- name: BK_JOB_KMS_PRIVATE_KEY_MARIADB
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "job.mariadb.secretName" . }}
+      key: privateKey
+{{- end }}
+{{- end -}}
+
+{{/*
+MariaDB 密码卷。关闭 KMS 时整卷挂到 /etc/secrets/mariadb；开启时只挂信封文件。
+*/}}
+{{- define "job.mariadb.passwordVolumeMount" -}}
+- name: mariadb
+{{- if eq (include "job.kms.mariadb.active" .) "true" }}
+  mountPath: /etc/kms/mariadb/envelope
+  subPath: envelope
+  readOnly: true
+{{- else }}
+  mountPath: /etc/secrets/mariadb
+  readOnly: true
+{{- end }}
+{{- end -}}
+
+{{- define "job.mariadb.passwordVolume" -}}
+- name: mariadb
+  secret:
+    secretName: {{ include "job.mariadb.secretName" . }}
+{{- if eq (include "job.kms.mariadb.active" .) "true" }}
+    items:
+      - key: envelope
+        path: envelope
+{{- end }}
+{{- end -}}
+
+{{/*
 Return the MariaDB secret name
 */}}
 {{- define "job.mariadb.secretName" -}}
