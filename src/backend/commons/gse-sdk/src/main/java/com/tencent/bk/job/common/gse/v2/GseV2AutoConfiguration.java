@@ -34,6 +34,8 @@ import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiEnabled;
 import com.tencent.bk.job.common.gse.config.GseV2Properties;
 import com.tencent.bk.job.common.gse.mock.MockGseV2Client;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
+import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -52,14 +54,16 @@ public class GseV2AutoConfiguration {
     public IGseClient gseV2ApiClient(MeterRegistry meterRegistry,
                                      AppProperties appProperties,
                                      BkApiGatewayProperties bkApiGatewayProperties,
-                                     TenantEnvService tenantEnvService) {
+                                     TenantEnvService tenantEnvService,
+                                     JobHttpSslVerifyProperties sslVerifyProperties) {
         log.info("Init gseV2ApiClient");
         return new RecordSlowLogGseClient(
             new GseV2ApiClient(
                 meterRegistry,
                 appProperties,
                 bkApiGatewayProperties,
-                tenantEnvService
+                tenantEnvService,
+                sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.GSE)
             )
         );
     }

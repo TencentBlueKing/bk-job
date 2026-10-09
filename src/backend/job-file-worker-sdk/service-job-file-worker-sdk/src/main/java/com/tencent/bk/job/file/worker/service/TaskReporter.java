@@ -52,8 +52,6 @@ public interface TaskReporter {
                                    Integer speed,
                                    Integer progress);
 
-    void reportFileDownloadFailure(String taskId, String filePath, String downloadPath);
-
     void reportFileDownloadStopped(String taskId,
                                    String filePath,
                                    String downloadPath,

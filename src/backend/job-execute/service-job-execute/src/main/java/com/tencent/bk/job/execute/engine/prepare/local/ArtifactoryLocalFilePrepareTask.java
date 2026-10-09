@@ -26,9 +26,12 @@ package com.tencent.bk.job.execute.engine.prepare.local;
 
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,6 +58,8 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     private final List<Future<Boolean>> futureList = new ArrayList<>();
     private final ExecutorService localFileDownloadExecutor;
     private final ExecutorService localFileWatchExecutor;
+    private final LogService logService;
+    private final TaskInstanceService taskInstanceService;
     public static Future<?> localFileWatchFuture = null;
 
     public ArtifactoryLocalFilePrepareTask(
@@ -67,7 +72,9 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         String artifactoryRepo,
         String jobStorageRootPath,
         ExecutorService localFileDownloadExecutor,
-        ExecutorService localFileWatchExecutor
+        ExecutorService localFileWatchExecutor,
+        LogService logService,
+        TaskInstanceService taskInstanceService
     ) {
         this.stepInstance = stepInstance;
         this.isForRetry = isForRetry;
@@ -79,6 +86,8 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         this.jobStorageRootPath = jobStorageRootPath;
         this.localFileDownloadExecutor = localFileDownloadExecutor;
         this.localFileWatchExecutor = localFileWatchExecutor;
+        this.logService = logService;
+        this.taskInstanceService = taskInstanceService;
     }
 
     @Override
@@ -107,13 +116,17 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             if (fileSourceDTO.isLocalUpload() || fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType()) {
                 List<FileDetailDTO> files = fileSourceDTO.getFiles();
                 for (FileDetailDTO file : files) {
+                    ExecuteObject sourceExecuteObject = fileSourceDTO.getServers().getExecuteObjectsCompatibly().get(0);
                     LocalFileDownloadTask task = new LocalFileDownloadTask(
                         stepInstance,
                         artifactoryClient,
                         artifactoryProject,
                         artifactoryRepo,
                         jobStorageRootPath,
-                        file
+                        file,
+                        sourceExecuteObject,
+                        logService,
+                        taskInstanceService
                     );
                     Future<Boolean> future = localFileDownloadExecutor.submit(task);
                     futureList.add(future);

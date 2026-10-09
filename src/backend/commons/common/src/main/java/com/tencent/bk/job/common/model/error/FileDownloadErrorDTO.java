@@ -22,33 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.common.model.error;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.service.ExternalAgentService;
-import com.tencent.bk.job.execute.service.ThirdFileDistributeSourceHostProvisioner;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * 使用外部机器作为文件源文件的分发源
- */
-@Slf4j
-public class ThirdFileExternalAgentHostProvisioner implements ThirdFileDistributeSourceHostProvisioner {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class FileDownloadErrorDTO {
+    private Integer httpCode;
+    private String errorCode;
+    private String message;
+    private String requestId;
 
-    private final ExternalAgentService externalAgentService;
-
-    public ThirdFileExternalAgentHostProvisioner(ExternalAgentService externalAgentService) {
-        this.externalAgentService = externalAgentService;
-    }
-
-    @Override
-    public boolean shouldReuseSelectedSourceHost() {
-        return true;
-    }
-
-    @Override
-    public HostDTO getThirdFileDistributeSourceHost(Long cloudId, String protocol, String ip) {
-        log.debug("distribute third file from external agent host");
-        return externalAgentService.getDistributeSourceHost();
+    public String toJson() {
+        return JsonUtils.toJson(this);
     }
 }
