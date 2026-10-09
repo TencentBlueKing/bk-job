@@ -42,6 +42,7 @@ import com.tencent.bk.job.manage.api.inner.ServiceGlobalSettingsResource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -108,7 +109,11 @@ public class IndexService {
             // ResultData中进行正则匹配替换实现国际化
             List<String> i18nKeys = StringUtil.findOneRegexPatterns(resultData, "\\$\\{(.*?)\\}");
             for (String key : i18nKeys) {
-                resultData = resultData.replace("${" + key + "}", i18nService.getI18n(key));
+                try {
+                    resultData = resultData.replace("${" + key + "}", i18nService.getI18n(key));
+                } catch (NoSuchMessageException e) {
+                    log.warn("No i18n message found for key: {}, keep original placeholder", key);
+                }
             }
             if (descriptionTemplate == null) {
                 log.warn("normalLang={}, taskCode={}, descriptionTemplate is null, plz config one", normalLang,
