@@ -25,7 +25,11 @@
 package com.tencent.bk.job.common.kms;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,6 +53,44 @@ class BkKmsDecryptorTest {
             "{\"mysql\":{\"password\":\"p\"}}");
 
         assertEquals("p", properties.get("mysql.password"));
+    }
+
+    @Test
+    void flattenExpandsArrayByIndex() {
+        Map<String, String> properties = BkKmsDecryptor.flatten(
+            "{\"job.encrypt.usedPasswords\":[\"a,b\",\"c\"]}");
+
+        assertEquals(2, properties.size());
+        assertEquals("a,b", properties.get("job.encrypt.usedPasswords[0]"));
+        assertEquals("c", properties.get("job.encrypt.usedPasswords[1]"));
+    }
+
+    @Test
+    void flattenedArrayBindsToStringList() {
+        Map<String, String> properties = BkKmsDecryptor.flatten(
+            "{\"job.encrypt.usedPasswords\":[\"a,b\",\"c\"]}");
+
+        List<String> usedPasswords = new Binder(new MapConfigurationPropertySource(properties))
+            .bind("job.encrypt.used-passwords", Bindable.listOf(String.class))
+            .get();
+
+        assertEquals(List.of("a,b", "c"), usedPasswords);
+    }
+
+    @Test
+    void flattenExpandsObjectInsideArray() {
+        Map<String, String> properties = BkKmsDecryptor.flatten(
+            "{\"ds\":[{\"password\":\"p\"}]}");
+
+        assertEquals("p", properties.get("ds[0].password"));
+    }
+
+    @Test
+    void flattenSkipsEmptyArray() {
+        Map<String, String> properties = BkKmsDecryptor.flatten(
+            "{\"job.encrypt.usedPasswords\":[],\"encrypt-password\":\"p\"}");
+
+        assertEquals(Map.of("encrypt-password", "p"), properties);
     }
 
     @Test

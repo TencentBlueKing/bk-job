@@ -477,6 +477,7 @@ build_migration_image(){
     context_dir=$(prepare_build_context_dir "job-migration")
     cp $BACKEND_DIR/release/upgrader-$VERSION-all.jar "$context_dir/upgrader.jar"
     cp migration/startup.sh "$context_dir/"
+    cp migration/kms_load_migration_credential.py "$context_dir/"
     cp migration/runUpgrader.sh "$context_dir/"
     cp $SUPPORT_FILES_DIR/templates/#etc#job#upgrader#upgrader.properties "$context_dir/upgrader.properties.tpl"
     cp -r $SUPPORT_FILES_DIR/bkiam "$context_dir/"

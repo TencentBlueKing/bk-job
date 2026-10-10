@@ -71,9 +71,9 @@ spec:
           env:
             {{- include "job.common.env" . | nindent 12 }}
             {{- if .Values.crontabConfig.database.host }}
-            {{- include "job.kms.env" (dict "context" . "names" (list "crontabdb" "rabbitmq" "redis")) | nindent 12 }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "crontabdb" "rabbitmq" "redis" "common")) | nindent 12 }}
             {{- else }}
-            {{- include "job.kms.env" (dict "context" . "names" (list "mariadb" "rabbitmq" "redis")) | nindent 12 }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "mariadb" "rabbitmq" "redis" "common")) | nindent 12 }}
             {{- end }}
             - name: BK_JOB_APP_NAME
               value: "job-crontab"
@@ -102,6 +102,7 @@ spec:
             {{- end }}
             {{- include "job.kms.secretVolumeMount" (dict "volume" "rabbitmq" "credential" "rabbitmq" "mountPath" "/etc/secrets/rabbitmq" "context" .) | nindent 12 }}
             {{- include "job.kms.secretVolumeMount" (dict "volume" "redis" "credential" "redis" "mountPath" "/etc/secrets/redis" "context" .) | nindent 12 }}
+            {{- include "job.kms.envelopeVolumeMount" (dict "credential" "common" "context" .) | nindent 12 }}
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
             {{- include "job.redis.certsVolumeMount" . | nindent 12 }}
@@ -117,6 +118,7 @@ spec:
         {{- end }}
         {{- include "job.kms.secretVolume" (dict "volume" "rabbitmq" "credential" "rabbitmq" "secretName" (include "job.rabbitmq.secretName" .) "context" .) | nindent 8 }}
         {{- include "job.kms.secretVolume" (dict "volume" "redis" "credential" "redis" "secretName" (include "job.redis.secretName" .) "context" .) | nindent 8 }}
+        {{- include "job.kms.envelopeVolume" (dict "credential" "common" "context" .) | nindent 8 }}
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
         {{- include "job.redis.certsVolume" . | nindent 8 }}

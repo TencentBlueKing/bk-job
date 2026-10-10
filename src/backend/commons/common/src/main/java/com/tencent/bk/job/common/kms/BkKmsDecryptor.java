@@ -52,7 +52,7 @@ final class BkKmsDecryptor {
     }
 
     /**
-     * 对象按点号展开；null 跳过；数组保留为 JSON 字符串。
+     * 对象按点号展开，数组按下标展开为 key[0]、key[1]，与 Spring 读 YAML 列表的结果一致；null 跳过。
      */
     static Map<String, String> flatten(String plainJson) {
         if (plainJson == null || plainJson.isBlank() || "null".equals(plainJson.trim())) {
@@ -84,14 +84,12 @@ final class BkKmsDecryptor {
             });
             return;
         }
-        if (node.isValueNode()) {
-            out.put(prefix, node.asText());
+        if (node.isArray()) {
+            for (int i = 0; i < node.size(); i++) {
+                flattenNode(prefix + "[" + i + "]", node.get(i), out);
+            }
             return;
         }
-        try {
-            out.put(prefix, OBJECT_MAPPER.writeValueAsString(node));
-        } catch (Exception e) {
-            throw new IllegalStateException("BK-KMS failed to serialize JSON node: " + prefix, e);
-        }
+        out.put(prefix, node.asText());
     }
 }

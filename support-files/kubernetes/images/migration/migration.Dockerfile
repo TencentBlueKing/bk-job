@@ -8,7 +8,8 @@ ENV BK_JOB_HOME=/data/job/exec
 COPY ./ /data/job/exec/
 
 RUN chmod +x /data/job/exec/runUpgrader.sh && \
-    chmod +x /data/job/exec/startup.sh
+    chmod +x /data/job/exec/startup.sh && \
+    pip3 install --no-cache-dir bk-kms-sdk
 
 ENV LANG en_US.utf8
 ENV LANGUAGE en_US.utf8

@@ -1,4 +1,5 @@
 {{- if .Values.bkApiGatewayConfig.sync }}
+{{- $kms := eq (include "job.kms.credential.active" (dict "name" "migration" "context" .)) "true" }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -38,10 +39,22 @@ spec:
           value: {{ .Values.bkApiGatewayConfig.gatewayName }}
         - name: BK_APIGW_API_TYPE
           value: {{ .Values.bkApiGatewayConfig.apiType | quote }}
+        {{- if $kms }}
+        - name: ENABLE_KMS
+          value: "true"
+        - name: BK_APIGW_MANAGER_KMS_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "job.kms.targetSecretName" (dict "name" "migration" "context" .) }}
+              key: privateKey
+        - name: BK_APIGW_MANAGER_KMS_ENVELOPE_PATH
+          value: /etc/kms/migration/envelope
+        {{- else }}
         - name: BK_APP_CODE
           value: {{ .Values.appCode }}
         - name: BK_APP_SECRET
           value: {{ .Values.appSecret }}
+        {{- end }}
         - name: BK_APP_TENANT_ID
           value: {{ if .Values.tenant.enabled }}"system"{{ else }}"default"{{ end }}
         - name: BK_API_URL_TMPL
@@ -72,5 +85,11 @@ spec:
           value: {{ .Values.bkLogSearchAppCode }}
         - name: BK_BCS_APP_CODE
           value: {{ .Values.bkBcsAppCode }}
+        {{- if $kms }}
+        volumeMounts:
+          {{- include "job.kms.envelopeVolumeMount" (dict "credential" "migration" "context" .) | nindent 10 }}
+      volumes:
+        {{- include "job.kms.envelopeVolume" (dict "credential" "migration" "context" .) | nindent 8 }}
+        {{- end }}
       restartPolicy: Never
 {{- end }}
