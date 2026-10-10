@@ -3,7 +3,7 @@
 ExternalSecret 的 target 是原 Secret 名加 -kms，里面只有 privateKey 和 envelope。不是所有中间件共用一个 ExternalSecret。
 */}}
 {{- $root := . -}}
-{{- $credentials := list "mariadb" "redis" "rabbitmq" "mongodb" "crontabdb" "archive-mariadb" -}}
+{{- $credentials := list "mariadb" "redis" "rabbitmq" "mongodb" "crontabdb" "archive-mariadb" "common" "migration" -}}
 {{- $any := false -}}
 {{- range $name := $credentials -}}
 {{- if eq (include "job.kms.credential.active" (dict "name" $name "context" $root)) "true" -}}

@@ -1,4 +1,6 @@
 {{- if .Values.migration.enabled }}
+{{- $kms := eq (include "job.kms.credential.active" (dict "name" "migration" "context" .)) "true" }}
+{{- $tls := and (not .Values.mariadb.enabled) .Values.job.migration.mysqlSchema.tls.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -48,6 +50,11 @@ spec:
               value: {{ include "job.mariadb.host" . | quote }}
             - name: BK_JOB_MYSQL_PORT
               value: {{ include "job.mariadb.port" . | quote }}
+            - name: BK_IAM_APIGATEWAY_URL
+              value: {{ .Values.bkIamApiGatewayUrl | quote }}
+            {{- if $kms }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "migration")) | nindent 12 }}
+            {{- else }}
             - name: BK_JOB_MYSQL_ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -58,12 +65,11 @@ spec:
                 secretKeyRef:
                   name: {{ printf "%s-%s" (include "job.fullname" .) "migration-db" }}
                   key: admin-password
-            - name: BK_IAM_APIGATEWAY_URL
-              value: {{ .Values.bkIamApiGatewayUrl | quote }}
             - name: BK_JOB_APP_CODE
               value: {{ .Values.appCode | quote }}
             - name: BK_JOB_APP_SECRET
               value: {{ .Values.appSecret | quote }}
+            {{- end }}
             - name: BK_JOB_API_URL
               value: {{ include "job.web.api.url" . }}
             - name: BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED
@@ -78,17 +84,25 @@ spec:
             {{- end }}
             - name: BK_JOB_TENANT_ENABLED
               value: {{ .Values.tenant.enabled | quote }}
-      {{- if and (not .Values.mariadb.enabled) (.Values.job.migration.mysqlSchema.tls.enabled) }}
+      {{- if $tls }}
             - name: BK_JOB_TLS_OPTIONS
               value: {{ include "job.migration.mysqlSchema.tlsOptions" . | quote }}
+      {{- end }}
+      {{- if or $tls $kms }}
           volumeMounts:
+      {{- if $tls }}
             - name : mariadb-certs
               mountPath : {{ include "job.migration.mysqlSchema.certsDir" . }}
               readOnly : true
+      {{- end }}
+            {{- include "job.kms.envelopeVolumeMount" (dict "credential" "migration" "context" .) | nindent 12 }}
       volumes:
+      {{- if $tls }}
         - name : mariadb-certs
           secret :
             secretName : {{ .Values.job.migration.mysqlSchema.tls.existingSecret }}
+      {{- end }}
+        {{- include "job.kms.envelopeVolume" (dict "credential" "migration" "context" .) | nindent 8 }}
       {{- end }}
       restartPolicy: Never
 {{- end }}

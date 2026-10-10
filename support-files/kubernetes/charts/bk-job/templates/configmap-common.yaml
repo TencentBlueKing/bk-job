@@ -1,4 +1,5 @@
-﻿apiVersion: v1
+﻿{{- $kms := eq (include "job.kms.credential.active" (dict "name" "common" "context" .)) "true" }}
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "common.names.fullname" . }}-common
@@ -14,22 +15,29 @@ data:
     spring:
       security:
         user:
+          {{- if not $kms }}
           name: {{ .Values.job.security.actuator.user.name }}
           password: {{ .Values.job.security.actuator.user.password }}
+          {{- end }}
           roles: ENDPOINT_ADMIN
     job:
       tracing:
         exporter:
           enabled: {{ .Values.job.trace.report.enabled }}
+        {{- if not $kms }}
         bk-data-token: {{ .Values.job.trace.report.secureKey }}
+        {{- end }}
       security:
         service:
           enabled: {{ .Values.job.security.enabled }}
+          {{- if not $kms }}
           private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
           public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
+          {{- end }}
       edition: {{ .Values.job.edition }}
       encrypt:
         type: {{ .Values.job.encrypt.type }}
+        {{- if not $kms }}
         # 强制要求用户显式配置加密主密码，避免直接沿用模板里的空值
         password: {{ .Values.job.encrypt.password }}
         # 历史密码列表，用于密码轮换期间解密旧数据
@@ -37,11 +45,14 @@ data:
           {{- range .Values.job.encrypt.usedPasswords }}
           - {{ . | quote }}
           {{- end }}
+        {{- end }}
         # 旧密码加密数据轮换迁移任务配置：服务启动后一次性跑完所有数据迁移，跑完即退出
         oldDataPasswordRotation:
           {{- toYaml .Values.job.encrypt.oldDataPasswordRotation | nindent 10 }}
+        {{- if not $kms }}
         sm2-public-key: {{.Values.job.encrypt.sm2PublicKey}}
         sm2-private-key: {{.Values.job.encrypt.sm2PrivateKey}}
+        {{- end }}
       web:
         url: {{ include "job.web.url" . }}
       http:
@@ -74,9 +85,11 @@ data:
     bk:
       bkDomain: {{ .Values.global.bkDomain }}
       bkHelperLink: {{ .Values.global.bkHelperLink }}
+    {{- if not $kms }}
     app:
       code: {{ .Values.appCode }}
       secret: {{ .Values.appSecret }}
+    {{- end }}
     esb:
       service:
         url: {{ .Values.bkComponentApiUrl }}
@@ -88,8 +101,10 @@ data:
         url: {{ .Values.bkNoticeApiGatewayUrl }}
       bkAIDev:
         url: {{ .Values.bkAIDevApiGatewayUrl }}
+        {{- if not $kms }}
         appCode: {{ .Values.bkAIDevAppCode }}
         appSecret: {{ .Values.bkAIDevAppSecret }}
+        {{- end }}
       cmdb:
         url: {{ .Values.bkCmdbApiGatewayUrl }}
       bkApiGateway:
@@ -172,12 +187,16 @@ data:
         url: {{ .Values.bkNodemanUrl }}
     artifactory:
       base-url: {{ .Values.bkRepoUrl }}
+      {{- if not $kms }}
       admin:
         username: {{ .Values.artifactory.admin.username }}
         password: {{ .Values.artifactory.admin.password }}
+      {{- end }}
       job:
+        {{- if not $kms }}
         username: {{ .Values.artifactory.job.username }}
         password: {{ .Values.artifactory.job.password }}
+        {{- end }}
         project: {{ .Values.artifactory.job.project }}
     local-file:
       storage-backend: {{ .Values.localFile.storageBackend }}

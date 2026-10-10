@@ -256,6 +256,10 @@ Return the migrate mysqlSchema admin password
 {{- if $ctx.Values.crontabConfig.database.host }}true{{- end -}}
 {{- else if eq $name "archive-mariadb" -}}
 {{- if eq (include "job.archiveMariadb.required" $ctx) "true" }}true{{- end -}}
+{{- else if eq $name "common" -}}
+true
+{{- else if eq $name "migration" -}}
+{{- if or $ctx.Values.migration.enabled $ctx.Values.bkApiGatewayConfig.sync }}true{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -307,6 +311,10 @@ ESO 写出的 Secret。原名加 -kms，和 Helm 明文 Secret 分开，避免�
 {{- $base = include "job.crontabdb.secretName" .context -}}
 {{- else if eq .name "archive-mariadb" -}}
 {{- $base = include "job.archiveMariadb.secretName" .context -}}
+{{- else if eq .name "common" -}}
+{{- $base = include "job.common.secretName" .context -}}
+{{- else if eq .name "migration" -}}
+{{- $base = printf "%s-migration" (include "job.fullname" .context) -}}
 {{- end -}}
 {{- printf "%s-kms" ($base | trim) -}}
 {{- end -}}
@@ -348,6 +356,29 @@ KMS 打开时只挂信封；关闭时整卷挂到原来的 /etc/secrets 路径�
         path: envelope
 {{- else }}
     secretName: {{ .secretName }}
+{{- end }}
+{{- end -}}
+
+{{/*
+common 凭证的 Secret 名。ESO 目标名是这个名字加 -kms。
+信封 JSON 的 key 就是 Spring 属性名，接管时公共 ConfigMap 不再渲染这些项。
+*/}}
+{{- define "job.common.secretName" -}}
+{{- printf "%s-common" (include "job.fullname" .) -}}
+{{- end -}}
+
+{{/*
+没有对应明文卷的凭证（common、migration）只在被 KMS 接管时挂信封，未接管时什么都不输出。
+*/}}
+{{- define "job.kms.envelopeVolumeMount" -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" .credential "context" .context)) "true" }}
+{{ include "job.kms.secretVolumeMount" (dict "volume" .credential "credential" .credential "context" .context) }}
+{{- end }}
+{{- end -}}
+
+{{- define "job.kms.envelopeVolume" -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" .credential "context" .context)) "true" }}
+{{ include "job.kms.secretVolume" (dict "volume" .credential "credential" .credential "context" .context) }}
 {{- end }}
 {{- end -}}
 
