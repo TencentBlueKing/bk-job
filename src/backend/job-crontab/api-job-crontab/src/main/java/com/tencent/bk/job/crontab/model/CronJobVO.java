@@ -122,7 +122,8 @@ public class CronJobVO {
     /**
      * 上次执行结果
      */
-    @Schema(description = "上次执行结果 0 - 未执行 1 - 成功 2 - 失败")
+    @Schema(description = "上次执行结果：0-未执行，1-成功，2-失败，3-跳过，4-忽略错误，5-手动结束，"
+        + "6-状态异常，7-强制终止成功，8-确认终止，9-被丢弃")
     private Integer lastExecuteStatus;
 
     /**
