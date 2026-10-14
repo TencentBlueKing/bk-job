@@ -46,7 +46,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
- * list_instance 从 ancestors 解析 bizId / parent 实例 ID。
+ * list_instance 从 ancestors 解析 bizId / parent 实例 ID；
+ * fetch_instance_info 从 root_resource_id 解析 bizId。
  */
 class BaseIamV4CallbackAncestorTest {
 
@@ -106,6 +107,31 @@ class BaseIamV4CallbackAncestorTest {
             .hasMessageContaining("Unexpected parent type");
     }
 
+    @Test
+    @DisplayName("fetch_instance_info 从 root_resource_id 解析 bizId")
+    void parseBizFromRootResourceId() {
+        V4CallbackFilterDTO filter = new V4CallbackFilterDTO();
+        filter.setRootResourceId("20");
+
+        assertThat(service.parseRootResourceBizId(filter)).isEqualTo(20L);
+        assertThat(service.buildIamPath(IamV4ResourceTypeId.BIZ, "20", IamV4ResourceTypeId.SET, "104"))
+            .isEqualTo("/biz,20/set,104/");
+    }
+
+    @Test
+    @DisplayName("缺少或非法的 root_resource_id 抛 IllegalArgumentException")
+    void missingOrIllegalRootResourceId() {
+        assertThatThrownBy(() -> service.parseRootResourceBizId(new V4CallbackFilterDTO()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("root_resource_id");
+
+        V4CallbackFilterDTO illegal = new V4CallbackFilterDTO();
+        illegal.setRootResourceId("biz-20");
+        assertThatThrownBy(() -> service.parseRootResourceBizId(illegal))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Illegal root_resource_id");
+    }
+
     private static V4CallbackFilterDTO filterOf(V4CallbackParentDTO parent, V4CallbackParentDTO... ancestors) {
         V4CallbackFilterDTO filter = new V4CallbackFilterDTO();
         filter.setParent(parent);
@@ -151,6 +177,16 @@ class BaseIamV4CallbackAncestorTest {
         @Override
         public long parseParentInstanceId(V4CallbackParentDTO parent, String expectedType) {
             return super.parseParentInstanceId(parent, expectedType);
+        }
+
+        @Override
+        public long parseRootResourceBizId(V4CallbackFilterDTO filter) {
+            return super.parseRootResourceBizId(filter);
+        }
+
+        @Override
+        public String buildIamPath(String... typeAndIds) {
+            return super.buildIamPath(typeAndIds);
         }
     }
 }

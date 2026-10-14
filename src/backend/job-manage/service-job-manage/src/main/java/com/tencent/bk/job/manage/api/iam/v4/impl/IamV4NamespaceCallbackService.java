@@ -50,14 +50,17 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 命名空间的 IAM v4 回调实现。
  *
  * <p>实例 ID 用 CMDB 原生命名空间 ID。{@code list_instance} 从 {@code filter.ancestors} 取 bizId、
  * 从 parent 取 clusterId，优先走 {@link ContainerService} 的业务容器拓扑本地缓存（Caffeine 5min），
- * 缓存里没有该集群再回源 CMDB。{@code fetch_instance_info} 仍只有 ids、缺业务，暂返回空。</p>
+ * 缓存里没有该集群再回源 CMDB。{@code fetch_instance_info} 用 {@code filter.root_resource_id}
+ * 作为 bizId，同样优先走拓扑缓存拿名称与所属集群。</p>
  */
 @Slf4j
 @Component
@@ -116,14 +119,89 @@ public class IamV4NamespaceCallbackService extends BaseIamV4CallbackService {
 
     @Override
     protected List<V4InstanceInfoDTO> fetchInstanceInfo(V4CallbackRequestDTO request) {
-        // TODO 依赖 IAM v4 回调 fetch_instance_info 补齐祖先信息（见 openspec design.md D13）：
-        //  届时实现为 从回调请求取 bizId 与 clusterId -> 批量查 CMDB 取命名空间名称，
-        //  路径 /biz_container,{bizId}/cluster,{clusterId}/。
-        int idCount = request.getFilter() == null || request.getFilter().getIds() == null
-            ? 0 : request.getFilter().getIds().size();
-        log.warn("fetch_instance_info for namespace is not supported until IAM callback carries "
-            + "ancestor info|idCount={}", idCount);
-        return Collections.emptyList();
+        V4CallbackFilterDTO filter = request.getFilter();
+        if (filter == null || CollectionUtils.isEmpty(filter.getIds())) {
+            return Collections.emptyList();
+        }
+        List<Long> nsIds = parseLongIds(filter.getIds());
+        if (nsIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        long bizId = parseRootResourceBizId(filter);
+        List<KubeNamespaceDTO> namespaces = fetchNamespaces(bizId, nsIds);
+
+        boolean needPath = isPathRequired(request);
+        List<V4InstanceInfoDTO> result = new ArrayList<>(namespaces.size());
+        for (KubeNamespaceDTO ns : namespaces) {
+            V4InstanceInfoDTO instance = new V4InstanceInfoDTO();
+            instance.setId(String.valueOf(ns.getId()));
+            instance.setDisplayName(ns.getName());
+            if (needPath && ns.getBkClusterId() != null) {
+                instance.setBkIamPath(buildIamPath(
+                    IamV4ResourceTypeId.BIZ_CONTAINER, String.valueOf(bizId),
+                    IamV4ResourceTypeId.CLUSTER, String.valueOf(ns.getBkClusterId())));
+            }
+            result.add(instance);
+        }
+        if (result.size() < nsIds.size()) {
+            log.warn("Some namespaces not found in IAM v4 callback, may be deleted|bizId={}|requested={}|found={}",
+                bizId, nsIds.size(), result.size());
+        }
+        return result;
+    }
+
+    /**
+     * 优先从业务容器拓扑本地缓存按 ID 取命名空间（同时得到所属集群），缺的再回源 CMDB。
+     */
+    private List<KubeNamespaceDTO> fetchNamespaces(long bizId, List<Long> nsIds) {
+        Set<Long> wanted = new HashSet<>(nsIds);
+        List<KubeNamespaceDTO> found = new ArrayList<>();
+        KubeTopologyDTO topo = containerService.getBizKubeCacheTopo(bizId);
+        if (topo != null && CollectionUtils.isNotEmpty(topo.getNodes())) {
+            found.addAll(namespacesFromTopo(topo, wanted));
+            for (KubeNamespaceDTO ns : found) {
+                wanted.remove(ns.getId());
+            }
+        }
+        if (!wanted.isEmpty()) {
+            List<KubeNamespaceDTO> fromCmdb = bizCmdbClient.listKubeNamespaces(
+                NamespaceQuery.Builder.builder(bizId).ids(new ArrayList<>(wanted)).build());
+            if (CollectionUtils.isNotEmpty(fromCmdb)) {
+                found.addAll(fromCmdb);
+            }
+        }
+        return found;
+    }
+
+    private List<KubeNamespaceDTO> namespacesFromTopo(KubeTopologyDTO topo, Set<Long> wanted) {
+        List<KubeNamespaceDTO> found = new ArrayList<>();
+        collectNamespaces(topo.getNodes(), wanted, found, null);
+        return found;
+    }
+
+    private void collectNamespaces(List<KubeNodeDTO> nodes,
+                                   Set<Long> wanted,
+                                   List<KubeNamespaceDTO> found,
+                                   Long clusterId) {
+        if (CollectionUtils.isEmpty(nodes) || wanted.isEmpty()) {
+            return;
+        }
+        String clusterKind = KubeTopoNodeTypeEnum.CLUSTER.getValue();
+        String nsKind = KubeTopoNodeTypeEnum.NAMESPACE.getValue();
+        for (KubeNodeDTO node : nodes) {
+            Long currentClusterId = clusterId;
+            if (clusterKind.equals(node.getKind()) && node.getId() != null) {
+                currentClusterId = node.getId();
+            }
+            if (nsKind.equals(node.getKind()) && node.getId() != null && wanted.contains(node.getId())) {
+                KubeNamespaceDTO ns = new KubeNamespaceDTO();
+                ns.setId(node.getId());
+                ns.setName(node.getName());
+                ns.setBkClusterId(currentClusterId);
+                found.add(ns);
+            }
+            collectNamespaces(node.getNodes(), wanted, found, currentClusterId);
+        }
     }
 
     /**

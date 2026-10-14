@@ -54,7 +54,7 @@ import java.util.List;
  * 容器集群的 IAM v4 回调实现。
  *
  * <p>实例 ID 用 CMDB 原生集群 ID。{@code list_instance} 的 parent 是业务，可直接查 CMDB；
- * {@code fetch_instance_info} 只传 ids，缺业务信息无法查 CMDB，待 IAM 回调协议补齐祖先信息后实现。</p>
+ * {@code fetch_instance_info} 用 {@code filter.root_resource_id} 作为 bizId，按集群 ID 批量查。</p>
  */
 @Slf4j
 @Component
@@ -113,16 +113,38 @@ public class IamV4ClusterCallbackService extends BaseIamV4CallbackService {
 
     @Override
     protected List<V4InstanceInfoDTO> fetchInstanceInfo(V4CallbackRequestDTO request) {
-        // TODO 依赖 IAM v4 回调协议新增的祖先信息字段（字段名待 IAM 侧确定，见 openspec design.md D13）：
-        //  届时实现为 从回调请求取 bizId -> 按 (bizId, clusterIds) 批量查 CMDB 取集群 UID，
-        //  路径 /biz_container,{bizId}/。
-        //  当前 fetch_instance_info 的 filter 只有 ids，而 CMDB 容器接口强制要求 bizId，
-        //  仅凭集群 ID 无法定位业务，故返回空列表，权限中心侧会按「已删除」渲染。
-        int idCount = request.getFilter() == null || request.getFilter().getIds() == null
-            ? 0 : request.getFilter().getIds().size();
-        log.warn("fetch_instance_info for cluster is not supported until IAM callback carries "
-            + "ancestor info|idCount={}", idCount);
-        return Collections.emptyList();
+        V4CallbackFilterDTO filter = request.getFilter();
+        if (filter == null || CollectionUtils.isEmpty(filter.getIds())) {
+            return Collections.emptyList();
+        }
+        List<Long> clusterIds = parseLongIds(filter.getIds());
+        if (clusterIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        long bizId = parseRootResourceBizId(filter);
+        List<KubeClusterDTO> clusters = bizCmdbClient.listKubeClusters(
+            KubeClusterQuery.Builder.builder(bizId).ids(clusterIds).build());
+        if (clusters == null) {
+            clusters = Collections.emptyList();
+        }
+
+        boolean needPath = isPathRequired(request);
+        String path = needPath
+            ? buildIamPath(IamV4ResourceTypeId.BIZ_CONTAINER, String.valueOf(bizId))
+            : null;
+        List<V4InstanceInfoDTO> result = new ArrayList<>(clusters.size());
+        for (KubeClusterDTO cluster : clusters) {
+            V4InstanceInfoDTO instance = new V4InstanceInfoDTO();
+            instance.setId(String.valueOf(cluster.getId()));
+            instance.setDisplayName(buildDisplayName(cluster));
+            instance.setBkIamPath(path);
+            result.add(instance);
+        }
+        if (result.size() < clusterIds.size()) {
+            log.warn("Some clusters not found in IAM v4 callback, may be deleted|bizId={}|requested={}|found={}",
+                bizId, clusterIds.size(), result.size());
+        }
+        return result;
     }
 
     /**

@@ -46,13 +46,16 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 模块（CMDB 拓扑节点）的 IAM v4 回调实现。
  *
  * <p>{@code list_instance} 从 {@code filter.ancestors} 取 bizId、从 parent 取 setId，
- * 再走拓扑树缓存取该集群下的模块。{@code fetch_instance_info} 仍只有 ids、缺业务，暂返回空。</p>
+ * 再走拓扑树缓存取该集群下的模块。{@code fetch_instance_info} 用 {@code filter.root_resource_id}
+ * 作为 bizId，在同一棵拓扑树里取模块名与所属 set。</p>
  */
 @Slf4j
 @Component
@@ -107,13 +110,57 @@ public class IamV4ModuleCallbackService extends BaseIamV4CallbackService {
 
     @Override
     protected List<V4InstanceInfoDTO> fetchInstanceInfo(V4CallbackRequestDTO request) {
-        // TODO 依赖 IAM v4 回调 fetch_instance_info 补齐祖先信息（见 openspec design.md D13）：
-        //  届时实现为 从回调请求取 bizId -> 拓扑树缓存取模块名称与所属 setId，路径 /biz,{bizId}/set,{setId}/。
-        int idCount = request.getFilter() == null || request.getFilter().getIds() == null
-            ? 0 : request.getFilter().getIds().size();
-        log.warn("fetch_instance_info for module is not supported until IAM callback carries "
-            + "ancestor info|idCount={}", idCount);
-        return Collections.emptyList();
+        V4CallbackFilterDTO filter = request.getFilter();
+        if (filter == null || CollectionUtils.isEmpty(filter.getIds())) {
+            return Collections.emptyList();
+        }
+        List<Long> moduleIds = parseLongIds(filter.getIds());
+        if (moduleIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        long bizId = parseRootResourceBizId(filter);
+        InstanceTopologyDTO topo = bizCmdbClient.getBizInstTopologyPreferCache(
+            JobContextUtil.getTenantId(), bizId);
+
+        boolean needPath = isPathRequired(request);
+        Set<Long> wanted = new HashSet<>(moduleIds);
+        List<V4InstanceInfoDTO> result = new ArrayList<>();
+        collectModules(topo, wanted, bizId, needPath, result);
+        if (result.size() < moduleIds.size()) {
+            log.warn("Some modules not found in IAM v4 callback, may be deleted|bizId={}|requested={}|found={}",
+                bizId, moduleIds.size(), result.size());
+        }
+        return result;
+    }
+
+    /**
+     * 遍历拓扑树收集模块；路径需要所属 set，故用当前节点作为 parent 往下看 child。
+     */
+    private void collectModules(InstanceTopologyDTO node,
+                                Set<Long> wanted,
+                                long bizId,
+                                boolean needPath,
+                                List<V4InstanceInfoDTO> result) {
+        if (node == null || CollectionUtils.isEmpty(node.getChild()) || wanted.isEmpty()) {
+            return;
+        }
+        for (InstanceTopologyDTO child : node.getChild()) {
+            if (IamV4ResourceTypeId.MODULE.equals(child.getObjectId())
+                && child.getInstanceId() != null
+                && wanted.remove(child.getInstanceId())) {
+                V4InstanceInfoDTO instance = new V4InstanceInfoDTO();
+                instance.setId(String.valueOf(child.getInstanceId()));
+                instance.setDisplayName(child.getInstanceName());
+                if (needPath && IamV4ResourceTypeId.SET.equals(node.getObjectId())
+                    && node.getInstanceId() != null) {
+                    instance.setBkIamPath(buildIamPath(
+                        IamV4ResourceTypeId.BIZ, String.valueOf(bizId),
+                        IamV4ResourceTypeId.SET, String.valueOf(node.getInstanceId())));
+                }
+                result.add(instance);
+            }
+            collectModules(child, wanted, bizId, needPath, result);
+        }
     }
 
     private InstanceTopologyDTO findTopoNode(InstanceTopologyDTO node, String objectId, long instId) {

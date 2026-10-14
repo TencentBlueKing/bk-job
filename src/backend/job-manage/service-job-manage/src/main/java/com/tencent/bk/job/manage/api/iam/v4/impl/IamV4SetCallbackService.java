@@ -48,7 +48,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 集群（CMDB 拓扑节点）的 IAM v4 回调实现。
@@ -107,15 +109,52 @@ public class IamV4SetCallbackService extends BaseIamV4CallbackService {
 
     @Override
     protected List<V4InstanceInfoDTO> fetchInstanceInfo(V4CallbackRequestDTO request) {
-        // TODO 依赖 IAM v4 回调协议新增的祖先信息字段（字段名待 IAM 侧确定，见 openspec design.md D13）：
-        //  届时实现为 从回调请求取 bizId -> 拓扑树缓存取集群名称，路径 /biz,{bizId}/。
-        //  当前 fetch_instance_info 只传 ids，而 CMDB 拓扑接口的 bk_biz_id 均为 URL 必填，
-        //  仅凭 setId 无法定位业务，故返回空列表，权限中心侧会按「已删除」渲染。
-        int idCount = request.getFilter() == null || request.getFilter().getIds() == null
-            ? 0 : request.getFilter().getIds().size();
-        log.warn("fetch_instance_info for set is not supported until IAM callback carries "
-            + "ancestor info|idCount={}", idCount);
-        return Collections.emptyList();
+        V4CallbackFilterDTO filter = request.getFilter();
+        if (filter == null || CollectionUtils.isEmpty(filter.getIds())) {
+            return Collections.emptyList();
+        }
+        List<Long> setIds = parseLongIds(filter.getIds());
+        if (setIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        long bizId = parseRootResourceBizId(filter);
+        InstanceTopologyDTO topo = bizCmdbClient.getBizInstTopologyPreferCache(
+            JobContextUtil.getTenantId(), bizId);
+
+        boolean needPath = isPathRequired(request);
+        String path = needPath ? buildIamPath(IamV4ResourceTypeId.BIZ, String.valueOf(bizId)) : null;
+        Set<Long> wanted = new HashSet<>(setIds);
+        List<V4InstanceInfoDTO> result = new ArrayList<>();
+        collectSets(topo, wanted, path, result);
+        if (result.size() < setIds.size()) {
+            log.warn("Some sets not found in IAM v4 callback, may be deleted|bizId={}|requested={}|found={}",
+                bizId, setIds.size(), result.size());
+        }
+        return result;
+    }
+
+    private void collectSets(InstanceTopologyDTO node,
+                             Set<Long> wanted,
+                             String path,
+                             List<V4InstanceInfoDTO> result) {
+        if (node == null || wanted.isEmpty()) {
+            return;
+        }
+        if (IamV4ResourceTypeId.SET.equals(node.getObjectId())
+            && node.getInstanceId() != null
+            && wanted.remove(node.getInstanceId())) {
+            V4InstanceInfoDTO instance = new V4InstanceInfoDTO();
+            instance.setId(String.valueOf(node.getInstanceId()));
+            instance.setDisplayName(node.getInstanceName());
+            instance.setBkIamPath(path);
+            result.add(instance);
+        }
+        if (CollectionUtils.isEmpty(node.getChild())) {
+            return;
+        }
+        for (InstanceTopologyDTO child : node.getChild()) {
+            collectSets(child, wanted, path, result);
+        }
     }
 
     /**

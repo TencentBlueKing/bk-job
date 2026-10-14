@@ -48,7 +48,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 动态分组的 IAM v4 回调实现。
@@ -111,15 +113,37 @@ public class IamV4DynamicGroupCallbackService extends BaseIamV4CallbackService {
 
     @Override
     protected List<V4InstanceInfoDTO> fetchInstanceInfo(V4CallbackRequestDTO request) {
-        // TODO 依赖 IAM v4 回调协议新增的祖先信息字段（字段名待 IAM 侧确定，见 openspec design.md D13）：
-        //  届时实现为 从回调请求取 bizId -> 查该业务的动态分组列表取名称，路径 /biz_dynamic_group,{bizId}/。
-        //  当前 fetch_instance_info 只传 ids，而 CMDB 的 /api/v3/dynamicgroup/search/{bk_biz_id}
-        //  把业务写在 URL 路径里、且没有按分组 ID 直查的接口，仅凭分组 ID 无法定位业务，故返回空列表。
-        int idCount = request.getFilter() == null || request.getFilter().getIds() == null
-            ? 0 : request.getFilter().getIds().size();
-        log.warn("fetch_instance_info for dynamic_group is not supported until IAM callback carries "
-            + "ancestor info|idCount={}", idCount);
-        return Collections.emptyList();
+        V4CallbackFilterDTO filter = request.getFilter();
+        if (filter == null || CollectionUtils.isEmpty(filter.getIds())) {
+            return Collections.emptyList();
+        }
+        long bizId = parseRootResourceBizId(filter);
+        Set<String> wanted = new HashSet<>(filter.getIds());
+        List<DynamicGroupDTO> groups = bizDynamicGroupService.listDynamicGroup(
+            JobContextUtil.getTenantId(), bizId);
+
+        boolean needPath = isPathRequired(request);
+        String path = needPath
+            ? buildIamPath(IamV4ResourceTypeId.BIZ_DYNAMIC_GROUP, String.valueOf(bizId))
+            : null;
+        List<V4InstanceInfoDTO> result = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(groups)) {
+            for (DynamicGroupDTO group : groups) {
+                if (group.getId() == null || !wanted.contains(group.getId())) {
+                    continue;
+                }
+                V4InstanceInfoDTO instance = new V4InstanceInfoDTO();
+                instance.setId(group.getId());
+                instance.setDisplayName(group.getName());
+                instance.setBkIamPath(path);
+                result.add(instance);
+            }
+        }
+        if (result.size() < wanted.size()) {
+            log.warn("Some dynamic groups not found in IAM v4 callback, may be deleted"
+                + "|bizId={}|requested={}|found={}", bizId, wanted.size(), result.size());
+        }
+        return result;
     }
 
     /**

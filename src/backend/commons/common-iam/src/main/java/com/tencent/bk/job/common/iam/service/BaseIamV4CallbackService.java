@@ -300,6 +300,38 @@ public abstract class BaseIamV4CallbackService {
     }
 
     /**
+     * 从 fetch_instance_info 的 {@code filter.root_resource_id} 解析 CMDB bizId。
+     *
+     * <p>set / module / dynamic_group / cluster / namespace 无法仅凭实例 ID 定位业务，
+     * 权限中心会带上顶层资源 ID（对本系统即业务 ID）。</p>
+     */
+    protected long parseRootResourceBizId(V4CallbackFilterDTO filter) {
+        if (filter == null || StringUtils.isBlank(filter.getRootResourceId())) {
+            throw new IllegalArgumentException("root_resource_id is required for fetch_instance_info");
+        }
+        try {
+            return Long.parseLong(filter.getRootResourceId());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Illegal root_resource_id: " + filter.getRootResourceId());
+        }
+    }
+
+    /**
+     * 拼接祖先路径，参数成对出现：type, id, ...。例如 {@code buildIamPath("biz", "20")} → {@code /biz,20/}。
+     */
+    protected String buildIamPath(String... typeAndIds) {
+        if (typeAndIds == null || typeAndIds.length == 0 || typeAndIds.length % 2 != 0) {
+            return null;
+        }
+        StringBuilder path = new StringBuilder();
+        for (int i = 0; i < typeAndIds.length; i += 2) {
+            path.append('/').append(typeAndIds[i]).append(',').append(typeAndIds[i + 1]);
+        }
+        path.append('/');
+        return path.toString();
+    }
+
+    /**
      * 把回调传入的实例 ID 解析为数字 ID。格式非法的 ID 记日志并跳过，不影响其余 ID 的处理。
      */
     protected List<Long> parseLongIds(List<String> ids) {
