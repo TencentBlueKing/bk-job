@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Worker连通性回探结果
- * Gateway 解析 Worker 访问地址后，将本次回探结果通过该对象返回给 Worker。
+ * Gateway 解析 Worker 访问地址并校验解析结果包含 Worker 上报的 IP 后，将本次回探结果通过该对象返回给 Worker。
  */
 @NoArgsConstructor
 @AllArgsConstructor
@@ -45,7 +45,7 @@ public class ConnectivityCheckResult {
     private Boolean success;
 
     /**
-     * 回探失败时的简短错误信息，便于 Worker 侧排障；成功时可为空。
+     * 回探失败时的简短错误信息（如无法解析、解析结果不含 Worker 上报的 IP），便于 Worker 侧排障；成功时可为空。
      */
     @Schema(description = "回探失败时的简短错误信息，成功时可为空")
     private String errorMessage;

@@ -13,9 +13,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 @Slf4j
 @Service
 public class EnvironmentService implements ApplicationContextAware {
+
+    private static final String ENV_POD_IP = "BK_JOB_POD_IP";
 
     private ApplicationContext applicationContext;
     private final WorkerConfig workerConfig;
@@ -95,6 +102,50 @@ public class EnvironmentService implements ApplicationContextAware {
             log.debug("accessHost is blank, use first machine ip");
         }
         return accessHost;
+    }
+
+    /**
+     * 获取 Worker 当前实际 IP 列表，供 Gateway 校验其 DNS 解析结果是否已指向最新地址。
+     * <ul>
+     *     <li>K8s 环境：优先取 Helm Chart 注入的 Pod IP（{@code BK_JOB_POD_IP}，fieldRef: status.podIP），
+     *     未注入时回退为本机网卡地址。注意不能使用 {@code BK_JOB_NODE_IP}（节点 IP）</li>
+     *     <li>二进制部署：本机网卡地址，accessHost 本身为 IP 字面量时一并加入</li>
+     * </ul>
+     *
+     * @return IP 列表；获取不到任何 IP 时返回 null，Gateway 退化为仅校验可解析
+     */
+    public List<String> getExpectedIps() {
+        Set<String> ips = new LinkedHashSet<>();
+        if (isInK8s()) {
+            String podIpEnv = getEnv(ENV_POD_IP);
+            String podIp = StringUtils.isBlank(podIpEnv) ? null : podIpEnv.trim();
+            if (IpUtils.isValidIpAddress(podIp)) {
+                ips.add(podIp);
+            } else {
+                log.info("ENV {} is not a valid ip: {}, use machine ips", ENV_POD_IP, podIp);
+                ips.addAll(listMachineIps());
+            }
+        } else {
+            ips.addAll(listMachineIps());
+            String accessHost = StringUtils.isBlank(workerConfig.getAccessHost())
+                ? null : workerConfig.getAccessHost().trim();
+            if (IpUtils.isValidIpAddress(accessHost)) {
+                ips.add(accessHost);
+            }
+        }
+        if (ips.isEmpty()) {
+            log.warn("Cannot get any ip of current worker, gateway will only check whether access host is resolvable");
+            return null;
+        }
+        return new ArrayList<>(ips);
+    }
+
+    String getEnv(String name) {
+        return System.getenv(name);
+    }
+
+    List<String> listMachineIps() {
+        return IpUtils.listMachineIps();
     }
 
     public Pair<String, String> getInnerProtocolAndIp() {

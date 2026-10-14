@@ -31,6 +31,10 @@ import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,5 +89,98 @@ class WorkerConnectivityServiceTest {
         assertThat(service.check(req("worker@127.0.0.1")).getSuccess()).isFalse();
         assertThat(service.check(req("")).getSuccess()).isFalse();
         assertThat(resolveCount.get()).isZero();
+    }
+
+    private static ConnectivityCheckReq req(String host, List<String> expectedIps) {
+        return new ConnectivityCheckReq("default", host, 19810, expectedIps);
+    }
+
+    private static WorkerConnectivityService serviceResolvingTo(String... ips) throws UnknownHostException {
+        InetAddress[] addresses = new InetAddress[ips.length];
+        for (int i = 0; i < ips.length; i++) {
+            addresses[i] = InetAddress.getByName(ips[i]);
+        }
+        WorkerConnectivityService service = new WorkerConnectivityService();
+        service.setHostResolver(host -> addresses);
+        return service;
+    }
+
+    @Test
+    @DisplayName("解析结果包含 Worker 上报的 IP 时回探成功")
+    void successWhenResolvedContainsExpectedIp() throws UnknownHostException {
+        WorkerConnectivityService service = serviceResolvingTo("127.0.0.1");
+
+        ConnectivityCheckResult result = service.check(req(WORKER_HOST, Collections.singletonList("127.0.0.1")));
+
+        assertThat(result.getSuccess()).isTrue();
+        assertThat(result.getErrorMessage()).isNull();
+    }
+
+    @Test
+    @DisplayName("解析到旧 IP（不含 Worker 上报的 IP）时回探失败并提示 DNS 缓存可能未刷新")
+    void failWhenResolvedToStaleIp() throws UnknownHostException {
+        WorkerConnectivityService service = serviceResolvingTo("127.0.0.2");
+
+        ConnectivityCheckResult result = service.check(req(WORKER_HOST, Collections.singletonList("127.0.0.1")));
+
+        assertThat(result.getSuccess()).isFalse();
+        assertThat(result.getErrorMessage())
+            .contains("resolved addresses [127.0.0.2]")
+            .contains("expected ips [127.0.0.1]")
+            .contains("gateway DNS cache may be stale");
+    }
+
+    @Test
+    @DisplayName("Worker 未上报 IP（老版本 Worker）时仅校验可解析")
+    void successWhenExpectedIpsAbsent() throws UnknownHostException {
+        WorkerConnectivityService service = serviceResolvingTo("127.0.0.2");
+
+        assertThat(service.check(req(WORKER_HOST, null)).getSuccess()).isTrue();
+        assertThat(service.check(req(WORKER_HOST, Collections.emptyList())).getSuccess()).isTrue();
+    }
+
+    @Test
+    @DisplayName("上报 IP 中的非 IP 字面量被忽略，且不会触发额外的 DNS 解析")
+    void ignoreNonLiteralExpectedIpWithoutResolving() throws UnknownHostException {
+        InetAddress stale = InetAddress.getByName("127.0.0.2");
+        List<String> resolvedHosts = new ArrayList<>();
+        WorkerConnectivityService service = new WorkerConnectivityService();
+        service.setHostResolver(host -> {
+            resolvedHosts.add(host);
+            return new InetAddress[]{stale};
+        });
+
+        ConnectivityCheckResult onlyInvalid = service.check(
+            req(WORKER_HOST, Arrays.asList("example.com", "not-an-ip", "", null)));
+        assertThat(onlyInvalid.getSuccess()).isTrue();
+
+        ConnectivityCheckResult mixed = service.check(
+            req(WORKER_HOST, Arrays.asList("example.com", "127.0.0.1")));
+        assertThat(mixed.getSuccess()).isFalse();
+        assertThat(mixed.getErrorMessage()).contains("expected ips [127.0.0.1]").doesNotContain("example.com");
+
+        assertThat(resolvedHosts).containsExactly(WORKER_HOST, WORKER_HOST);
+    }
+
+    @Test
+    @DisplayName("IPv6 压缩与非压缩写法等价时视为匹配")
+    void matchEquivalentIpv6Representations() throws UnknownHostException {
+        WorkerConnectivityService service = serviceResolvingTo("::1");
+
+        ConnectivityCheckResult result = service.check(
+            req(WORKER_HOST, Collections.singletonList("0:0:0:0:0:0:0:1")));
+
+        assertThat(result.getSuccess()).isTrue();
+    }
+
+    @Test
+    @DisplayName("多个解析结果与上报 IP 部分有交集时回探成功")
+    void successWhenPartiallyIntersected() throws UnknownHostException {
+        WorkerConnectivityService service = serviceResolvingTo("127.0.0.2", "127.0.0.1");
+
+        ConnectivityCheckResult result = service.check(
+            req(WORKER_HOST, Arrays.asList("127.0.0.3", "127.0.0.1")));
+
+        assertThat(result.getSuccess()).isTrue();
     }
 }

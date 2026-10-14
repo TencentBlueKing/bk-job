@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.util.http;
 
+import com.tencent.bk.job.common.util.LogUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.Inet4Address;
@@ -40,8 +41,8 @@ import java.util.regex.Pattern;
 /**
  * URL 安全解析与地址判定。
  * <p>
- * 用户可控 URL（制品库 / 回调等）走 {@link #parseHttpUrlHost(String)}、
- * {@link #isDangerousAddress(InetAddress)} 等接口，默认拒绝环回与内网。
+ * 用户可控 URL（制品库 / COS / 回调等）走 {@link #parseHttpUrlHost(String)}、
+ * {@link #isResolvedToLocalHostAddress(String, HostResolver)} 等接口，解析结果只拒绝环回与通配地址。
  * 内部服务互调（file-gateway ↔ file-worker）走 {@link #parseSafeInternalHttpUri(String)}，
  * 允许 K8s Service/Pod DNS 与集群/回环 IP，只拒绝链路本地、通配与组播。
  */
@@ -144,49 +145,12 @@ public final class HttpUrlSafetyUtils {
     }
 
     /**
-     * 环回、内网、链路本地、通配、组播、IPv6 ULA。
-     */
-    public static boolean isInternalAddress(InetAddress address) {
-        if (address == null) {
-            return true;
-        }
-        if (isDangerousAddress(address) || address.isSiteLocalAddress()) {
-            return true;
-        }
-        return isIpv6UniqueLocalAddress(address);
-    }
-
-    /**
-     * 几乎不可能作为合法第三方服务入口的地址：环回、链路本地、通配、组播、IPv6 ULA。
-     * 不含站点本地地址，避免误伤私有化部署。
-     */
-    public static boolean isDangerousAddress(InetAddress address) {
-        if (address == null) {
-            return true;
-        }
-        if (address.isAnyLocalAddress()
-            || address.isLoopbackAddress()
-            || address.isLinkLocalAddress()
-            || address.isMulticastAddress()) {
-            return true;
-        }
-        return isIpv6UniqueLocalAddress(address);
-    }
-
-    public static boolean isResolvedToInternalAddress(String host, HostResolver hostResolver) {
-        return isResolvedTo(host, hostResolver, true);
-    }
-
-    public static boolean isResolvedToDangerousAddress(String host, HostResolver hostResolver) {
-        return isResolvedTo(host, hostResolver, false);
-    }
-
-    /**
-     * 解析结果是否包含环回地址。解析失败、空结果按失败关闭视为环回。
+     * 解析结果是否包含指向本机的地址：通配地址或环回地址。解析失败、空结果按失败关闭视为命中。
      * <p>
-     * 当前环境域名匹配场景只拦环回，不拦站点本地等局域网地址。
+     * 只拦通配与环回，站点本地、链路本地、组播、IPv6 ULA 等地址均放行，
+     * 用于当前环境域名匹配、COS 接入点等场景，避免误伤私有化部署与云上内网访问地址。
      */
-    public static boolean isResolvedToLoopbackAddress(String host, HostResolver hostResolver) {
+    public static boolean isResolvedToLocalHostAddress(String host, HostResolver hostResolver) {
         if (StringUtils.isBlank(host)) {
             return true;
         }
@@ -201,7 +165,7 @@ public final class HttpUrlSafetyUtils {
             return true;
         }
         for (InetAddress address : addresses) {
-            if (address == null || address.isLoopbackAddress()) {
+            if (address == null || address.isAnyLocalAddress() || address.isLoopbackAddress()) {
                 return true;
             }
         }
@@ -228,6 +192,66 @@ public final class HttpUrlSafetyUtils {
         return uri.getRawUserInfo() == null
             && StringUtils.isEmpty(uri.getRawQuery())
             && StringUtils.isEmpty(uri.getRawFragment());
+    }
+
+    /**
+     * 打日志用：去掉 userinfo 后截断控制字符，避免凭据泄露和日志注入。
+     */
+    public static String toLogSafeUrl(String url, int maxLength) {
+        if (url == null) {
+            return "";
+        }
+        return LogUtil.sanitizeForLog(stripUserInfo(url), maxLength);
+    }
+
+    /**
+     * 去掉 URL 或裸 host 形式（如 {@code user:pwd@host:port}）中的 userinfo。
+     * <p>
+     * 能按标准 URI 解析出 host 时重建 URI，结果与原串仅差 userinfo；
+     * 解析失败或无法识别 host 时，丢弃 query/fragment 之前最后一个 {@code @} 及其之前的认证部分，保证不回显凭据。
+     */
+    public static String stripUserInfo(String url) {
+        if (StringUtils.isEmpty(url)) {
+            return url;
+        }
+        try {
+            URI uri = new URI(url);
+            if (uri.getHost() != null) {
+                if (uri.getRawUserInfo() == null) {
+                    return url;
+                }
+                return new URI(
+                    uri.getScheme(),
+                    null,
+                    uri.getHost(),
+                    uri.getPort(),
+                    uri.getPath(),
+                    uri.getQuery(),
+                    uri.getFragment()
+                ).toString();
+            }
+        } catch (URISyntaxException ignored) {
+            // 按字符串兜底处理
+        }
+        return stripUserInfoByAt(url);
+    }
+
+    private static String stripUserInfoByAt(String url) {
+        int schemeSeparator = url.indexOf("://");
+        int authorityStart = schemeSeparator < 0 ? 0 : schemeSeparator + 3;
+        int authorityEnd = url.length();
+        for (int i = authorityStart; i < url.length(); i++) {
+            char c = url.charAt(i);
+            if (c == '?' || c == '#') {
+                authorityEnd = i;
+                break;
+            }
+        }
+        int at = url.lastIndexOf('@', authorityEnd - 1);
+        if (at < authorityStart) {
+            return url;
+        }
+        return url.substring(0, authorityStart) + url.substring(at + 1);
     }
 
     /**
@@ -329,37 +353,6 @@ public final class HttpUrlSafetyUtils {
         return address.isAnyLocalAddress()
             || address.isLinkLocalAddress()
             || address.isMulticastAddress();
-    }
-
-    private static boolean isResolvedTo(String host, HostResolver hostResolver, boolean includeSiteLocal) {
-        if (StringUtils.isBlank(host)) {
-            return true;
-        }
-        HostResolver resolver = hostResolver == null ? DEFAULT_HOST_RESOLVER : hostResolver;
-        InetAddress[] addresses;
-        try {
-            addresses = resolver.resolve(host);
-        } catch (UnknownHostException e) {
-            return true;
-        }
-        if (addresses == null || addresses.length == 0) {
-            return true;
-        }
-        for (InetAddress address : addresses) {
-            if (includeSiteLocal) {
-                if (isInternalAddress(address)) {
-                    return true;
-                }
-            } else if (isDangerousAddress(address)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isIpv6UniqueLocalAddress(InetAddress address) {
-        byte[] bytes = address.getAddress();
-        return bytes != null && bytes.length == 16 && (bytes[0] & 0xfe) == 0xfc;
     }
 
     private static String stripIpv6Brackets(String host) {

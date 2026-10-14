@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.file_gateway.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.User;
@@ -32,10 +34,12 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
+import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.file_gateway.dao.filesource.CurrentTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +48,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +58,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -78,6 +87,7 @@ class FileSourceServiceImplTest {
     private CurrentTenantFileSourceDAO currentTenantFileSourceDAO;
     private FileWorkerDAO fileWorkerDAO;
     private FileSourceAuthService fileSourceAuthService;
+    private FileSourceValidateService fileSourceValidateService;
     private FileSourceServiceImpl fileSourceService;
 
     private MockedStatic<ApplicationContextRegister> applicationContextRegisterMock;
@@ -94,7 +104,7 @@ class FileSourceServiceImplTest {
         currentTenantFileSourceDAO = mock(CurrentTenantFileSourceDAO.class);
         fileWorkerDAO = mock(FileWorkerDAO.class);
         fileSourceAuthService = mock(FileSourceAuthService.class);
-        FileSourceValidateService fileSourceValidateService = mock(FileSourceValidateService.class);
+        fileSourceValidateService = mock(FileSourceValidateService.class);
         fileSourceService = new FileSourceServiceImpl(
             fileSourceTypeDAO,
             currentTenantFileSourceDAO,
@@ -287,5 +297,69 @@ class FileSourceServiceImplTest {
         verify(fileSourceAuthService, times(1))
             .authUseTicket(any(), any(AppResourceScope.class), eq(CREDENTIAL_ID));
         verify(currentTenantFileSourceDAO, times(1)).updateFileSource(any(FileSourceDTO.class));
+    }
+
+    // ============================ 文件源类型校验 ============================
+
+    private void givenUnsupportedTypeRejected() {
+        doThrow(new InvalidParamException(ErrorCode.FILE_SOURCE_TYPE_NOT_SUPPORTED, new String[]{null}))
+            .when(fileSourceValidateService).checkFileSource(isNull(), any());
+    }
+
+    @Test
+    @DisplayName("save：类型编码未匹配到已知类型时仍需校验并拒绝，且不写库")
+    void saveWithUnknownTypeShouldBeRejected() {
+        User user = mockUser();
+        givenFileSourceCreatePermission();
+        givenUnsupportedTypeRejected();
+
+        FileSourceDTO toSave = buildFileSourceDTO(null, null);
+
+        assertThatThrownBy(() -> fileSourceService.saveFileSource(user, APP_ID, toSave))
+            .isInstanceOf(InvalidParamException.class);
+
+        verify(fileSourceValidateService, times(1)).checkFileSource(isNull(), any());
+        verify(currentTenantFileSourceDAO, never()).insertFileSource(any(FileSourceDTO.class));
+    }
+
+    @Test
+    @DisplayName("update：类型编码未匹配到已知类型时仍需校验并拒绝，且不写库")
+    void updateWithUnknownTypeShouldBeRejected() {
+        User user = mockUser();
+        givenFileSourceManagePermission();
+        givenUnsupportedTypeRejected();
+
+        FileSourceDTO toUpdate = buildFileSourceDTO(null, FILE_SOURCE_ID);
+
+        assertThatThrownBy(() -> fileSourceService.updateFileSourceById(user, APP_ID, toUpdate))
+            .isInstanceOf(InvalidParamException.class);
+
+        verify(fileSourceValidateService, times(1)).checkFileSource(isNull(), any());
+        verify(currentTenantFileSourceDAO, never()).updateFileSource(any(FileSourceDTO.class));
+    }
+
+    @Test
+    @DisplayName("update：按请求中的文件源类型编码与接入参数进行校验")
+    void updateShouldValidateWithRequestTypeCode() {
+        User user = mockUser();
+        givenFileSourceManagePermission();
+        when(currentTenantFileSourceDAO.existsCodeExceptId(eq(APP_ID), anyString(), eq(FILE_SOURCE_ID)))
+            .thenReturn(false);
+        when(currentTenantFileSourceDAO.getFileSourceById(eq(FILE_SOURCE_ID)))
+            .thenReturn(buildFileSourceDTO(null, FILE_SOURCE_ID));
+        when(currentTenantFileSourceDAO.updateFileSource(any(FileSourceDTO.class))).thenReturn(1);
+
+        FileSourceDTO toUpdate = buildFileSourceDTO(null, FILE_SOURCE_ID);
+        FileSourceTypeDTO fileSourceType = new FileSourceTypeDTO();
+        fileSourceType.setCode(FileSourceTypeEnum.BLUEKING_ARTIFACTORY.name());
+        toUpdate.setFileSourceType(fileSourceType);
+        Map<String, Object> fileSourceInfoMap = new HashMap<>();
+        toUpdate.setFileSourceInfoMap(fileSourceInfoMap);
+
+        assertThatCode(() -> fileSourceService.updateFileSourceById(user, APP_ID, toUpdate))
+            .doesNotThrowAnyException();
+
+        verify(fileSourceValidateService, times(1))
+            .checkFileSource(FileSourceTypeEnum.BLUEKING_ARTIFACTORY.name(), fileSourceInfoMap);
     }
 }

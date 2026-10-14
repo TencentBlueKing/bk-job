@@ -29,15 +29,24 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * Worker连通性回探请求
  * File-Worker 在启动阶段调用此请求，要求 File-Gateway 在本 Pod 内解析 Worker 的访问地址，
- * 以此判定 Gateway 集群是否已能解析到该 Worker。Gateway 不会向该地址发起连接。
+ * 并校验解析结果包含 Worker 当前实际 IP，以此判定 Gateway 集群是否已能解析到该 Worker 的最新地址。
+ * Gateway 不会向该地址发起连接。
  */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class ConnectivityCheckReq {
+
+    public ConnectivityCheckReq(String clusterName, String accessHost, Integer accessPort) {
+        this.clusterName = clusterName;
+        this.accessHost = accessHost;
+        this.accessPort = accessPort;
+    }
 
     /**
      * Worker 所在集群名称
@@ -56,4 +65,12 @@ public class ConnectivityCheckReq {
      */
     @Schema(description = "Gateway 用于访问 Worker 的 port", required = true)
     private Integer accessPort;
+
+    /**
+     * Worker 当前实际 IP 列表，Gateway 要求 accessHost 的解析结果与之有交集，
+     * 以识别 Gateway 侧 DNS 缓存仍指向 Worker 旧 IP 的情况；为空时仅校验可解析（兼容老版本 Worker）
+     */
+    @Schema(description = "Worker 当前实际 IP 列表（IPv4/IPv6 字面量），Gateway 要求 accessHost 的解析结果"
+        + "至少包含其中一个 IP，用于识别 DNS 缓存未刷新；为空时仅校验 accessHost 可解析")
+    private List<String> expectedIps;
 }

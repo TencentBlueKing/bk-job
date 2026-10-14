@@ -29,7 +29,6 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.execute.config.CheckCallbackUrlConfig;
 import com.tencent.bk.job.execute.dao.CallbackUrlWhiteInfoDAO;
@@ -107,7 +106,7 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
             || StringUtils.isBlank(host)) {
             return reject(callbackUrl, "scheme must be http/https and host must be present");
         }
-        // 开关关闭时仅做基础合法性校验（scheme/host），环回地址也不再拦截
+        // 开关关闭时仅做基础合法性校验（scheme/host），环回或通配地址也不再拦截
         if (!config.isEnabled()) {
             return true;
         }
@@ -116,7 +115,7 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
         if (uri.getRawUserInfo() != null) {
             return reject(callbackUrl, "userinfo is not allowed");
         }
-        // 2. 命中配置白名单 baseUrl（显式白名单可覆盖环回地址）
+        // 2. 命中配置白名单 baseUrl（显式白名单可覆盖环回或通配地址）
         if (matchAnyBaseUrl(uri, config.getAllowedBaseUrls())) {
             return true;
         }
@@ -124,11 +123,12 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
         if (matchAnyBaseUrl(uri, dbBaseUrlCache.get(CACHE_KEY))) {
             return true;
         }
-        // 4. 命中当前环境 bkDomain 子域时只拦环回，局域网 IP 放行
+        // 4. 命中当前环境 bkDomain 子域时只拦环回与通配地址，局域网 IP 放行
         if (isHostOfCurrentEnv(host)) {
-            if (HttpUrlSafetyUtils.isResolvedToLoopbackAddress(host, hostResolver)) {
+            if (HttpUrlSafetyUtils.isResolvedToLocalHostAddress(host, hostResolver)) {
                 return reject(callbackUrl,
-                    "host matches current env domain but resolved to loopback or failed to resolve");
+                    "host matches current env domain but resolved to loopback/any-local address "
+                        + "or failed to resolve");
             }
             return true;
         }
@@ -137,34 +137,9 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
     }
 
     private boolean reject(String callbackUrl, String reason) {
-        log.warn("Callback url rejected: reason={}, callbackUrl={}", reason, toLogUrl(callbackUrl));
+        log.warn("Callback url rejected: reason={}, callbackUrl={}",
+            reason, HttpUrlSafetyUtils.toLogSafeUrl(callbackUrl, 512));
         return false;
-    }
-
-    /**
-     * 打日志前去掉 userinfo，并截断控制字符，避免凭据泄露和日志注入。
-     */
-    private static String toLogUrl(String callbackUrl) {
-        if (callbackUrl == null) {
-            return "";
-        }
-        try {
-            URI uri = new URI(callbackUrl);
-            if (uri.getRawUserInfo() != null) {
-                callbackUrl = new URI(
-                    uri.getScheme(),
-                    null,
-                    uri.getHost(),
-                    uri.getPort(),
-                    uri.getPath(),
-                    uri.getQuery(),
-                    uri.getFragment()
-                ).toString();
-            }
-        } catch (URISyntaxException ignored) {
-            // 解析失败则原样截断后输出
-        }
-        return LogUtil.sanitizeForLog(callbackUrl, 512);
     }
 
     @Override

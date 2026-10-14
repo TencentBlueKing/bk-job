@@ -57,7 +57,7 @@ public class COSBaseService {
 
     private void checkEndPointDomain(String endPointDomain) {
         String host = HttpUrlSafetyUtils.parseHttpUrlOrBareHost(endPointDomain);
-        if (host == null || HttpUrlSafetyUtils.isResolvedToDangerousAddress(host,
+        if (host == null || HttpUrlSafetyUtils.isResolvedToLocalHostAddress(host,
             HttpUrlSafetyUtils.DEFAULT_HOST_RESOLVER)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
                 new String[]{FileSourceInfoConsts.KEY_COS_END_POINT_DOMAIN});

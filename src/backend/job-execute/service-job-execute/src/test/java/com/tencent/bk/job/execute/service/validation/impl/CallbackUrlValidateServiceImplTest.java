@@ -77,6 +77,16 @@ class CallbackUrlValidateServiceImplTest {
                 || host.startsWith("loopback.")) {
                 return new java.net.InetAddress[]{java.net.InetAddress.getByName("127.0.0.1")};
             }
+            if (host.startsWith("anylocal4.")) {
+                return new java.net.InetAddress[]{java.net.InetAddress.getByAddress(host, new byte[4])};
+            }
+            if (host.startsWith("anylocal6.")) {
+                return new java.net.InetAddress[]{java.net.InetAddress.getByAddress(host, new byte[16])};
+            }
+            if (host.startsWith("linklocal.")) {
+                return new java.net.InetAddress[]{
+                    java.net.InetAddress.getByAddress(host, new byte[]{(byte) 169, (byte) 254, 1, 2})};
+            }
             java.net.InetAddress address = mock(java.net.InetAddress.class);
             when(address.getAddress()).thenReturn(new byte[4]);
             if (host.startsWith("sitelocal.")) {
@@ -257,10 +267,19 @@ class CallbackUrlValidateServiceImplTest {
         }
 
         @Test
-        @DisplayName("当前环境子域解析为局域网地址时应放行")
+        @DisplayName("当前环境子域解析为通配地址时应拦截")
+        void rejectAnyLocalSubdomainOfBkDomain() {
+            bkConfig.setBkDomain("bktencent.com");
+            assertThat(service.isValid("http://anylocal4.bktencent.com/cb")).isFalse();
+            assertThat(service.isValid("http://anylocal6.bktencent.com/cb")).isFalse();
+        }
+
+        @Test
+        @DisplayName("当前环境子域解析为局域网、链路本地地址时应放行")
         void allowSiteLocalSubdomainOfBkDomain() {
             bkConfig.setBkDomain("bktencent.com");
             assertThat(service.isValid("http://sitelocal.bktencent.com/cb")).isTrue();
+            assertThat(service.isValid("http://linklocal.bktencent.com/cb")).isTrue();
         }
 
         @Test
