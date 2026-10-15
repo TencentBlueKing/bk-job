@@ -66,7 +66,7 @@ graph LR
 | PR 链接 | GitHub Pull Request URL |
 | `GITHUB_TOKEN`（推荐） | 供 Agent 调用 GitHub REST API 拉取 PR 元数据与变更文件 |
 
-Agent 自行通过 API 获取标题、描述、base/head SHA 等；报告默认写到工作目录下的 `pr-security-check-report/`（`report.json` + `report.md`）。
+Agent 自行通过 API 获取标题、描述、base/head SHA 等；报告默认写到工作目录下的 `pr-security-check-report/`（`report.json` + `report.html`）。
 
 ## 新增资源
 

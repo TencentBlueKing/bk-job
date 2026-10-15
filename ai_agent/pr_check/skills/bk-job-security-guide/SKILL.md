@@ -75,10 +75,11 @@ git diff {base.sha}...{head.sha}
 
 ### 5. 输出报告
 
-按 `references/report-format.md`，将 `report.json` 与 `report.md` 写到工作目录下的 `pr-security-check-report/`（目录不存在则创建）。无发现也必须输出报告。
+按 `references/report-format.md`，将 `report.json` 与 `report.html` 写到工作目录下的 `pr-security-check-report/`（目录不存在则创建）。无发现也必须输出报告。
 
 - `base_sha` / `head_sha`：填步骤 1 取得的值
 - `findings[].type`：使用 `checklist.md` 的章节名（如 `missing-authorization`、`sql-injection`）
+- `report.html`：单文件内联样式；对来自 PR/代码的文本做 HTML 转义
 
 ## 审计规则（必读）
 
