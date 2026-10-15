@@ -58,6 +58,7 @@
 
 字段说明：
 
+- `base_sha` / `head_sha`：分别对应检查所用的 `lastCommitId`（合并前）与 `headCommitId`（预合并后）
 - `type`：漏洞类型，取值见同目录 `checklist.md` 的章节名（如 `missing-authorization`、`sql-injection`）
 - `sensitive_paths_changed`：PR 中被修改的敏感路径（`ai_agent/pr_check/`、`.github/workflows/`、构建脚本等）
 - `attack_path`：攻击者从哪个入口、以什么身份、如何到达漏洞点

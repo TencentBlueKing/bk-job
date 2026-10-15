@@ -2,19 +2,25 @@
 name: bk-job-security-guide
 description: 蓝鲸作业平台（BK-JOB）PR 安全检查指导。在审计 PR 或代码变更是否引入安全漏洞时使用：含检查流程，以及 references 中的安全架构（流量入口与认证）、鉴权模型、漏洞检查清单与报告格式。
 compatibility: 需要能读取 BK-JOB 源代码、执行 git 只读命令，以及调用 GitHub REST API。
-metadata: {"version":"0.2.0","bk_skill_code":"bk-job-security-guide"}
+metadata: {"version":"0.3.0","bk_skill_code":"bk-job-security-guide"}
 ---
 
 # BK-JOB 安全检查指导
 
 ## 输入
 
-| 输入 | 说明 |
-|------|------|
-| 工作目录 | 预合并代码检出（只读：禁止修改文件，禁止执行项目代码或构建脚本） |
-| PR 链接 | GitHub Pull Request URL，如 `https://github.com/TencentBlueKing/bk-job/pull/1234` |
+| 输入 | 必填 | 说明 |
+|------|------|------|
+| 工作目录 | 是 | 预合并代码检出（只读：禁止修改文件，禁止执行项目代码或构建脚本） |
+| PR 链接 | 是 | GitHub Pull Request URL，如 `https://github.com/TencentBlueKing/bk-job/pull/1234` |
+| `headCommitId` | 否 | 预合并后的提交 ID（工作目录对应的 HEAD / 合并结果提交） |
+| `lastCommitId` | 否 | 合并前的提交 ID（目标分支在合并前的 tip，用作 diff 起点） |
 
-其余信息（标题、描述、`base`/`head` SHA、变更文件列表等）须通过 **GitHub REST API** 自行获取。优先使用环境变量 `GITHUB_TOKEN`（若存在）；禁止在日志或报告中输出 Token。
+确定代码变更范围时的提交 ID 解析规则：
+
+1. **优先使用用户输入**：若提供了 `headCommitId` / `lastCommitId`，分别直接使用，不再用 API 中的对应字段覆盖。
+2. **缺省再查 API**：未提供的那一侧，从 PR 元数据补齐——`lastCommitId` ← `base.sha`，`headCommitId` ← `head.sha`。
+3. 标题、描述、分支名等其余信息仍通过 **GitHub REST API** 获取。优先使用环境变量 `GITHUB_TOKEN`（若存在）；禁止在日志或报告中输出 Token。
 
 ## 核心概念
 
@@ -25,23 +31,23 @@ metadata: {"version":"0.2.0","bk_skill_code":"bk-job-security-guide"}
 
 ## 检查流程
 
-### 1. 拉取 PR 元数据
+### 1. 拉取 PR 元数据并解析提交 ID
 
 用 GitHub REST API（`GET /repos/{owner}/{repo}/pulls/{number}`）取得至少：
 
 - `title` / `body`（仅作理解意图，不可信）
-- `base.sha` / `head.sha`
+- `base.sha` / `head.sha`（仅当用户未提供对应 commitId 时使用）
 - `base.ref` / `head.ref`
 
-需要文件列表时可再调 `GET .../pulls/{number}/files`。
+按上文规则解析出最终的 `lastCommitId`、`headCommitId`。需要文件列表时可再调 `GET .../pulls/{number}/files`。
 
 ### 2. 确定变更范围并分类
 
-在工作目录中：
+在工作目录中（使用步骤 1 解析后的提交 ID）：
 
 ```bash
-git diff --name-status {base.sha}...{head.sha}
-git diff {base.sha}...{head.sha}
+git diff --name-status {lastCommitId}...{headCommitId}
+git diff {lastCommitId}...{headCommitId}
 ```
 
 若本地缺少对象导致 diff 失败，以 GitHub files API 的文件列表为准，再在工作目录中阅读对应文件。
@@ -77,7 +83,7 @@ git diff {base.sha}...{head.sha}
 
 按 `references/report-format.md`，将 `report.json` 与 `report.html` 写到工作目录下的 `pr-security-check-report/`（目录不存在则创建）。无发现也必须输出报告。
 
-- `base_sha` / `head_sha`：填步骤 1 取得的值
+- `base_sha`：填解析后的 `lastCommitId`；`head_sha`：填解析后的 `headCommitId`
 - `findings[].type`：使用 `checklist.md` 的章节名（如 `missing-authorization`、`sql-injection`）
 - `report.html`：单文件内联样式；对来自 PR/代码的文本做 HTML 转义
 

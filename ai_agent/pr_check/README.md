@@ -60,13 +60,15 @@ graph LR
 
 ## CI 侧需提供的输入
 
-| 输入 | 说明 |
-|------|------|
-| 工作目录 | 预合并代码的只读检出 |
-| PR 链接 | GitHub Pull Request URL |
-| `GITHUB_TOKEN`（推荐） | 供 Agent 调用 GitHub REST API 拉取 PR 元数据与变更文件 |
+| 输入 | 必填 | 说明 |
+|------|------|------|
+| 工作目录 | 是 | 预合并代码的只读检出 |
+| PR 链接 | 是 | GitHub Pull Request URL |
+| `headCommitId` | 否 | 预合并后的提交 ID；优先用于确定变更范围 |
+| `lastCommitId` | 否 | 合并前的提交 ID（diff 起点）；优先用于确定变更范围 |
+| `GITHUB_TOKEN` | 推荐 | 供 Agent 调用 GitHub REST API 拉取 PR 元数据与变更文件 |
 
-Agent 自行通过 API 获取标题、描述、base/head SHA 等；报告默认写到工作目录下的 `pr-security-check-report/`（`report.json` + `report.html`）。
+未提供 commitId 时，Agent 从 PR API 取 `head.sha` / `base.sha` 补齐。报告默认写到工作目录下的 `pr-security-check-report/`（`report.json` + `report.html`）。
 
 ## 新增资源
 
