@@ -48,7 +48,7 @@ graph LR
         URL[PR 链接] --> A
         A -->|GitHub API| META[PR 元数据]
         A -->|加载| S[bk-job-security-guide]
-        A --> OUT[pr-security-check-report/]
+        A --> OUT[tmp/pr-security-check-report/]
     end
 ```
 
@@ -69,7 +69,7 @@ graph LR
 | `lastCommitId` | 否 | 合并前的提交 ID（diff 起点）；优先用于确定变更范围 |
 | `GITHUB_TOKEN` | 推荐 | 供 Agent 调用 GitHub REST API 拉取 PR 元数据与变更文件 |
 
-未提供 commitId 时，Agent 从 PR API 取 `head.sha` / `base.sha` 补齐。报告默认写到工作目录下的 `pr-security-check-report/`（`report.json` + `report.html`）。
+未提供 commitId 时，Agent 从 PR API 取 `head.sha` / `base.sha` 补齐。报告默认写到工作目录下的 `tmp/pr-security-check-report/`（`report.json` + `report.html`，`tmp/` 已被 `.gitignore` 忽略）。
 
 ## 新增资源
 

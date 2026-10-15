@@ -15,5 +15,7 @@
 
 按顺序加载并遵守：
 
-1. **Rule** `rules/rule.md`
+1. **Rule** `rules/rule.md`（在 `.gemini/` 模式下已合并为 `.gemini/GEMINI.md`）
 2. **Skill** `bk-job-security-guide`：读取其 `SKILL.md`，按其检查流程与 references 完成分析并输出报告
+
+> 注意：`.gemini/` 目录被 `.gitignore` 忽略且不在 git 版本库中。读取 Skill 及其 `references/` 时，**必须直接按文件路径读取**，禁止使用 `git show` 或受 `.gitignore` 过滤的搜索工具。

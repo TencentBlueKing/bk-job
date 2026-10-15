@@ -1,6 +1,6 @@
 # 报告输出格式
 
-输出两个文件到工作目录下的 `pr-security-check-report/`：
+输出两个文件到工作目录下的 `tmp/pr-security-check-report/`：
 
 - `report.json`：供 CI 门禁消费
 - `report.html`：供人类 Reviewer 在浏览器中查看（单文件、内联样式，不依赖外部资源）
@@ -62,7 +62,8 @@
 - `type`：漏洞类型，取值见同目录 `checklist.md` 的章节名（如 `missing-authorization`、`sql-injection`）
 - `sensitive_paths_changed`：PR 中被修改的敏感路径（`ai_agent/pr_check/`、`.github/workflows/`、构建脚本等）
 - `attack_path`：攻击者从哪个入口、以什么身份、如何到达漏洞点
-- `evidence`：支撑结论的关键代码位置（`文件:行号`），不要大段粘贴代码
+- `evidence`：支撑结论的关键代码位置（`文件:行号`，文字列或字符串数组均可），不要大段粘贴代码；行号必须来自 `{headCommitId}` 下完整源码的真实行号，不得使用 diff 片段的相对行号
+- `recommendation`：修复建议必须引用项目中已存在的防护类与方法（如 `authorization.md`、`checklist.md` 中列出的类），不得捏造不存在的类名
 
 ## report.html
 
