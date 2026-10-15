@@ -46,17 +46,21 @@ metadata: {"version":"0.3.0","bk_skill_code":"bk-job-security-guide"}
 在工作目录中（使用步骤 1 解析后的提交 ID）：
 
 ```bash
+git rev-parse HEAD
 git diff --name-status {lastCommitId}...{headCommitId}
 git diff {lastCommitId}...{headCommitId}
 ```
 
-若本地缺少对象导致 diff 失败，以 GitHub files API 的文件列表为准，再在工作目录中阅读对应文件。
+**版本一致性要求（重要）**：若当前工作目录的 `HEAD` 与 `{headCommitId}` 不一致，后续读取任何文件或调用链上下文时，**必须使用 `git show {headCommitId}:{path}`**，禁止直接读取工作区文件（否则会读到 `headCommitId` 之后或之前的其他提交代码，导致误判）。
+
+若本地缺少对象导致 diff 失败，以 GitHub files API 的文件列表为准。
 
 按模块与变更类型分类，命中以下路径时记入报告 `sensitive_paths_changed`，提示人工 Review：
 
 - `ai_agent/pr_check/`
 - `.github/workflows/`、构建脚本
-- `support-files/kubernetes/charts/bk-job/templates/job-gateway/configmap.yaml`（改路由等同改信任边界）
+- `support-files/kubernetes/charts/bk-job/templates/job-gateway/configmap.yaml`（网关路由）
+- `support-files/bk-api-gateway/v3/resources.yaml`（APIGW 接口暴露与认证配置）
 
 ### 3. 按风险面加载 references 并分析
 
@@ -89,8 +93,11 @@ git diff {lastCommitId}...{headCommitId}
 
 ## 审计规则（必读）
 
-1. 结论必须有代码证据：引用 `文件:行号`。
-2. 判断「是否有鉴权」时，确认鉴权**作用于本次被访问的资源实例**，而不仅是「调用了某个鉴权方法」。
+1. **不论判定“存在漏洞”还是“已有防护”，都必须有代码证据**：
+   - 严禁根据 references 中的设计描述倒推代码“应该已经鉴权/校验”。
+   - 凡是断定某接口已完成 IAM 鉴权，必须在代码调用链（Resource → Service）中找到具体的 `*AuthService.auth*(...)` 调用及结果检查，并在分析或 `notes` 中给出 `文件:行号`；找不到即为缺失鉴权。
+   - **严禁将 `@AuditEntry` / `@ActionAuditRecord`（操作审计注解）、`@EsbV4API`、`resources.yaml` 中的 `resourcePermissionRequired` 当作 IAM 鉴权**（详见 `authorization.md`「常见假象」）。
+2. 判断「是否有鉴权」时，确认鉴权**作用于本次被访问的资源实例**，且按 ID 查询后校验了资源归属当前 `AppResourceScope` 与租户。
 3. 判断「是否可控」时，确认数据来自外部请求，而不是来自已鉴权的内部数据；网关注入的 username 仍须做资源级鉴权。
 4. references 描述的是目标分支设计；若 PR 修改了其中的机制本身（网关过滤器、鉴权拦截器、入口类型等），以「机制被修改」为重点，并在结论中明确体现。
 5. 认证机制被削弱、删除或失效时，无论是否已有可利用链路，都必须在报告中体现（可结合 severity/confidence 分级）。

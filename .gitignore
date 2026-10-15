@@ -35,6 +35,7 @@ CODEBUDDY.md
 .claude/
 openspec/
 .codegraph/
+.gemini/
 
 pre-*-bkcodeai
 

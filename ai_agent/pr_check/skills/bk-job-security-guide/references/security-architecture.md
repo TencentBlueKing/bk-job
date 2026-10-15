@@ -32,13 +32,16 @@
 
 ### OpenAPI
 
-- **路径**：外部 `/api/job/v{2,3,4}/...`，网关改写为 `/esb/api/...`
+- **路径**：外部 `/api/job/v{2,3,4}/...`，网关改写为 `/esb/api/...`；对外暴露的接口列表与认证策略定义在 `support-files/bk-api-gateway/v3/resources.yaml`
 - **调用方**：蓝鲸 APIGW / ESB
-- **认证方式**：网关 `CheckTenant` + `CheckOpenApiJwt`（APIGW JWT）；服务端 `AuthAppInterceptor` 做业务级鉴权
-- **接口特征**：`api/esb/` 包下的 `Esb*Resource`、`OpenApi*V4Resource`，`@RequestMapping("/esb/api/v{n}")`，标注 `@EsbAPI`，从请求头 `JobCommonHeaders.USERNAME` / `APP_CODE` 取调用者
+- **认证方式**：
+  - APIGW 侧（`resources.yaml`）：`authConfig` 控制是否校验用户登录态（`userVerifiedRequired`）与蓝鲸应用身份（`appVerifiedRequired`）；`bk-header-rewrite` 插件写入 `X-Bk-Job-Api-Type`（`user` 用户态：用户身份必须来自 APIGW JWT，不可被请求头覆盖；`app` 应用态：`CheckOpenApiJwtGatewayFilterFactory` 允许调用方通过请求头 `X-Bk-Username` 指定操作用户）
+  - job-gateway 侧：`CheckTenant` + `CheckOpenApiJwt`（校验 APIGW JWT，提取 `app_code` 与 `username` 写入请求头）
+  - 服务端：有业务上下文时由 `AuthAppInterceptor` 做业务级鉴权
+- **接口特征**：`api/esb/` 包下的 `Esb*Resource`、`OpenApi*V4Resource`，`@RequestMapping("/esb/api/v{n}")`，标注 `@EsbAPI` / `@EsbV4API`，从请求头 `JobCommonHeaders.USERNAME` / `APP_CODE` 取调用者
 - **主要实现类**：
   - `CheckTenantGatewayFilterFactory`：网关租户校验
-  - `CheckOpenApiJwtGatewayFilterFactory`：网关 APIGW JWT 校验
+  - `CheckOpenApiJwtGatewayFilterFactory`：网关 APIGW JWT 校验与用户身份提取
   - `AddJwtHeaderGlobalFilter`：网关转发时注入服务间 JWT
   - `ServiceSecurityInterceptor`：服务端校验服务间 JWT（`x-job-auth-token`）
   - `AuthAppInterceptor`：业务级鉴权
@@ -87,6 +90,7 @@
 
 
 ## 安全要求
-1.不允许删除上述各类接口的认证逻辑或使其失效，如果有认证机制改动必须在审查结论中进行体现；
-2.新增接口必须限制在上述流量入口类型之内，不允许新增其他超出限制且不命中认证逻辑的裸接口；
-3.接口参数中由网关自动传入的username参数视为可信数据，但是在执行具体业务逻辑时必须结合资源范围等信息对其进行鉴权，鉴权逻辑可以下沉到Service类中，但是整个逻辑链路中必须要有，不允许越权访问无权限的资源。
+1. 不允许删除上述各类接口的认证逻辑或使其失效，如果有认证机制改动必须在审查结论中进行体现；
+2. 新增接口必须限制在上述流量入口类型之内，不允许新增其他超出限制且不命中认证逻辑的裸接口；
+3. 接口参数中由网关自动传入的 username 参数视为可信数据，但是在执行具体业务逻辑时必须结合资源范围等信息对其进行鉴权，鉴权逻辑可以下沉到 Service 类中，但是整个逻辑链路中必须要有，不允许越权访问无权限的资源；
+4. `support-files/bk-api-gateway/v3/resources.yaml` 中新增或修改 OpenAPI 时：常规接口必须保持 `userVerifiedRequired: true` 与 `appVerifiedRequired: true`；若将用户态接口误配为 `X-Bk-Job-Api-Type: app`，调用方可通过 `X-Bk-Username` 伪造任意用户身份。

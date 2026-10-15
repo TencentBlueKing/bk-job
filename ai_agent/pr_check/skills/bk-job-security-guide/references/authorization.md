@@ -78,12 +78,24 @@ scriptAuthService.authManageScript(user, appResourceScope, scriptId, null)
 | OP `/op/**` | 无 | 无（仅 HTTP Basic） |
 | 升级迁移 `/service/.../migration/**` | 无 | 无 |
 
+## ⚠️ 常见假象（不能视为已鉴权）
+
+**本项目不存在基于注解或网关配置的自动 IAM 鉴权**。以下机制在代码中经常与 `ActionId` 同时出现，但**不做任何 IAM 权限校验**：
+
+1. **操作审计注解**（`com.tencent.bk.audit.annotations.*`）：`@AuditEntry(actionId = ActionId.XXX)`、`@ActionAuditRecord`、`@AuditRequestBody`、`@AuditInstanceRecord` **仅用于记录操作审计日志，不会触发 IAM 鉴权**。若接口只有 `@AuditEntry` 而整条调用链（Resource → Service）没有任何 `*AuthService` / `AuthHelper` 调用，属于**缺失鉴权**。
+2. **接口标记注解**：`@WebAPI`、`@EsbAPI`、`@EsbV4API`、`@InternalAPI` 仅用于标记接口类型、指标与统一异常处理，不做鉴权。
+3. **API 网关配置 `resources.yaml`**：`resourcePermissionRequired: true` 仅校验蓝鲸应用（`app_code`）是否申请了该 API 的网关调用权限，**不校验当前用户（`username`）在 IAM 中的业务或资源权限**。
+4. **`AuthAppInterceptor` 的跳过分支**：
+   - Web 接口路径不含 `/scope/{scopeType}/{scopeId}`，或 OpenAPI 请求顶层不含 `bk_scope_type`/`bk_scope_id`（或 `bk_biz_id`）时，`BasicAppInterceptor` 解析出的 `app` 为 `null`（典型：公共脚本、白名单等平台级接口，或参数名写成 `scope_list` 的批量接口）。
+   - `app == null` 时 `AuthAppInterceptor` **直接放行**，连 `access_business` 都不会做。
+5. **只调用 `auth*` 但未检查结果**：`*AuthService.auth*(...)` 返回 `AuthResult`（不会自动抛异常，除非是 `void authViewTaskInstance` 等少数方法）；若未调用 `.denyIfNoPermission()` 或 `if (!authResult.isPass()) throw new PermissionDeniedException(...)`，鉴权结果被丢弃，等同于未鉴权。
+
 ## 审计要点
 
-1. **新增 Web/OpenAPI 接口**：有业务上下文时拦截器会做 `access_business`；是否对操作的**具体资源实例**调用了对应 `*AuthService`？
-2. **IDOR**：按 ID 查出资源后，是否校验资源属于请求中的 `AppResourceScope`（及租户），而不是只鉴权请求里声明的 scope？
-3. **批量接口**：是否对列表中每个资源做了鉴权/归属校验？
-4. **执行类接口**：是否鉴权了执行目标（主机等）与执行账号，而不仅是脚本/方案本身？
-5. **无业务上下文接口**：是否误用了会跳过 `AuthAppInterceptor` 的路径，却又操作了业务资源？
-6. **平台级操作**：公共脚本、白名单、全局设置、高危规则等是否走了 `NoResourceScopeAuthService` / `AuthService`，而不是误用业务资源鉴权或漏鉴权？
+1. **必须在代码调用链中找到显式鉴权调用**：确认 Resource 或其调用的 Service 方法中存在 `*AuthService.auth*(...)` / `batchAuth*(...)`，且结果被检查（`denyIfNoPermission()` 或判断 `isPass()`）。判定“已鉴权”时必须能指出该调用所在的 `文件:行号`。
+2. **新增 Web/OpenAPI 接口**：有业务上下文时拦截器只做 `access_business`；是否对操作的**具体资源实例**调用了对应 `*AuthService`？
+3. **IDOR（越权访问他业资源）**：DAO 的 `get*ById(id)` 通常只按主键查询，不带 `appId`。按 ID 查出资源后，是否校验了资源归属当前请求的 `AppResourceScope`（及租户），而不是只对请求参数里声明的 scope 做了鉴权？
+4. **批量接口**：是否对列表中每个资源做了鉴权/归属校验？若请求体用 `scope_list` 等列表结构（`AuthAppInterceptor` 不会拦截），是否在代码中对涉及的业务/资源逐一鉴权？
+5. **执行类接口**：是否鉴权了执行目标（主机等）与执行账号，而不仅是脚本/方案本身？
+6. **平台级操作（`app == null`）**：公共脚本、IP 白名单、全局设置、高危规则、运营视图等不会触发 `AuthAppInterceptor`，**必须**在代码中显式调用 `NoResourceScopeAuthService` / `AuthService`。
 7. **内部/OP/升级迁移接口**：不做 IAM；若 PR 扩大其能力或经网关对外暴露，风险在信任边界，而非“补一个 Action”。

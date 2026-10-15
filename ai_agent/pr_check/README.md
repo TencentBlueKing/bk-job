@@ -10,6 +10,7 @@
 ```
 ai_agent/pr_check/
 ├── README.md                                # 本说明文件
+├── apply_to_gemini.sh                       # 将 Agent 资源一键导入项目根目录 .gemini/
 ├── agents/
 │   └── agent-pr-security-check/
 │       └── prompt.md                        # PR 安全检查主 Agent
