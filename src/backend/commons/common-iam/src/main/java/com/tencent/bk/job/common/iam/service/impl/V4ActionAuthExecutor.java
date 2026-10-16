@@ -46,7 +46,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 一般资源级鉴权 v4 执行器：走 {@link IamV4AuthService}，构造 v4 的 V4AuthResourceDTO。
@@ -87,16 +86,15 @@ public class V4ActionAuthExecutor extends AbstractV4AuthExecutor implements Acti
                                   String actionId,
                                   ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
-        Map<String, Boolean> resultMap = iamV4AuthService.authByResources(user.getTenantId(), user.getUsername(),
-            actionId, buildV4Resources(resourceType.getId(), resourceIdList, null));
-        return extractAllowedResourceIds(resultMap);
+        return extractAllowedResourceIds(iamV4AuthService.authByResources(
+            user.getTenantId(), user.getUsername(), actionId,
+            buildV4Resources(resourceType.getId(), resourceIdList, null)));
     }
 
     @Override
     public List<String> listAllowedResourceIds(User user, String actionId, List<PermissionResource> resources) {
-        Map<String, Boolean> resultMap = iamV4AuthService.authByResources(user.getTenantId(), user.getUsername(),
-            actionId, buildV4Resources(resources));
-        return extractAllowedResourceIds(resultMap);
+        return extractAllowedResourceIds(iamV4AuthService.authByResources(
+            user.getTenantId(), user.getUsername(), actionId, buildV4Resources(resources)));
     }
 
     /**

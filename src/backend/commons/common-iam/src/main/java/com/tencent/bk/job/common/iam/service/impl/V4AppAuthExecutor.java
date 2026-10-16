@@ -74,10 +74,9 @@ public class V4AppAuthExecutor extends AbstractV4AuthExecutor implements AppAuth
                                   ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
         PathInfoDTO scopePath = IamUtil.buildScopePathInfo(appResourceScope);
-        List<V4AuthResourceDTO> resources = buildV4Resources(resourceType.getId(), resourceIdList, scopePath);
-        Map<String, Boolean> resultMap = iamV4AuthService.authByResources(
-            user.getTenantId(), user.getUsername(), actionId, resources);
-        return extractAllowedResourceIds(resultMap);
+        return extractAllowedResourceIds(iamV4AuthService.authByResources(
+            user.getTenantId(), user.getUsername(), actionId,
+            buildV4Resources(resourceType.getId(), resourceIdList, scopePath)));
     }
 
     @Override
@@ -93,9 +92,8 @@ public class V4AppAuthExecutor extends AbstractV4AuthExecutor implements AppAuth
                                                String actionId,
                                                AppResourceScope appResourceScope,
                                                List<PermissionResource> resources) {
-        Map<String, Boolean> resultMap = iamV4AuthService.authByResources(
-            user.getTenantId(), user.getUsername(), actionId, buildV4Resources(resources));
-        return extractAllowedResourceIds(resultMap);
+        return extractAllowedResourceIds(iamV4AuthService.authByResources(
+            user.getTenantId(), user.getUsername(), actionId, buildV4Resources(resources)));
     }
 
     @Override

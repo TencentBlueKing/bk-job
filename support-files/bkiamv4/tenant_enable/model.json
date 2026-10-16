@@ -96,221 +96,534 @@
       "id": "read_only",
       "name": "业务只读",
       "description": "只能查看业务内资源，不能执行与修改",
-      "resource_type_id": "biz",
-      "action_ids": [
-        "access_business",
-        "view_history",
-        "view_script",
-        "view_job_template",
-        "view_job_plan",
-        "view_file_source"
+      "actions": [
+        {
+          "resource_type_id": "biz",
+          "id": "access_business"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "view_history"
+        },
+        {
+          "resource_type_id": "script",
+          "id": "view_script"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "view_job_template"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "view_job_plan"
+        },
+        {
+          "resource_type_id": "file_source",
+          "id": "view_file_source"
+        }
       ]
     },
     {
       "id": "user",
       "name": "业务使用者",
       "description": "可执行业务内已有资源，不能创建与编辑",
-      "resource_type_id": "biz",
-      "action_ids": [
-        "access_business",
-        "view_history",
-        "view_script",
-        "view_job_template",
-        "view_job_plan",
-        "view_file_source",
-        "use_account",
-        "use_ticket",
-        "quick_execute_script",
-        "quick_transfer_file",
-        "execute_script",
-        "debug_job_template",
-        "launch_job_plan",
-        "execute_public_script"
+      "actions": [
+        {
+          "resource_type_id": "biz",
+          "id": "access_business"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "view_history"
+        },
+        {
+          "resource_type_id": "script",
+          "id": "view_script"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "view_job_template"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "view_job_plan"
+        },
+        {
+          "resource_type_id": "file_source",
+          "id": "view_file_source"
+        },
+        {
+          "resource_type_id": "account",
+          "id": "use_account"
+        },
+        {
+          "resource_type_id": "ticket",
+          "id": "use_ticket"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "quick_execute_script"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "quick_transfer_file"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "execute_script"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "debug_job_template"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "launch_job_plan"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "execute_public_script"
+        }
       ]
     },
     {
       "id": "developer",
       "name": "业务开发",
       "description": "可创建、编辑与执行业务内资源，不含账号 / 凭证 / 文件源等敏感资源的管理权",
-      "resource_type_id": "biz",
-      "action_ids": [
-        "access_business",
-        "view_history",
-        "notification_setting",
-        "create_script",
-        "view_script",
-        "manage_script",
-        "create_job_template",
-        "view_job_template",
-        "edit_job_template",
-        "delete_job_template",
-        "create_job_plan",
-        "view_job_plan",
-        "edit_job_plan",
-        "delete_job_plan",
-        "sync_job_plan",
-        "create_tag",
-        "manage_tag",
-        "create_cron",
-        "manage_cron",
-        "use_account",
-        "use_ticket",
-        "view_file_source",
-        "quick_execute_script",
-        "quick_transfer_file",
-        "execute_script",
-        "debug_job_template",
-        "launch_job_plan",
-        "execute_public_script"
+      "actions": [
+        {
+          "resource_type_id": "biz",
+          "id": "access_business"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "view_history"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "notification_setting"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_script"
+        },
+        {
+          "resource_type_id": "script",
+          "id": "view_script"
+        },
+        {
+          "resource_type_id": "script",
+          "id": "manage_script"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "view_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "edit_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "delete_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "create_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "view_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "edit_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "delete_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "sync_job_plan"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_tag"
+        },
+        {
+          "resource_type_id": "tag",
+          "id": "manage_tag"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_cron"
+        },
+        {
+          "resource_type_id": "cron",
+          "id": "manage_cron"
+        },
+        {
+          "resource_type_id": "account",
+          "id": "use_account"
+        },
+        {
+          "resource_type_id": "ticket",
+          "id": "use_ticket"
+        },
+        {
+          "resource_type_id": "file_source",
+          "id": "view_file_source"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "quick_execute_script"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "quick_transfer_file"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "execute_script"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "debug_job_template"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "launch_job_plan"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "execute_public_script"
+        }
       ]
     },
     {
       "id": "operator",
       "name": "业务运维",
       "description": "业务开发的全部权限，外加账号 / 凭证 / 文件源等敏感资源的创建与管理",
-      "resource_type_id": "biz",
-      "action_ids": [
-        "access_business",
-        "view_history",
-        "notification_setting",
-        "create_script",
-        "view_script",
-        "manage_script",
-        "create_job_template",
-        "view_job_template",
-        "edit_job_template",
-        "delete_job_template",
-        "create_job_plan",
-        "view_job_plan",
-        "edit_job_plan",
-        "delete_job_plan",
-        "sync_job_plan",
-        "create_tag",
-        "manage_tag",
-        "create_cron",
-        "manage_cron",
-        "create_account",
-        "use_account",
-        "manage_account",
-        "create_ticket",
-        "use_ticket",
-        "manage_ticket",
-        "create_file_source",
-        "view_file_source",
-        "manage_file_source",
-        "quick_execute_script",
-        "quick_transfer_file",
-        "execute_script",
-        "debug_job_template",
-        "launch_job_plan",
-        "execute_public_script"
+      "actions": [
+        {
+          "resource_type_id": "biz",
+          "id": "access_business"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "view_history"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "notification_setting"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_script"
+        },
+        {
+          "resource_type_id": "script",
+          "id": "view_script"
+        },
+        {
+          "resource_type_id": "script",
+          "id": "manage_script"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "view_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "edit_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "delete_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "create_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "view_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "edit_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "delete_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "sync_job_plan"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_tag"
+        },
+        {
+          "resource_type_id": "tag",
+          "id": "manage_tag"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_cron"
+        },
+        {
+          "resource_type_id": "cron",
+          "id": "manage_cron"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_account"
+        },
+        {
+          "resource_type_id": "account",
+          "id": "use_account"
+        },
+        {
+          "resource_type_id": "account",
+          "id": "manage_account"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_ticket"
+        },
+        {
+          "resource_type_id": "ticket",
+          "id": "use_ticket"
+        },
+        {
+          "resource_type_id": "ticket",
+          "id": "manage_ticket"
+        },
+        {
+          "resource_type_id": "biz",
+          "id": "create_file_source"
+        },
+        {
+          "resource_type_id": "file_source",
+          "id": "view_file_source"
+        },
+        {
+          "resource_type_id": "file_source",
+          "id": "manage_file_source"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "quick_execute_script"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "quick_transfer_file"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "execute_script"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "debug_job_template"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "launch_job_plan"
+        },
+        {
+          "resource_type_id": "host",
+          "id": "execute_public_script"
+        }
       ]
     },
     {
       "id": "platform_admin",
       "name": "平台公共资源管理员",
       "description": "管理平台级公共资源与全局配置",
-      "resource_type_id": "",
-      "action_ids": [
-        "global_settings",
-        "create_whitelist",
-        "manage_whitelist",
-        "high-risk_detect_rule",
-        "high-risk_detect_record",
-        "service_state_access",
-        "create_public_script",
-        "dashboard_view"
+      "actions": [
+        {
+          "resource_type_id": "",
+          "id": "global_settings"
+        },
+        {
+          "resource_type_id": "",
+          "id": "create_whitelist"
+        },
+        {
+          "resource_type_id": "",
+          "id": "manage_whitelist"
+        },
+        {
+          "resource_type_id": "",
+          "id": "high-risk_detect_rule"
+        },
+        {
+          "resource_type_id": "",
+          "id": "high-risk_detect_record"
+        },
+        {
+          "resource_type_id": "",
+          "id": "service_state_access"
+        },
+        {
+          "resource_type_id": "",
+          "id": "create_public_script"
+        },
+        {
+          "resource_type_id": "",
+          "id": "dashboard_view"
+        }
       ]
     },
     {
       "id": "public_script_manager",
       "name": "公共脚本管理员",
       "description": "拥有某些公共脚本相关的权限",
-      "resource_type_id": "public_script",
-      "action_ids": [
-        "manage_public_script_instance"
+      "actions": [
+        {
+          "resource_type_id": "public_script",
+          "id": "manage_public_script_instance"
+        }
       ]
     },
     {
       "id": "script_manager",
       "name": "业务脚本管理员",
       "description": "拥有某些业务脚本相关的权限",
-      "resource_type_id": "script",
-      "action_ids": [
-        "view_script",
-        "manage_script"
+      "actions": [
+        {
+          "resource_type_id": "script",
+          "id": "view_script"
+        },
+        {
+          "resource_type_id": "script",
+          "id": "manage_script"
+        }
       ]
     },
     {
       "id": "job_template_manager",
       "name": "作业模版管理员",
       "description": "拥有某些作业模版相关的权限",
-      "resource_type_id": "job_template",
-      "action_ids": [
-        "view_job_template",
-        "edit_job_template",
-        "delete_job_template",
-        "create_job_plan"
+      "actions": [
+        {
+          "resource_type_id": "job_template",
+          "id": "view_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "edit_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "delete_job_template"
+        },
+        {
+          "resource_type_id": "job_template",
+          "id": "create_job_plan"
+        }
       ]
     },
     {
       "id": "job_plan_manager",
       "name": "执行方案管理员",
       "description": "拥有某些执行方案相关的权限",
-      "resource_type_id": "job_plan",
-      "action_ids": [
-        "view_job_plan",
-        "edit_job_plan",
-        "delete_job_plan",
-        "sync_job_plan"
+      "actions": [
+        {
+          "resource_type_id": "job_plan",
+          "id": "view_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "edit_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "delete_job_plan"
+        },
+        {
+          "resource_type_id": "job_plan",
+          "id": "sync_job_plan"
+        }
       ]
     },
     {
       "id": "tag_manager",
       "name": "标签管理员",
       "description": "拥有某些标签相关的权限",
-      "resource_type_id": "tag",
-      "action_ids": [
-        "manage_tag"
+      "actions": [
+        {
+          "resource_type_id": "tag",
+          "id": "manage_tag"
+        }
       ]
     },
     {
       "id": "cron_manager",
       "name": "定时任务管理员",
       "description": "拥有某些定时任务相关的权限",
-      "resource_type_id": "cron",
-      "action_ids": [
-        "manage_cron"
+      "actions": [
+        {
+          "resource_type_id": "cron",
+          "id": "manage_cron"
+        }
       ]
     },
     {
       "id": "file_source_manager",
       "name": "文件源管理员",
       "description": "拥有某些文件源相关的权限",
-      "resource_type_id": "file_source",
-      "action_ids": [
-        "view_file_source",
-        "manage_file_source"
+      "actions": [
+        {
+          "resource_type_id": "file_source",
+          "id": "view_file_source"
+        },
+        {
+          "resource_type_id": "file_source",
+          "id": "manage_file_source"
+        }
       ]
     },
     {
       "id": "ticket_manager",
       "name": "凭证管理员",
       "description": "拥有某些凭证相关的权限",
-      "resource_type_id": "ticket",
-      "action_ids": [
-        "use_ticket",
-        "manage_ticket"
+      "actions": [
+        {
+          "resource_type_id": "ticket",
+          "id": "use_ticket"
+        },
+        {
+          "resource_type_id": "ticket",
+          "id": "manage_ticket"
+        }
       ]
     },
     {
       "id": "account_manager",
       "name": "执行账号管理员",
       "description": "拥有某些执行账号相关的权限",
-      "resource_type_id": "account",
-      "action_ids": [
-        "use_account",
-        "manage_account"
+      "actions": [
+        {
+          "resource_type_id": "account",
+          "id": "use_account"
+        },
+        {
+          "resource_type_id": "account",
+          "id": "manage_account"
+        }
       ]
     }
   ],

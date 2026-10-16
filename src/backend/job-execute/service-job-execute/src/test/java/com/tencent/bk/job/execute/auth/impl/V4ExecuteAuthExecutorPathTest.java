@@ -106,6 +106,7 @@ class V4ExecuteAuthExecutorPathTest {
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("*");
         assertThat(pathOf(resources.get(0))).isEqualTo("/biz_set,5/");
+        assertThat(resources.get(0).getCorrelationId()).isEqualTo("/biz_set,5/");
     }
 
     @Test
@@ -120,6 +121,7 @@ class V4ExecuteAuthExecutorPathTest {
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("*");
         assertThat(pathOf(resources.get(0))).isEqualTo("/tenant_set,1/");
+        assertThat(resources.get(0).getCorrelationId()).isEqualTo("/tenant_set,1/");
     }
 
     @Test
@@ -135,6 +137,8 @@ class V4ExecuteAuthExecutorPathTest {
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("*");
         assertThat(pathOf(resources.get(0)))
+            .isEqualTo("/biz_dynamic_group,2/dynamic_group,dg-1/");
+        assertThat(resources.get(0).getCorrelationId())
             .isEqualTo("/biz_dynamic_group,2/dynamic_group,dg-1/");
     }
 
@@ -153,6 +157,8 @@ class V4ExecuteAuthExecutorPathTest {
         assertThat(resources).hasSize(1);
         assertThat(resources.get(0).getId()).isEqualTo("*");
         assertThat(pathOf(resources.get(0)))
+            .isEqualTo("/biz_container,2/cluster,100/namespace,45/");
+        assertThat(resources.get(0).getCorrelationId())
             .isEqualTo("/biz_container,2/cluster,100/namespace,45/");
     }
 
@@ -244,6 +250,7 @@ class V4ExecuteAuthExecutorPathTest {
         assertThat(resources.get(0).getId()).isEqualTo("*");
         // 末段保留 module 叶子，首段是 biz（拓扑视图与业务下主机视图共用 biz 首段）
         assertThat(pathOf(resources.get(0))).isEqualTo("/biz,2/set,200/module,300/");
+        assertThat(resources.get(0).getCorrelationId()).isEqualTo("/biz,2/set,200/module,300/");
     }
 
     @Test

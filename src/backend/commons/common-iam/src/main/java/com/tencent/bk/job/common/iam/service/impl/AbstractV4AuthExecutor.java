@@ -33,6 +33,7 @@ import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4AncestorDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4ApplyResourceDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceDTO;
+import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceKey;
 import com.tencent.bk.sdk.iamv4.dto.V4PermissionDTO;
 import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -81,6 +82,10 @@ public abstract class AbstractV4AuthExecutor {
             Map<String, Object> attributes = new HashMap<>();
             attributes.put(AttributeKey.BK_IAM_PATH, v4Path);
             builder.attributes(attributes);
+            // 扩展实例视图 id 为 *，具体实例在 path 里；correlation_id 用 path，供批量鉴权按它对齐结果
+            if (ANY_INSTANCE_ID.equals(id)) {
+                builder.correlationId(v4Path);
+            }
         }
         return builder.build();
     }
@@ -163,13 +168,16 @@ public abstract class AbstractV4AuthExecutor {
     }
 
     /**
-     * 从批量鉴权结果中提取有权限的资源 ID 列表。
+     * 从批量鉴权结果中提取有权限的资源 ID。
      */
-    protected List<String> extractAllowedResourceIds(Map<String, Boolean> resultMap) {
+    protected List<String> extractAllowedResourceIds(Map<V4AuthResourceKey, Boolean> resultMap) {
         List<String> allowedIds = new ArrayList<>();
-        for (Map.Entry<String, Boolean> entry : resultMap.entrySet()) {
+        if (resultMap == null) {
+            return allowedIds;
+        }
+        for (Map.Entry<V4AuthResourceKey, Boolean> entry : resultMap.entrySet()) {
             if (Boolean.TRUE.equals(entry.getValue())) {
-                allowedIds.add(entry.getKey());
+                allowedIds.add(entry.getKey().getId());
             }
         }
         return allowedIds;

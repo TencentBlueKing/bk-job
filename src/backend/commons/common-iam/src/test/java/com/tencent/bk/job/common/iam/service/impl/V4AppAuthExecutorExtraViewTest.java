@@ -91,6 +91,7 @@ class V4AppAuthExecutorExtraViewTest {
         assertThat(resource.getType()).isEqualTo(IamV4ResourceTypeId.BIZ);
         assertThat(resource.getId()).isEqualTo("*");
         assertThat(pathOf(resource)).isEqualTo("/biz_set,5/");
+        assertThat(resource.getCorrelationId()).isEqualTo("/biz_set,5/");
     }
 
     @Test
@@ -106,6 +107,7 @@ class V4AppAuthExecutorExtraViewTest {
         assertThat(resource.getType()).isEqualTo(IamV4ResourceTypeId.BIZ);
         assertThat(resource.getId()).isEqualTo("*");
         assertThat(pathOf(resource)).isEqualTo("/tenant_set,1/");
+        assertThat(resource.getCorrelationId()).isEqualTo("/tenant_set,1/");
     }
 
     private V4AuthResourceDTO captureAuthResource() {

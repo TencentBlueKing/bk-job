@@ -93,26 +93,36 @@ def clean_actions(actions):
     return cleaned
 
 
-def expand_roles(roles, actions):
-    """Turn `action_ids` into IAM `actions[{id, resource_type_id}]`.
+def clean_roles(roles, actions):
+    """Pass through IAM register-role payload. Each action keeps its own resource_type_id.
 
-    Authorization dimension is the role's own resource_type_id, unless the
-    action itself is resource-independent (empty resource_type_id).
+    model.json `roles` matches POST /roles/ body: `{id, name, description?, tenant_id?,
+    actions: [{resource_type_id, id}]}`. Empty resource_type_id is kept as "".
     """
     action_by_id = {item["id"]: item for item in actions}
-    expanded = []
+    cleaned = []
     for role in strip_comments(roles):
-        role_dimension = role.get("resource_type_id") or ""
+        if role.get("action_ids") is not None:
+            raise ValueError(
+                "role %s still uses action_ids; expected actions[{id, resource_type_id}]"
+                % role.get("id")
+            )
         role_actions = []
-        for action_id in role.get("action_ids") or []:
-            action = action_by_id.get(action_id)
-            if action is None:
+        for action in role.get("actions") or []:
+            action_id = action.get("id")
+            if not action_id:
+                raise ValueError("role %s has an action without id" % role.get("id"))
+            resource_type_id = action.get("resource_type_id") or ""
+            spec = action_by_id.get(action_id)
+            if spec is None:
                 raise ValueError("role %s references unknown action %s" % (role.get("id"), action_id))
-            if action.get("resource_type_id"):
-                dimension = role_dimension
-            else:
-                dimension = ""
-            role_actions.append({"id": action_id, "resource_type_id": dimension})
+            expected = spec.get("resource_type_id") or ""
+            if resource_type_id != expected:
+                raise ValueError(
+                    "role %s action %s resource_type_id=%s does not match action definition %s"
+                    % (role.get("id"), action_id, resource_type_id, expected)
+                )
+            role_actions.append({"resource_type_id": resource_type_id, "id": action_id})
         payload = {
             "id": role["id"],
             "name": role["name"],
@@ -120,8 +130,10 @@ def expand_roles(roles, actions):
         }
         if role.get("description"):
             payload["description"] = role["description"]
-        expanded.append(payload)
-    return expanded
+        if role.get("tenant_id"):
+            payload["tenant_id"] = role["tenant_id"]
+        cleaned.append(payload)
+    return cleaned
 
 
 def clean_instance_views(instance_views):
@@ -235,7 +247,7 @@ def load_model_payloads(model_dir, app_code, job_host, managers):
         "system": render_system(model["system"], app_code, job_host, managers),
         "resource_types": clean_resource_types(model.get("resource_types") or []),
         "actions": clean_actions(model.get("actions") or []),
-        "roles": expand_roles(model.get("roles") or [], model.get("actions") or []),
+        "roles": clean_roles(model.get("roles") or [], model.get("actions") or []),
         "instance_views": clean_instance_views(views_file.get("instance_views") or {}),
     }
 

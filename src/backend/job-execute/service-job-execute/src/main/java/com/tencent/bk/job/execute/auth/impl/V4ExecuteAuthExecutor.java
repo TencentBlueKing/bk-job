@@ -40,6 +40,7 @@ import com.tencent.bk.job.execute.auth.ExecuteAuthResource;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceDTO;
+import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceKey;
 import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -112,18 +113,23 @@ public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements Exe
             return iamV4AuthService.auth(
                 user.getTenantId(), user.getUsername(), actionId, hostResources.get(0));
         }
-        Map<String, Boolean> resultMap = iamV4AuthService.authByResources(
+        Map<V4AuthResourceKey, Boolean> resultMap = iamV4AuthService.authByResources(
             user.getTenantId(), user.getUsername(), actionId, hostResources);
         if (log.isDebugEnabled()) {
             log.debug("Auth execute target by iam v4, username:{}, actionId:{}, result:{}",
                 user.getUsername(), actionId, resultMap);
         }
-        if (resultMap == null || resultMap.size() < hostResources.size()) {
+        if (resultMap == null || resultMap.size() != hostResources.size()) {
             log.warn("Incomplete v4 batch auth result, treat as denied|actionId={}|expect={}|actual={}",
                 actionId, hostResources.size(), resultMap == null ? 0 : resultMap.size());
             return false;
         }
-        return resultMap.values().stream().allMatch(Boolean.TRUE::equals);
+        for (V4AuthResourceDTO resource : hostResources) {
+            if (!Boolean.TRUE.equals(resultMap.get(V4AuthResourceKey.from(resource)))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
