@@ -30,6 +30,8 @@ import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
+import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIpHostLocator;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.HostIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
@@ -59,6 +61,15 @@ public interface WhiteIPService {
     List<HostDTO> listAvailableWhiteIPHostByIpv6s(Long appId, ActionScopeEnum actionScope, Collection<String> ipv6s);
 
     WhiteIPRecordDTO createWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq);
+
+    /**
+     * 把白名单主机定位条件解析成主机 ID。
+     * 只传管控区域与 IP 时，本地库和 CMDB 必须共同唯一对应一台主机。
+     *
+     * @param locators 主机定位条件，保持请求中的顺序
+     * @return 去重后的主机 ID，元数据为空
+     */
+    List<HostIdWithMeta> resolveWhiteIpHosts(List<WhiteIpHostLocator> locators);
 
     WhiteIPRecordDTO updateWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq);
 

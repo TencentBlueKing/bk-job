@@ -1,0 +1,171 @@
+### 功能描述
+
+按条件分页查询已有 IP 白名单。调用方需要具备管理 IP 白名单的权限。
+
+可按 IP、业务、生效范围、创建人、更新人过滤，并指定分页与排序。不传分页时从第 0 条开始，每页 10 条。length 最大为 200，小于 1 或大于 200 为参数错误。本接口不提供一次性返回全部记录的方式。
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| ip | string | 否 | 英文逗号分隔的 IPv4，对已保存的 IPv4 做模糊匹配。空或不传表示不按 IP 过滤 |
+| scope_list | array | 否 | 按生效业务精确过滤，多个业务为或关系。空或不传表示不按业务过滤。只命中记录上绑定的业务，不会把对全部业务生效的记录算入某个普通业务 |
+| action_scope_list | array | 否 | 按生效范围精确过滤，多个为或关系。空或不传表示不按生效范围过滤。可选值：SCRIPT_EXECUTE（脚本执行）、FILE_DISTRIBUTION（文件分发） |
+| creator | string | 否 | 创建人，模糊匹配。空或不传表示不按创建人过滤 |
+| last_modifier | string | 否 | 最后更新人，模糊匹配。空或不传表示不按更新人过滤 |
+| start | long | 否 | 起始偏移，从 0 开始。不传当 0。小于 0 为参数错误 |
+| length | long | 否 | 本页条数。不传当 10。只允许 1 到 200，小于 1 或大于 200 为参数错误，不会被改成其他页大小 |
+| order_field | string | 否 | 排序字段。可选值：last_modify_time（最后更新时间）、last_modifier（最后更新人）。不传则按最后更新时间降序，并忽略 order |
+| order | long | 否 | 排序方向。可选值：0（降序）、1（升序）。仅当 order_field 有值时生效；不传当 0。其他值为参数错误 |
+
+##### scope_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：biz（业务）、biz_set（业务集）、tenant_set（租户集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 bk_scope_type 对应，表示业务 ID、业务集 ID 或租户集 ID。业务不存在时为参数错误 |
+
+##### action_scope_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| （元素） | string | 是 | 生效范围。可选值：SCRIPT_EXECUTE（脚本执行）、FILE_DISTRIBUTION（文件分发） |
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "ip": "127.0.0.1,127.0.0.2",
+    "scope_list": [
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "2"
+        },
+        {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": "3"
+        }
+    ],
+    "action_scope_list": [
+        "SCRIPT_EXECUTE",
+        "FILE_DISTRIBUTION"
+    ],
+    "creator": "admin",
+    "last_modifier": "admin",
+    "start": 0,
+    "length": 10,
+    "order_field": "last_modify_time",
+    "order": 0
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+分页、排序、生效范围或业务范围不合法时，HTTP 状态码为 400，error.code 为 INVALID_ARGUMENT。没有管理 IP 白名单权限时，HTTP 状态码为 403，error.code 为 NO_PERMISSION。
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "start": 0,
+        "length": 10,
+        "total": 1,
+        "data": [
+            {
+                "id": 1001,
+                "bk_cloud_id": 0,
+                "host_list": [
+                    {
+                        "bk_host_id": 101,
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.1"
+                    },
+                    {
+                        "bk_host_id": 102,
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "action_scope_list": [
+                    "SCRIPT_EXECUTE"
+                ],
+                "all_scope": false,
+                "scope_list": [
+                    {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "2",
+                        "name": "demo-biz"
+                    }
+                ],
+                "remark": "allow script execute",
+                "creator": "admin",
+                "create_time": 1735689600000,
+                "last_modifier": "admin",
+                "last_modify_time": 1735689600000
+            }
+        ]
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| start | long | 本次查询的起始偏移 |
+| length | long | 本次查询的页大小。不传时为默认值 10，传入时为合法的请求值 |
+| total | long | 满足条件的总记录数 |
+| data | array | 白名单记录列表 |
+
+##### data[] 元素
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| id | long | 白名单记录 ID |
+| bk_cloud_id | long | 记录上的汇总管控区域 ID。同一记录下多台主机的管控区域不一致时，以 host_list 中每台主机的 bk_cloud_id 为准。没有主机时不返回该字段 |
+| host_list | array | 白名单主机列表 |
+| action_scope_list | array | 生效范围。可选值：SCRIPT_EXECUTE（脚本执行）、FILE_DISTRIBUTION（文件分发） |
+| all_scope | boolean | 是否对全部业务生效。可选值：true（全部业务）、false（仅 scope_list 中的业务） |
+| scope_list | array | 生效业务列表。all_scope 为 true 时为空数组 |
+| remark | string | 备注 |
+| creator | string | 创建人 |
+| create_time | long | 创建时间，Unix 时间戳，单位毫秒 |
+| last_modifier | string | 最后更新人 |
+| last_modify_time | long | 最后更新时间，Unix 时间戳，单位毫秒 |
+
+##### host_list[] 元素
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| bk_host_id | long | CMDB 主机 ID |
+| bk_cloud_id | long | 管控区域 ID |
+| ip | string | 主机 IPv4。没有 IPv4 时不返回该字段 |
+| ipv6 | string | 主机 IPv6。没有 IPv6 时不返回该字段 |
+
+##### action_scope_list[] 元素
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| （元素） | string | 生效范围。可选值：SCRIPT_EXECUTE（脚本执行）、FILE_DISTRIBUTION（文件分发） |
+
+##### scope_list[] 元素
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| bk_scope_type | string | 资源范围类型。可选值：biz（业务）、biz_set（业务集）、tenant_set（租户集）。业务已删除时可能不返回 |
+| bk_scope_id | string | 资源范围 ID。业务已删除时可能不返回 |
+| name | string | 业务、业务集或租户集名称。业务已删除时为占位文本 |

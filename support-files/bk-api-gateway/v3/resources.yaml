@@ -13353,3 +13353,386 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Get approval content
+  /api/v4/create_white_ip:
+    post:
+      operationId: v4_create_white_ip
+      description: 新增一条主机 IP 白名单
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: 新创建的白名单记录
+                    properties:
+                      id:
+                        type: number
+                        description: 白名单记录 ID
+                      bk_cloud_id:
+                        type: number
+                        description: 记录上的汇总管控区域 ID。同一记录下多台主机的管控区域不一致时，以 host_list 中每台主机的 bk_cloud_id 为准。没有主机时不返回该字段
+                      host_list:
+                        type: array
+                        description: 白名单主机列表
+                        items:
+                          type: object
+                          required:
+                            - bk_host_id
+                            - bk_cloud_id
+                          properties:
+                            bk_host_id:
+                              type: number
+                              description: CMDB 主机 ID
+                            bk_cloud_id:
+                              type: number
+                              description: 管控区域 ID
+                            ip:
+                              type: string
+                              description: 主机 IPv4。没有 IPv4 时不返回该字段
+                            ipv6:
+                              type: string
+                              description: 主机 IPv6。没有 IPv6 时不返回该字段
+                      action_scope_list:
+                        type: array
+                        description: '生效范围。可选值: SCRIPT_EXECUTE - 脚本执行, FILE_DISTRIBUTION - 文件分发'
+                        items:
+                          type: string
+                          description: '生效范围。可选值: SCRIPT_EXECUTE - 脚本执行, FILE_DISTRIBUTION - 文件分发'
+                      all_scope:
+                        type: boolean
+                        description: '是否对全部业务生效。可选值: true - 全部业务, false - 仅 scope_list 中的业务'
+                      scope_list:
+                        type: array
+                        description: 生效业务列表。all_scope 为 true 时为空数组
+                        items:
+                          type: object
+                          required:
+                            - name
+                          properties:
+                            bk_scope_type:
+                              type: string
+                              description: '资源范围类型。可选值: biz - 业务, biz_set - 业务集, tenant_set - 租户集。业务已删除时可能不返回'
+                            bk_scope_id:
+                              type: string
+                              description: 资源范围 ID。业务已删除时可能不返回
+                            name:
+                              type: string
+                              description: 业务、业务集或租户集名称。业务已删除时为占位文本
+                      remark:
+                        type: string
+                        description: 备注
+                      creator:
+                        type: string
+                        description: 创建人
+                      create_time:
+                        type: number
+                        description: 创建时间，Unix 时间戳，单位毫秒
+                      last_modifier:
+                        type: string
+                        description: 最后更新人
+                      last_modify_time:
+                        type: number
+                        description: 最后更新时间，Unix 时间戳，单位毫秒
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - host_list
+                - remark
+                - action_scope_list
+              properties:
+                all_scope:
+                  type: boolean
+                  description: '是否对全部业务生效。可选值: true - 对全部业务生效, false - 只对 scope_list 中的业务生效，默认 false。为 true 时忽略 scope_list'
+                scope_list:
+                  type: array
+                  description: 生效业务列表。all_scope 为 false 时至少 1 个；all_scope 为 true 时忽略该字段
+                  items:
+                    type: object
+                    required:
+                      - bk_scope_type
+                      - bk_scope_id
+                    properties:
+                      bk_scope_type:
+                        type: string
+                        description: '资源范围类型。可选值: biz - 业务, biz_set - 业务集, tenant_set - 租户集'
+                      bk_scope_id:
+                        type: string
+                        description: 资源范围 ID，与 bk_scope_type 对应，表示业务 ID、业务集 ID 或租户集 ID
+                host_list:
+                  type: array
+                  description: 加入白名单的主机列表，至少 1 台。重复主机只保留第一次出现的记录。同时提供主机 ID 与管控区域、IP 时以主机 ID 为准。只提供管控区域与 IP 时必须唯一对应一台主机，否则请求失败且不会创建
+                  items:
+                    type: object
+                    properties:
+                      bk_host_id:
+                        type: number
+                        description: CMDB 主机 ID，为正整数。传入后以该主机为准，并忽略同元素上的 bk_cloud_id 与 ip
+                      bk_cloud_id:
+                        type: number
+                        description: 管控区域 ID，大于或等于 0，直连区域为 0。未传 bk_host_id 时必须与 ip 同时填写
+                      ip:
+                        type: string
+                        description: 主机 IPv4。未传 bk_host_id 时必须与 bk_cloud_id 同时填写。管控区域与 IP 不能唯一对应一台主机时，请求失败且不会创建
+                remark:
+                  type: string
+                  description: 备注，不能为空
+                action_scope_list:
+                  type: array
+                  description: '生效范围，至少 1 个。可选值: SCRIPT_EXECUTE - 脚本执行, FILE_DISTRIBUTION - 文件分发。可同时传入两个，重复值会去重'
+                  items:
+                    type: string
+                    description: '生效范围。可选值: SCRIPT_EXECUTE - 脚本执行, FILE_DISTRIBUTION - 文件分发'
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-manage/create_white_ip
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Create a host whitelist record
+  /api/v4/list_white_ip:
+    post:
+      operationId: v4_list_white_ip
+      description: 分页查询主机 IP 白名单
+      tags:
+        - v4
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: 分页结果
+                    properties:
+                      start:
+                        type: number
+                        description: 本次查询的起始偏移
+                      length:
+                        type: number
+                        description: 本次查询的页大小。不传时为默认值 10，传入时为合法的请求值
+                      total:
+                        type: number
+                        description: 满足条件的总记录数
+                      data:
+                        type: array
+                        description: 白名单记录列表
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: number
+                              description: 白名单记录 ID
+                            bk_cloud_id:
+                              type: number
+                              description: 记录上的汇总管控区域 ID。同一记录下多台主机的管控区域不一致时，以 host_list 中每台主机的 bk_cloud_id 为准。没有主机时不返回该字段
+                            host_list:
+                              type: array
+                              description: 白名单主机列表
+                              items:
+                                type: object
+                                required:
+                                  - bk_host_id
+                                  - bk_cloud_id
+                                properties:
+                                  bk_host_id:
+                                    type: number
+                                    description: CMDB 主机 ID
+                                  bk_cloud_id:
+                                    type: number
+                                    description: 管控区域 ID
+                                  ip:
+                                    type: string
+                                    description: 主机 IPv4。没有 IPv4 时不返回该字段
+                                  ipv6:
+                                    type: string
+                                    description: 主机 IPv6。没有 IPv6 时不返回该字段
+                            action_scope_list:
+                              type: array
+                              description: '生效范围。可选值: SCRIPT_EXECUTE - 脚本执行, FILE_DISTRIBUTION - 文件分发'
+                              items:
+                                type: string
+                                description: '生效范围。可选值: SCRIPT_EXECUTE - 脚本执行, FILE_DISTRIBUTION - 文件分发'
+                            all_scope:
+                              type: boolean
+                              description: '是否对全部业务生效。可选值: true - 全部业务, false - 仅 scope_list 中的业务'
+                            scope_list:
+                              type: array
+                              description: 生效业务列表。all_scope 为 true 时为空数组
+                              items:
+                                type: object
+                                required:
+                                  - name
+                                properties:
+                                  bk_scope_type:
+                                    type: string
+                                    description: '资源范围类型。可选值: biz - 业务, biz_set - 业务集, tenant_set - 租户集。业务已删除时可能不返回'
+                                  bk_scope_id:
+                                    type: string
+                                    description: 资源范围 ID。业务已删除时可能不返回
+                                  name:
+                                    type: string
+                                    description: 业务、业务集或租户集名称。业务已删除时为占位文本
+                            remark:
+                              type: string
+                              description: 备注
+                            creator:
+                              type: string
+                              description: 创建人
+                            create_time:
+                              type: number
+                              description: 创建时间，Unix 时间戳，单位毫秒
+                            last_modifier:
+                              type: string
+                              description: 最后更新人
+                            last_modify_time:
+                              type: number
+                              description: 最后更新时间，Unix 时间戳，单位毫秒
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ip:
+                  type: string
+                  description: 英文逗号分隔的 IPv4，对已保存的 IPv4 做模糊匹配。空或不传表示不按 IP 过滤
+                scope_list:
+                  type: array
+                  description: 按生效业务精确过滤，多个业务为或关系。空或不传表示不按业务过滤。只命中记录上绑定的业务，不会把对全部业务生效的记录算入某个普通业务
+                  items:
+                    type: object
+                    required:
+                      - bk_scope_type
+                      - bk_scope_id
+                    properties:
+                      bk_scope_type:
+                        type: string
+                        description: '资源范围类型。可选值: biz - 业务, biz_set - 业务集, tenant_set - 租户集'
+                      bk_scope_id:
+                        type: string
+                        description: 资源范围 ID，与 bk_scope_type 对应，表示业务 ID、业务集 ID 或租户集 ID。业务不存在时为参数错误
+                action_scope_list:
+                  type: array
+                  description: '按生效范围精确过滤，多个为或关系。空或不传表示不按生效范围过滤。可选值: SCRIPT_EXECUTE - 脚本执行, FILE_DISTRIBUTION - 文件分发'
+                  items:
+                    type: string
+                    description: '生效范围。可选值: SCRIPT_EXECUTE - 脚本执行, FILE_DISTRIBUTION - 文件分发'
+                creator:
+                  type: string
+                  description: 创建人，模糊匹配。空或不传表示不按创建人过滤
+                last_modifier:
+                  type: string
+                  description: 最后更新人，模糊匹配。空或不传表示不按更新人过滤
+                start:
+                  type: number
+                  description: 起始偏移，从 0 开始。不传当 0。小于 0 为参数错误
+                length:
+                  type: number
+                  description: 本页条数。不传当 10。只允许 1 到 200，小于 1 或大于 200 为参数错误，不会被改成其他页大小
+                order_field:
+                  type: string
+                  description: '排序字段。可选值: last_modify_time - 最后更新时间, last_modifier - 最后更新人。不传则按最后更新时间降序，并忽略 order'
+                order:
+                  type: number
+                  description: '排序方向。可选值: 0 - 降序, 1 - 升序。仅当 order_field 有值时生效；不传当 0。其他值为参数错误'
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_path_prefix}api/job/v4/job-manage/list_white_ip
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs:
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: List host whitelist records by page
