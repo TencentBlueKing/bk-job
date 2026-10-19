@@ -3,7 +3,7 @@
 ExternalSecret 的 target 是原 Secret 名加 -kms，里面只有 privateKey 和 envelope。不是所有中间件共用一个 ExternalSecret。
 */}}
 {{- $root := . -}}
-{{- $credentials := list "mariadb" "redis" "rabbitmq" "mongodb" "crontabdb" "archive-mariadb" "common" "migration" -}}
+{{- $credentials := list "mariadb" "redis" "rabbitmq" "mongodb" "crontabdb" "archive-mariadb" "common" "migration" "manage" "analysis" "file-worker" "execute" "backup" -}}
 {{- $any := false -}}
 {{- range $name := $credentials -}}
 {{- if eq (include "job.kms.credential.active" (dict "name" $name "context" $root)) "true" -}}
@@ -29,11 +29,7 @@ ExternalSecret 的 target 是原 Secret 名加 -kms，里面只有 privateKey �
 {{- $role := include "job.kms.credential.field" (dict "name" $name "field" "role" "context" $root) -}}
 {{- $remoteKey := include "job.kms.credential.field" (dict "name" $name "field" "remoteKey" "context" $root) -}}
 {{- if or (not $role) (not $remoteKey) -}}
-{{- $valueKey := $name -}}
-{{- if eq $name "archive-mariadb" -}}
-{{- $valueKey = "archiveMariadb" -}}
-{{- end -}}
-{{- fail (printf "kms.credentials.%s.role and remoteKey are required when this credential is managed by KMS" $valueKey) -}}
+{{- fail (printf "kms.credentials.%s.role and remoteKey are required when this credential is managed by KMS" (include "job.kms.credential.valuesKey" $name)) -}}
 {{ end }}
 ---
 apiVersion: external-secrets.io/v1beta1

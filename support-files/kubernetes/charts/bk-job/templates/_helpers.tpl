@@ -260,6 +260,20 @@ Return the migrate mysqlSchema admin password
 true
 {{- else if eq $name "migration" -}}
 {{- if or $ctx.Values.migration.enabled $ctx.Values.bkApiGatewayConfig.sync }}true{{- end -}}
+{{- else if eq $name "manage" -}}
+{{- if or (eq $ctx.Values.deploy.mode "lite") $ctx.Values.manageConfig.enabled }}true{{- end -}}
+{{- else if eq $name "analysis" -}}
+{{- if or (eq $ctx.Values.deploy.mode "lite") $ctx.Values.analysisConfig.enabled }}true{{- end -}}
+{{- else if eq $name "file-worker" -}}
+{{- if $ctx.Values.fileWorkerConfig.enabled }}true{{- end -}}
+{{- else if eq $name "execute" -}}
+{{- $executeDs := $ctx.Values.executeConfig.mysql.verticalSharding.datasource | default dict -}}
+{{- if and $ctx.Values.executeConfig.mysql.verticalSharding.enabled (gt (len $executeDs) 0) }}true{{- end -}}
+{{- else if eq $name "backup" -}}
+{{- $backupMariadb := $ctx.Values.backupConfig.archive.execute.mariadb | default dict -}}
+{{- $backupVs := index $backupMariadb "verticalSharding" | default dict -}}
+{{- $backupDs := index $backupVs "datasource" | default dict -}}
+{{- if and $ctx.Values.backupConfig.archive.execute.enabled (eq $backupMariadb.dataSourceMode "vertical_sharding") (gt (len $backupDs) 0) }}true{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -315,15 +329,24 @@ ESO 写出的 Secret。原名加 -kms，和 Helm 明文 Secret 分开，避免�
 {{- $base = include "job.common.secretName" .context -}}
 {{- else if eq .name "migration" -}}
 {{- $base = printf "%s-migration" (include "job.fullname" .context) -}}
+{{- else if or (eq .name "manage") (eq .name "analysis") (eq .name "file-worker") (eq .name "execute") (eq .name "backup") -}}
+{{- $base = printf "%s-%s" (include "job.fullname" .context) .name -}}
 {{- end -}}
 {{- printf "%s-kms" ($base | trim) -}}
 {{- end -}}
 
-{{- define "job.kms.credential.field" -}}
-{{- $key := .name -}}
-{{- if eq .name "archive-mariadb" -}}
-{{- $key = "archiveMariadb" -}}
+{{- define "job.kms.credential.valuesKey" -}}
+{{- if eq . "archive-mariadb" -}}
+archiveMariadb
+{{- else if eq . "file-worker" -}}
+fileWorker
+{{- else -}}
+{{- . -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "job.kms.credential.field" -}}
+{{- $key := include "job.kms.credential.valuesKey" .name -}}
 {{- index (index .context.Values.kms.credentials $key) .field -}}
 {{- end -}}
 
@@ -551,6 +574,7 @@ fail "Invalid external redis architecture"
 Return the redis tls config
 */}}
 {{- define "job.redis.tls" -}}
+{{- $kms := eq (include "job.kms.credential.active" (dict "name" "redis" "context" .)) "true" -}}
 {{- if .Values.redis.enabled -}}
 enabled: false
 {{- else -}}
@@ -558,13 +582,21 @@ enabled: {{ .Values.externalRedis.tls.enabled }}
 {{- end }}
 trustStoreType: {{ .Values.externalRedis.tls.trustStoreType }}
 trustStore: /etc/certs/redis/{{ .Values.externalRedis.tls.trustStoreFilename }}
+{{- if $kms }}
+trustStorePassword: ${redis-truststore-password}
+{{- else }}
 trustStorePassword: {{ .Values.externalRedis.tls.trustStorePassword }}
+{{- end }}
 keyStoreType: {{ .Values.externalRedis.tls.keyStoreType }}
 {{- if .Values.externalRedis.tls.keyStoreFilename }}
 keyStore: /etc/certs/redis/{{ .Values.externalRedis.tls.keyStoreFilename }}
 {{- end }}
 {{- if .Values.externalRedis.tls.keyStorePassword }}
+{{- if $kms }}
+keyStorePassword: ${redis-keystore-password}
+{{- else }}
 keyStorePassword: {{ .Values.externalRedis.tls.keyStorePassword }}
+{{- end }}
 {{- end }}
 verifyHostname: {{ .Values.externalRedis.tls.verifyHostname }}
 {{- end -}}
@@ -672,18 +704,27 @@ Return the RabbitMQ SSL Config
 */}}
 {{- define "job.rabbitmq.sslConfig" -}}
 {{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) }}
+{{- $kms := eq (include "job.kms.credential.active" (dict "name" "rabbitmq" "context" .)) "true" }}
 rabbitmq:
   ssl:
     enabled: {{ .Values.externalRabbitMQ.tls.enabled }}
     trustStoreType: {{ .Values.externalRabbitMQ.tls.trustStoreType }}
     trustStore: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.trustStoreFilename }}
+    {{- if $kms }}
+    trustStorePassword: ${rabbitmq-truststore-password}
+    {{- else }}
     trustStorePassword: {{ .Values.externalRabbitMQ.tls.trustStorePassword }}
+    {{- end }}
     keyStoreType: {{ .Values.externalRabbitMQ.tls.keyStoreType }}
     {{- if .Values.externalRabbitMQ.tls.keyStoreFilename }}
     keyStore: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
     {{- end }}
     {{- if .Values.externalRabbitMQ.tls.keyStorePassword }}
+    {{- if $kms }}
+    keyStorePassword: ${rabbitmq-keystore-password}
+    {{- else }}
     keyStorePassword: {{ .Values.externalRabbitMQ.tls.keyStorePassword }}
+    {{- end }}
     {{- end }}
     verifyHostname: {{ .Values.externalRabbitMQ.tls.verifyHostname }}
 {{- end -}}
@@ -837,6 +878,7 @@ Return whether the mongodb is sharded
 Return the mongodb tls config
 */}}
 {{- define "job.mongodb.tls" -}}
+{{- $kms := eq (include "job.kms.credential.active" (dict "name" "mongodb" "context" .)) "true" -}}
 {{- if .Values.mongodb.enabled -}}
 enabled: false
 {{- else -}}
@@ -844,13 +886,21 @@ enabled: {{ .Values.externalMongoDB.tls.enabled }}
 {{- end }}
 trustStoreType: {{ .Values.externalMongoDB.tls.trustStoreType }}
 trustStore: /etc/certs/mongodb/{{ .Values.externalMongoDB.tls.trustStoreFilename }}
+{{- if $kms }}
+trustStorePassword: ${mongodb-truststore-password}
+{{- else }}
 trustStorePassword: {{ .Values.externalMongoDB.tls.trustStorePassword }}
+{{- end }}
 keyStoreType: {{ .Values.externalMongoDB.tls.keyStoreType }}
 {{- if .Values.externalMongoDB.tls.keyStoreFilename }}
 keyStore: /etc/certs/mongodb/{{ .Values.externalMongoDB.tls.keyStoreFilename }}
 {{- end }}
 {{- if .Values.externalMongoDB.tls.keyStorePassword }}
+{{- if $kms }}
+keyStorePassword: ${mongodb-keystore-password}
+{{- else }}
 keyStorePassword: {{ .Values.externalMongoDB.tls.keyStorePassword }}
+{{- end }}
 {{- end }}
 verifyHostname: {{ .Values.externalMongoDB.tls.verifyHostname }}
 {{- end -}}
@@ -1077,10 +1127,12 @@ approval:
     imate:
       url: {{ .Values.analysisConfig.approval.channels.imate.url | quote }}
       appCode: {{ .Values.analysisConfig.approval.channels.imate.appCode | quote }}
+      {{- if ne (include "job.kms.credential.active" (dict "name" "analysis" "context" .)) "true" }}
       openApi:
         # IMate 颁发给作业平台的凭证，回查审批结论时以 x-app-id / x-secret 发出，与蓝鲸凭证无关
         appId: {{ .Values.analysisConfig.approval.channels.imate.openApi.appId | quote }}
         secret: {{ .Values.analysisConfig.approval.channels.imate.openApi.secret | quote }}
+      {{- end }}
       mock:
         # 该开关决定 Mock 渠道 Bean 是否注册，只能在启动前就位，改动后必须重启
         enabled: {{ .Values.analysisConfig.approval.channels.imate.mock.enabled }}
@@ -1404,3 +1456,50 @@ Return Extension volumes
 {{- toYaml $globalVolumes -}}
 {{- end -}}
 {{- end }}
+
+{{/*
+execute 的 mysql 整块输出。execute 凭证未接管时原样 toYaml。
+接管后去掉分片 password：Java 读的是 spring.datasource.<名>，不是这段。
+*/}}
+{{- define "job.configmap.omitMysqlPasswords" -}}
+{{- $mysql := .mysql -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" "execute" "context" .context)) "true" -}}
+{{- $mysql = deepCopy $mysql -}}
+{{- $vs := index $mysql "verticalSharding" | default dict -}}
+{{- $dsMap := index $vs "datasource" | default dict -}}
+{{- range $name, $ds := $dsMap -}}
+{{- $_ := unset $ds "password" -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $mysql -}}
+{{- end -}}
+
+{{/*
+归档整块输出。对应凭证未接管时原样 toYaml。
+archive-mariadb 接管后去掉归档库 password 和 TLS 口令；backup 接管后去掉热库分片 password。
+*/}}
+{{- define "job.configmap.omitArchiveSecrets" -}}
+{{- $archive := .archive -}}
+{{- $kmsArchive := eq (include "job.kms.credential.active" (dict "name" "archive-mariadb" "context" .context)) "true" -}}
+{{- $kmsBackup := eq (include "job.kms.credential.active" (dict "name" "backup" "context" .context)) "true" -}}
+{{- if or $kmsArchive $kmsBackup -}}
+{{- $archive = deepCopy $archive -}}
+{{- if $kmsArchive -}}
+{{- $mariadb := index $archive "mariadb" | default dict -}}
+{{- $_ := unset $mariadb "password" -}}
+{{- $tls := index $mariadb "tls" | default dict -}}
+{{- $_ := unset $tls "trustStorePassword" -}}
+{{- $_ := unset $tls "keyStorePassword" -}}
+{{- end -}}
+{{- if $kmsBackup -}}
+{{- $execute := index $archive "execute" | default dict -}}
+{{- $executeMariadb := index $execute "mariadb" | default dict -}}
+{{- $vs := index $executeMariadb "verticalSharding" | default dict -}}
+{{- $dsMap := index $vs "datasource" | default dict -}}
+{{- range $name, $ds := $dsMap -}}
+{{- $_ := unset $ds "password" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $archive -}}
+{{- end -}}

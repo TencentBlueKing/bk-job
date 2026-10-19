@@ -1,4 +1,5 @@
 {{- if and .Values.executeConfig.enabled (eq .Values.deploy.mode "standard") }}
+{{- $kmsExecute := eq (include "job.kms.credential.active" (dict "name" "execute" "context" .)) "true" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -224,8 +225,10 @@ data:
         {{ $dsName }}:
             driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
             jdbcUrl: {{ $ds.jdbcUrl | quote }}
+            {{- if not $kmsExecute }}
             username: {{ $ds.username | quote }}
             password: {{ $ds.password | quote }}
+            {{- end }}
             maximumPoolSize: {{ $ds.maximumPoolSize | default 100 }}
             minimumIdle: {{ $ds.minimumIdle | default 20 }}
             idleTimeout: {{ $ds.idleTimeout | default 600000 }}
@@ -305,7 +308,7 @@ data:
         taskHistoryQuery:
           {{- toYaml .Values.executeConfig.taskHistoryQuery | nindent 10}}
     mysql:
-      {{- toYaml .Values.executeConfig.mysql | nindent 6 }}
+      {{- include "job.configmap.omitMysqlPasswords" (dict "mysql" .Values.executeConfig.mysql "context" .) | nindent 6 }}
     idGen:
       type: {{ .Values.executeConfig.idGen.type }}
       migration:

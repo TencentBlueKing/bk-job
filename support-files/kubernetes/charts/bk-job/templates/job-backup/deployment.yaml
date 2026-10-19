@@ -69,7 +69,7 @@ spec:
           imagePullPolicy: {{ .Values.backupConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
-            {{- include "job.kms.env" (dict "context" . "names" (list "mariadb" "rabbitmq" "redis" "mongodb" "archive-mariadb" "common")) | nindent 12 }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "mariadb" "rabbitmq" "redis" "mongodb" "archive-mariadb" "common" "backup")) | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-backup"
             - name: BK_JOB_JVM_OPTION
@@ -98,6 +98,7 @@ spec:
             {{- include "job.kms.secretVolumeMount" (dict "volume" "redis" "credential" "redis" "mountPath" "/etc/secrets/redis" "context" .) | nindent 12 }}
             {{- include "job.kms.secretVolumeMount" (dict "volume" "mongodb" "credential" "mongodb" "mountPath" "/etc/secrets/mongodb" "context" .) | nindent 12 }}
             {{- include "job.kms.envelopeVolumeMount" (dict "credential" "common" "context" .) | nindent 12 }}
+            {{- include "job.kms.envelopeVolumeMount" (dict "credential" "backup" "context" .) | nindent 12 }}
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.backup.archive.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
@@ -117,6 +118,7 @@ spec:
         {{- include "job.kms.secretVolume" (dict "volume" "redis" "credential" "redis" "secretName" (include "job.redis.secretName" .) "context" .) | nindent 8 }}
         {{- include "job.kms.secretVolume" (dict "volume" "mongodb" "credential" "mongodb" "secretName" (include "job.mongodb.secretName" .) "context" .) | nindent 8 }}
         {{- include "job.kms.envelopeVolume" (dict "credential" "common" "context" .) | nindent 8 }}
+        {{- include "job.kms.envelopeVolume" (dict "credential" "backup" "context" .) | nindent 8 }}
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.backup.archive.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
