@@ -8,6 +8,7 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.config.JobIamProperties;
@@ -35,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -177,6 +179,23 @@ class AppAuthServiceImplTest {
             .getRelatedResourceTypes().get(0).getInstance();
         assertHierarchy(instances.get(0), ResourceTypeId.BIZ, "2", "5");
         assertHierarchy(instances.get(1), ResourceTypeId.BUSINESS_SET, "9991001", "6");
+    }
+
+    @Test
+    void buildFailAuthResultFromResources_invalidResource_shouldFailClosed() {
+        BasicAuthService basicAuthService = new BasicAuthService();
+        basicAuthService.setResourceNameQueryService(resourceNameQueryService);
+        PermissionResource missingType = new PermissionResource();
+        missingType.setResourceId("5");
+        PermissionResource blankId = new PermissionResource();
+        blankId.setResourceType(ResourceTypeEnum.ACCOUNT);
+        blankId.setResourceId(" ");
+
+        for (PermissionResource invalidResource : Arrays.asList(null, missingType, blankId)) {
+            assertThatThrownBy(() -> basicAuthService.buildFailAuthResultFromResources(
+                USER, ActionId.USE_ACCOUNT, Collections.singletonList(invalidResource)))
+                .isInstanceOf(InternalException.class);
+        }
     }
 
     private PermissionResource accountResource(String accountId, String scopeType, String scopeId) {

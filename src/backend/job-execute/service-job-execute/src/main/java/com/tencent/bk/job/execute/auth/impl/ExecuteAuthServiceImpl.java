@@ -758,25 +758,19 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private void ensureCompleteScope(AppResourceScope appResourceScope) {
-        if (appResourceScope != null
-            && appResourceScope.getType() != null
-            && StringUtils.isNotBlank(appResourceScope.getId())) {
-            return;
-        }
-        if (appResourceScope == null || appResourceScope.getAppId() == null) {
+        if (appResourceScope == null
+            || (appResourceScope.getAppId() == null
+            && (appResourceScope.getType() == null || StringUtils.isBlank(appResourceScope.getId())))) {
+            log.error("Invalid app resource scope before completion, appResourceScope={}", appResourceScope);
             throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
-        Long appId = appResourceScope.getAppId();
-        AppResourceScope resolvedScope = appScopeMappingService.getAppResourceScope(appId);
-        if (resolvedScope == null
-            || resolvedScope.getAppId() == null
-            || !appId.equals(resolvedScope.getAppId())
-            || resolvedScope.getType() == null
-            || StringUtils.isBlank(resolvedScope.getId())) {
+        appScopeMappingService.fillAppResourceScope(appResourceScope);
+        if (appResourceScope.getAppId() == null
+            || appResourceScope.getType() == null
+            || StringUtils.isBlank(appResourceScope.getId())) {
+            log.error("Incomplete app resource scope after completion, appResourceScope={}", appResourceScope);
             throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
-        appResourceScope.setType(resolvedScope.getType());
-        appResourceScope.setId(resolvedScope.getId());
     }
 
     @Override

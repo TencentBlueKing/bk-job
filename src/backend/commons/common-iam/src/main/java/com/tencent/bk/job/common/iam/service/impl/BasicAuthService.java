@@ -70,14 +70,15 @@ public class BasicAuthService {
                                                           Collection<PermissionResource> deniedResources) {
         AuthResult authResult = AuthResult.fail(user);
         deniedResources.forEach(resource ->
-            authResult.addRequiredPermission(actionId, copyAndCompleteDeniedResource(resource)));
+            authResult.addRequiredPermission(actionId, copyAndCompleteDeniedResource(actionId, resource)));
         return authResult;
     }
 
-    private PermissionResource copyAndCompleteDeniedResource(PermissionResource source) {
+    private PermissionResource copyAndCompleteDeniedResource(String actionId, PermissionResource source) {
         if (source == null
             || source.getResourceType() == null
             || StringUtils.isBlank(source.getResourceId())) {
+            log.error("Invalid denied permission resource, actionId={}, resource={}", actionId, source);
             throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         ResourceTypeEnum resourceType = source.getResourceType();

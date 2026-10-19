@@ -25,6 +25,7 @@ import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
@@ -46,8 +47,9 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,6 +71,7 @@ class ExecuteAuthServiceImplTest {
         AuthService authService = mock(AuthService.class);
         appAuthService = mock(AppAuthService.class);
         appScopeMappingService = mock(AppScopeMappingService.class);
+        doCallRealMethod().when(appScopeMappingService).fillAppResourceScope(any());
         jobExecuteConfig = mock(JobExecuteConfig.class);
         TopoService topoService = mock(TopoService.class);
         service = new ExecuteAuthServiceImpl(
@@ -109,13 +112,15 @@ class ExecuteAuthServiceImplTest {
         assertPath(plan.getPathInfo().getChild(), ResourceTypeId.TEMPLATE, "500");
         assertPath(template.getPathInfo(), ResourceTypeId.BIZ, "2");
         assertThat(publicScript.getPathInfo()).isNull();
-        verify(appScopeMappingService, never()).getAppResourceScope(any());
+        verify(appScopeMappingService, never()).getScopeByAppId(any());
+        verify(appScopeMappingService, never()).getAppIdByScope(anyString(), anyString());
     }
 
     @Test
     void incompleteScope_shouldResolveOnceAndReuseForAccountPlanAndHostAuth() {
         AppResourceScope requestScope = new AppResourceScope(2L);
-        when(appScopeMappingService.getAppResourceScope(2L)).thenReturn(completeBizScope());
+        when(appScopeMappingService.getScopeByAppId(2L))
+            .thenReturn(new ResourceScope(ResourceScopeTypeEnum.BIZ, "2"));
         when(jobExecuteConfig.getEnableAuthAccountMode())
             .thenReturn(FeatureToggleModeEnum.ENABLED.getMode());
         when(appAuthService.batchAuthResources(any(), anyString(), any(), anyList()))
@@ -124,9 +129,24 @@ class ExecuteAuthServiceImplTest {
         service.batchAuthAccountExecutable(USER, requestScope, Collections.singleton(100L));
         service.authExecutePlan(USER, requestScope, 500L, 1001L, "方案", targetWithHost());
 
-        verify(appScopeMappingService, times(1)).getAppResourceScope(2L);
+        verify(appScopeMappingService, times(1)).getScopeByAppId(2L);
         assertThat(requestScope.getType()).isEqualTo(ResourceScopeTypeEnum.BIZ);
         assertThat(requestScope.getId()).isEqualTo("2");
+    }
+
+    @Test
+    void scopeWithTypeAndId_shouldResolveAppIdOnce() {
+        AppResourceScope requestScope =
+            new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, "9991001", null);
+        when(appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), "9991001"))
+            .thenReturn(2L);
+
+        service.authExecutePlan(USER, requestScope, 500L, 1001L, "方案", targetWithHost());
+
+        verify(appScopeMappingService, times(1))
+            .getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), "9991001");
+        verify(appScopeMappingService, never()).getScopeByAppId(any());
+        assertThat(requestScope.getAppId()).isEqualTo(2L);
     }
 
     @Test
@@ -160,7 +180,8 @@ class ExecuteAuthServiceImplTest {
     void completeScope_shouldNotCallMappingService() {
         service.authExecutePlan(USER, completeBizScope(), 500L, 1001L, "方案", targetWithHost());
 
-        verify(appScopeMappingService, never()).getAppResourceScope(any());
+        verify(appScopeMappingService, never()).getScopeByAppId(any());
+        verify(appScopeMappingService, never()).getAppIdByScope(anyString(), anyString());
     }
 
     @Test
@@ -173,23 +194,23 @@ class ExecuteAuthServiceImplTest {
         service.batchAuthAccountExecutable(USER, incompleteScope, Collections.emptySet());
         service.batchAuthViewFileSource(USER, incompleteScope, Collections.emptyMap());
 
-        verify(appScopeMappingService, never()).getAppResourceScope(any());
+        verify(appScopeMappingService, never()).fillAppResourceScope(any());
+        verify(appScopeMappingService, never()).getScopeByAppId(any());
         verify(appAuthService, never()).batchAuthResources(any(), anyString(), any(), anyList());
     }
 
     @Test
     void mappingExceptions_shouldPropagateWithoutCallingIam() {
         NotFoundException notFound = new NotFoundException(ErrorCode.APP_NOT_EXIST);
-        when(appScopeMappingService.getAppResourceScope(2L)).thenThrow(notFound);
+        doThrow(notFound).when(appScopeMappingService).getScopeByAppId(2L);
 
         assertThatThrownBy(() -> service.authExecutePlan(
             USER, new AppResourceScope(2L), 500L, 1001L, "方案", targetWithHost()))
             .isSameAs(notFound);
         verify(authHelper, never()).isAllowed(anyString(), anyString(), anyString(), any(), anyList());
 
-        reset(appScopeMappingService);
         InternalException internal = new InternalException(ErrorCode.INTERNAL_ERROR);
-        when(appScopeMappingService.getAppResourceScope(2L)).thenThrow(internal);
+        doThrow(internal).when(appScopeMappingService).getScopeByAppId(2L);
         assertThatThrownBy(() -> service.authExecutePlan(
             USER, new AppResourceScope(2L), 500L, 1001L, "方案", targetWithHost()))
             .isSameAs(internal);
@@ -197,18 +218,22 @@ class ExecuteAuthServiceImplTest {
 
     @Test
     void invalidMappedScope_shouldFailClosedWithoutCallingIam() {
-        List<AppResourceScope> invalidScopes = Arrays.asList(
-            null,
-            new AppResourceScope(ResourceScopeTypeEnum.BIZ, "2", null),
-            new AppResourceScope(2L),
-            new AppResourceScope(ResourceScopeTypeEnum.BIZ, null, 2L)
+        assertThatThrownBy(() -> service.authExecutePlan(
+            USER, null, 500L, 1001L, "方案", targetWithHost()))
+            .isInstanceOf(InternalException.class);
+        assertThatThrownBy(() -> service.authExecutePlan(
+            USER, new AppResourceScope((Long) null), 500L, 1001L, "方案", targetWithHost()))
+            .isInstanceOf(InternalException.class);
+
+        List<ResourceScope> invalidScopes = Arrays.asList(
+            new ResourceScope((ResourceScopeTypeEnum) null, "2"),
+            new ResourceScope(ResourceScopeTypeEnum.BIZ, null)
         );
-        for (AppResourceScope invalidScope : invalidScopes) {
-            when(appScopeMappingService.getAppResourceScope(2L)).thenReturn(invalidScope);
+        for (ResourceScope invalidScope : invalidScopes) {
+            when(appScopeMappingService.getScopeByAppId(2L)).thenReturn(invalidScope);
             assertThatThrownBy(() -> service.authExecutePlan(
                 USER, new AppResourceScope(2L), 500L, 1001L, "方案", targetWithHost()))
                 .isInstanceOf(InternalException.class);
-            reset(appScopeMappingService);
         }
         verify(authHelper, never()).isAllowed(anyString(), anyString(), anyString(), any(), anyList());
     }
