@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetCredentialDetailV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialV3DTO;
@@ -54,6 +55,7 @@ class EsbCredentialResourceV3ImplTest {
 
     private CredentialService credentialService;
     private AppScopeMappingService appScopeMappingService;
+    private EsbRequestValidator esbRequestValidator;
     private EsbCredentialResourceV3Impl resource;
 
     private static final String CREDENTIAL_ID = "credential-id-001";
@@ -67,7 +69,12 @@ class EsbCredentialResourceV3ImplTest {
     void setUp() {
         credentialService = mock(CredentialService.class);
         appScopeMappingService = mock(AppScopeMappingService.class);
-        resource = new EsbCredentialResourceV3Impl(credentialService, appScopeMappingService);
+        esbRequestValidator = mock(EsbRequestValidator.class);
+        resource = new EsbCredentialResourceV3Impl(
+            credentialService,
+            appScopeMappingService,
+            esbRequestValidator
+        );
     }
 
     private EsbGetCredentialDetailV3Req buildReq(String scopeType, String scopeId) {

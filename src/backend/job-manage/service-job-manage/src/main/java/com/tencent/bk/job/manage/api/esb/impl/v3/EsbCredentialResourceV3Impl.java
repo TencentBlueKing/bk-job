@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbCredentialV3Resource;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
@@ -56,12 +57,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
     private final CredentialService credentialService;
     private final AppScopeMappingService appScopeMappingService;
+    private final EsbRequestValidator esbRequestValidator;
 
     @Autowired
     public EsbCredentialResourceV3Impl(CredentialService credentialService,
-                                       AppScopeMappingService appScopeMappingService) {
+                                       AppScopeMappingService appScopeMappingService,
+                                       EsbRequestValidator esbRequestValidator) {
         this.credentialService = credentialService;
         this.appScopeMappingService = appScopeMappingService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -127,6 +131,7 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setId(id);
+        esbRequestValidator.validate(req);
         req.fillAppResourceScope(appScopeMappingService);
         return getCredentialDetailUsingPost(username, appCode, req);
     }

@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPlanV3Resource;
 import com.tencent.bk.job.manage.manager.variable.StepRefVariableParser;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
@@ -64,12 +65,15 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
 
     private final TaskPlanService taskPlanService;
     private final AppScopeMappingService appScopeMappingService;
+    private final EsbRequestValidator esbRequestValidator;
 
     @Autowired
     public EsbPlanV3ResourceImpl(TaskPlanService taskPlanService,
-                                 AppScopeMappingService appScopeMappingService) {
+                                 AppScopeMappingService appScopeMappingService,
+                                 EsbRequestValidator esbRequestValidator) {
         this.taskPlanService = taskPlanService;
         this.appScopeMappingService = appScopeMappingService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -103,6 +107,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
         request.setLastModifyTimeEnd(lastModifyTimeEnd);
         request.setStart(start);
         request.setLength(length);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getPlanListUsingPost(username, appCode, request);
     }
@@ -120,6 +125,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setPlanId(planId);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getPlanDetailUsingPost(username, appCode, request);
     }
