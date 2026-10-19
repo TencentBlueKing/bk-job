@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO.EsbStepInstanceGlobalVarValuesV3DTO;
@@ -58,15 +59,18 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final AppScopeMappingService appScopeMappingService;
+    private final EsbRequestValidator esbRequestValidator;
 
 
     public EsbGetJobInstanceGlobalVarValueV3ResourceImpl(
         StepInstanceVariableValueService stepInstanceVariableValueService,
         TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-        AppScopeMappingService appScopeMappingService) {
+        AppScopeMappingService appScopeMappingService,
+        EsbRequestValidator esbRequestValidator) {
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.appScopeMappingService = appScopeMappingService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -136,6 +140,7 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceGlobalVarValueUsingPost(username, appCode, request);
     }

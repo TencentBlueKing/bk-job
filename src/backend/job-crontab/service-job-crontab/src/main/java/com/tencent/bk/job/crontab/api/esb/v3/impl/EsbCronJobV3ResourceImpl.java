@@ -48,6 +48,7 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.v3.EsbCronJobV3Resource;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
@@ -88,18 +89,21 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     private final ServiceTaskPlanResource taskPlanResource;
     private final AppScopeMappingService appScopeMappingService;
     private final CommonAppService commonAppService;
+    private final EsbRequestValidator esbRequestValidator;
 
     @Autowired
     public EsbCronJobV3ResourceImpl(CronJobService cronJobService,
                                     CronAuthService cronAuthService,
                                     ServiceTaskPlanResource taskPlanResource,
                                     AppScopeMappingService appScopeMappingService,
-                                    CommonAppService commonAppService) {
+                                    CommonAppService commonAppService,
+                                    EsbRequestValidator esbRequestValidator) {
         this.cronJobService = cronJobService;
         this.cronAuthService = cronAuthService;
         this.taskPlanResource = taskPlanResource;
         this.appScopeMappingService = appScopeMappingService;
         this.commonAppService = commonAppService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -134,6 +138,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         request.setLastModifyTimeStart(lastModifyTimeStart);
         request.setStart(start);
         request.setLength(length);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getCronListUsingPost(username, appCode, request);
     }
@@ -152,6 +157,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setId(id);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getCronDetailUsingPost(username, appCode, request);
     }

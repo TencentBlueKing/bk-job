@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -60,13 +61,16 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
     private final TaskResultService taskResultService;
     private final AppScopeMappingService appScopeMappingService;
     private final OpenApiProperties openApiProperties;
+    private final EsbRequestValidator esbRequestValidator;
 
     public EsbGetJobInstanceListV3ResourceImpl(TaskResultService taskResultService,
                                                AppScopeMappingService appScopeMappingService,
-                                               OpenApiProperties openApiProperties) {
+                                               OpenApiProperties openApiProperties,
+                                               EsbRequestValidator esbRequestValidator) {
         this.taskResultService = taskResultService;
         this.appScopeMappingService = appScopeMappingService;
         this.openApiProperties = openApiProperties;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -212,6 +216,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         request.setCronId(cronId);
         request.setStart(start);
         request.setLength(length);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceListUsingPost(username, appCode, request);
     }

@@ -14,6 +14,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
@@ -38,14 +39,17 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
     private final FileSourceService fileSourceService;
     private final AppScopeMappingService appScopeMappingService;
     private final FileSourceAuthService fileSourceAuthService;
+    private final EsbRequestValidator esbRequestValidator;
 
     @Autowired
     public EsbFileSourceV3ResourceImpl(FileSourceService fileSourceService,
                                        AppScopeMappingService appScopeMappingService,
-                                       FileSourceAuthService fileSourceAuthService) {
+                                       FileSourceAuthService fileSourceAuthService,
+                                       EsbRequestValidator esbRequestValidator) {
         this.fileSourceService = fileSourceService;
         this.appScopeMappingService = appScopeMappingService;
         this.fileSourceAuthService = fileSourceAuthService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -93,6 +97,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setCode(code);
+        esbRequestValidator.validate(req);
         req.fillAppResourceScope(appScopeMappingService);
         return getFileSourceDetailUsingPost(username, appCode, req);
     }
