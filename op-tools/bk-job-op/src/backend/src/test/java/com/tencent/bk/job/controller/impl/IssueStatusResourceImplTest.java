@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.controller.impl;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.tencent.bk.job.config.web.WebAuthInterceptor;
 import com.tencent.bk.job.dao.IssueStatusMapper;
 import com.tencent.bk.job.model.DeleteIssueStatusReq;
 import com.tencent.bk.job.model.DeleteIssueStatusResp;
@@ -31,10 +35,15 @@ import com.tencent.bk.job.model.IssueStatusDTO;
 import com.tencent.bk.job.model.IssueStatusResp;
 import com.tencent.bk.job.model.SetIssueStatusReq;
 import com.tencent.bk.job.service.model.PageData;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 
@@ -58,10 +67,25 @@ class IssueStatusResourceImplTest {
 
     private IssueStatusResourceImpl resource;
 
+    private Logger logger;
+
+    private ListAppender<ILoggingEvent> listAppender;
+
     @BeforeEach
     void setUp() {
         issueStatusMapper = mock(IssueStatusMapper.class);
         resource = new IssueStatusResourceImpl(issueStatusMapper);
+        logger = (Logger) LoggerFactory.getLogger(IssueStatusResourceImpl.class);
+        listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
+    }
+
+    @AfterEach
+    void tearDown() {
+        RequestContextHolder.resetRequestAttributes();
+        logger.detachAppender(listAppender);
+        listAppender.stop();
     }
 
     private IssueStatusDTO dto(String id, Long issueNo) {
@@ -208,6 +232,34 @@ class IssueStatusResourceImplTest {
         DeleteIssueStatusResp resp = resource.deleteIssueStatus(new DeleteIssueStatusReq("issue_404"));
 
         assertThat(resp.getDeleted()).isZero();
+    }
+
+    @Test
+    @DisplayName("删除Issue状态时审计日志记录操作人、id和实际删除行数")
+    void shouldAuditIssueStatusDeletion() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute(WebAuthInterceptor.ATTR_USERNAME, "admin");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        when(issueStatusMapper.deleteById("issue_4523")).thenReturn(1);
+
+        resource.deleteIssueStatus(new DeleteIssueStatusReq("issue_4523"));
+
+        assertThat(listAppender.list)
+            .extracting(ILoggingEvent::getFormattedMessage)
+            .contains("Delete issue status, username=admin, id=issue_4523, deleted=1");
+    }
+
+    @Test
+    @DisplayName("取不到用户名时删除仍正常执行并在审计日志中降级为unknown")
+    void shouldAuditDeletionWithUnknownUsername() {
+        when(issueStatusMapper.deleteById("issue_404")).thenReturn(0);
+
+        DeleteIssueStatusResp resp = resource.deleteIssueStatus(new DeleteIssueStatusReq("issue_404"));
+
+        assertThat(resp.getDeleted()).isZero();
+        assertThat(listAppender.list)
+            .extracting(ILoggingEvent::getFormattedMessage)
+            .contains("Delete issue status, username=<unknown>, id=issue_404, deleted=0");
     }
 
     @Test

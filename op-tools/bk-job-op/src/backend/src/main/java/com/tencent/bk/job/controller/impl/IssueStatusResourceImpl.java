@@ -1,5 +1,6 @@
 package com.tencent.bk.job.controller.impl;
 
+import com.tencent.bk.job.config.web.WebAuthInterceptor;
 import com.tencent.bk.job.controller.IssueStatusResource;
 import com.tencent.bk.job.dao.IssueStatusMapper;
 import com.tencent.bk.job.model.DeleteIssueStatusReq;
@@ -8,8 +9,12 @@ import com.tencent.bk.job.model.IssueStatusDTO;
 import com.tencent.bk.job.model.IssueStatusResp;
 import com.tencent.bk.job.model.SetIssueStatusReq;
 import com.tencent.bk.job.service.model.PageData;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
@@ -88,7 +93,19 @@ public class IssueStatusResourceImpl implements IssueStatusResource {
         if (id == null) {
             throw new IllegalArgumentException("id不能为空");
         }
-        return new DeleteIssueStatusResp(issueStatusMapper.deleteById(id));
+        int deleted = issueStatusMapper.deleteById(id);
+        log.info("Delete issue status, username={}, id={}, deleted={}", getCurrentUsername(), id, deleted);
+        return new DeleteIssueStatusResp(deleted);
+    }
+
+    private String getCurrentUsername() {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (!(requestAttributes instanceof ServletRequestAttributes)) {
+            return "<unknown>";
+        }
+        HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+        Object username = request.getAttribute(WebAuthInterceptor.ATTR_USERNAME);
+        return StringUtils.defaultIfBlank(username == null ? null : username.toString(), "<unknown>");
     }
 
     private IssueStatusResp toResp(IssueStatusDTO dto) {
