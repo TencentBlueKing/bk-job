@@ -27,11 +27,9 @@ package com.tencent.bk.job.common.web.validation;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
-import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
-@Component
 public class EsbRequestValidator {
 
     private final Validator validator;

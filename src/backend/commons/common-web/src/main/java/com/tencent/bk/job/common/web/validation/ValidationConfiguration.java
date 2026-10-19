@@ -45,6 +45,7 @@ import org.springframework.validation.beanvalidation.MessageSourceResourceBundle
 import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
@@ -63,6 +64,12 @@ public class ValidationConfiguration {
         LocalValidatorFactoryBean localValidatorFactoryBean = new JobLocalValidatorFactoryBean(messageSource);
         localValidatorFactoryBean.setParameterNameDiscoverer(new CustomParameterNameDiscoverer());
         return localValidatorFactoryBean;
+    }
+
+    @Bean
+    public EsbRequestValidator esbRequestValidator(
+        @Qualifier("jobLocalValidatorFactoryBean") Validator validator) {
+        return new EsbRequestValidator(validator);
     }
 
     public class JobLocalValidatorFactoryBean extends LocalValidatorFactoryBean {
