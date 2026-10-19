@@ -70,7 +70,7 @@ spec:
           imagePullPolicy: {{ .Values.analysisConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
-            {{- include "job.kms.env" (dict "context" . "names" (list "mariadb" "rabbitmq" "redis" "common")) | nindent 12 }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "mariadb" "rabbitmq" "redis" "common" "analysis")) | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-analysis"
             - name: BK_JOB_JVM_OPTION
@@ -95,6 +95,7 @@ spec:
             {{- include "job.kms.secretVolumeMount" (dict "volume" "rabbitmq" "credential" "rabbitmq" "mountPath" "/etc/secrets/rabbitmq" "context" .) | nindent 12 }}
             {{- include "job.kms.secretVolumeMount" (dict "volume" "redis" "credential" "redis" "mountPath" "/etc/secrets/redis" "context" .) | nindent 12 }}
             {{- include "job.kms.envelopeVolumeMount" (dict "credential" "common" "context" .) | nindent 12 }}
+            {{- include "job.kms.envelopeVolumeMount" (dict "credential" "analysis" "context" .) | nindent 12 }}
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
             {{- include "job.redis.certsVolumeMount" . | nindent 12 }}
@@ -107,6 +108,7 @@ spec:
         {{- include "job.kms.secretVolume" (dict "volume" "rabbitmq" "credential" "rabbitmq" "secretName" (include "job.rabbitmq.secretName" .) "context" .) | nindent 8 }}
         {{- include "job.kms.secretVolume" (dict "volume" "redis" "credential" "redis" "secretName" (include "job.redis.secretName" .) "context" .) | nindent 8 }}
         {{- include "job.kms.envelopeVolume" (dict "credential" "common" "context" .) | nindent 8 }}
+        {{- include "job.kms.envelopeVolume" (dict "credential" "analysis" "context" .) | nindent 8 }}
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
         {{- include "job.redis.certsVolume" . | nindent 8 }}

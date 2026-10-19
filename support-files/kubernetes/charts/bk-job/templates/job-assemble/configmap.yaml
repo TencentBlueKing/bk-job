@@ -1,4 +1,7 @@
 {{- if eq .Values.deploy.mode "lite" }}
+{{- $kmsManage := eq (include "job.kms.credential.active" (dict "name" "manage" "context" .)) "true" }}
+{{- $kmsExecute := eq (include "job.kms.credential.active" (dict "name" "execute" "context" .)) "true" }}
+{{- $kmsBackup := eq (include "job.kms.credential.active" (dict "name" "backup" "context" .)) "true" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -282,8 +285,10 @@ data:
         {{ $dsName }}:
             driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
             jdbcUrl: {{ $ds.jdbcUrl | quote }}
+            {{- if not $kmsExecute }}
             username: {{ $ds.username | quote }}
             password: {{ $ds.password | quote }}
+            {{- end }}
             maximumPoolSize: {{ $ds.maximumPoolSize | default 100 }}
             minimumIdle: {{ $ds.minimumIdle | default 20 }}
             idleTimeout: {{ $ds.idleTimeout | default 600000 }}
@@ -358,8 +363,10 @@ data:
         {{ $dsName }}:
             driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
             jdbcUrl: {{ $ds.jdbcUrl | quote }}
+            {{- if not $kmsBackup }}
             username: {{ $ds.username | quote }}
             password: {{ $ds.password | quote }}
+            {{- end }}
             maximumPoolSize: {{ $ds.maximumPoolSize | default 100 }}
             minimumIdle: {{ $ds.minimumIdle | default 20 }}
             idleTimeout: {{ $ds.idleTimeout | default 600000 }}
@@ -449,6 +456,10 @@ data:
 
     ## Job 配置 ##
     job:
+      {{- if $kmsManage }}
+      public-app:
+        enabled: {{ .Values.publicApp.enabled }}
+      {{- end }}
       gateway:
         login-exemption:
           enabled: {{ .Values.gatewayConfig.loginExemption.enabled | default false }}
@@ -467,8 +478,8 @@ data:
         storage-backend: {{ .Values.backupConfig.storageBackend }}
         artifactory:
           repo: {{ .Values.backupConfig.artifactory.repo }}
-        archive:  
-          {{- toYaml .Values.backupConfig.archive | nindent 10 }}
+        archive:
+          {{- include "job.configmap.omitArchiveSecrets" (dict "archive" .Values.backupConfig.archive "context" .) | nindent 10 }}
       logsvr:
         mongodb:
           shard:
@@ -539,9 +550,9 @@ data:
           black: {{ .Values.fileGatewayConfig.workerTags.black }}
       analysis:
         {{- include "job.analysis.approval.config" . | nindent 8 }}
-    {{- $mysql := merge .Values.executeConfig.mysql .Values.assembleConfig.mysql }}
+    {{- $mysql := merge (deepCopy .Values.executeConfig.mysql) .Values.assembleConfig.mysql }}
     mysql:
-      {{- toYaml $mysql | nindent 6 }}
+      {{- include "job.configmap.omitMysqlPasswords" (dict "mysql" $mysql "context" .) | nindent 6 }}
     idGen:
       type: {{ .Values.executeConfig.idGen.type }}
       migration:

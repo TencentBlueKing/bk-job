@@ -65,6 +65,12 @@ serviceAccount:
 ## job.tracing.bk-data-token、job.encrypt.password、job.encrypt.usedPasswords（数组）、job.encrypt.sm2-private-key/sm2-public-key、
 ## bk-api-gateway.bkAIDev.appCode/appSecret、artifactory.admin.username/password、artifactory.job.username/password。
 ## values 里 job.security.actuator.user.name/password 仍需填写，供 bkmonitor 使用。
+## 各服务 ConfigMap 抽出的项按服务各一份凭证，信封同样用 Spring 属性名：
+## manage：job.public-app.code/secret；analysis：job.analysis.approval.channels.imate.openApi.appId/secret；
+## file-worker：job.file-worker.token；execute / backup：仅配置了垂直分片时，spring.datasource.<分片名>.username/password。
+## 轻量模式不另建 assemble 凭证，job-assemble 按用到的短名挂载。
+## Redis / MongoDB 的 TLS 口令仅在开启 KMS 时写入各自中间件信封（redis-truststore-password 等），ConfigMap 改为占位符；关闭 KMS 时 ConfigMap 仍写 values 明文，明文 Secret 不新增 TLS 口令 key。
+## RabbitMQ TLS 口令现网明文 Secret 里本来就有。开启 KMS 后 ConfigMap 改用 ${rabbitmq-truststore-password} / ${rabbitmq-keystore-password}；关闭时 ConfigMap 仍写 values 明文。
 ## migration 凭证给 job-migration 与 sync-api-gateway 共用，migration.enabled 或 bkApiGatewayConfig.sync 打开即接管。
 ## 信封 JSON：{"admin-username": "...", "admin-password": "...", "bkapp_id_secret": {"default": {"app_code": "...", "app_secret": "..."}}}，
 ## bkapp_id_secret 是 apigw-manager 要求的结构。接管后不再渲染 migration-db 明文 Secret。
@@ -103,6 +109,21 @@ kms:
       role: ""
       remoteKey: ""
     migration:
+      role: ""
+      remoteKey: ""
+    manage:
+      role: ""
+      remoteKey: ""
+    analysis:
+      role: ""
+      remoteKey: ""
+    fileWorker:
+      role: ""
+      remoteKey: ""
+    execute:
+      role: ""
+      remoteKey: ""
+    backup:
       role: ""
       remoteKey: ""
 rbac:
