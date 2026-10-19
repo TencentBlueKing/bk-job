@@ -36,18 +36,23 @@ import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -56,6 +61,7 @@ import static org.mockito.Mockito.when;
 class AuthServiceImplTest {
 
     private AuthHelper authHelper;
+    private IIamClient iamClient;
     private ResourceNameQueryService resourceNameQueryService;
     private AuthServiceImpl authService;
 
@@ -70,7 +76,7 @@ class AuthServiceImplTest {
     @BeforeEach
     void setUp() {
         authHelper = mock(AuthHelper.class);
-        IIamClient iamClient = mock(IIamClient.class);
+        iamClient = mock(IIamClient.class);
         MessageI18nService i18nService = mock(MessageI18nService.class);
         resourceNameQueryService = mock(ResourceNameQueryService.class);
 
@@ -272,6 +278,73 @@ class AuthServiceImplTest {
         assertThat(parents).hasSize(2);
         assertThat(parents.get(0).getResourceType()).isEqualTo(ResourceTypeEnum.BUSINESS);
         assertThat(parents.get(1).getResourceType()).isEqualTo(ResourceTypeEnum.TEMPLATE);
+    }
+
+    @Test
+    @DisplayName("Case8: buildApplyActions 应将三类 scope path 转换为最终申请层级")
+    void getApplyUrl_pathInfo_shouldBuildHierarchicalActionInstances() {
+        PermissionResource bizPlan = planResource("1001", ResourceTypeId.BIZ, "2", "500");
+        PermissionResource bizSetPlan =
+            planResource("1002", ResourceTypeId.BUSINESS_SET, "20", "501");
+        PermissionResource tenantSetPlan =
+            planResource("1003", ResourceTypeId.TENANT_SET, "30", "502");
+        AuthResult authResult = AuthResult.fail(TEST_USER);
+        authResult.addRequiredPermissions(
+            ACTION_VIEW_JOB_PLAN, Arrays.asList(bizPlan, bizSetPlan, tenantSetPlan));
+
+        authService.getApplyUrl(TENANT_ID, authResult.getRequiredActionResources());
+
+        ArgumentCaptor<List<ActionDTO>> captor = ArgumentCaptor.forClass(List.class);
+        verify(iamClient).getApplyUrl(captor.capture());
+        List<List<InstanceDTO>> instances = captor.getValue().get(0)
+            .getRelatedResourceTypes().get(0).getInstance();
+        assertThat(instances).hasSize(3);
+        assertHierarchy(instances.get(0), ResourceTypeId.BIZ, "2", "500", "1001");
+        assertHierarchy(instances.get(1), ResourceTypeId.BUSINESS_SET, "20", "501", "1002");
+        assertHierarchy(instances.get(2), ResourceTypeId.TENANT_SET, "30", "502", "1003");
+    }
+
+    @Test
+    @DisplayName("Case9: 显式 parent 与 path 同时存在时仅使用显式 parent")
+    void getApplyUrl_explicitParents_shouldTakePrecedenceOverPathInfo() {
+        PermissionResource plan = planResource("1001", ResourceTypeId.BIZ, "2", "500");
+        PermissionResource explicitParent =
+            new PermissionResource(ResourceTypeEnum.TEMPLATE, "900", "显式模板");
+        plan.setParentHierarchicalResources(Collections.singletonList(explicitParent));
+        AuthResult authResult = AuthResult.fail(TEST_USER);
+        authResult.addRequiredPermission(ACTION_VIEW_JOB_PLAN, plan);
+
+        authService.getApplyUrl(TENANT_ID, authResult.getRequiredActionResources());
+
+        ArgumentCaptor<List<ActionDTO>> captor = ArgumentCaptor.forClass(List.class);
+        verify(iamClient).getApplyUrl(captor.capture());
+        List<InstanceDTO> hierarchy = captor.getValue().get(0)
+            .getRelatedResourceTypes().get(0).getInstance().get(0);
+        assertThat(hierarchy).extracting(InstanceDTO::getType)
+            .containsExactly(ResourceTypeId.TEMPLATE, ResourceTypeId.PLAN);
+        assertThat(hierarchy).extracting(InstanceDTO::getId)
+            .containsExactly("900", "1001");
+    }
+
+    private PermissionResource planResource(String planId,
+                                            String scopeType,
+                                            String scopeId,
+                                            String templateId) {
+        PermissionResource plan = new PermissionResource(ResourceTypeEnum.PLAN, planId, "方案-" + planId);
+        plan.setPathInfo(PathBuilder.newBuilder(scopeType, scopeId)
+            .child(ResourceTypeId.TEMPLATE, templateId).build());
+        return plan;
+    }
+
+    private void assertHierarchy(List<InstanceDTO> hierarchy,
+                                 String scopeType,
+                                 String scopeId,
+                                 String templateId,
+                                 String planId) {
+        assertThat(hierarchy).extracting(InstanceDTO::getType)
+            .containsExactly(scopeType, ResourceTypeId.TEMPLATE, ResourceTypeId.PLAN);
+        assertThat(hierarchy).extracting(InstanceDTO::getId)
+            .containsExactly(scopeId, templateId, planId);
     }
 
     /**

@@ -266,9 +266,18 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                 List<List<InstanceDTO>> instanceList = new ArrayList<>();
                 for (PermissionResource relatedResource : relatedResources) {
                     InstanceDTO instance = convertPermissionResourceToInstance(relatedResource);
-                    if (!CustomCollectionUtils.isEmptyCollection(relatedResource.getParentHierarchicalResources())) {
+                    List<PermissionResource> parentResources =
+                        relatedResource.getParentHierarchicalResources();
+                    if (CollectionUtils.isEmpty(parentResources) && relatedResource.getPathInfo() != null) {
+                        parentResources = buildParentHierarchicalResources(
+                            relatedResource.getPathInfo(),
+                            relatedResource.getResourceType(),
+                            relatedResource.getResourceId()
+                        );
+                    }
+                    if (!CustomCollectionUtils.isEmptyCollection(parentResources)) {
                         List<InstanceDTO> hierarchicalInstance = new ArrayList<>();
-                        relatedResource.getParentHierarchicalResources().forEach(
+                        parentResources.forEach(
                             resource -> hierarchicalInstance.add(convertPermissionResourceToInstance(resource)));
                         hierarchicalInstance.add(instance);
                         instanceList.add(hierarchicalInstance);
