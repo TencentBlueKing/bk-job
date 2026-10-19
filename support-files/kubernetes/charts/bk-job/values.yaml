@@ -998,14 +998,17 @@ job:
     iamModel:
       # 是否开启权限模型migration
       enabled: true
-    # IAM v4 模型迁移。与运行时鉴权灰度 job.features.iamV4.enabled 分开
+    # IAM v4 权限模型同步。对比后增删改，幂等可重复执行。与运行时鉴权灰度 job.features.iamV4.enabled 分开
     iamV4:
-      # 是否走进 v4 模型 migrate 这段
+      # 是否同步 v4 权限模型
       enabled: false
-      # 是否调用 IAM v4 创建接口注册权限模型。只能跑一次，首次部署开，之后关
-      registerModel: false
-      # 注册失败是否跳过该步并继续，不改变 Job exitCode
+      # 写接口失败是否跳过并继续，避免残留数据导致 K8s Job 失败
       ignoreFail: true
+      # 只对比并打印增删改日志，不调用 IAM 写接口
+      dryRun: false
+      # 删除角色中的 action 时是否带 cascade=rbac_authorization。
+      # 开启后会强制删掉该角色上这条 action 的授权记录，请谨慎使用。默认关闭
+      deleteCascade: false
       # 系统管理员，逗号分隔；空则 managers 传空数组
       managers: ""
     mysqlSchema:

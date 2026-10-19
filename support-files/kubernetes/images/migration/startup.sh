@@ -128,11 +128,8 @@ function migrateIamV4Model(){
   echo "BK_IAM_V4_APIGATEWAY_URL=${BK_IAM_V4_APIGATEWAY_URL}"
   echo "BK_JOB_API_URL=${BK_JOB_API_URL}"
   echo "BK_JOB_TENANT_ENABLED=${BK_JOB_TENANT_ENABLED}"
-  echo "BK_JOB_MIGRATION_IAM_V4_REGISTER_MODEL=${BK_JOB_MIGRATION_IAM_V4_REGISTER_MODEL}"
-  if [[ "${BK_JOB_MIGRATION_IAM_V4_REGISTER_MODEL}" != "true" ]]; then
-    echo "skip register iam v4 model, BK_JOB_MIGRATION_IAM_V4_REGISTER_MODEL is not true"
-    return
-  fi
+  echo "BK_JOB_MIGRATION_IAM_V4_DRY_RUN=${BK_JOB_MIGRATION_IAM_V4_DRY_RUN}"
+  echo "BK_JOB_MIGRATION_IAM_V4_DELETE_CASCADE=${BK_JOB_MIGRATION_IAM_V4_DELETE_CASCADE}"
   python3 ./bkiamv4/do_migrate.py \
     -t "${BK_IAM_V4_APIGATEWAY_URL}" \
     -a "${BK_JOB_APP_CODE}" \
@@ -140,7 +137,9 @@ function migrateIamV4Model(){
     --job-host "${BK_JOB_API_URL}" \
     --tenant-enabled "${BK_JOB_TENANT_ENABLED}" \
     --managers "${BK_IAM_V4_MANAGERS}" \
-    --ignore-fail "${BK_JOB_MIGRATION_IAM_V4_IGNORE_FAIL:-true}"
+    --ignore-fail "${BK_JOB_MIGRATION_IAM_V4_IGNORE_FAIL:-true}" \
+    --dry-run "${BK_JOB_MIGRATION_IAM_V4_DRY_RUN:-false}" \
+    --delete-cascade "${BK_JOB_MIGRATION_IAM_V4_DELETE_CASCADE:-false}"
   exitCode=$?
   if [ "$exitCode" -ne "0" ]; then
     echo "migrateIamV4Model exitCode=$exitCode"
