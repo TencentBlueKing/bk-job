@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.util.PublicTagI18nUtil;
 import com.tencent.bk.job.manage.api.web.WebPublicTagResource;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
@@ -49,14 +50,16 @@ public class WebPublicTagResourceImpl implements WebPublicTagResource {
 
     @Override
     public Response<List<TagVO>> listTags(String username, String name) {
-        List<TagDTO> tags = tagService.listTags(JobConstants.PUBLIC_APP_ID, name);
+        List<TagDTO> tags = tagService.listTags(JobConstants.PUBLIC_APP_ID, null);
         List<TagVO> tagVOS = new ArrayList<>(tags.size());
         for (TagDTO tag : tags) {
-            TagVO tagVO = new TagVO();
-            tagVO.setId(tag.getId());
-            tagVO.setName(tag.getName());
-            tagVO.setDescription(tag.getDescription());
-            tagVOS.add(tagVO);
+            if (PublicTagI18nUtil.matchesName(tag.getName(), name)) {
+                TagVO tagVO = new TagVO();
+                tagVO.setId(tag.getId());
+                tagVO.setName(TagDTO.getDisplayName(tag));
+                tagVO.setDescription(tag.getDescription());
+                tagVOS.add(tagVO);
+            }
         }
         return Response.buildSuccessResp(tagVOS);
     }

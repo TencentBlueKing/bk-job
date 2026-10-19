@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.model.dto;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.BasicDTO;
+import com.tencent.bk.job.common.util.PublicTagI18nUtil;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbTagV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
@@ -70,13 +72,20 @@ public class TagDTO extends BasicDTO implements Cloneable {
     public static TagVO toVO(TagDTO tagInfo) {
         TagVO vo = new TagVO();
         vo.setId(tagInfo.getId());
-        vo.setName(tagInfo.getName());
+        vo.setName(getDisplayName(tagInfo));
         vo.setCreator(tagInfo.getCreator());
         vo.setLastModifyUser(tagInfo.getLastModifyUser());
         vo.setDescription(tagInfo.getDescription());
         vo.setCreateTime(tagInfo.getCreateTime());
         vo.setLastModifyTime(tagInfo.getLastModifyTime());
         return vo;
+    }
+
+    public static String getDisplayName(TagDTO tagInfo) {
+        if (tagInfo.getAppId() != null && tagInfo.getAppId().equals(JobConstants.PUBLIC_APP_ID)) {
+            return PublicTagI18nUtil.getI18nName(tagInfo.getName());
+        }
+        return tagInfo.getName();
     }
 
     public static TagDTO fromVO(TagVO tagVO) {
