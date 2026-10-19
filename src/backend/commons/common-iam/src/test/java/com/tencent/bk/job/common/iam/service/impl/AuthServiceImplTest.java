@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.IIamClient;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -50,6 +51,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -324,6 +326,60 @@ class AuthServiceImplTest {
             .containsExactly(ResourceTypeId.TEMPLATE, ResourceTypeId.PLAN);
         assertThat(hierarchy).extracting(InstanceDTO::getId)
             .containsExactly("900", "1001");
+    }
+
+    @Test
+    @DisplayName("Case10: 直接批量资源鉴权失败应保留原 path")
+    void batchAuthResources_shouldPreservePathInfo() {
+        PermissionResource account =
+            new PermissionResource(ResourceTypeEnum.ACCOUNT, "5", "root");
+        account.setPathInfo(PathBuilder.newBuilder(ResourceTypeId.BIZ, "2")
+            .child(ResourceTypeId.ACCOUNT, "5").build());
+        when(authHelper.isAllowed(anyString(), anyString(), anyString(), anyList()))
+            .thenReturn(Collections.emptyList());
+
+        AuthResult result = authService.batchAuthResources(
+            TEST_USER, ActionId.USE_ACCOUNT, Collections.singletonList(account));
+
+        PermissionResource denied = extractFirstPermissionResource(result);
+        assertThat(denied).isNotSameAs(account);
+        assertThat(denied.getPathInfo()).isNotNull();
+        assertThat(denied.getPathInfo().getType()).isEqualTo(ResourceTypeId.BIZ);
+        assertThat(denied.getPathInfo().getChild().getType()).isEqualTo(ResourceTypeId.ACCOUNT);
+    }
+
+    @Test
+    @DisplayName("Case11: 公共脚本批量失败仍无 path 且最终申请为单节点")
+    void batchAuthResources_publicScript_shouldRemainSingleNode() {
+        PermissionResource publicScript = new PermissionResource();
+        publicScript.setResourceType(ResourceTypeEnum.PUBLIC_SCRIPT);
+        publicScript.setResourceId("300");
+        when(authHelper.isAllowed(anyString(), anyString(), anyString(), anyList()))
+            .thenReturn(Collections.emptyList());
+        when(resourceNameQueryService.getResourceName(ResourceTypeEnum.PUBLIC_SCRIPT, "300"))
+            .thenReturn("公共脚本");
+
+        AuthResult result = authService.batchAuthResources(
+            TEST_USER,
+            ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE,
+            Collections.singletonList(publicScript)
+        );
+
+        PermissionResource denied = extractFirstPermissionResource(result);
+        assertThat(denied.getPathInfo()).isNull();
+        assertThat(denied.getParentHierarchicalResources()).isNull();
+        assertThat(denied.getSystemId()).isEqualTo(ResourceTypeEnum.PUBLIC_SCRIPT.getSystemId());
+        assertThat(denied.getType()).isEqualTo(ResourceTypeId.PUBLIC_SCRIPT);
+
+        authService.getApplyUrl(TENANT_ID, result.getRequiredActionResources());
+        ArgumentCaptor<List<ActionDTO>> captor = ArgumentCaptor.forClass(List.class);
+        verify(iamClient).getApplyUrl(captor.capture());
+        List<List<InstanceDTO>> instances = captor.getValue().get(0)
+            .getRelatedResourceTypes().get(0).getInstance();
+        assertThat(instances).hasSize(1);
+        assertThat(instances.get(0)).hasSize(1);
+        assertThat(instances.get(0).get(0).getType()).isEqualTo(ResourceTypeId.PUBLIC_SCRIPT);
+        assertThat(instances.get(0).get(0).getId()).isEqualTo("300");
     }
 
     private PermissionResource planResource(String planId,

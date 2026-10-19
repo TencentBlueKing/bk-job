@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -61,6 +63,38 @@ public class BasicAuthService {
             }
         }
         return authResult;
+    }
+
+    protected AuthResult buildFailAuthResultFromResources(User user,
+                                                          String actionId,
+                                                          Collection<PermissionResource> deniedResources) {
+        AuthResult authResult = AuthResult.fail(user);
+        deniedResources.forEach(resource ->
+            authResult.addRequiredPermission(actionId, copyAndCompleteDeniedResource(resource)));
+        return authResult;
+    }
+
+    private PermissionResource copyAndCompleteDeniedResource(PermissionResource source) {
+        if (source == null
+            || source.getResourceType() == null
+            || StringUtils.isBlank(source.getResourceId())) {
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
+        }
+        ResourceTypeEnum resourceType = source.getResourceType();
+        PermissionResource target = new PermissionResource();
+        target.setResourceType(resourceType);
+        target.setResourceId(source.getResourceId());
+        target.setSystemId(StringUtils.defaultIfBlank(source.getSystemId(), resourceType.getSystemId()));
+        target.setType(StringUtils.defaultIfBlank(source.getType(), resourceType.getId()));
+        String resourceName = source.getResourceName();
+        if (StringUtils.isBlank(resourceName)) {
+            resourceName = resourceNameQueryService.getResourceName(resourceType, source.getResourceId());
+        }
+        target.setResourceName(resourceName);
+        target.setSubResourceType(source.getSubResourceType());
+        target.setPathInfo(source.getPathInfo());
+        target.setParentHierarchicalResources(source.getParentHierarchicalResources());
+        return target;
     }
 
     protected InstanceDTO convertPermissionResourceToInstance(PermissionResource permissionResource) {

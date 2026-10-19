@@ -13,6 +13,7 @@ import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -32,6 +33,7 @@ import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -125,6 +127,33 @@ class ExecuteAuthServiceImplTest {
         verify(appScopeMappingService, times(1)).getAppResourceScope(2L);
         assertThat(requestScope.getType()).isEqualTo(ResourceScopeTypeEnum.BIZ);
         assertThat(requestScope.getId()).isEqualTo("2");
+    }
+
+    @Test
+    void batchAccountAuth_shouldPassAndReturnCompleteAccountPath() {
+        when(jobExecuteConfig.getEnableAuthAccountMode())
+            .thenReturn(FeatureToggleModeEnum.ENABLED.getMode());
+        when(appAuthService.batchAuthResources(any(), anyString(), any(), anyList()))
+            .thenAnswer(invocation -> {
+                List<PermissionResource> resources = invocation.getArgument(3);
+                AuthResult result = AuthResult.fail(USER);
+                result.addRequiredPermissions(ActionId.USE_ACCOUNT, resources);
+                return result;
+            });
+
+        AuthResult result = service.batchAuthAccountExecutable(
+            USER, completeBizScope(), Collections.singleton(100L));
+
+        ArgumentCaptor<List<PermissionResource>> captor = ArgumentCaptor.forClass(List.class);
+        verify(appAuthService).batchAuthResources(
+            any(), anyString(), any(), captor.capture());
+        PermissionResource inputAccount = captor.getValue().get(0);
+        assertPath(inputAccount.getPathInfo(), ResourceTypeId.BIZ, "2");
+        assertPath(inputAccount.getPathInfo().getChild(), ResourceTypeId.ACCOUNT, "100");
+        PermissionResource deniedAccount =
+            firstResourceOfType(result, ResourceTypeEnum.ACCOUNT);
+        assertThat(deniedAccount.getPathInfo()).isNotNull();
+        assertPath(deniedAccount.getPathInfo().getChild(), ResourceTypeId.ACCOUNT, "100");
     }
 
     @Test

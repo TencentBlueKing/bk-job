@@ -189,19 +189,14 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     public AuthResult batchAuthResources(User user,
                                          String actionId,
                                          List<PermissionResource> resources) {
-        ResourceTypeEnum resourceType = resources.get(0).getResourceType();
         List<String> allowResourceIds = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
             actionId, buildInstanceList(resources));
-        List<String> notAllowResourceIds =
-            resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
-                .map(PermissionResource::getResourceId).collect(Collectors.toList());
-        AuthResult authResult = new AuthResult();
-        if (!notAllowResourceIds.isEmpty()) {
-            authResult = buildFailAuthResult(user, actionId, resourceType, notAllowResourceIds);
-        } else {
-            authResult.setPass(true);
-        }
-        return authResult;
+        List<PermissionResource> deniedResources = resources.stream()
+            .filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
+            .collect(Collectors.toList());
+        return deniedResources.isEmpty()
+            ? AuthResult.pass(user)
+            : buildFailAuthResultFromResources(user, actionId, deniedResources);
     }
 
     private List<InstanceDTO> buildInstanceList(ResourceTypeEnum resourceType,
