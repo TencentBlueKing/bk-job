@@ -15,3 +15,11 @@ export const listIssueStatus = (params, signal) => request.get('/issueStatus/lis
   },
   signal,
 });
+
+/**
+ * 删除指定 Issue 的状态数据
+ *
+ * @param {string} id Issue 标识
+ * @returns {Promise<{deleted: number}>}
+ */
+export const deleteIssueStatus = id => request.post('/issueStatus/delete', { id });

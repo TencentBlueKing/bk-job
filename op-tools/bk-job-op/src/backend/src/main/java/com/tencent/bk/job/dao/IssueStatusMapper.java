@@ -25,6 +25,7 @@
 package com.tencent.bk.job.dao;
 
 import com.tencent.bk.job.model.IssueStatusDTO;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -92,4 +93,7 @@ public interface IssueStatusMapper {
         + "`status_description` = VALUES(`status_description`), "
         + "`update_time` = VALUES(`update_time`)")
     int upsert(IssueStatusDTO dto);
+
+    @Delete("DELETE FROM issue_status WHERE `id` = #{id}")
+    int deleteById(@Param("id") String id);
 }

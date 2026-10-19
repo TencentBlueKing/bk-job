@@ -2,6 +2,8 @@ package com.tencent.bk.job.controller.impl;
 
 import com.tencent.bk.job.controller.IssueStatusResource;
 import com.tencent.bk.job.dao.IssueStatusMapper;
+import com.tencent.bk.job.model.DeleteIssueStatusReq;
+import com.tencent.bk.job.model.DeleteIssueStatusResp;
 import com.tencent.bk.job.model.IssueStatusDTO;
 import com.tencent.bk.job.model.IssueStatusResp;
 import com.tencent.bk.job.model.SetIssueStatusReq;
@@ -78,6 +80,15 @@ public class IssueStatusResourceImpl implements IssueStatusResource {
             .map(this::toResp)
             .collect(Collectors.toList());
         return new PageData<>(total, startIndex, size, records);
+    }
+
+    @Override
+    public DeleteIssueStatusResp deleteIssueStatus(DeleteIssueStatusReq req) {
+        String id = req == null ? null : StringUtils.trimToNull(req.getId());
+        if (id == null) {
+            throw new IllegalArgumentException("id不能为空");
+        }
+        return new DeleteIssueStatusResp(issueStatusMapper.deleteById(id));
     }
 
     private IssueStatusResp toResp(IssueStatusDTO dto) {

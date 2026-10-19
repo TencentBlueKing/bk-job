@@ -51,6 +51,11 @@ public class WebPaths {
     public static final String ISSUE_STATUS_LIST = "/issueStatus/list";
 
     /**
+     * Issue状态删除接口，供OP Web页面使用
+     */
+    public static final String ISSUE_STATUS_DELETE = "/issueStatus/delete";
+
+    /**
      * 当前登录用户信息查询接口，供OP Web页面使用
      */
     public static final String WEB_USER_INFO = "/web/userInfo";
@@ -79,7 +84,7 @@ public class WebPaths {
      * 会话接口路径。无论页面开关如何，这些路径始终受登录态+白名单保护
      */
     public static final List<String> SESSION_API_PATHS = Collections.unmodifiableList(
-        List.of(ISSUE_STATUS_LIST, WEB_USER_INFO)
+        List.of(ISSUE_STATUS_LIST, ISSUE_STATUS_DELETE, WEB_USER_INFO)
     );
 
     /**

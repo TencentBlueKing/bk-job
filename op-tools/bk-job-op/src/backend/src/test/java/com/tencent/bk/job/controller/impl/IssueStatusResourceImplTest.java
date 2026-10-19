@@ -25,6 +25,8 @@
 package com.tencent.bk.job.controller.impl;
 
 import com.tencent.bk.job.dao.IssueStatusMapper;
+import com.tencent.bk.job.model.DeleteIssueStatusReq;
+import com.tencent.bk.job.model.DeleteIssueStatusResp;
 import com.tencent.bk.job.model.IssueStatusDTO;
 import com.tencent.bk.job.model.IssueStatusResp;
 import com.tencent.bk.job.model.SetIssueStatusReq;
@@ -37,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -184,5 +187,36 @@ class IssueStatusResourceImplTest {
         IssueStatusResp resp = resource.getIssueStatus("issue_4523");
 
         assertThat(resp).isEqualTo(new IssueStatusResp("issue_4523", "issue_todo", "待处理", 1758542400000L));
+    }
+
+    @Test
+    @DisplayName("删除Issue状态时去除id两端空白并返回实际删除行数")
+    void shouldDeleteIssueStatusAndReturnAffectedRows() {
+        when(issueStatusMapper.deleteById("issue_4523")).thenReturn(1);
+
+        DeleteIssueStatusResp resp = resource.deleteIssueStatus(new DeleteIssueStatusReq(" issue_4523 "));
+
+        assertThat(resp.getDeleted()).isOne();
+        verify(issueStatusMapper).deleteById("issue_4523");
+    }
+
+    @Test
+    @DisplayName("删除不存在的Issue状态保持幂等并返回0")
+    void shouldReturnZeroWhenDeletingAbsentIssueStatus() {
+        when(issueStatusMapper.deleteById("issue_404")).thenReturn(0);
+
+        DeleteIssueStatusResp resp = resource.deleteIssueStatus(new DeleteIssueStatusReq("issue_404"));
+
+        assertThat(resp.getDeleted()).isZero();
+    }
+
+    @Test
+    @DisplayName("删除Issue状态时id为空白返回明确参数错误且不访问数据库")
+    void shouldRejectBlankIdWhenDeletingIssueStatus() {
+        assertThatThrownBy(() -> resource.deleteIssueStatus(new DeleteIssueStatusReq("  ")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("id不能为空");
+
+        verify(issueStatusMapper, never()).deleteById(any());
     }
 }

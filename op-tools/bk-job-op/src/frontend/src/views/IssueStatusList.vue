@@ -58,6 +58,19 @@
           {{ formatTime(row.updateTime) }}
         </template>
       </bk-table-column>
+      <bk-table-column
+        fixed="right"
+        label="操作"
+        width="100">
+        <template slot-scope="{ row }">
+          <bk-button
+            text
+            theme="danger"
+            @click="handleDelete(row)">
+            删除
+          </bk-button>
+        </template>
+      </bk-table-column>
       <div slot="empty">{{ emptyText }}</div>
     </bk-table>
     <bk-pagination
@@ -80,7 +93,7 @@
     formatTime,
     resolveIssueUrl,
   } from '../common/format';
-  import { listIssueStatus } from '../service/issue-status';
+  import { deleteIssueStatus, listIssueStatus } from '../service/issue-status';
   import { AuthError } from '../service/request';
 
   const POLL_INTERVAL = 3000;
@@ -134,6 +147,7 @@
       this.hasShownError = false;
       this.stopped = false;
       this.boundaryRetried = false;
+      this.deleteConfirming = false;
       this.onVisibilityChange = this.handleVisibilityChange.bind(this);
     },
     mounted() {
@@ -191,6 +205,50 @@
         this.limit = limit;
         this.current = 1;
         this.restart(false);
+      },
+      handleDelete(row) {
+        // 在弹框前固定目标ID并暂停轮询，避免列表刷新后误删其他行
+        const issueId = row.id;
+        this.deleteConfirming = true;
+        this.clearPollTimer();
+        this.requestSeq += 1;
+        this.abortInFlight();
+        this.loading = false;
+
+        this.$bkInfo({
+          title: `确认删除 ${issueId}？`,
+          subTitle: '将删除该 Issue 状态数据且不可恢复',
+          theme: 'danger',
+          maskClose: false,
+          confirmFn: async () => {
+            try {
+              const result = await deleteIssueStatus(issueId);
+              if (this.list.length === 1 && this.current > 1) {
+                this.current -= 1;
+              }
+              this.$bkMessage({
+                theme: 'success',
+                message: result.deleted > 0 ? '删除成功' : '该 Issue 状态数据已不存在',
+              });
+              this.deleteConfirming = false;
+              this.restart(false);
+              return true;
+            } catch (error) {
+              this.$bkMessage({
+                theme: 'error',
+                message: error.message || '删除Issue状态数据失败',
+              });
+              // 返回false使确认框保持打开，用户可重试或取消
+              return false;
+            }
+          },
+          afterLeaveFn: () => {
+            if (this.deleteConfirming) {
+              this.deleteConfirming = false;
+              this.restart(true);
+            }
+          },
+        });
       },
       handleVisibilityChange() {
         if (document.hidden) {
@@ -281,7 +339,7 @@
       },
       scheduleNext() {
         this.clearPollTimer();
-        if (this.stopped || document.hidden) {
+        if (this.stopped || this.deleteConfirming || document.hidden) {
           return;
         }
         const delay = this.failCount > 0

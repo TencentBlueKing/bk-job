@@ -152,6 +152,14 @@ class IssueStatusMapperTest {
             .containsExactly("id", "issueNo", "status", "statusDescription", "updateTime");
     }
 
+    @Test
+    @DisplayName("删除按主键执行物理DELETE")
+    void shouldPhysicallyDeleteById() {
+        String sql = sqlOf("deleteById", Map.of("id", "issue_4523"));
+
+        assertThat(sql).isEqualTo("DELETE FROM issue_status WHERE `id` = ?");
+    }
+
     private Map<String, Object> nullKeyword() {
         Map<String, Object> params = new HashMap<>();
         params.put("keyword", null);

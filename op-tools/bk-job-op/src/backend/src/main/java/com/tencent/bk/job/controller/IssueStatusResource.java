@@ -1,6 +1,8 @@
 package com.tencent.bk.job.controller;
 
 import com.tencent.bk.job.consts.WebPaths;
+import com.tencent.bk.job.model.DeleteIssueStatusReq;
+import com.tencent.bk.job.model.DeleteIssueStatusResp;
 import com.tencent.bk.job.model.IssueStatusResp;
 import com.tencent.bk.job.model.SetIssueStatusReq;
 import com.tencent.bk.job.service.model.PageData;
@@ -49,5 +51,16 @@ public interface IssueStatusResource {
         @RequestParam(value = "idKeyword", required = false) String idKeyword,
         @RequestParam(value = "start", required = false, defaultValue = "0") Integer start,
         @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize
+    );
+
+    /**
+     * 物理删除指定Issue的状态数据
+     *
+     * @param req Issue状态删除请求体
+     * @return 实际删除行数
+     */
+    @PostMapping(WebPaths.ISSUE_STATUS_DELETE)
+    DeleteIssueStatusResp deleteIssueStatus(
+        @RequestBody DeleteIssueStatusReq req
     );
 }

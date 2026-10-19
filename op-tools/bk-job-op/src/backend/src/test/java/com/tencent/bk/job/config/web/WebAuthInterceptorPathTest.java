@@ -72,7 +72,7 @@ class WebAuthInterceptorPathTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/issueStatus/list", "/web/userInfo"})
+    @ValueSource(strings = {"/issueStatus/list", "/issueStatus/delete", "/web/userInfo"})
     @DisplayName("Web页面会话接口被拦截")
     void shouldInterceptSessionApiPaths(String uri) {
         assertThat(matches(true, uri)).isTrue();
@@ -99,10 +99,11 @@ class WebAuthInterceptorPathTest {
     }
 
     @Test
-    @DisplayName("裸调/issueStatus不被拦截，与其相邻的/issueStatus/list被拦截")
-    void shouldDistinguishIssueStatusFromItsListSubPath() {
+    @DisplayName("裸调/issueStatus不被拦截，与其相邻的列表和删除接口被拦截")
+    void shouldDistinguishIssueStatusFromProtectedSubPaths() {
         assertThat(matches(true, WebPaths.ISSUE_STATUS)).isFalse();
         assertThat(matches(true, WebPaths.ISSUE_STATUS_LIST)).isTrue();
+        assertThat(matches(true, WebPaths.ISSUE_STATUS_DELETE)).isTrue();
     }
 
     @Test
