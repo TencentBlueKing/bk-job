@@ -1823,6 +1823,9 @@ backupConfig:
       batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
       deleteRowLimit: 1000
+      # 写入归档库时要忽略的字段，key 为表名，value 为字段名列表；为空则不忽略任何字段
+      # 示例：{ step_instance_script: [account_var], step_instance_file: [account_var] }
+      ignoredColumns: {}
       # 定时检查归档的结果，是否有已经归档完的任务，但实际上数据未完全删除
       check:
         # 默认开启检查

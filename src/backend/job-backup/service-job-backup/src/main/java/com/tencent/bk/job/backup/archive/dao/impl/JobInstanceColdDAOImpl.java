@@ -31,12 +31,18 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.DSLContext;
 import org.jooq.Loader;
 import org.jooq.LoaderError;
+import org.jooq.LoaderFieldMapper;
+import org.jooq.LoaderRowsStep;
+import org.jooq.Table;
 import org.jooq.TableRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 @Slf4j
@@ -46,9 +52,15 @@ public class JobInstanceColdDAOImpl implements JobInstanceColdDAO {
 
     private final DSLContext context;
 
-    public JobInstanceColdDAOImpl(DSLContext coldDbDslContext) {
-        log.info("Init JobInstanceColdDAOImpl.");
+    /**
+     * 写入归档库时要忽略的字段，key 为表名，value 为字段名集合。
+     */
+    private final Map<String, Set<String>> ignoredColumns;
+
+    public JobInstanceColdDAOImpl(DSLContext coldDbDslContext, Map<String, Set<String>> ignoredColumns) {
         this.context = coldDbDslContext;
+        this.ignoredColumns = ignoredColumns == null ? Collections.emptyMap() : ignoredColumns;
+        log.info("Init JobInstanceColdDAOImpl, ignoredColumns={}", this.ignoredColumns);
     }
 
     @Override
@@ -58,17 +70,17 @@ public class JobInstanceColdDAOImpl implements JobInstanceColdDAO {
         String table = recordList.get(0).getTable().getName();
         boolean success = true;
         try {
-            Loader<?> loader =
+            // 由于这里是批量写入，jooq 不允许使用 onDuplicateKeyIgnore/onDuplicateKeyUpdate.
+            // 否则会报错"Cannot apply bulk loading with onDuplicateKey flags"
+            // 所以这里暂时使用 onDuplicateKeyError 错误处理方式，等后续流程进一步判断是否是主键冲突错误
+            // issue 参考：https://github.com/jOOQ/jOOQ/issues/12740
+            Loader<?> loader = executeLoad(
                 context.loadInto(recordList.get(0).getTable())
-                    // 由于这里是批量写入，jooq 不允许使用 onDuplicateKeyIgnore/onDuplicateKeyUpdate.
-                    // 否则会报错"Cannot apply bulk loading with onDuplicateKey flags"
-                    // 所以这里暂时使用 onDuplicateKeyError 错误处理方式，等后续流程进一步判断是否是主键冲突错误
-                    // issue 参考：https://github.com/jOOQ/jOOQ/issues/12740
                     .onDuplicateKeyError()
                     .bulkAfter(bulkSize)
-                    .loadRecords(recordList)
-                    .fieldsCorresponding()
-                    .execute();
+                    .loadRecords(recordList),
+                recordList.get(0).getTable()
+            );
             successInsertedRecords = loader.stored();
             String bulkInsertResult = successInsertedRecords == recordList.size() ? "success" : "fail";
             log.info(
@@ -109,6 +121,33 @@ public class JobInstanceColdDAOImpl implements JobInstanceColdDAO {
         return successInsertedRecords;
     }
 
+    /**
+     * 当前表未配置忽略字段时按字段名全量写入，否则跳过配置的字段。
+     */
+    private Loader<?> executeLoad(LoaderRowsStep<?> rowsStep, Table<?> table) throws IOException {
+        Set<String> tableIgnoredColumns = ignoredColumns.get(table.getName());
+        if (CollectionUtils.isEmpty(tableIgnoredColumns)) {
+            return rowsStep.fieldsCorresponding().execute();
+        }
+        return rowsStep.fields(buildColdDbFieldMapper(table, tableIgnoredColumns)).execute();
+    }
+
+    /**
+     * 按字段名映射到归档表，跳过配置的字段（返回 null 表示不写入）。
+     *
+     * @param table 目标表
+     * @param tableIgnoredColumns 当前表要忽略的字段
+     * @return 字段映射
+     */
+    private LoaderFieldMapper buildColdDbFieldMapper(Table<?> table, Set<String> tableIgnoredColumns) {
+        return ctx -> {
+            if (tableIgnoredColumns.contains(ctx.field().getName())) {
+                return null;
+            }
+            return table.field(ctx.field());
+        };
+    }
+
     private boolean hasDuplicateError(List<LoaderError> errors) {
         // 通过 mysql 执行的错误消息判断是否是由于数据唯一性冲突引起的
         return errors.stream().anyMatch(this::isDuplicateError);
@@ -123,12 +162,12 @@ public class JobInstanceColdDAOImpl implements JobInstanceColdDAO {
         int successInsertedRecords;
         String table = recordList.get(0).getTable().getName();
         try {
-            Loader<?> loader =
+            Loader<?> loader = executeLoad(
                 context.loadInto(recordList.get(0).getTable())
                     .onDuplicateKeyIgnore()
-                    .loadRecords(recordList)
-                    .fieldsCorresponding()
-                    .execute();
+                    .loadRecords(recordList),
+                recordList.get(0).getTable()
+            );
             successInsertedRecords = loader.stored() + loader.ignored();
             String bulkInsertResult = successInsertedRecords == recordList.size() ? "success" : "fail";
             log.info(
