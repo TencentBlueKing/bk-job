@@ -137,8 +137,10 @@
     <!-- Spring框架日志 -->
     <logger name="org.springframework" level="INFO"/>
     <logger name="org.springframework.web" level="INFO"/>
-    <!-- ticket只能通过query参数传递，禁止RestTemplate DEBUG日志输出完整请求URI -->
+    <!-- ticket只能通过query参数传递，禁止HTTP客户端DEBUG日志输出完整请求URI -->
     <logger name="org.springframework.web.client.RestTemplate" level="INFO"/>
+    <logger name="sun.net.www.protocol.http.HttpURLConnection" level="INFO"/>
+    <logger name="okhttp3" level="INFO"/>
     <logger name="org.springframework.ai" level="DEBUG"/>
 
     <!-- Hibernate日志 -->
