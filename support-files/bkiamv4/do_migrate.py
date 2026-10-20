@@ -546,18 +546,21 @@ def sync_existing_role(client, system_id, desired, remote, ignore_fail):
         log_skip("角色", role_id)
         return True
 
-    for action in to_recreate:
-        step = "角色 %s 操作 %s 关联资源类型改变，删除后重新创建" % (role_id, action["id"])
-        ok, message = client.delete_role_actions(system_id, role_id, [action["id"]])
+    if to_recreate:
+        action_ids = [action["id"] for action in to_recreate]
+        step = "角色 %s 操作 %s 关联资源类型改变，删除后重新创建" % (role_id, ",".join(action_ids))
+        ok, message = client.delete_role_actions(system_id, role_id, action_ids)
         if not ok:
             if not accept_step(False, message, step, ignore_fail):
                 return False
-            continue
-        ok, message = client.create_role_actions(system_id, role_id, [role_action_payload(action)])
-        if ok:
-            log_mutation(step, client.dry_run)
-        elif not accept_step(False, message, step, ignore_fail):
-            return False
+        else:
+            ok, message = client.create_role_actions(
+                system_id, role_id, [role_action_payload(action) for action in to_recreate]
+            )
+            if ok:
+                log_mutation(step, client.dry_run)
+            elif not accept_step(False, message, step, ignore_fail):
+                return False
 
     if to_delete:
         action_ids = [action["id"] for action in to_delete]
