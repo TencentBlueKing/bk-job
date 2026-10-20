@@ -28,6 +28,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * 白名单与配置归一化行为。核心是「白名单为空默认全拒」，不允许退化为默认放行。
@@ -105,5 +106,35 @@ class WebAuthPropertiesTest {
         assertThat(login.getRedirectParamName()).isEqualTo("c_url");
         assertThat(login.getApiUrl()).isEmpty();
         assertThat(login.getLoginUrl()).isEmpty();
+        assertThat(login.getCache().getValidSeconds()).isEqualTo(300);
+        assertThat(login.getCache().getInvalidSeconds()).isEqualTo(30);
+        assertThat(login.getCache().getMaxSize()).isEqualTo(10000);
+    }
+
+    @Test
+    @DisplayName("缓存TTL与容量不允许为负，容量为0表示允许禁用缓存")
+    void shouldValidateCacheSettings() {
+        WebAuthProperties disabled = new WebAuthProperties();
+        disabled.getAuth().getLogin().getCache().setMaxSize(0);
+        disabled.init();
+        assertThat(disabled.getAuth().getLogin().getCache().getMaxSize()).isZero();
+
+        WebAuthProperties negativeValidTtl = new WebAuthProperties();
+        negativeValidTtl.getAuth().getLogin().getCache().setValidSeconds(-1);
+        assertThatThrownBy(negativeValidTtl::init)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("valid-seconds");
+
+        WebAuthProperties negativeInvalidTtl = new WebAuthProperties();
+        negativeInvalidTtl.getAuth().getLogin().getCache().setInvalidSeconds(-1);
+        assertThatThrownBy(negativeInvalidTtl::init)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("invalid-seconds");
+
+        WebAuthProperties negativeMaxSize = new WebAuthProperties();
+        negativeMaxSize.getAuth().getLogin().getCache().setMaxSize(-1);
+        assertThatThrownBy(negativeMaxSize::init)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("max-size");
     }
 }

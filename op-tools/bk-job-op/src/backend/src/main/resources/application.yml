@@ -79,7 +79,7 @@ job:
     web:
       # 页面总开关。
       # true：托管前端静态页面与SPA路由回落；
-      # false：仅关闭页面入口，/issueStatus/list 与 /web/userInfo 仍可访问且仍受登录态+白名单保护。
+      # false：仅关闭页面入口，/web/issueStatus/list 与 /web/userInfo 仍可访问且仍受登录态+白名单保护。
       # 注意：这不是安全开关，安全边界由接口鉴权保证。
       enabled: ${JOB_OP_WEB_ENABLED:true}
       auth:
@@ -108,6 +108,8 @@ job:
             valid-seconds: ${JOB_OP_WEB_LOGIN_CACHE_SECONDS:300}
             # 无效ticket的负缓存秒数
             invalid-seconds: ${JOB_OP_WEB_LOGIN_INVALID_CACHE_SECONDS:30}
+            # 本地缓存最大条目数，0表示禁用缓存
+            max-size: ${JOB_OP_WEB_LOGIN_CACHE_MAX_SIZE:10000}
 
 # BK API网关统一配置
 bkApiGateway:

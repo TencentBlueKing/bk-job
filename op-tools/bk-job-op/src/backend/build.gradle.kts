@@ -32,6 +32,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatisSpringBootVersion")
     runtimeOnly("com.mysql:mysql-connector-j:$mysqlConnectorVersion")
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")

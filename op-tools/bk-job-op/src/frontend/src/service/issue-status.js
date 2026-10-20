@@ -7,7 +7,7 @@ import request from './request';
  * @param {AbortSignal} [signal] 用于取消在途请求
  * @returns {Promise<{total: number, start: number, size: number, data: Array}>}
  */
-export const listIssueStatus = (params, signal) => request.get('/issueStatus/list', {
+export const listIssueStatus = (params, signal) => request.get('/web/issueStatus/list', {
   params: {
     idKeyword: params.idKeyword || undefined,
     start: params.start,
@@ -22,4 +22,4 @@ export const listIssueStatus = (params, signal) => request.get('/issueStatus/lis
  * @param {string} id Issue 标识
  * @returns {Promise<{deleted: number}>}
  */
-export const deleteIssueStatus = id => request.post('/issueStatus/delete', { id });
+export const deleteIssueStatus = id => request.post('/web/issueStatus/delete', { id });

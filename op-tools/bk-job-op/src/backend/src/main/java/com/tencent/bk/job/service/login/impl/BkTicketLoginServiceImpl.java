@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.service.login.impl;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Expiry;
+import com.github.benmanes.caffeine.cache.Ticker;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.config.web.WebAuthProperties;
 import com.tencent.bk.job.service.login.BkTicketLoginService;
@@ -34,8 +38,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -46,6 +50,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * 基于蓝鲸统一登录服务的登录态校验实现。
@@ -62,25 +68,24 @@ public class BkTicketLoginServiceImpl implements BkTicketLoginService {
 
     private static final String API_GET_USER_INFO = "/user/get_info/";
 
-    private static final String CACHE_KEY_PREFIX = "job:op:login:ticket:";
-
-    /**
-     * 负缓存哨兵值
-     */
-    private static final String INVALID_SENTINEL = "__INVALID__";
-
     private final WebAuthProperties webAuthProperties;
 
     private final RestTemplate loginRestTemplate;
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final Cache<String, LoginCacheEntry> loginCache;
 
+    @Autowired
     public BkTicketLoginServiceImpl(WebAuthProperties webAuthProperties,
-                                    @Qualifier("loginRestTemplate") RestTemplate loginRestTemplate,
-                                    RedisTemplate<String, String> redisTemplate) {
+                                    @Qualifier("loginRestTemplate") RestTemplate loginRestTemplate) {
+        this(webAuthProperties, loginRestTemplate, Ticker.systemTicker());
+    }
+
+    BkTicketLoginServiceImpl(WebAuthProperties webAuthProperties,
+                             RestTemplate loginRestTemplate,
+                             Ticker ticker) {
         this.webAuthProperties = webAuthProperties;
         this.loginRestTemplate = loginRestTemplate;
-        this.redisTemplate = redisTemplate;
+        this.loginCache = buildCache(webAuthProperties.getAuth().getLogin().getCache(), ticker);
     }
 
     @Override
@@ -96,22 +101,49 @@ public class BkTicketLoginServiceImpl implements BkTicketLoginService {
             return null;
         }
 
-        String cacheKey = buildCacheKey(ticket);
-        String cached = readCache(cacheKey);
-        if (INVALID_SENTINEL.equals(cached)) {
-            return null;
-        }
-        if (cached != null) {
-            return cached;
+        if (loginCache == null) {
+            return requestUsername(login, ticket);
         }
 
-        String username = requestUsername(login, ticket);
-        if (StringUtils.isBlank(username)) {
-            writeCache(cacheKey, INVALID_SENTINEL, login.getCache().getInvalidSeconds());
+        LoginCacheEntry entry = loginCache.get(hashTicket(ticket), ignored -> {
+            String username = requestUsername(login, ticket);
+            return StringUtils.isBlank(username) ? LoginCacheEntry.invalid() : LoginCacheEntry.valid(username);
+        });
+        return entry.isValid() ? entry.getUsername() : null;
+    }
+
+    private Cache<String, LoginCacheEntry> buildCache(WebAuthProperties.Cache cacheProperties, Ticker ticker) {
+        if (cacheProperties.getMaxSize() == 0) {
             return null;
         }
-        writeCache(cacheKey, username, login.getCache().getValidSeconds());
-        return username;
+        long validNanos = Duration.ofSeconds(cacheProperties.getValidSeconds()).toNanos();
+        long invalidNanos = Duration.ofSeconds(cacheProperties.getInvalidSeconds()).toNanos();
+        return Caffeine.<String, LoginCacheEntry>newBuilder()
+            .maximumSize(cacheProperties.getMaxSize())
+            .ticker(ticker)
+            .expireAfter(new Expiry<String, LoginCacheEntry>() {
+                @Override
+                public long expireAfterCreate(String key, LoginCacheEntry value, long currentTime) {
+                    return value.isValid() ? validNanos : invalidNanos;
+                }
+
+                @Override
+                public long expireAfterUpdate(String key,
+                                              LoginCacheEntry value,
+                                              long currentTime,
+                                              long currentDuration) {
+                    return value.isValid() ? validNanos : invalidNanos;
+                }
+
+                @Override
+                public long expireAfterRead(String key,
+                                            LoginCacheEntry value,
+                                            long currentTime,
+                                            long currentDuration) {
+                    return currentDuration;
+                }
+            })
+            .build();
     }
 
     /**
@@ -167,9 +199,9 @@ public class BkTicketLoginServiceImpl implements BkTicketLoginService {
     }
 
     /**
-     * ticket是登录凭证，明文进Redis key等于把它落到一个运维可随手SCAN到的地方，这里先做哈希
+     * ticket是登录凭证，即使只在内存中缓存也不得作为明文键
      */
-    private String buildCacheKey(String ticket) {
+    private String hashTicket(String ticket) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(ticket.getBytes(StandardCharsets.UTF_8));
@@ -177,32 +209,45 @@ public class BkTicketLoginServiceImpl implements BkTicketLoginService {
             for (byte b : hash) {
                 sb.append(String.format("%02x", b));
             }
-            return CACHE_KEY_PREFIX + sb;
+            return sb.toString();
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 is not available", e);
         }
     }
 
-    /**
-     * Redis不可用时降级为直连登录服务（不缓存），不因缓存故障阻断登录
-     */
-    private String readCache(String cacheKey) {
-        try {
-            return redisTemplate.opsForValue().get(cacheKey);
-        } catch (Exception e) {
-            log.warn("Failed to read login cache, fallback to calling login service directly", e);
-            return null;
+    long estimatedCacheSize() {
+        if (loginCache == null) {
+            return 0;
         }
+        loginCache.cleanUp();
+        return loginCache.estimatedSize();
     }
 
-    private void writeCache(String cacheKey, String value, int seconds) {
-        if (seconds <= 0) {
-            return;
+    Set<String> cacheKeys() {
+        if (loginCache == null) {
+            return Collections.emptySet();
         }
-        try {
-            redisTemplate.opsForValue().set(cacheKey, value, Duration.ofSeconds(seconds));
-        } catch (Exception e) {
-            log.warn("Failed to write login cache", e);
+        return loginCache.asMap().keySet();
+    }
+
+    @Getter
+    private static class LoginCacheEntry {
+
+        private final String username;
+
+        private final boolean valid;
+
+        private LoginCacheEntry(String username, boolean valid) {
+            this.username = username;
+            this.valid = valid;
+        }
+
+        static LoginCacheEntry valid(String username) {
+            return new LoginCacheEntry(username, true);
+        }
+
+        static LoginCacheEntry invalid() {
+            return new LoginCacheEntry(null, false);
         }
     }
 

@@ -24,10 +24,14 @@
 
 package com.tencent.bk.job.config.web;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.tencent.bk.job.consts.WebPaths;
 import com.tencent.bk.job.service.login.BkTicketLoginService;
 import com.tencent.bk.job.service.login.LoginServiceUnavailableException;
 import jakarta.servlet.http.Cookie;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +40,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -53,9 +58,23 @@ class WebAuthInterceptorTest {
 
     private BkTicketLoginService loginService;
 
+    private Logger logger;
+
+    private ListAppender<ILoggingEvent> listAppender;
+
     @BeforeEach
     void setUp() {
         loginService = mock(BkTicketLoginService.class);
+        logger = (Logger) LoggerFactory.getLogger(WebAuthInterceptor.class);
+        listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
+    }
+
+    @AfterEach
+    void tearDown() {
+        logger.detachAppender(listAppender);
+        listAppender.stop();
     }
 
     private WebAuthProperties newProperties(String whitelist, String loginPageUrl) {
@@ -162,6 +181,25 @@ class WebAuthInterceptorTest {
 
         assertThat(passed).isFalse();
         assertThat(response.getStatus()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value());
+    }
+
+    @Test
+    @DisplayName("登录异常链即使包含ticket也不得写入日志")
+    void shouldNotLogTicketFromLoginException() throws Exception {
+        String ticket = "sensitive-ticket";
+        LoginServiceUnavailableException exception = new LoginServiceUnavailableException(
+            "Failed to call login service",
+            new IllegalStateException("GET /user/get_info/?bk_ticket=" + ticket)
+        );
+        when(loginService.getUsername(ticket)).thenThrow(exception);
+        MockHttpServletRequest request = apiRequest();
+        request.setCookies(new Cookie("bk_ticket", ticket));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        newInterceptor(newProperties("admin", PAGE_URL)).preHandle(request, response, new Object());
+
+        assertThat(listAppender.list).extracting(ILoggingEvent::getFormattedMessage)
+            .allSatisfy(message -> assertThat(message).doesNotContain(ticket));
     }
 
     @Test

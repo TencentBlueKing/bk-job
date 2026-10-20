@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.config;
 
+import com.tencent.bk.job.consts.ApiPaths;
 import com.tencent.bk.job.consts.InterceptorOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +32,16 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.List;
+
 /**
  * Web MVC 配置 - API 认证
  */
 @Slf4j
 @Configuration
 public class ApiWebMvcConfig implements WebMvcConfigurer {
+
+    private static final List<String> INTERCEPT_PATHS = List.of("/api/**", ApiPaths.LEGACY_ISSUE_STATUS);
 
     private final ApiAuthProperties apiAuthProperties;
 
@@ -50,9 +55,13 @@ public class ApiWebMvcConfig implements WebMvcConfigurer {
         log.info("Registering API authentication interceptor");
 
         registry.addInterceptor(new ApiAuthInterceptor(apiAuthProperties))
-                .addPathPatterns("/api/**")
+                .addPathPatterns(INTERCEPT_PATHS)
                 .order(InterceptorOrder.Auth.API_AUTH);
 
         log.info("API authentication interceptor registered successfully");
+    }
+
+    public static List<String> resolveInterceptPaths() {
+        return INTERCEPT_PATHS;
     }
 }

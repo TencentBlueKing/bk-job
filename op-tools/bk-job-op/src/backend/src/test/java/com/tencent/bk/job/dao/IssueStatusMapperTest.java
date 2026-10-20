@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>不依赖真实数据库，直接从MyBatis的 {@link MappedStatement} 取出最终SQL做断言，
  * 守住三件事：本工程未开启 mapUnderscoreToCamelCase 因此必须写列别名、分页与模糊过滤下推到SQL、
- * 排序按Issue编号而不是按id字符串。</p>
+ * 排序按最后修改时间倒序且使用id作为稳定次级键。</p>
  */
 class IssueStatusMapperTest {
 
@@ -78,10 +78,10 @@ class IssueStatusMapperTest {
         String sql = sqlOf("selectById", Map.of("id", "issue_4523"));
 
         assertThat(sql).contains("`id` AS id")
-            .contains("`issue_no` AS issueNo")
             .contains("`status` AS status")
             .contains("`status_description` AS statusDescription")
-            .contains("`update_time` AS updateTime");
+            .contains("`update_time` AS updateTime")
+            .doesNotContain("issue_no");
     }
 
     @Test
@@ -93,11 +93,12 @@ class IssueStatusMapperTest {
     }
 
     @Test
-    @DisplayName("按Issue编号降序排序，编号解析不出来的排在最后，全序保证翻页稳定")
-    void shouldOrderByIssueNoInsteadOfIdString() {
+    @DisplayName("按最后修改时间倒序，id升序作为次级全序键")
+    void shouldOrderByUpdateTimeAndStableId() {
         String sql = sqlOf("listByKeyword", pageParams(null));
 
-        assertThat(sql).contains("ORDER BY (`issue_no` IS NULL) ASC, `issue_no` DESC, `id` ASC");
+        assertThat(sql).contains("ORDER BY `update_time` DESC, `id` ASC")
+            .doesNotContain("issue_no");
     }
 
     @Test
@@ -144,12 +145,13 @@ class IssueStatusMapperTest {
     @DisplayName("upsert的参数占位与DTO属性一一对应")
     void shouldBindUpsertParametersFromDto() {
         MappedStatement statement = configuration.getMappedStatement(MAPPER + ".upsert");
-        IssueStatusDTO dto = new IssueStatusDTO("issue_4523", 4523L, "issue_todo", "待处理", 1758542400000L);
+        IssueStatusDTO dto = new IssueStatusDTO("issue_4523", "issue_todo", "待处理", 1758542400000L);
 
         BoundSql boundSql = statement.getBoundSql(dto);
 
         assertThat(boundSql.getParameterMappings()).extracting("property")
-            .containsExactly("id", "issueNo", "status", "statusDescription", "updateTime");
+            .containsExactly("id", "status", "statusDescription", "updateTime");
+        assertThat(boundSql.getSql()).doesNotContain("issue_no");
     }
 
     @Test

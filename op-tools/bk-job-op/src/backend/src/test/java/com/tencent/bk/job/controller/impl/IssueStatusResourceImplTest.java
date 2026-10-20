@@ -88,8 +88,8 @@ class IssueStatusResourceImplTest {
         listAppender.stop();
     }
 
-    private IssueStatusDTO dto(String id, Long issueNo) {
-        return new IssueStatusDTO(id, issueNo, "issue_todo", "待处理", 1758542400000L);
+    private IssueStatusDTO dto(String id) {
+        return new IssueStatusDTO(id, "issue_todo", "待处理", 1758542400000L);
     }
 
     @Test
@@ -97,7 +97,7 @@ class IssueStatusResourceImplTest {
     void shouldReturnExactTotalAndKeepSqlOrder() {
         when(issueStatusMapper.countByKeyword(isNull())).thenReturn(4);
         when(issueStatusMapper.listByKeyword(isNull(), eq(0), eq(2)))
-            .thenReturn(List.of(dto("issue_4523", 4523L), dto("issue_100", 100L)));
+            .thenReturn(List.of(dto("issue_4523"), dto("issue_100")));
 
         PageData<IssueStatusResp> pageData = resource.listIssueStatus(null, 0, 2);
 
@@ -163,8 +163,8 @@ class IssueStatusResourceImplTest {
     }
 
     @Test
-    @DisplayName("写入时由服务端生成updateTime，并解析出用于排序的Issue编号")
-    void shouldGenerateUpdateTimeAndParseIssueNoOnWrite() {
+    @DisplayName("写入时由服务端生成updateTime")
+    void shouldGenerateUpdateTimeOnWrite() {
         SetIssueStatusReq req = new SetIssueStatusReq("issue_4523", "issue_todo", "待处理");
         long before = System.currentTimeMillis();
 
@@ -172,22 +172,11 @@ class IssueStatusResourceImplTest {
 
         ArgumentCaptor<IssueStatusDTO> captor = ArgumentCaptor.forClass(IssueStatusDTO.class);
         verify(issueStatusMapper).upsert(captor.capture());
-        assertThat(captor.getValue().getIssueNo()).isEqualTo(4523L);
         assertThat(captor.getValue().getUpdateTime()).isBetween(before, System.currentTimeMillis());
         assertThat(resp.getId()).isEqualTo("issue_4523");
         assertThat(resp.getStatus()).isEqualTo("issue_todo");
         assertThat(resp.getStatusDescription()).isEqualTo("待处理");
         assertThat(resp.getUpdateTime()).isEqualTo(captor.getValue().getUpdateTime());
-    }
-
-    @Test
-    @DisplayName("id不符合issue_数字格式时issueNo为null，由SQL把它排到列表末尾")
-    void shouldLeaveIssueNoNullForUnparsableId() {
-        resource.setIssueStatus(new SetIssueStatusReq("other_1", "issue_todo", "待处理"));
-
-        ArgumentCaptor<IssueStatusDTO> captor = ArgumentCaptor.forClass(IssueStatusDTO.class);
-        verify(issueStatusMapper).upsert(captor.capture());
-        assertThat(captor.getValue().getIssueNo()).isNull();
     }
 
     @Test
@@ -206,7 +195,7 @@ class IssueStatusResourceImplTest {
     @Test
     @DisplayName("查询已有Issue状态时原样返回存储的字段")
     void shouldReturnStoredFields() {
-        when(issueStatusMapper.selectById("issue_4523")).thenReturn(dto("issue_4523", 4523L));
+        when(issueStatusMapper.selectById("issue_4523")).thenReturn(dto("issue_4523"));
 
         IssueStatusResp resp = resource.getIssueStatus("issue_4523");
 

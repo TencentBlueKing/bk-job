@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
- * updateTime 字段的序列化契约。外部脚本裸调 GET/POST /issueStatus，响应体字段名与类型不得变化。
+ * updateTime 字段的序列化契约。API调用方迁移路径期间，响应体字段名与类型不得变化。
  */
 class IssueStatusRespTest {
 

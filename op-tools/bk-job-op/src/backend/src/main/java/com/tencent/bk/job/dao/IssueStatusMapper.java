@@ -41,16 +41,14 @@ import java.util.List;
 public interface IssueStatusMapper {
 
     String SELECT_COLUMNS = "`id` AS id, "
-        + "`issue_no` AS issueNo, "
         + "`status` AS status, "
         + "`status_description` AS statusDescription, "
         + "`update_time` AS updateTime";
 
     /**
-     * 列表排序：能解析出编号的按编号降序在前，解析不出编号的按id升序排在后面。
-     * 三段排序键保证全序，翻页时不会出现记录重复或遗漏。
+     * 列表按最后修改时间倒序，id作为稳定分页的次级全序键。
      */
-    String ORDER_BY = "ORDER BY (`issue_no` IS NULL) ASC, `issue_no` DESC, `id` ASC";
+    String ORDER_BY = "ORDER BY `update_time` DESC, `id` ASC";
 
     /**
      * 关键字为空时不加过滤条件。keyword中的 % _ \ 已由调用方转义，这里显式声明转义符，
@@ -84,11 +82,10 @@ public interface IssueStatusMapper {
      * 而不是先查后写，避免并发下的竞态
      */
     @Insert("INSERT INTO issue_status ("
-        + "`id`, `issue_no`, `status`, `status_description`, `update_time`"
+        + "`id`, `status`, `status_description`, `update_time`"
         + ") VALUES ("
-        + "#{id}, #{issueNo}, #{status}, #{statusDescription}, #{updateTime}"
+        + "#{id}, #{status}, #{statusDescription}, #{updateTime}"
         + ") ON DUPLICATE KEY UPDATE "
-        + "`issue_no` = VALUES(`issue_no`), "
         + "`status` = VALUES(`status`), "
         + "`status_description` = VALUES(`status_description`), "
         + "`update_time` = VALUES(`update_time`)")

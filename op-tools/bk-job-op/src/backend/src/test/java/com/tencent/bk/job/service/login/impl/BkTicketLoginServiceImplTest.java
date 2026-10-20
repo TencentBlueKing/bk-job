@@ -4,84 +4,92 @@
  * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
- *
- * License for BK-JOB蓝鲸智云作业平台:
- * --------------------------------------------------------------------
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
- * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
- * the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
  */
 
 package com.tencent.bk.job.service.login.impl;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.github.benmanes.caffeine.cache.Ticker;
 import com.tencent.bk.job.config.web.WebAuthProperties;
 import com.tencent.bk.job.service.login.LoginServiceUnavailableException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * 统一登录服务的ticket校验。
- *
- * <p>协议与主项目自定义登录一致：{@code GET {api-url}/user/get_info/?app_code=..&bk_ticket=..}，
- * 响应 {@code {"ret":0,"data":{"username":"xxx"}}}。</p>
+ * 统一登录服务的ticket校验与纯本地有界缓存。
  */
-@SuppressWarnings("unchecked")
 class BkTicketLoginServiceImplTest {
 
     private static final String API_URL = "http://login.example.com/login/api/v3";
 
     private RestTemplate loginRestTemplate;
 
-    private RedisTemplate<String, String> redisTemplate;
+    private MutableTicker ticker;
 
-    private ValueOperations<String, String> valueOperations;
+    private Logger logger;
+
+    private ListAppender<ILoggingEvent> listAppender;
 
     @BeforeEach
     void setUp() {
         loginRestTemplate = mock(RestTemplate.class);
-        redisTemplate = mock(RedisTemplate.class);
-        valueOperations = mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        ticker = new MutableTicker();
+        logger = (Logger) LoggerFactory.getLogger(BkTicketLoginServiceImpl.class);
+        listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
     }
 
-    private BkTicketLoginServiceImpl newService(String apiUrl) {
+    @AfterEach
+    void tearDown() {
+        logger.detachAppender(listAppender);
+        listAppender.stop();
+    }
+
+    private WebAuthProperties properties(long maxSize, int validSeconds, int invalidSeconds) {
         WebAuthProperties properties = new WebAuthProperties();
-        properties.getAuth().getLogin().setApiUrl(apiUrl);
+        WebAuthProperties.Login login = properties.getAuth().getLogin();
+        login.setApiUrl(API_URL);
+        login.getCache().setMaxSize(maxSize);
+        login.getCache().setValidSeconds(validSeconds);
+        login.getCache().setInvalidSeconds(invalidSeconds);
         properties.init();
-        return new BkTicketLoginServiceImpl(properties, loginRestTemplate, redisTemplate);
+        return properties;
     }
 
-    private void givenResponse(String body) {
-        when(loginRestTemplate.getForObject(any(URI.class), eq(String.class))).thenReturn(body);
+    private BkTicketLoginServiceImpl newService(long maxSize, int validSeconds, int invalidSeconds) {
+        return new BkTicketLoginServiceImpl(
+            properties(maxSize, validSeconds, invalidSeconds),
+            loginRestTemplate,
+            ticker
+        );
+    }
+
+    private void givenResponses(String... bodies) {
+        when(loginRestTemplate.getForObject(any(URI.class), eq(String.class))).thenReturn(bodies[0],
+            java.util.Arrays.copyOfRange(bodies, 1, bodies.length));
     }
 
     private URI capturedUri() {
@@ -91,141 +99,144 @@ class BkTicketLoginServiceImplTest {
     }
 
     @Test
-    @DisplayName("ret为0且data非空时返回用户名，请求按 /user/get_info/ 协议拼装")
-    void shouldReturnUsernameWhenRetIsZero() {
-        givenResponse("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
+    @DisplayName("ticket只通过query参数传递且成功日志不包含ticket")
+    void shouldPassTicketOnlyInQueryWithoutLoggingIt() {
+        String ticket = "sensitive-ticket";
+        givenResponses("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
 
-        String username = newService(API_URL).getUsername("t1");
+        assertThat(newService(100, 300, 30).getUsername(ticket)).isEqualTo("admin");
 
-        assertThat(username).isEqualTo("admin");
         URI uri = capturedUri();
         assertThat(uri.getPath()).isEqualTo("/login/api/v3/user/get_info/");
-        assertThat(uri.getQuery()).contains("app_code=job").contains("bk_ticket=t1");
+        assertThat(uri.getQuery()).contains("bk_ticket=" + ticket);
+        assertThat(listAppender.list).extracting(ILoggingEvent::getFormattedMessage)
+            .allSatisfy(message -> assertThat(message).doesNotContain(ticket));
     }
 
     @Test
-    @DisplayName("api-url带结尾斜杠时不会拼出双斜杠")
-    void shouldTrimTrailingSlashOfApiUrl() {
-        givenResponse("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
-
-        newService(API_URL + "/").getUsername("t1");
-
-        assertThat(capturedUri().getPath()).isEqualTo("/login/api/v3/user/get_info/");
-    }
-
-    @Test
-    @DisplayName("cookie名可配置，作为ticket的查询参数名")
-    void shouldUseConfiguredTokenNameAsQueryParam() {
-        givenResponse("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
-        WebAuthProperties properties = new WebAuthProperties();
-        properties.getAuth().getLogin().setApiUrl(API_URL);
-        properties.getAuth().getLogin().setTokenName("bk_token");
-        properties.init();
-
-        new BkTicketLoginServiceImpl(properties, loginRestTemplate, redisTemplate).getUsername("t1");
-
-        assertThat(capturedUri().getQuery()).contains("bk_token=t1");
-    }
-
-    @Test
-    @DisplayName("ret非0视为未登录")
-    void shouldReturnNullWhenRetIsNotZero() {
-        givenResponse("{\"ret\":1302403,\"data\":null,\"msg\":\"ticket invalid\"}");
-
-        assertThat(newService(API_URL).getUsername("bad")).isNull();
-    }
-
-    @Test
-    @DisplayName("ret为0但data为空同样视为未登录")
-    void shouldReturnNullWhenDataIsAbsent() {
-        givenResponse("{\"ret\":0}");
-
-        assertThat(newService(API_URL).getUsername("t1")).isNull();
-    }
-
-    @Test
-    @DisplayName("响应为空时视为未登录，不抛异常")
-    void shouldReturnNullWhenResponseIsBlank() {
-        givenResponse("");
-
-        assertThat(newService(API_URL).getUsername("t1")).isNull();
-    }
-
-    @Test
-    @DisplayName("api-url未配置时一律视为未登录，且不发起HTTP请求")
-    void shouldTreatAllAsUnauthenticatedWhenApiUrlIsNotConfigured() {
-        assertThat(newService("").getUsername("t1")).isNull();
-
-        verify(loginRestTemplate, never()).getForObject(any(URI.class), eq(String.class));
-    }
-
-    @Test
-    @DisplayName("ticket为空时直接返回null，不发起HTTP请求")
-    void shouldReturnNullForBlankTicket() {
-        assertThat(newService(API_URL).getUsername(" ")).isNull();
-
-        verify(loginRestTemplate, never()).getForObject(any(URI.class), eq(String.class));
-    }
-
-    @Test
-    @DisplayName("登录服务不可达时抛LoginServiceUnavailableException，由调用方fail-close")
-    void shouldThrowWhenLoginServiceIsUnreachable() {
+    @DisplayName("登录调用异常日志不输出异常中携带的完整URI或ticket")
+    void shouldNotLogTicketFromRestClientException() {
+        String ticket = "exception-ticket";
         when(loginRestTemplate.getForObject(any(URI.class), eq(String.class)))
-            .thenThrow(new ResourceAccessException("timeout"));
+            .thenThrow(new ResourceAccessException(
+                "GET http://login.example.com/user/get_info/?bk_ticket=" + ticket));
 
-        assertThatThrownBy(() -> newService(API_URL).getUsername("t1"))
+        assertThatThrownBy(() -> newService(100, 300, 30).getUsername(ticket))
             .isInstanceOf(LoginServiceUnavailableException.class);
+        assertThat(listAppender.list).extracting(ILoggingEvent::getFormattedMessage)
+            .allSatisfy(message -> assertThat(message).doesNotContain(ticket));
     }
 
     @Test
-    @DisplayName("校验结果写入缓存：有效ticket缓存用户名，无效ticket写负缓存")
-    void shouldCacheVerificationResult() {
-        givenResponse("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
+    @DisplayName("正缓存命中且300秒过期后重新校验")
+    void shouldCacheValidTicketUntilPositiveTtlExpires() {
+        givenResponses(
+            "{\"ret\":0,\"data\":{\"username\":\"admin\"}}",
+            "{\"ret\":0,\"data\":{\"username\":\"admin-new\"}}"
+        );
+        BkTicketLoginServiceImpl service = newService(100, 300, 30);
 
-        newService(API_URL).getUsername("t1");
+        assertThat(service.getUsername("t1")).isEqualTo("admin");
+        assertThat(service.getUsername("t1")).isEqualTo("admin");
+        verify(loginRestTemplate, times(1)).getForObject(any(URI.class), eq(String.class));
 
-        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(valueOperations).set(keyCaptor.capture(), valueCaptor.capture(), eq(Duration.ofSeconds(300)));
-        // ticket不得以明文进入缓存key
-        assertThat(keyCaptor.getValue()).startsWith("job:op:login:ticket:").doesNotContain("t1");
-        assertThat(valueCaptor.getValue()).isEqualTo("admin");
+        ticker.advance(301, TimeUnit.SECONDS);
+        assertThat(service.getUsername("t1")).isEqualTo("admin-new");
+        verify(loginRestTemplate, times(2)).getForObject(any(URI.class), eq(String.class));
     }
 
     @Test
-    @DisplayName("无效ticket写30秒负缓存")
-    void shouldWriteNegativeCacheForInvalidTicket() {
-        givenResponse("{\"ret\":1302403}");
+    @DisplayName("负缓存命中且30秒过期后重新校验")
+    void shouldCacheInvalidTicketUntilNegativeTtlExpires() {
+        givenResponses(
+            "{\"ret\":1302403,\"data\":null}",
+            "{\"ret\":0,\"data\":{\"username\":\"admin\"}}"
+        );
+        BkTicketLoginServiceImpl service = newService(100, 300, 30);
 
-        newService(API_URL).getUsername("bad");
+        assertThat(service.getUsername("bad")).isNull();
+        assertThat(service.getUsername("bad")).isNull();
+        verify(loginRestTemplate, times(1)).getForObject(any(URI.class), eq(String.class));
 
-        verify(valueOperations).set(anyString(), eq("__INVALID__"), eq(Duration.ofSeconds(30)));
+        ticker.advance(31, TimeUnit.SECONDS);
+        assertThat(service.getUsername("bad")).isEqualTo("admin");
+        verify(loginRestTemplate, times(2)).getForObject(any(URI.class), eq(String.class));
     }
 
     @Test
-    @DisplayName("命中缓存时直接返回，不再调用登录服务")
-    void shouldServeFromCacheWithoutCallingLoginService() {
-        when(valueOperations.get(anyString())).thenReturn("admin");
+    @DisplayName("缓存键为纯SHA-256摘要且不含ticket明文")
+    void shouldHashTicketForCacheKey() {
+        String ticket = "plain-ticket-must-not-be-a-key";
+        givenResponses("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
+        BkTicketLoginServiceImpl service = newService(100, 300, 30);
 
-        assertThat(newService(API_URL).getUsername("t1")).isEqualTo("admin");
+        service.getUsername(ticket);
+
+        assertThat(service.cacheKeys()).hasSize(1);
+        assertThat(service.cacheKeys().iterator().next())
+            .hasSize(64)
+            .matches("[0-9a-f]{64}")
+            .doesNotContain(ticket);
+    }
+
+    @Test
+    @DisplayName("超过max-size时发生容量淘汰，缓存不会无界增长")
+    void shouldEvictEntriesAtMaximumSize() {
+        givenResponses(
+            "{\"ret\":0,\"data\":{\"username\":\"user1\"}}",
+            "{\"ret\":0,\"data\":{\"username\":\"user2\"}}"
+        );
+        BkTicketLoginServiceImpl service = newService(1, 300, 30);
+
+        service.getUsername("t1");
+        service.getUsername("t2");
+
+        assertThat(service.estimatedCacheSize()).isLessThanOrEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("max-size为0时禁用缓存，每次请求都重新校验")
+    void shouldDisableCacheWhenMaximumSizeIsZero() {
+        givenResponses(
+            "{\"ret\":0,\"data\":{\"username\":\"admin\"}}",
+            "{\"ret\":0,\"data\":{\"username\":\"admin\"}}"
+        );
+        BkTicketLoginServiceImpl service = newService(0, 300, 30);
+
+        assertThat(service.getUsername("t1")).isEqualTo("admin");
+        assertThat(service.getUsername("t1")).isEqualTo("admin");
+
+        verify(loginRestTemplate, times(2)).getForObject(any(URI.class), eq(String.class));
+        assertThat(service.estimatedCacheSize()).isZero();
+    }
+
+    @Test
+    @DisplayName("api-url未配置或ticket为空时不发起HTTP请求")
+    void shouldSkipHttpWhenNotConfiguredOrTicketBlank() {
+        WebAuthProperties properties = new WebAuthProperties();
+        properties.init();
+        BkTicketLoginServiceImpl service = new BkTicketLoginServiceImpl(
+            properties,
+            loginRestTemplate,
+            ticker
+        );
+
+        assertThat(service.getUsername("t1")).isNull();
+        assertThat(service.getUsername(" ")).isNull();
         verify(loginRestTemplate, never()).getForObject(any(URI.class), eq(String.class));
     }
 
-    @Test
-    @DisplayName("命中负缓存时直接判定未登录，不再调用登录服务")
-    void shouldServeNegativeCacheWithoutCallingLoginService() {
-        when(valueOperations.get(anyString())).thenReturn("__INVALID__");
+    private static class MutableTicker implements Ticker {
 
-        assertThat(newService(API_URL).getUsername("bad")).isNull();
-        verify(loginRestTemplate, never()).getForObject(any(URI.class), eq(String.class));
-    }
+        private final AtomicLong nanos = new AtomicLong();
 
-    @Test
-    @DisplayName("Redis不可用时降级为直连登录服务，不阻断登录")
-    void shouldFallbackToLoginServiceWhenCacheIsUnavailable() {
-        when(valueOperations.get(anyString())).thenThrow(new IllegalStateException("redis down"));
-        givenResponse("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
+        @Override
+        public long read() {
+            return nanos.get();
+        }
 
-        assertThat(newService(API_URL).getUsername("t1")).isEqualTo("admin");
+        void advance(long duration, TimeUnit unit) {
+            nanos.addAndGet(unit.toNanos(duration));
+        }
     }
 }

@@ -32,28 +32,18 @@ import java.util.List;
  *
  * <p>这里是受Web登录态保护的路径的唯一事实来源：Controller的@GetMapping、拦截器注册的pathPatterns、
  * 以及拦截器内部判定“是否为接口请求”都从这里取值，避免同一组路径在多处各写一遍而发生漂移。</p>
- *
- * <p><b>注意</b>：存量的 {@code GET/POST /issueStatus} 接口被外部脚本裸调（不带任何凭证），
- * 必须保持免鉴权。因此这里的受保护路径只能是精确路径，
- * 绝不能使用 {@code /issueStatus/**} 这种通配写法——无论 PathPatternParser 还是 AntPathMatcher，
- * {@code /**} 都能匹配零个路径段，会把 {@code /issueStatus} 本身一起拦下。</p>
  */
 public class WebPaths {
 
     /**
-     * 存量的Issue状态读写接口，无鉴权，禁止纳入任何Web拦截器的拦截范围
-     */
-    public static final String ISSUE_STATUS = "/issueStatus";
-
-    /**
      * Issue状态列表查询接口，供OP Web页面使用
      */
-    public static final String ISSUE_STATUS_LIST = "/issueStatus/list";
+    public static final String ISSUE_STATUS_LIST = "/web/issueStatus/list";
 
     /**
      * Issue状态删除接口，供OP Web页面使用
      */
-    public static final String ISSUE_STATUS_DELETE = "/issueStatus/delete";
+    public static final String ISSUE_STATUS_DELETE = "/web/issueStatus/delete";
 
     /**
      * 当前登录用户信息查询接口，供OP Web页面使用
@@ -95,12 +85,10 @@ public class WebPaths {
     );
 
     /**
-     * Web拦截器必须排除的路径。其中 {@link #ISSUE_STATUS} 是对存量裸调接口的二次兜底，
-     * {@code /actuator/**} 被误拦会导致K8s探针失败、Pod反复重启
+     * Web拦截器必须排除的路径。{@code /actuator/**} 被误拦会导致K8s探针失败、Pod反复重启
      */
     public static final List<String> EXCLUDE_PATHS = Collections.unmodifiableList(
         List.of(
-            ISSUE_STATUS,
             "/api/**",
             "/mcp",
             "/mcp/**",

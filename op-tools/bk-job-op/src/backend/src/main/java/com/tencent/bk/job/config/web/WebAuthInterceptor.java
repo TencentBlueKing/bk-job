@@ -49,8 +49,7 @@ import java.util.Map;
 /**
  * OP Web页面登录态与白名单拦截器。
  *
- * <p>拦截范围见 {@link WebPaths}，只拦精确路径，不使用任何通配兜底：存量的
- * {@code GET/POST /issueStatus} 被外部脚本裸调，必须保持免鉴权。</p>
+ * <p>拦截范围见 {@link WebPaths}，只处理浏览器会话接口与页面，不处理API Key鉴权域。</p>
  */
 @Slf4j
 public class WebAuthInterceptor implements HandlerInterceptor {
@@ -88,7 +87,9 @@ public class WebAuthInterceptor implements HandlerInterceptor {
             username = bkTicketLoginService.getUsername(ticket);
         } catch (LoginServiceUnavailableException e) {
             // fail-close：登录服务不可用时拒绝访问，绝不放行
-            log.error("Login service is unavailable, uri={}", request.getRequestURI(), e);
+            // 异常链可能包含带ticket查询参数的外呼URI，禁止把异常对象写入日志
+            log.error("Login service is unavailable, uri={}, causeType={}",
+                request.getRequestURI(), e.getClass().getSimpleName());
             handleServiceUnavailable(request, response, "Login service is unavailable");
             return false;
         }

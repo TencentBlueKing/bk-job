@@ -52,7 +52,7 @@ public class WebAuthProperties {
      * 页面总开关。
      *
      * <p>为false时只关闭前端SPA路由的服务端回落（用户无法通过 /issue-status 进入页面），
-     * {@code /issueStatus/list} 与 {@code /web/userInfo} 仍可访问且鉴权强度不降级。
+     * {@code /web/issueStatus/list} 与 {@code /web/userInfo} 仍可访问且鉴权强度不降级。
      * 这个开关不是安全开关，安全边界由接口鉴权保证。</p>
      */
     private boolean enabled = true;
@@ -128,11 +128,17 @@ public class WebAuthProperties {
          * 无效ticket的负缓存秒数
          */
         private int invalidSeconds = 30;
+
+        /**
+         * 本地缓存最大条目数，0表示禁用缓存
+         */
+        private long maxSize = 10000;
     }
 
     @PostConstruct
     public void init() {
         Login login = auth.getLogin();
+        validateCache(login.getCache());
         auth.setNormalizedWhitelist(parseWhitelist(auth.getWhitelist()));
 
         log.info("OP web config: enabled={}, whitelistSize={}, apiUrl={}, loginUrl={}, appCode={}, tokenName={}",
@@ -148,6 +154,18 @@ public class WebAuthProperties {
         }
         if (auth.getNormalizedWhitelist().isEmpty()) {
             log.warn("job.op.web.auth.whitelist is empty, all users will be rejected with 403 even after login");
+        }
+    }
+
+    private void validateCache(Cache cache) {
+        if (cache.getValidSeconds() < 0) {
+            throw new IllegalArgumentException("job.op.web.auth.login.cache.valid-seconds must not be negative");
+        }
+        if (cache.getInvalidSeconds() < 0) {
+            throw new IllegalArgumentException("job.op.web.auth.login.cache.invalid-seconds must not be negative");
+        }
+        if (cache.getMaxSize() < 0) {
+            throw new IllegalArgumentException("job.op.web.auth.login.cache.max-size must not be negative");
         }
     }
 

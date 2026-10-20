@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,11 +28,6 @@ public class IssueStatusResourceImpl implements IssueStatusResource {
     private static final int DEFAULT_PAGE_SIZE = 20;
 
     private static final int MAX_PAGE_SIZE = 200;
-
-    /**
-     * id形如 issue_4523，从中解析出编号，写入时落到 issue_no 列供SQL排序
-     */
-    private static final Pattern ISSUE_ID_PATTERN = Pattern.compile("^issue_(\\d+)$");
 
     /**
      * 关键字长度上限，超出部分截断，避免构造超长参数
@@ -61,7 +54,6 @@ public class IssueStatusResourceImpl implements IssueStatusResource {
         // 更新时间由服务端生成，不从请求体接收：调用方的时钟不可信
         IssueStatusDTO dto = new IssueStatusDTO(
             req.getId(),
-            parseIssueNo(req.getId()),
             req.getStatus(),
             req.getStatusDescription(),
             System.currentTimeMillis()
@@ -135,20 +127,4 @@ public class IssueStatusResourceImpl implements IssueStatusResource {
             .replace("_", "\\_");
     }
 
-    private Long parseIssueNo(String id) {
-        if (id == null) {
-            return null;
-        }
-        Matcher matcher = ISSUE_ID_PATTERN.matcher(id);
-        if (!matcher.matches()) {
-            return null;
-        }
-        try {
-            return Long.parseLong(matcher.group(1));
-        } catch (NumberFormatException e) {
-            // 编号位数超出long范围，按“解析不出编号”处理，排到列表末尾
-            log.warn("Cannot parse issue no from id {}", id);
-            return null;
-        }
-    }
 }

@@ -42,14 +42,6 @@ public class IssueStatusDTO {
     private String id;
 
     /**
-     * 从id中解析出的Issue编号。
-     *
-     * <p>列表按Issue编号降序展示，而id是字符串，直接按字符串排序会让 issue_999 排在 issue_4523 前面。
-     * 这里在写入时把编号解析成数字单独存一列，让排序交给SQL完成；id不符合 issue_数字 格式时为null。</p>
-     */
-    private Long issueNo;
-
-    /**
      * Issue状态
      */
     private String status;

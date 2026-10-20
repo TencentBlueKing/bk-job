@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.config.web;
 
+import com.tencent.bk.job.consts.ApiPaths;
 import com.tencent.bk.job.consts.WebPaths;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 运行时 {@code InterceptorRegistry} 实际使用的匹配方式一致（Boot 3 下MVC默认走 PathPatternParser
  * 而非 AntPathMatcher），否则护栏可能全绿而线上行为不同。</p>
  *
- * <p>最需要守住的一条：存量的 {@code GET/POST /issueStatus} 被外部脚本裸调，不得被拦截。</p>
+ * <p>Web会话域与API Key鉴权域必须严格隔离。</p>
  */
 class WebAuthInterceptorPathTest {
 
@@ -72,7 +73,7 @@ class WebAuthInterceptorPathTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/issueStatus/list", "/issueStatus/delete", "/web/userInfo"})
+    @ValueSource(strings = {"/web/issueStatus/list", "/web/issueStatus/delete", "/web/userInfo"})
     @DisplayName("Web页面会话接口被拦截")
     void shouldInterceptSessionApiPaths(String uri) {
         assertThat(matches(true, uri)).isTrue();
@@ -82,6 +83,7 @@ class WebAuthInterceptorPathTest {
     @ParameterizedTest
     @ValueSource(strings = {
         "/issueStatus",
+        "/api/issueStatus",
         "/api/test",
         "/api/v1/test",
         "/mcp",
@@ -92,39 +94,19 @@ class WebAuthInterceptorPathTest {
         "/checkServiceDependency",
         "/releaseStatus"
     })
-    @DisplayName("存量裸调接口与探针路径不被拦截")
+    @DisplayName("API鉴权域、兼容旧路径与探针路径不被Web拦截")
     void shouldNotInterceptExistingPaths(String uri) {
         assertThat(matches(true, uri)).isFalse();
         assertThat(matches(false, uri)).isFalse();
     }
 
     @Test
-    @DisplayName("裸调/issueStatus不被拦截，与其相邻的列表和删除接口被拦截")
-    void shouldDistinguishIssueStatusFromProtectedSubPaths() {
-        assertThat(matches(true, WebPaths.ISSUE_STATUS)).isFalse();
+    @DisplayName("Issue状态API不被Web拦截，Web列表和删除接口被拦截")
+    void shouldSeparateApiAndWebIssueStatusPaths() {
+        assertThat(matches(true, ApiPaths.ISSUE_STATUS)).isFalse();
+        assertThat(matches(true, ApiPaths.LEGACY_ISSUE_STATUS)).isFalse();
         assertThat(matches(true, WebPaths.ISSUE_STATUS_LIST)).isTrue();
         assertThat(matches(true, WebPaths.ISSUE_STATUS_DELETE)).isTrue();
-    }
-
-    @Test
-    @DisplayName("拦截路径中不得出现/issueStatus的通配写法")
-    void shouldNotUseWildcardUnderIssueStatus() {
-        assertThat(WebMvcConfig.resolveInterceptPaths(true)).doesNotContain("/issueStatus/**", "/issueStatus/*");
-    }
-
-    @Test
-    @DisplayName("PathPatternParser下/issueStatus/**会匹配零个路径段，因此禁止使用该写法")
-    void wildcardPatternWouldMatchBarePathUnderPathPatternParser() {
-        MappedInterceptor wildcardInterceptor = new MappedInterceptor(
-            new String[]{"/issueStatus/**"},
-            null,
-            NOOP_INTERCEPTOR,
-            PathPatternParser.defaultInstance
-        );
-        HttpServletRequest request = new MockHttpServletRequest("GET", WebPaths.ISSUE_STATUS);
-        ServletRequestPathUtils.parseAndCache(request);
-
-        assertThat(wildcardInterceptor.matches(request)).isTrue();
     }
 
     @Test

@@ -101,7 +101,7 @@ module.exports = (env, argv) => {
       historyApiFallback: true,
       proxy: [
         {
-          context: ['/issueStatus', '/web'],
+          context: ['/web'],
           target: DEV_PROXY_TARGET,
           changeOrigin: true,
         },
