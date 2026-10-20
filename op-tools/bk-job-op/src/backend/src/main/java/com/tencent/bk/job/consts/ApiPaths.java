@@ -15,11 +15,6 @@ public final class ApiPaths {
 
     public static final String ISSUE_STATUS = "/api/issueStatus";
 
-    /**
-     * 兼容期旧路径，调用方迁移到 {@link #ISSUE_STATUS} 后删除
-     */
-    public static final String LEGACY_ISSUE_STATUS = "/issueStatus";
-
     private ApiPaths() {
     }
 }

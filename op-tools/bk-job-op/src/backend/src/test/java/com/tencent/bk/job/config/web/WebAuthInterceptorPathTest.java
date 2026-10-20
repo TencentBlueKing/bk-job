@@ -54,6 +54,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class WebAuthInterceptorPathTest {
 
+    private static final String REMOVED_ISSUE_STATUS_PATH = "/" + "issueStatus";
+
     private static final HandlerInterceptor NOOP_INTERCEPTOR = new HandlerInterceptor() {
     };
 
@@ -83,7 +85,6 @@ class WebAuthInterceptorPathTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-        "/issueStatus",
         "/api/issueStatus",
         "/api/test",
         "/api/v1/test",
@@ -95,7 +96,7 @@ class WebAuthInterceptorPathTest {
         "/checkServiceDependency",
         "/releaseStatus"
     })
-    @DisplayName("API鉴权域、兼容旧路径与探针路径不被Web拦截")
+    @DisplayName("API鉴权域与探针路径不被Web拦截")
     void shouldNotInterceptExistingPaths(String uri) {
         assertThat(matches(true, uri)).isFalse();
         assertThat(matches(false, uri)).isFalse();
@@ -105,22 +106,28 @@ class WebAuthInterceptorPathTest {
     @DisplayName("Issue状态API不被Web拦截，Web列表和删除接口被拦截")
     void shouldSeparateApiAndWebIssueStatusPaths() {
         assertThat(matches(true, ApiPaths.ISSUE_STATUS)).isFalse();
-        assertThat(matches(true, ApiPaths.LEGACY_ISSUE_STATUS)).isFalse();
         assertThat(matches(true, WebPaths.ISSUE_STATUS_LIST)).isTrue();
         assertThat(matches(true, WebPaths.ISSUE_STATUS_DELETE)).isTrue();
     }
 
     @Test
-    @DisplayName("Web会话接口与兼容旧API路径必须精确注册，禁止使用通配符")
-    void shouldUseExactPatternsForSessionAndLegacyApiPaths() {
+    @DisplayName("Web会话接口必须精确注册，禁止使用通配符")
+    void shouldUseExactPatternsForSessionApiPaths() {
         assertThat(WebPaths.SESSION_API_PATHS)
             .allMatch(path -> !path.contains("*"));
+    }
+
+    @Test
+    @DisplayName("已移除路径不属于API/Web拦截器、排除项或前端路由")
+    void shouldNotRegisterRemovedIssueStatusPath() {
         assertThat(ApiWebMvcConfig.resolveInterceptPaths())
-            .contains(ApiPaths.LEGACY_ISSUE_STATUS)
-            .doesNotContain(
-                ApiPaths.LEGACY_ISSUE_STATUS + "/*",
-                ApiPaths.LEGACY_ISSUE_STATUS + "/**"
-            );
+            .containsExactly("/api/**")
+            .doesNotContain(REMOVED_ISSUE_STATUS_PATH);
+        assertThat(WebPaths.SESSION_API_PATHS).doesNotContain(REMOVED_ISSUE_STATUS_PATH);
+        assertThat(WebPaths.PAGE_PATHS).doesNotContain(REMOVED_ISSUE_STATUS_PATH);
+        assertThat(WebPaths.EXCLUDE_PATHS).doesNotContain(REMOVED_ISSUE_STATUS_PATH);
+        assertThat(matches(true, REMOVED_ISSUE_STATUS_PATH)).isFalse();
+        assertThat(matches(false, REMOVED_ISSUE_STATUS_PATH)).isFalse();
     }
 
     @Test

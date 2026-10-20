@@ -29,15 +29,6 @@ public interface IssueStatusResource {
     );
 
     /**
-     * 兼容期旧路径，调用方迁移到 /api/issueStatus 后删除
-     */
-    @Deprecated
-    @GetMapping(ApiPaths.LEGACY_ISSUE_STATUS)
-    default IssueStatusResp getIssueStatusLegacy(@RequestParam(value = "id") String id) {
-        return getIssueStatus(id);
-    }
-
-    /**
      * 设置指定Issue的状态
      *
      * @param req Issue状态设置请求体
@@ -47,15 +38,6 @@ public interface IssueStatusResource {
     IssueStatusResp setIssueStatus(
         @RequestBody SetIssueStatusReq req
     );
-
-    /**
-     * 兼容期旧路径，调用方迁移到 /api/issueStatus 后删除
-     */
-    @Deprecated
-    @PostMapping(ApiPaths.LEGACY_ISSUE_STATUS)
-    default IssueStatusResp setIssueStatusLegacy(@RequestBody SetIssueStatusReq req) {
-        return setIssueStatus(req);
-    }
 
     /**
      * 分页查询Issue状态列表

@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * API 认证拦截器，校验 /api/** 与兼容期旧路径的 X-Job-Op-Api-Key 请求头
+ * API 认证拦截器，校验 /api/** 的 X-Job-Op-Api-Key 请求头
  */
 @Slf4j
 public class ApiAuthInterceptor implements HandlerInterceptor {

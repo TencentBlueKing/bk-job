@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.config;
 
-import com.tencent.bk.job.consts.ApiPaths;
 import com.tencent.bk.job.consts.InterceptorOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,7 @@ import java.util.List;
 @Configuration
 public class ApiWebMvcConfig implements WebMvcConfigurer {
 
-    private static final List<String> INTERCEPT_PATHS = List.of("/api/**", ApiPaths.LEGACY_ISSUE_STATUS);
+    private static final List<String> INTERCEPT_PATHS = List.of("/api/**");
 
     private final ApiAuthProperties apiAuthProperties;
 
