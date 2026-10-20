@@ -6,13 +6,13 @@ spring:
   datasource:
     url: jdbc:mysql://${GCS_MYSQL_HOST:127.0.0.1}:${GCS_MYSQL_PORT:3306}/${GCS_MYSQL_NAME:job_op}?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
     username: ${GCS_MYSQL_USER:root}
-    password: ${GCS_MYSQL_PASSWORD:password}
+    password: ${GCS_MYSQL_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
       host: ${BK_PAAS_REDIS_HOST:127.0.0.1}
       port: ${BK_PAAS_REDIS_PORT:6379}
-      password: ${BK_PAAS_REDIS_PASSWORD:password}
+      password: ${BK_PAAS_REDIS_PASSWORD:}
       database: 0
       lettuce:
         pool:
@@ -50,9 +50,9 @@ management:
       base-path: /actuator
   endpoint:
     health:
-      show-details: when-authorized
-    # actuator端点无需鉴权即可访问，而配置中可能含有密钥，这里显式声明不回显配置值
-    # （Spring Boot 3 的默认值也是NEVER，显式写出避免被后续改动无意放开）
+      show-details: never
+      show-components: never
+    # 配置中可能含有密钥，显式禁止端点回显配置值
     env:
       show-values: NEVER
     configprops:
@@ -66,16 +66,21 @@ mcp:
   # 认证token
   auth:
     enabled: true
-    apiKey: "api-key"
+    apiKey: ${JOB_OP_MCP_API_KEY:}
 
 # API 认证配置
 api:
   auth:
-    apiKey: "job-op-api-key"
+    apiKey: ${JOB_OP_API_KEY:}
 
 # OP Web页面配置
 job:
   op:
+    actuator:
+      auth:
+        # 两项都为空时允许启动，但除health外的Actuator端点均拒绝访问；只配置一项时启动失败
+        username: ${JOB_OP_ACTUATOR_USERNAME:}
+        password: ${JOB_OP_ACTUATOR_PASSWORD:}
     web:
       # 页面总开关。
       # true：托管前端静态页面与SPA路由回落；
@@ -115,7 +120,7 @@ job:
 bkApiGateway:
   # 默认apigw认证信息（默认正式环境的，若是想调用个别别的环境的网关，使用子项覆盖）
   bkAppCode: "bk-job-op"
-  bkAppSecret: "bk-job-op-secret"
+  bkAppSecret: ${JOB_OP_BK_APP_SECRET:}
   
   # 调用bklog网关的配置
   bkLog:

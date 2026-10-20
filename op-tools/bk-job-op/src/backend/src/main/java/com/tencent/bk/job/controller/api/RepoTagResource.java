@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.controller;
+package com.tencent.bk.job.controller.api;
 
 import com.tencent.bk.job.model.BatchAddTagResp;
 import com.tencent.bk.job.model.BatchDeleteTagResp;

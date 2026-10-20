@@ -22,40 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.controller;
+package com.tencent.bk.job.controller.api.impl;
 
+import com.tencent.bk.job.controller.api.MigrateBizResource;
 import com.tencent.bk.job.model.MigrateReq;
 import com.tencent.bk.job.model.MigrateResp;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import com.tencent.bk.job.service.MigrateBizService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 按业务分批迁移环境时使用的相关接口
- */
-@RequestMapping("/api/migrate")
-public interface MigrateBizResource {
+import java.util.List;
 
-    /**
-     * 批量标记业务已完成环境迁移
-     */
-    @PostMapping("/add_migrate_biz")
-    MigrateResp addMigrateBiz(@RequestBody MigrateReq req);
+@RestController
+public class MigrateBizResourceImpl implements MigrateBizResource {
 
-    /**
-     * 批量取消业务的环境迁移标记
-     */
-    @PostMapping("/delete_migrate_biz")
-    MigrateResp deleteMigrateBiz(@RequestBody MigrateReq req);
+    private final MigrateBizService migrateBizService;
 
-    /**
-     * 查询某个业务是否已完成环境迁移
-     *
-     * @param bizId 业务ID
-     * @return 是否已完成环境迁移
-     */
-    @GetMapping("/is_migrated")
-    MigrateResp isMigrated(@RequestParam("bizId") String bizId);
+    public MigrateBizResourceImpl(MigrateBizService migrateBizService) {
+        this.migrateBizService = migrateBizService;
+    }
+
+    @Override
+    public MigrateResp addMigrateBiz(MigrateReq req) {
+        List<String> bizIdList = req.getBizIdList();
+        if (CollectionUtils.isEmpty(bizIdList)) {
+            return new MigrateResp(true);
+        }
+        return new MigrateResp(migrateBizService.addMigrateBiz(bizIdList));
+    }
+
+    @Override
+    public MigrateResp deleteMigrateBiz(MigrateReq req) {
+        List<String> bizIdList = req.getBizIdList();
+        if (CollectionUtils.isEmpty(bizIdList)) {
+            return new MigrateResp(true);
+        }
+        return new MigrateResp(migrateBizService.deleteMigrateBiz(bizIdList));
+    }
+
+    @Override
+    public MigrateResp isMigrated(String bizId) {
+        return new MigrateResp(migrateBizService.isMigrated(bizId));
+    }
 }

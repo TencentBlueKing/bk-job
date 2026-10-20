@@ -1,13 +1,15 @@
-package com.tencent.bk.job.controller;
+package com.tencent.bk.job.controller.api;
 
 import com.tencent.bk.job.model.ReleaseStatusResp;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 环境发布状态管理接口
  */
+@RequestMapping("/api/releaseStatus")
 public interface ReleaseStatusResource {
 
     /**
@@ -16,7 +18,7 @@ public interface ReleaseStatusResource {
      * @param env 环境标识
      * @return 发布状态响应
      */
-    @GetMapping("/releaseStatus")
+    @GetMapping
     ReleaseStatusResp getReleaseStatus(
         @RequestParam(value = "env") String env
     );
@@ -28,7 +30,7 @@ public interface ReleaseStatusResource {
      * @param releasing 是否正在发布
      * @return 更新后的发布状态响应
      */
-    @PostMapping("/releaseStatus")
+    @PostMapping
     ReleaseStatusResp setReleaseStatus(
         @RequestParam(value = "env") String env,
         @RequestParam(value = "releasing") boolean releasing

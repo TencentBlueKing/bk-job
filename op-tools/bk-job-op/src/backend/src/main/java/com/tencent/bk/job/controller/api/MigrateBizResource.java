@@ -22,48 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.controller.impl;
+package com.tencent.bk.job.controller.api;
 
-import com.tencent.bk.job.controller.VersionBranchResource;
-import com.tencent.bk.job.model.DeleteVersionBranchResp;
-import com.tencent.bk.job.model.VersionBranchDTO;
-import com.tencent.bk.job.model.VersionBranchReq;
-import com.tencent.bk.job.service.VersionBranchService;
-import org.springframework.web.bind.annotation.RestController;
+import com.tencent.bk.job.model.MigrateReq;
+import com.tencent.bk.job.model.MigrateResp;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
+/**
+ * 按业务分批迁移环境时使用的相关接口
+ */
+@RequestMapping("/api/migrate")
+public interface MigrateBizResource {
 
-@RestController
-public class VersionBranchResourceImpl implements VersionBranchResource {
+    /**
+     * 批量标记业务已完成环境迁移
+     */
+    @PostMapping("/add_migrate_biz")
+    MigrateResp addMigrateBiz(@RequestBody MigrateReq req);
 
-    private final VersionBranchService versionBranchService;
+    /**
+     * 批量取消业务的环境迁移标记
+     */
+    @PostMapping("/delete_migrate_biz")
+    MigrateResp deleteMigrateBiz(@RequestBody MigrateReq req);
 
-    public VersionBranchResourceImpl(VersionBranchService versionBranchService) {
-        this.versionBranchService = versionBranchService;
-    }
-
-    @Override
-    public VersionBranchDTO create(VersionBranchReq req) {
-        return versionBranchService.create(req);
-    }
-
-    @Override
-    public VersionBranchDTO get(String versionBranch) {
-        return versionBranchService.get(versionBranch);
-    }
-
-    @Override
-    public List<VersionBranchDTO> list() {
-        return versionBranchService.list();
-    }
-
-    @Override
-    public VersionBranchDTO update(VersionBranchReq req) {
-        return versionBranchService.update(req);
-    }
-
-    @Override
-    public DeleteVersionBranchResp delete(String versionBranch) {
-        return versionBranchService.delete(versionBranch);
-    }
+    /**
+     * 查询某个业务是否已完成环境迁移
+     *
+     * @param bizId 业务ID
+     * @return 是否已完成环境迁移
+     */
+    @GetMapping("/is_migrated")
+    MigrateResp isMigrated(@RequestParam("bizId") String bizId);
 }

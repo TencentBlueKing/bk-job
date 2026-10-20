@@ -22,46 +22,48 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.controller.impl;
+package com.tencent.bk.job.controller.api.impl;
 
-import com.tencent.bk.job.controller.MigrateBizResource;
-import com.tencent.bk.job.model.MigrateReq;
-import com.tencent.bk.job.model.MigrateResp;
-import com.tencent.bk.job.service.MigrateBizService;
-import org.apache.commons.collections4.CollectionUtils;
+import com.tencent.bk.job.controller.api.VersionBranchResource;
+import com.tencent.bk.job.model.DeleteVersionBranchResp;
+import com.tencent.bk.job.model.VersionBranchDTO;
+import com.tencent.bk.job.model.VersionBranchReq;
+import com.tencent.bk.job.service.VersionBranchService;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-public class MigrateBizResourceImpl implements MigrateBizResource {
+public class VersionBranchResourceImpl implements VersionBranchResource {
 
-    private final MigrateBizService migrateBizService;
+    private final VersionBranchService versionBranchService;
 
-    public MigrateBizResourceImpl(MigrateBizService migrateBizService) {
-        this.migrateBizService = migrateBizService;
+    public VersionBranchResourceImpl(VersionBranchService versionBranchService) {
+        this.versionBranchService = versionBranchService;
     }
 
     @Override
-    public MigrateResp addMigrateBiz(MigrateReq req) {
-        List<String> bizIdList = req.getBizIdList();
-        if (CollectionUtils.isEmpty(bizIdList)) {
-            return new MigrateResp(true);
-        }
-        return new MigrateResp(migrateBizService.addMigrateBiz(bizIdList));
+    public VersionBranchDTO create(VersionBranchReq req) {
+        return versionBranchService.create(req);
     }
 
     @Override
-    public MigrateResp deleteMigrateBiz(MigrateReq req) {
-        List<String> bizIdList = req.getBizIdList();
-        if (CollectionUtils.isEmpty(bizIdList)) {
-            return new MigrateResp(true);
-        }
-        return new MigrateResp(migrateBizService.deleteMigrateBiz(bizIdList));
+    public VersionBranchDTO get(String versionBranch) {
+        return versionBranchService.get(versionBranch);
     }
 
     @Override
-    public MigrateResp isMigrated(String bizId) {
-        return new MigrateResp(migrateBizService.isMigrated(bizId));
+    public List<VersionBranchDTO> list() {
+        return versionBranchService.list();
+    }
+
+    @Override
+    public VersionBranchDTO update(VersionBranchReq req) {
+        return versionBranchService.update(req);
+    }
+
+    @Override
+    public DeleteVersionBranchResp delete(String versionBranch) {
+        return versionBranchService.delete(versionBranch);
     }
 }

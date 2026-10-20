@@ -27,7 +27,6 @@ package com.tencent.bk.job.config.web;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.tencent.bk.job.consts.WebPaths;
 import com.tencent.bk.job.service.login.BkTicketLoginService;
 import com.tencent.bk.job.service.login.LoginServiceUnavailableException;
 import jakarta.servlet.http.Cookie;
@@ -86,11 +85,11 @@ class WebAuthInterceptorTest {
     }
 
     private MockHttpServletRequest pageRequest() {
-        return new MockHttpServletRequest("GET", WebPaths.PAGE_ISSUE_STATUS);
+        return new MockHttpServletRequest("GET", "/issue-status");
     }
 
     private MockHttpServletRequest apiRequest() {
-        MockHttpServletRequest request = new MockHttpServletRequest("GET", WebPaths.ISSUE_STATUS_LIST);
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/web/issueStatus/list");
         request.addHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
         return request;
     }
@@ -166,7 +165,7 @@ class WebAuthInterceptorTest {
         assertThat(passed).isFalse();
         assertThat(response.getStatus()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.value());
         assertThat(response.getRedirectedUrl()).isNull();
-        assertThat(response.getForwardedUrl()).isEqualTo(WebPaths.STATIC_503_PAGE);
+        assertThat(response.getForwardedUrl()).isEqualTo("/503-login-unconfigured.html");
     }
 
     @Test

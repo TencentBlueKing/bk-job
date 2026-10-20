@@ -25,7 +25,6 @@
 package com.tencent.bk.job.config.web;
 
 import com.tencent.bk.job.consts.InterceptorOrder;
-import com.tencent.bk.job.consts.WebPaths;
 import com.tencent.bk.job.service.login.BkTicketLoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +46,16 @@ import java.util.List;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
+    private static final String WEB_API_PATTERN = "/web/**";
+
+    private static final String PAGE_ISSUE_STATUS = "/issue-status";
+
+    private static final String PAGE_NO_PERMISSION = "/no-permission";
+
+    private static final List<String> PAGE_PATHS = List.of(
+        "/", "/index.html", PAGE_ISSUE_STATUS, PAGE_NO_PERMISSION
+    );
+
     private final WebAuthProperties webAuthProperties;
 
     private final BkTicketLoginService bkTicketLoginService;
@@ -64,9 +73,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
      * 因而也只在打开时拦截。</p>
      */
     public static List<String> resolveInterceptPaths(boolean webEnabled) {
-        List<String> patterns = new ArrayList<>(WebPaths.SESSION_API_PATHS);
+        List<String> patterns = new ArrayList<>(List.of(WEB_API_PATTERN));
         if (webEnabled) {
-            patterns.addAll(WebPaths.PAGE_PATHS);
+            patterns.addAll(PAGE_PATHS);
         }
         return patterns;
     }
@@ -79,7 +88,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         registry.addInterceptor(new WebAuthInterceptor(webAuthProperties, bkTicketLoginService))
             .addPathPatterns(patterns)
-            .excludePathPatterns(WebPaths.EXCLUDE_PATHS)
             .order(InterceptorOrder.Auth.WEB_AUTH);
 
         log.info("OP web authentication interceptor registered successfully");
@@ -94,7 +102,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         if (!webAuthProperties.isEnabled()) {
             return;
         }
-        registry.addViewController(WebPaths.PAGE_ISSUE_STATUS).setViewName("forward:/index.html");
-        registry.addViewController(WebPaths.PAGE_NO_PERMISSION).setViewName("forward:/index.html");
+        registry.addViewController(PAGE_ISSUE_STATUS).setViewName("forward:/index.html");
+        registry.addViewController(PAGE_NO_PERMISSION).setViewName("forward:/index.html");
     }
 }

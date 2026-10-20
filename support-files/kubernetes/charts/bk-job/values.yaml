@@ -2435,7 +2435,7 @@ waitForDependServices:
     # 返回值格式：
     # 已准备就绪：{"ready": true}
     # 未准备就绪：{"ready": false}
-    url: "http://example.com/checkServiceDependency"
+    url: "http://example.com/public/checkServiceDependency"
   # 资源要求与限制
   resources:
     limits:

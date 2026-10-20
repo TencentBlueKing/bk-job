@@ -1,7 +1,7 @@
-package com.tencent.bk.job.controller.impl;
+package com.tencent.bk.job.controller.web.impl;
 
 import com.tencent.bk.job.config.web.WebAuthInterceptor;
-import com.tencent.bk.job.controller.WebUserResource;
+import com.tencent.bk.job.controller.web.WebUserResource;
 import com.tencent.bk.job.exception.OpApiException;
 import com.tencent.bk.job.model.WebUserInfoResp;
 import jakarta.servlet.http.HttpServletRequest;

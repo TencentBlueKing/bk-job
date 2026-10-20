@@ -1,6 +1,6 @@
-package com.tencent.bk.job.controller.impl;
+package com.tencent.bk.job.controller.api.impl;
 
-import com.tencent.bk.job.controller.ReleaseStatusResource;
+import com.tencent.bk.job.controller.api.ReleaseStatusResource;
 import com.tencent.bk.job.model.ReleaseStatusResp;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RestController;

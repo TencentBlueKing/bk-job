@@ -54,19 +54,26 @@ public class ApiAuthInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
+        if (!StringUtils.hasText(apiAuthProperties.getApiKey())) {
+            log.error("OpenAPI authentication is not configured, uri={}", request.getRequestURI());
+            sendErrorResponse(response, HttpStatus.SERVICE_UNAVAILABLE, "API authentication is not configured");
+            return false;
+        }
+
         String requestApiKey = request.getHeader(CommonHeader.OP_API_AUTH_HEADER_KEY);
 
         if (!StringUtils.hasText(requestApiKey)) {
             log.warn("OpenAPI request missing API Key, uri={}, remoteAddr={}",
                     request.getRequestURI(), request.getRemoteAddr());
-            sendUnauthorizedResponse(response, "Missing API Key in request header: " + CommonHeader.OP_API_AUTH_HEADER_KEY);
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED,
+                "Missing API Key in request header: " + CommonHeader.OP_API_AUTH_HEADER_KEY);
             return false;
         }
 
         if (!requestApiKey.equals(apiAuthProperties.getApiKey())) {
             log.warn("OpenAPI request with invalid API Key, uri={}, remoteAddr={}",
                     request.getRequestURI(), request.getRemoteAddr());
-            sendUnauthorizedResponse(response, "Invalid API Key");
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid API Key");
             return false;
         }
 
@@ -74,15 +81,15 @@ public class ApiAuthInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    private void sendUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException {
+        response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
         Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("error", "Unauthorized");
+        errorResponse.put("error", status.getReasonPhrase());
         errorResponse.put("message", message);
-        errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
+        errorResponse.put("status", status.value());
 
         response.getWriter().write(JsonUtils.toJson(errorResponse));
         response.getWriter().flush();

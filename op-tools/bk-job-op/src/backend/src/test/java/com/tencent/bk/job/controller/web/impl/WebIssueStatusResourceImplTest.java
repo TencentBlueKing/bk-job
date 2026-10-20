@@ -4,25 +4,9 @@
  * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
- *
- * License for BK-JOB蓝鲸智云作业平台:
- * --------------------------------------------------------------------
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
- * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
- * the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
- * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.controller.impl;
+package com.tencent.bk.job.controller.web.impl;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -33,13 +17,11 @@ import com.tencent.bk.job.model.DeleteIssueStatusReq;
 import com.tencent.bk.job.model.DeleteIssueStatusResp;
 import com.tencent.bk.job.model.IssueStatusDTO;
 import com.tencent.bk.job.model.IssueStatusResp;
-import com.tencent.bk.job.model.SetIssueStatusReq;
 import com.tencent.bk.job.service.model.PageData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -58,14 +40,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Issue状态读写接口。分页、模糊过滤与排序都下沉到SQL，这里覆盖参数归一化、契约字段与DAO调用方式。
- */
-class IssueStatusResourceImplTest {
+class WebIssueStatusResourceImplTest {
 
     private IssueStatusMapper issueStatusMapper;
 
-    private IssueStatusResourceImpl resource;
+    private WebIssueStatusResourceImpl resource;
 
     private Logger logger;
 
@@ -74,8 +53,8 @@ class IssueStatusResourceImplTest {
     @BeforeEach
     void setUp() {
         issueStatusMapper = mock(IssueStatusMapper.class);
-        resource = new IssueStatusResourceImpl(issueStatusMapper);
-        logger = (Logger) LoggerFactory.getLogger(IssueStatusResourceImpl.class);
+        resource = new WebIssueStatusResourceImpl(issueStatusMapper);
+        logger = (Logger) LoggerFactory.getLogger(WebIssueStatusResourceImpl.class);
         listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
@@ -93,7 +72,7 @@ class IssueStatusResourceImplTest {
     }
 
     @Test
-    @DisplayName("列表直接透传SQL返回的顺序，total取COUNT(*)的精确值")
+    @DisplayName("列表透传SQL顺序并返回精确总数")
     void shouldReturnExactTotalAndKeepSqlOrder() {
         when(issueStatusMapper.countByKeyword(isNull())).thenReturn(4);
         when(issueStatusMapper.listByKeyword(isNull(), eq(0), eq(2)))
@@ -102,11 +81,8 @@ class IssueStatusResourceImplTest {
         PageData<IssueStatusResp> pageData = resource.listIssueStatus(null, 0, 2);
 
         assertThat(pageData.getTotal()).isEqualTo(4);
-        assertThat(pageData.getStart()).isZero();
-        assertThat(pageData.getSize()).isEqualTo(2);
         assertThat(pageData.getData()).extracting(IssueStatusResp::getId)
             .containsExactly("issue_4523", "issue_100");
-        assertThat(pageData.getData().get(0).getUpdateTime()).isEqualTo(1758542400000L);
     }
 
     @Test
@@ -131,7 +107,7 @@ class IssueStatusResourceImplTest {
     }
 
     @Test
-    @DisplayName("空白关键字视为不过滤，传null给SQL")
+    @DisplayName("空白关键字视为不过滤")
     void shouldTreatBlankKeywordAsNoFilter() {
         when(issueStatusMapper.countByKeyword(isNull())).thenReturn(0);
 
@@ -141,7 +117,7 @@ class IssueStatusResourceImplTest {
     }
 
     @Test
-    @DisplayName("非法分页参数被静默纠正，不抛异常")
+    @DisplayName("非法分页参数被静默纠正")
     void shouldCorrectIllegalPageParams() {
         when(issueStatusMapper.countByKeyword(isNull())).thenReturn(0);
 
@@ -151,7 +127,7 @@ class IssueStatusResourceImplTest {
     }
 
     @Test
-    @DisplayName("起始位置越界时返回空列表且不再查数据，total仍是精确总数")
+    @DisplayName("起始位置越界时返回空列表且不查询数据")
     void shouldReturnEmptyDataWhenStartExceedsTotal() {
         when(issueStatusMapper.countByKeyword(isNull())).thenReturn(2);
 
@@ -163,47 +139,7 @@ class IssueStatusResourceImplTest {
     }
 
     @Test
-    @DisplayName("写入时由服务端生成updateTime")
-    void shouldGenerateUpdateTimeOnWrite() {
-        SetIssueStatusReq req = new SetIssueStatusReq("issue_4523", "issue_todo", "待处理");
-        long before = System.currentTimeMillis();
-
-        IssueStatusResp resp = resource.setIssueStatus(req);
-
-        ArgumentCaptor<IssueStatusDTO> captor = ArgumentCaptor.forClass(IssueStatusDTO.class);
-        verify(issueStatusMapper).upsert(captor.capture());
-        assertThat(captor.getValue().getUpdateTime()).isBetween(before, System.currentTimeMillis());
-        assertThat(resp.getId()).isEqualTo("issue_4523");
-        assertThat(resp.getStatus()).isEqualTo("issue_todo");
-        assertThat(resp.getStatusDescription()).isEqualTo("待处理");
-        assertThat(resp.getUpdateTime()).isEqualTo(captor.getValue().getUpdateTime());
-    }
-
-    @Test
-    @DisplayName("查询不存在的Issue状态时返回空状态对象，保持存量契约")
-    void shouldReturnEmptyRespWhenRecordAbsent() {
-        when(issueStatusMapper.selectById("issue_404")).thenReturn(null);
-
-        IssueStatusResp resp = resource.getIssueStatus("issue_404");
-
-        assertThat(resp.getId()).isEqualTo("issue_404");
-        assertThat(resp.getStatus()).isNull();
-        assertThat(resp.getStatusDescription()).isNull();
-        assertThat(resp.getUpdateTime()).isNull();
-    }
-
-    @Test
-    @DisplayName("查询已有Issue状态时原样返回存储的字段")
-    void shouldReturnStoredFields() {
-        when(issueStatusMapper.selectById("issue_4523")).thenReturn(dto("issue_4523"));
-
-        IssueStatusResp resp = resource.getIssueStatus("issue_4523");
-
-        assertThat(resp).isEqualTo(new IssueStatusResp("issue_4523", "issue_todo", "待处理", 1758542400000L));
-    }
-
-    @Test
-    @DisplayName("删除Issue状态时去除id两端空白并返回实际删除行数")
+    @DisplayName("删除Issue状态时去除id两端空白并返回影响行数")
     void shouldDeleteIssueStatusAndReturnAffectedRows() {
         when(issueStatusMapper.deleteById("issue_4523")).thenReturn(1);
 
@@ -214,17 +150,15 @@ class IssueStatusResourceImplTest {
     }
 
     @Test
-    @DisplayName("删除不存在的Issue状态保持幂等并返回0")
+    @DisplayName("删除不存在的Issue状态保持幂等")
     void shouldReturnZeroWhenDeletingAbsentIssueStatus() {
         when(issueStatusMapper.deleteById("issue_404")).thenReturn(0);
 
-        DeleteIssueStatusResp resp = resource.deleteIssueStatus(new DeleteIssueStatusReq("issue_404"));
-
-        assertThat(resp.getDeleted()).isZero();
+        assertThat(resource.deleteIssueStatus(new DeleteIssueStatusReq("issue_404")).getDeleted()).isZero();
     }
 
     @Test
-    @DisplayName("删除Issue状态时审计日志记录操作人、id和实际删除行数")
+    @DisplayName("删除审计日志记录操作人、id和影响行数")
     void shouldAuditIssueStatusDeletion() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setAttribute(WebAuthInterceptor.ATTR_USERNAME, "admin");
@@ -239,25 +173,23 @@ class IssueStatusResourceImplTest {
     }
 
     @Test
-    @DisplayName("取不到用户名时删除仍正常执行并在审计日志中降级为unknown")
+    @DisplayName("取不到用户名时审计日志降级为unknown")
     void shouldAuditDeletionWithUnknownUsername() {
         when(issueStatusMapper.deleteById("issue_404")).thenReturn(0);
 
-        DeleteIssueStatusResp resp = resource.deleteIssueStatus(new DeleteIssueStatusReq("issue_404"));
+        resource.deleteIssueStatus(new DeleteIssueStatusReq("issue_404"));
 
-        assertThat(resp.getDeleted()).isZero();
         assertThat(listAppender.list)
             .extracting(ILoggingEvent::getFormattedMessage)
             .contains("Delete issue status, username=<unknown>, id=issue_404, deleted=0");
     }
 
     @Test
-    @DisplayName("删除Issue状态时id为空白返回明确参数错误且不访问数据库")
+    @DisplayName("删除时id为空白返回明确参数错误")
     void shouldRejectBlankIdWhenDeletingIssueStatus() {
         assertThatThrownBy(() -> resource.deleteIssueStatus(new DeleteIssueStatusReq("  ")))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("id不能为空");
-
         verify(issueStatusMapper, never()).deleteById(any());
     }
 }

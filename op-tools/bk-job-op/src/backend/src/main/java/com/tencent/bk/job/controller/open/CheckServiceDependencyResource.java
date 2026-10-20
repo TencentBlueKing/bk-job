@@ -1,12 +1,14 @@
-package com.tencent.bk.job.controller;
+package com.tencent.bk.job.controller.open;
 
 import com.tencent.bk.job.model.CheckStatusResp;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 检查服务外部依赖相关接口
  */
+@RequestMapping("/public")
 public interface CheckServiceDependencyResource {
 
     /**
@@ -16,7 +18,7 @@ public interface CheckServiceDependencyResource {
      * @param serviceName 服务名称
      * @return 外部依赖状态响应
      */
-    @GetMapping({"/checkServiceDependency"})
+    @GetMapping("/checkServiceDependency")
     CheckStatusResp checkServiceDependency(
         @RequestParam(value = "namespace", required = false)
         String namespace,

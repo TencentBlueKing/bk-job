@@ -61,6 +61,13 @@ public class McpAuthInterceptor implements HandlerInterceptor {
             log.debug("MCP authentication is disabled, skip validation");
             return true;
         }
+
+        if (!StringUtils.hasText(mcpAuthProperties.getApiKey())) {
+            log.error("MCP authentication is enabled but API Key is not configured, uri={}",
+                request.getRequestURI());
+            sendUnauthorizedResponse(response, "MCP authentication is not configured");
+            return false;
+        }
         
         // 获取请求头中的API Key
         String requestApiKey = request.getHeader(API_KEY_HEADER);

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.config.web;
 
-import com.tencent.bk.job.consts.WebPaths;
 import com.tencent.bk.job.service.login.BkTicketLoginService;
 import com.tencent.bk.job.service.login.LoginServiceUnavailableException;
 import com.tencent.bk.job.utils.json.JsonUtils;
@@ -49,10 +48,14 @@ import java.util.Map;
 /**
  * OP Web页面登录态与白名单拦截器。
  *
- * <p>拦截范围见 {@link WebPaths}，只处理浏览器会话接口与页面，不处理API Key鉴权域。</p>
+ * <p>只处理浏览器会话接口与页面，不处理API Key鉴权域。</p>
  */
 @Slf4j
 public class WebAuthInterceptor implements HandlerInterceptor {
+
+    private static final String STATIC_403_PAGE = "/403.html";
+
+    private static final String STATIC_503_PAGE = "/503-login-unconfigured.html";
 
     /**
      * 校验通过后写入request的用户名属性，供 {@code GET /web/userInfo} 读取
@@ -128,7 +131,7 @@ public class WebAuthInterceptor implements HandlerInterceptor {
      */
     private boolean isApiRequest(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        if (WebPaths.SESSION_API_PATHS.contains(uri)) {
+        if (uri.startsWith("/web/")) {
             return true;
         }
         if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
@@ -167,7 +170,7 @@ public class WebAuthInterceptor implements HandlerInterceptor {
         }
         response.setStatus(HttpStatus.FORBIDDEN.value());
         // 用静态HTML而不是前端路由，保证前端资源还没加载时也能显示
-        request.getRequestDispatcher(WebPaths.STATIC_403_PAGE).forward(request, response);
+        request.getRequestDispatcher(STATIC_403_PAGE).forward(request, response);
     }
 
     private void handleServiceUnavailable(HttpServletRequest request,
@@ -178,7 +181,7 @@ public class WebAuthInterceptor implements HandlerInterceptor {
             return;
         }
         response.setStatus(HttpStatus.SERVICE_UNAVAILABLE.value());
-        request.getRequestDispatcher(WebPaths.STATIC_503_PAGE).forward(request, response);
+        request.getRequestDispatcher(STATIC_503_PAGE).forward(request, response);
     }
 
     private String buildLoginUrl(HttpServletRequest request) {

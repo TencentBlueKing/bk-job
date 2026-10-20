@@ -8,13 +8,15 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+    "management.health.db.enabled=false",
+    "management.health.redis.enabled=false"
+})
 @AutoConfigureMockMvc
 class BkJobOpApplicationTests {
-
-    private static final String REMOVED_ISSUE_STATUS_PATH = "/" + "issueStatus";
 
     @Autowired
     private MockMvc mockMvc;
@@ -24,9 +26,26 @@ class BkJobOpApplicationTests {
     }
 
     @Test
-    void shouldReturnNotFoundForRemovedIssueStatusPath() throws Exception {
-        mockMvc.perform(get(REMOVED_ISSUE_STATUS_PATH)).andExpect(status().isNotFound());
-        mockMvc.perform(post(REMOVED_ISSUE_STATUS_PATH)).andExpect(status().isNotFound());
+    void shouldAllowAnonymousSimpleHealthWhenActuatorCredentialsAreEmpty() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").exists())
+            .andExpect(jsonPath("$.details").doesNotExist())
+            .andExpect(jsonPath("$.components").doesNotExist());
+    }
+
+    @Test
+    void shouldFailCloseProtectedActuatorWhenCredentialsAreEmpty() throws Exception {
+        mockMvc.perform(get("/actuator/info")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldReturnNotFoundForRemovedPaths() throws Exception {
+        mockMvc.perform(get("/issueStatus")).andExpect(status().isNotFound());
+        mockMvc.perform(post("/issueStatus")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/releaseStatus")).andExpect(status().isNotFound());
+        mockMvc.perform(post("/releaseStatus")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/checkServiceDependency")).andExpect(status().isNotFound());
     }
 
 }
