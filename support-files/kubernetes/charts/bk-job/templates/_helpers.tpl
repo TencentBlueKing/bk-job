@@ -251,7 +251,7 @@ Return the migrate mysqlSchema admin password
 {{- else if eq $name "rabbitmq" -}}
 {{- if and (not $ctx.Values.rabbitmq.enabled) (not $ctx.Values.externalRabbitMQ.existingPasswordSecret) }}true{{- end -}}
 {{- else if eq $name "mongodb" -}}
-{{- if and (not $ctx.Values.mongodb.enabled) (not $ctx.Values.externalMongoDB.existingPasswordSecret) (not $ctx.Values.externalMongoDB.uri) }}true{{- end -}}
+{{- if and (not $ctx.Values.mongodb.enabled) (or $ctx.Values.externalMongoDB.uri (not $ctx.Values.externalMongoDB.existingPasswordSecret)) }}true{{- end -}}
 {{- else if eq $name "crontabdb" -}}
 {{- if $ctx.Values.crontabConfig.database.host }}true{{- end -}}
 {{- else if eq $name "archive-mariadb" -}}
@@ -847,7 +847,11 @@ Return the MongoDB connect uri
   {{- printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.usernameInUri" .) (printf "${%s}" "mongodb-passwords") (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .) -}}
 {{- else -}}
   {{- if .Values.externalMongoDB.uri -}}
+    {{- if eq (include "job.kms.credential.active" (dict "name" "mongodb" "context" .)) "true" -}}
+    ${mongodb-uri}
+    {{- else -}}
     {{- printf "%s" .Values.externalMongoDB.uri -}}
+    {{- end -}}
   {{- else -}}
     {{- $uri := (printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.usernameInUri" .) (.Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" ) (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .)) -}}
     {{- if (eq .Values.externalMongoDB.architecture "replicaset") -}}
