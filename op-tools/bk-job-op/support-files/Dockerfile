@@ -1,4 +1,5 @@
-FROM bkjob/jdk17:3.12.3
+ARG BASE_IMAGE=bkjob/jdk17:3.12.3
+FROM ${BASE_IMAGE}
 
 LABEL maintainer="Tencent BlueKing Job"
 LABEL dockerfile.version="1.0.1"
