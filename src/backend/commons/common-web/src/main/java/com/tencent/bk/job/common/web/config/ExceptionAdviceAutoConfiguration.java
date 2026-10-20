@@ -31,7 +31,9 @@ import com.tencent.bk.job.common.web.exception.handler.EsbV4ExceptionControllerA
 import com.tencent.bk.job.common.web.exception.handler.IamCallbackExceptionControllerAdvice;
 import com.tencent.bk.job.common.web.exception.handler.ServiceExceptionControllerAdvice;
 import com.tencent.bk.job.common.web.exception.handler.WebExceptionControllerAdvice;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.validation.Validator;
 
 /**
  * 全局异常处理自动配置
@@ -44,8 +46,11 @@ public class ExceptionAdviceAutoConfiguration {
     }
 
     @Bean
-    public EsbExceptionControllerAdvice esbExceptionControllerAdvice(AuthService authService) {
-        return new EsbExceptionControllerAdvice(authService);
+    public EsbExceptionControllerAdvice esbExceptionControllerAdvice(
+        AuthService authService,
+        @Qualifier("jobLocalValidatorFactoryBean") Validator validator
+    ) {
+        return new EsbExceptionControllerAdvice(authService, validator);
     }
 
     @Bean

@@ -95,7 +95,7 @@ class EsbExceptionControllerAdviceTest {
         validatorFactory = validationConfiguration.localValidatorFactoryBean(messageSource);
         validatorFactory.afterPropertiesSet();
         validator = validatorFactory.getValidator();
-        advice = new EsbExceptionControllerAdvice(mock(AuthService.class));
+        advice = new EsbExceptionControllerAdvice(mock(AuthService.class), validatorFactory);
     }
 
     @AfterAll

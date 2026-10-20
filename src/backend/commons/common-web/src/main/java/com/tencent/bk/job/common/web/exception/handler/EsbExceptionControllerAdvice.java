@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -51,15 +52,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.validation.BindException;
+import org.springframework.validation.Validator;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
@@ -77,10 +81,24 @@ import jakarta.validation.ConstraintViolationException;
 @Slf4j
 public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase {
     private final AuthService authService;
+    private final Validator validator;
 
     @Autowired
-    public EsbExceptionControllerAdvice(AuthService authService) {
+    public EsbExceptionControllerAdvice(
+        AuthService authService,
+        @Qualifier("jobLocalValidatorFactoryBean") Validator validator
+    ) {
         this.authService = authService;
+        this.validator = validator;
+    }
+
+    /**
+     * ESB V2/V3 requests use the project validator for localized messages and external field names.
+     * Keep the MVC default validator for Web and ESB V4 controllers to preserve their existing behavior.
+     */
+    @InitBinder
+    void initBinder(WebDataBinder binder) {
+        binder.setValidator(validator);
     }
 
     @ExceptionHandler(Throwable.class)

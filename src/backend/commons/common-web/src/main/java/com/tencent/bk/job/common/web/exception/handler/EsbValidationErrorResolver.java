@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.web.exception.handler;
 
 import com.tencent.bk.job.common.model.error.FieldViolationDTO;
+import com.tencent.bk.job.common.web.validation.JacksonPropertyNodeNameProvider;
 import org.springframework.validation.BindException;
 
 import jakarta.validation.ConstraintViolation;
@@ -39,6 +40,9 @@ import java.util.Iterator;
  */
 final class EsbValidationErrorResolver {
 
+    private static final JacksonPropertyNodeNameProvider EXTERNAL_NAME_RESOLVER =
+        new JacksonPropertyNodeNameProvider();
+
     private static final Comparator<FieldViolationDTO> VALIDATION_ERROR_COMPARATOR =
         Comparator.comparing(FieldViolationDTO::getField, Comparator.nullsFirst(String::compareTo))
             .thenComparing(FieldViolationDTO::getDescription, Comparator.nullsFirst(String::compareTo));
@@ -47,9 +51,11 @@ final class EsbValidationErrorResolver {
     }
 
     static FieldViolationDTO resolve(BindException ex) {
+        Object target = ex.getBindingResult().getTarget();
+        Class<?> targetClass = target == null ? null : target.getClass();
         return ex.getBindingResult().getFieldErrors().stream()
             .map(fieldError -> new FieldViolationDTO(
-                fieldError.getField(),
+                EXTERNAL_NAME_RESOLVER.getExternalPath(targetClass, fieldError.getField()),
                 null,
                 fieldError.getDefaultMessage()
             ))
@@ -65,14 +71,18 @@ final class EsbValidationErrorResolver {
     }
 
     private static FieldViolationDTO toFieldViolation(ConstraintViolation<?> violation) {
+        Class<?> rootBeanClass = violation.getRootBeanClass();
         return new FieldViolationDTO(
-            getExternalFieldPath(violation.getPropertyPath()),
+            EXTERNAL_NAME_RESOLVER.getExternalPath(
+                rootBeanClass,
+                getFieldPathWithoutExecutablePrefix(violation.getPropertyPath())
+            ),
             null,
             violation.getMessage()
         );
     }
 
-    private static String getExternalFieldPath(Path propertyPath) {
+    private static String getFieldPathWithoutExecutablePrefix(Path propertyPath) {
         String path = propertyPath.toString();
         Iterator<Path.Node> nodes = propertyPath.iterator();
         if (!nodes.hasNext()) {

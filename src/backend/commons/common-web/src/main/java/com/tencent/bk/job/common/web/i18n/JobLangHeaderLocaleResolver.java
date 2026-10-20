@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.web.i18n;
 
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,8 +57,11 @@ public class JobLangHeaderLocaleResolver implements LocaleResolver {
 
     public Locale resolveLocale(HttpServletRequest request) {
         Locale locale = null;
-        if (StringUtils.isNotBlank(request.getHeader(LocaleUtils.COMMON_LANG_HEADER))) {
-            String lang = request.getHeader(LocaleUtils.COMMON_LANG_HEADER);
+        String lang = request.getHeader(LocaleUtils.COMMON_LANG_HEADER);
+        if (StringUtils.isBlank(lang)) {
+            lang = request.getHeader(JobCommonHeaders.BK_GATEWAY_LANG);
+        }
+        if (StringUtils.isNotBlank(lang)) {
             locale = LocaleUtils.getLocale(lang);
         }
         if (locale == null) {
