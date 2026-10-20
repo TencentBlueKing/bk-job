@@ -38,13 +38,17 @@ import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -53,9 +57,13 @@ import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.Validator;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.WebApplicationContext;
@@ -109,6 +117,19 @@ class EsbValidationProductionPathTest {
             .andExpect(jsonPath("$.code").value(1241010))
             .andExpect(jsonPath("$.message").value(
                 "Invalid request parameter [bk_scope_type], reason: Invalid bk_scope_type"
+            ));
+    }
+
+    @Test
+    void shouldUseInterfaceRequestParamNameThroughMethodValidationProxy() throws Exception {
+        Assertions.assertTrue(AopUtils.isAopProxy(context.getBean(ProxiedTestEsbResource.class)));
+
+        mockMvc.perform(get("/esb/api/v3/test-proxied-validation")
+                .param("job_instance_id", "0"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(1241010))
+            .andExpect(jsonPath("$.message").value(
+                "请求参数[job_instance_id]不合法，原因：任务实例ID必须为正整数"
             ));
     }
 
@@ -224,8 +245,26 @@ class EsbValidationProductionPathTest {
         }
 
         @Bean
+        static MethodValidationPostProcessor methodValidationPostProcessor(
+            MessageSource messageSource
+        ) {
+            LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+            validator.setValidationMessageSource(messageSource);
+            validator.afterPropertiesSet();
+            MethodValidationPostProcessor postProcessor = new MethodValidationPostProcessor();
+            postProcessor.setValidator(validator);
+            postProcessor.setProxyTargetClass(true);
+            return postProcessor;
+        }
+
+        @Bean
         TestEsbController testEsbController(EsbRequestValidator validator) {
             return new TestEsbController(validator);
+        }
+
+        @Bean
+        ProxiedTestEsbResourceImpl proxiedTestEsbResource() {
+            return new ProxiedTestEsbResourceImpl();
         }
 
         @Bean
@@ -263,6 +302,25 @@ class EsbValidationProductionPathTest {
 
         @PostMapping("/esb/api/v3/test-nested-validation")
         void postNestedValidation(@Valid @RequestBody NestedRequest request) {
+        }
+    }
+
+    @Validated
+    @EsbAPI
+    @RequestMapping("/esb/api/v3")
+    interface ProxiedTestEsbResource {
+        @GetMapping("/test-proxied-validation")
+        void validate(
+            @RequestParam("job_instance_id")
+            @Min(value = 1L, message = "{validation.constraints.InvalidJobInstanceId.message}")
+            Long taskInstanceId
+        );
+    }
+
+    @RestController
+    static class ProxiedTestEsbResourceImpl implements ProxiedTestEsbResource {
+        @Override
+        public void validate(Long taskInstanceId) {
         }
     }
 

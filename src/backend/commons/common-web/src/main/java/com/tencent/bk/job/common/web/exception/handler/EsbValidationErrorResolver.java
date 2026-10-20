@@ -26,14 +26,22 @@ package com.tencent.bk.job.common.web.exception.handler;
 
 import com.tencent.bk.job.common.model.error.FieldViolationDTO;
 import com.tencent.bk.job.common.web.validation.JacksonPropertyNodeNameProvider;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ElementKind;
 import jakarta.validation.Path;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Selects a deterministic validation error for the single-message ESB V2/V3 response.
@@ -72,13 +80,88 @@ final class EsbValidationErrorResolver {
 
     private static FieldViolationDTO toFieldViolation(ConstraintViolation<?> violation) {
         Class<?> rootBeanClass = violation.getRootBeanClass();
+        String requestParameterName = getRequestParameterName(violation, rootBeanClass);
         return new FieldViolationDTO(
-            EXTERNAL_NAME_RESOLVER.getExternalPath(
-                rootBeanClass,
-                getFieldPathWithoutExecutablePrefix(violation.getPropertyPath())
-            ),
+            requestParameterName == null
+                ? EXTERNAL_NAME_RESOLVER.getExternalPath(
+                    rootBeanClass,
+                    getFieldPathWithoutExecutablePrefix(violation.getPropertyPath())
+                )
+                : requestParameterName,
             null,
             violation.getMessage()
+        );
+    }
+
+    private static String getRequestParameterName(ConstraintViolation<?> violation, Class<?> rootBeanClass) {
+        if (rootBeanClass == null) {
+            return null;
+        }
+        Iterator<Path.Node> nodes = violation.getPropertyPath().iterator();
+        if (!nodes.hasNext()) {
+            return null;
+        }
+        Path.Node executableNode = nodes.next();
+        if (executableNode.getKind() != ElementKind.METHOD || !nodes.hasNext()) {
+            return null;
+        }
+        Path.Node parameterNode = nodes.next();
+        if (parameterNode.getKind() != ElementKind.PARAMETER || nodes.hasNext()) {
+            return null;
+        }
+        Path.MethodNode methodNode = executableNode.as(Path.MethodNode.class);
+        Path.ParameterNode directParameterNode = parameterNode.as(Path.ParameterNode.class);
+        return findRequestParameterName(
+            rootBeanClass,
+            methodNode.getName(),
+            methodNode.getParameterTypes(),
+            directParameterNode.getParameterIndex(),
+            new HashSet<>()
+        );
+    }
+
+    private static String findRequestParameterName(Class<?> type,
+                                                   String methodName,
+                                                   List<Class<?>> parameterTypes,
+                                                   int parameterIndex,
+                                                   Set<Class<?>> visitedTypes) {
+        if (type == null || !visitedTypes.add(type)) {
+            return null;
+        }
+        try {
+            Method method = type.getDeclaredMethod(methodName, parameterTypes.toArray(new Class<?>[0]));
+            Parameter parameter = method.getParameters()[parameterIndex];
+            RequestParam requestParam =
+                AnnotatedElementUtils.findMergedAnnotation(parameter, RequestParam.class);
+            if (requestParam != null) {
+                if (StringUtils.hasText(requestParam.name())) {
+                    return requestParam.name();
+                }
+                if (StringUtils.hasText(requestParam.value())) {
+                    return requestParam.value();
+                }
+            }
+        } catch (NoSuchMethodException ignored) {
+            // Continue with interfaces and the superclass.
+        }
+        for (Class<?> interfaceType : type.getInterfaces()) {
+            String name = findRequestParameterName(
+                interfaceType,
+                methodName,
+                parameterTypes,
+                parameterIndex,
+                visitedTypes
+            );
+            if (name != null) {
+                return name;
+            }
+        }
+        return findRequestParameterName(
+            type.getSuperclass(),
+            methodName,
+            parameterTypes,
+            parameterIndex,
+            visitedTypes
         );
     }
 
