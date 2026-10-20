@@ -40,7 +40,7 @@ public interface RepoTagService {
      * 批量写入Tag
      *
      * @param tagList 原始Tag列表
-     * @return 写入结果，含新增/已存在/不纳管/非法4个分桶明细
+     * @return 写入结果，含新增/已存在/批内重复/不纳管/非法5个分桶明细
      */
     BatchAddTagResp batchAddTags(List<String> tagList);
 
@@ -48,7 +48,7 @@ public interface RepoTagService {
      * 批量删除Tag
      *
      * @param tagList 原始Tag列表
-     * @return 删除结果，含已删除/库中不存在/不纳管/非法4个分桶明细
+     * @return 删除结果，含已删除/库中不存在/批内重复/不纳管/非法5个分桶明细
      */
     BatchDeleteTagResp batchDeleteTags(List<String> tagList);
 

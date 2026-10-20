@@ -32,6 +32,7 @@ import com.tencent.bk.job.model.RepoTagDTO;
 import com.tencent.bk.job.model.TagListResp;
 import com.tencent.bk.job.model.TagParseResult;
 import com.tencent.bk.job.model.TagSeriesDTO;
+import com.tencent.bk.job.model.TagTypeEnum;
 import com.tencent.bk.job.service.RepoTagService;
 import com.tencent.bk.job.utils.RepoTagUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -178,23 +179,30 @@ public class RepoTagServiceImpl implements RepoTagService {
                 + ", expect x / x.y / x.y.z / x.y.z-{alpha|beta|rc}");
         }
         Integer preRank = series.getType() == null ? null : series.getType().getRank();
+        boolean ascending = "asc".equalsIgnoreCase(order);
         List<RepoTagDTO> tags = repoTagMapper.selectSeries(series.getMajor(), series.getMinor(),
-            series.getPatch(), preRank);
+            series.getPatch(), preRank, ascending, RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1);
+        int matchedSize = tags == null ? 0 : tags.size();
+        boolean truncated = matchedSize > RepoTagUtils.MAX_QUERY_RESULT_SIZE;
 
         TagListResp resp = new TagListResp();
         resp.setResult(true);
         resp.setPrefix(series.toNormalizedString());
-        resp.setTotal(tags == null ? 0 : tags.size());
-        List<String> tagNames = RepoTagUtils.toSortedTagNames(tags, "asc".equalsIgnoreCase(order));
-        if (tagNames.size() > RepoTagUtils.MAX_QUERY_RESULT_SIZE) {
+        resp.setTruncated(truncated);
+        if (truncated) {
+            // LIMIT查询与补充计数间若发生并发写删，total可能与列表瞬时不一致；接口不承诺一致性快照。
+            resp.setTotal(repoTagMapper.countSeries(series.getMajor(), series.getMinor(), series.getPatch(), preRank));
             // 查询侧截断不会造成数据丢失，比直接拒绝更可用；调用方可据truncated标记收窄prefix再查
-            resp.setTruncated(true);
-            resp.setTagList(new ArrayList<>(tagNames.subList(0, RepoTagUtils.MAX_QUERY_RESULT_SIZE)));
             resp.setMessage(String.format("matched %d tags, truncated to %d, please use a more specific prefix",
                 resp.getTotal(), RepoTagUtils.MAX_QUERY_RESULT_SIZE));
         } else {
-            resp.setTagList(new ArrayList<>(tagNames));
+            resp.setTotal(matchedSize);
         }
+        List<String> tagNames = new ArrayList<>(Math.min(matchedSize, RepoTagUtils.MAX_QUERY_RESULT_SIZE));
+        for (int i = 0; i < Math.min(matchedSize, RepoTagUtils.MAX_QUERY_RESULT_SIZE); i++) {
+            tagNames.add(tags.get(i).getTag());
+        }
+        resp.setTagList(tagNames);
         return resp;
     }
 
@@ -205,10 +213,13 @@ public class RepoTagServiceImpl implements RepoTagService {
             return NextTagResp.fail("invalid series: " + series
                 + ", expect x.y.z or x.y.z-{alpha|beta|rc}");
         }
-        // 两个分支都只需要x.y范围内的Tag：先行版分支再按修订号与类型收窄，稳定版分支要看整个x.y的稳定版
-        List<RepoTagDTO> tagsInMinorSeries = repoTagMapper.selectSeries(parsedSeries.getMajor(),
-            parsedSeries.getMinor(), null, null);
-        return RepoTagUtils.nextTag(parsedSeries, tagsInMinorSeries);
+        boolean stable = parsedSeries.getType() == null;
+        Integer patch = stable ? null : parsedSeries.getPatch();
+        int preRank = stable ? TagTypeEnum.STABLE.getRank() : parsedSeries.getType().getRank();
+        // nextTag只需要目标子集的语义最大值；稳定版限定pre_rank=4，避免先行版干扰最大patch。
+        List<RepoTagDTO> maxTags = repoTagMapper.selectSeries(parsedSeries.getMajor(),
+            parsedSeries.getMinor(), patch, preRank, false, 1);
+        return RepoTagUtils.nextTag(parsedSeries, maxTags);
     }
 
     /**

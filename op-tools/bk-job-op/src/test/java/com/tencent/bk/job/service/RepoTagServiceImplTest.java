@@ -329,24 +329,31 @@ class RepoTagServiceImplTest {
     class ListTagsTest {
 
         @Test
-        @DisplayName("缺省按降序返回，order=asc时顺序相反")
+        @DisplayName("缺省请求SQL降序，order=asc请求SQL升序并保持DAO返回顺序")
         void testOrder() {
-            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), isNull()))
-                .thenReturn(tagsOf("v3.10.3-beta.1", "v3.10.3", "v3.10.3-alpha.11", "v3.10.3-alpha.2"));
+            List<RepoTagDTO> descTags =
+                tagsOf("v3.10.3", "v3.10.3-beta.1", "v3.10.3-alpha.11", "v3.10.3-alpha.2");
+            List<RepoTagDTO> ascTags =
+                tagsOf("v3.10.3-alpha.2", "v3.10.3-alpha.11", "v3.10.3-beta.1", "v3.10.3");
+            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), isNull(), eq(false),
+                eq(RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1))).thenReturn(descTags);
+            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), isNull(), eq(true),
+                eq(RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1))).thenReturn(ascTags);
 
             List<String> desc = repoTagService.listTags("3.10.3", null).getTagList();
             List<String> asc = repoTagService.listTags("3.10.3", "asc").getTagList();
 
-            assertEquals(Arrays.asList("v3.10.3", "v3.10.3-beta.1", "v3.10.3-alpha.11", "v3.10.3-alpha.2"), desc);
-            List<String> reversedAsc = new ArrayList<>(asc);
-            Collections.reverse(reversedAsc);
-            assertEquals(desc, reversedAsc);
+            assertEquals(Arrays.asList("v3.10.3", "v3.10.3-beta.1",
+                "v3.10.3-alpha.11", "v3.10.3-alpha.2"), desc);
+            assertEquals(Arrays.asList("v3.10.3-alpha.2", "v3.10.3-alpha.11",
+                "v3.10.3-beta.1", "v3.10.3"), asc);
         }
 
         @Test
         @DisplayName("带先行标识的前缀按类型序收窄查询条件")
         void testPreReleasePrefix() {
-            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), eq(1)))
+            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), eq(1), eq(true),
+                eq(RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1)))
                 .thenReturn(tagsOf("v3.10.3-alpha.1"));
 
             TagListResp resp = repoTagService.listTags("V3.10.3-alpha", "asc");
@@ -358,22 +365,64 @@ class RepoTagServiceImplTest {
         }
 
         @Test
-        @DisplayName("命中数超过上限时截断返回并置truncated，而不是拒绝")
-        void testTruncated() {
+        @DisplayName("恰好1000条不截断且不补查COUNT")
+        void testExactlyLimitIsNotTruncated() {
             List<RepoTagDTO> tags = new ArrayList<>();
-            for (int patch = 1; patch <= RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1; patch++) {
+            for (int patch = 1; patch <= RepoTagUtils.MAX_QUERY_RESULT_SIZE; patch++) {
                 tags.addAll(tagsOf("v3.10." + patch));
             }
-            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), isNull())).thenReturn(tags);
+            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), isNull(), eq(true),
+                eq(RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1))).thenReturn(tags);
 
             TagListResp resp = repoTagService.listTags("3.10", "asc");
 
             assertTrue(resp.isResult());
-            assertTrue(resp.isTruncated());
-            assertEquals(RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1, resp.getTotal(),
-                "total是截断前的真实命中数");
+            assertFalse(resp.isTruncated());
+            assertEquals(RepoTagUtils.MAX_QUERY_RESULT_SIZE, resp.getTotal());
             assertEquals(RepoTagUtils.MAX_QUERY_RESULT_SIZE, resp.getTagList().size());
+            assertNull(resp.getMessage());
+            verify(repoTagMapper, never()).countSeries(any(), any(), any(), any());
+        }
+
+        @Test
+        @DisplayName("ASC返回1001条时保留语义序最旧1000条并补查真实total")
+        void testAscendingTruncatedBoundary() {
+            List<RepoTagDTO> tags = new ArrayList<>();
+            for (int patch = 1; patch <= RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1; patch++) {
+                tags.addAll(tagsOf("v3.10." + patch));
+            }
+            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), isNull(), eq(true),
+                eq(RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1))).thenReturn(tags);
+            when(repoTagMapper.countSeries(eq(3), eq(10), isNull(), isNull())).thenReturn(1234);
+
+            TagListResp resp = repoTagService.listTags("3.10", "asc");
+
+            assertTrue(resp.isTruncated());
+            assertEquals(1234, resp.getTotal(), "total应来自截断后的COUNT查询");
+            assertEquals(RepoTagUtils.MAX_QUERY_RESULT_SIZE, resp.getTagList().size());
+            assertEquals("v3.10.1", resp.getTagList().get(0));
+            assertEquals("v3.10.1000", resp.getTagList().get(999));
             assertNotNull(resp.getMessage());
+        }
+
+        @Test
+        @DisplayName("DESC返回1001条时保留语义序最新1000条并补查真实total")
+        void testDescendingTruncatedBoundary() {
+            List<RepoTagDTO> tags = new ArrayList<>();
+            for (int patch = RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1; patch >= 1; patch--) {
+                tags.addAll(tagsOf("v3.10." + patch));
+            }
+            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), isNull(), eq(false),
+                eq(RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1))).thenReturn(tags);
+            when(repoTagMapper.countSeries(eq(3), eq(10), isNull(), isNull())).thenReturn(2000);
+
+            TagListResp resp = repoTagService.listTags("3.10", "desc");
+
+            assertTrue(resp.isTruncated());
+            assertEquals(2000, resp.getTotal());
+            assertEquals(RepoTagUtils.MAX_QUERY_RESULT_SIZE, resp.getTagList().size());
+            assertEquals("v3.10.1001", resp.getTagList().get(0));
+            assertEquals("v3.10.2", resp.getTagList().get(999));
         }
 
         @Test
@@ -393,10 +442,10 @@ class RepoTagServiceImplTest {
     class NextTagTest {
 
         @Test
-        @DisplayName("稳定版分支按x.y小版本取数，系列回显为x.y")
-        void testStableBranchQueriesMinorSeries() {
-            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), isNull()))
-                .thenReturn(tagsOf("v3.10.3", "v3.10.7", "v3.10.8-rc.1"));
+        @DisplayName("稳定版分支限定preRank=4并以DESC LIMIT 1查询最大stable")
+        void testStableBranchQueriesMaxStableOnly() {
+            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), eq(4), eq(false), eq(1)))
+                .thenReturn(tagsOf("v3.10.7"));
 
             NextTagResp resp = repoTagService.getNextTag("V3.10.3");
 
@@ -408,10 +457,10 @@ class RepoTagServiceImplTest {
         }
 
         @Test
-        @DisplayName("先行版分支在同一修订号的同类型子集内取最大先行号")
+        @DisplayName("先行版分支按patch与preRank收窄并以DESC LIMIT 1查询最大先行号")
         void testPreReleaseBranch() {
-            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), isNull()))
-                .thenReturn(tagsOf("v3.10.3-alpha.2", "v3.10.3-alpha.11", "v3.10.7-alpha.30"));
+            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), eq(1), eq(false), eq(1)))
+                .thenReturn(tagsOf("v3.10.3-alpha.11"));
 
             NextTagResp resp = repoTagService.getNextTag("3.10.3-alpha");
 
@@ -434,7 +483,10 @@ class RepoTagServiceImplTest {
         @Test
         @DisplayName("DAO返回空结果时先行版首次分配为.1")
         void testEmptySeries() {
-            when(repoTagMapper.selectSeries(any(), any(), any(), any())).thenReturn(Collections.emptyList());
+            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), eq(1), eq(false), eq(1)))
+                .thenReturn(Collections.emptyList());
+            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), eq(4), eq(false), eq(1)))
+                .thenReturn(Collections.emptyList());
 
             assertEquals("v3.10.3-alpha.1", repoTagService.getNextTag("3.10.3-alpha").getNextTag());
             assertEquals("v3.10.3", repoTagService.getNextTag("3.10.3").getNextTag());
@@ -448,9 +500,12 @@ class RepoTagServiceImplTest {
         @Test
         @DisplayName("listTags的最大值与nextTag的推导依据一致")
         void testMaxTagConsistency() {
-            List<RepoTagDTO> tags = tagsOf("v3.10.3-alpha.2", "v3.10.3-alpha.11", "v3.10.3-beta.1", "v3.10.3");
-            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), isNull())).thenReturn(tags);
-            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), isNull())).thenReturn(tags);
+            List<RepoTagDTO> tags =
+                tagsOf("v3.10.3", "v3.10.3-beta.1", "v3.10.3-alpha.11", "v3.10.3-alpha.2");
+            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), isNull(), eq(false),
+                eq(RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1))).thenReturn(tags);
+            when(repoTagMapper.selectSeries(eq(3), eq(10), isNull(), eq(4), eq(false), eq(1)))
+                .thenReturn(tagsOf("v3.10.3"));
 
             String maxInList = repoTagService.listTags("3.10.3", "desc").getTagList().get(0);
             String maxInNextTag = repoTagService.getNextTag("3.10.3").getCurrentMaxTag();
@@ -464,7 +519,8 @@ class RepoTagServiceImplTest {
             when(repoTagMapper.selectExistingTags(anyList())).thenReturn(Collections.emptyList());
             BatchAddTagResp addResp = repoTagService.batchAddTags(Collections.singletonList(" V3.10.3-alpha.1 "));
 
-            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), eq(1)))
+            when(repoTagMapper.selectSeries(eq(3), eq(10), eq(3), eq(1), eq(true),
+                eq(RepoTagUtils.MAX_QUERY_RESULT_SIZE + 1)))
                 .thenReturn(tagsOf(addResp.getAddedTags().toArray(new String[0])));
             List<String> queried = repoTagService.listTags("3.10.3-alpha", "asc").getTagList();
 

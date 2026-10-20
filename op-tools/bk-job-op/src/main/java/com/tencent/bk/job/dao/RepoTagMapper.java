@@ -82,11 +82,15 @@ public interface RepoTagMapper {
      * <p>
      * 各段版本号是独立的整数列而非字符串前缀匹配，因为LIKE '3.1%'会错误命中3.10.x与3.11.x。
      * 入参为null的段代表不限定，查询条件逐段收窄，始终命中idx_series索引的最左前缀。
+     * 排序键及顺序与RepoTagUtils.SEMANTIC_COMPARATOR完全一致，方向与LIMIT一并下推到数据库，
+     * 避免宽前缀查询将全部记录加载到内存。
      *
-     * @param major   主版本号，必填
-     * @param minor   小版本号，为null时不限定
-     * @param patch   修订号，为null时不限定
-     * @param preRank 类型序，为null时不限定
+     * @param major     主版本号，必填
+     * @param minor     小版本号，为null时不限定
+     * @param patch     修订号，为null时不限定
+     * @param preRank   类型序，为null时不限定
+     * @param ascending true按语义升序，false按语义降序
+     * @param limit     最大返回条数
      * @return 命中的Tag列表
      */
     @Select({
@@ -97,11 +101,40 @@ public interface RepoTagMapper {
         "<if test='minor != null'> AND minor = #{minor} </if>",
         "<if test='patch != null'> AND patch = #{patch} </if>",
         "<if test='preRank != null'> AND pre_rank = #{preRank} </if>",
-        "ORDER BY major, minor, patch, pre_rank, pre_num",
+        "<choose>",
+        "<when test='ascending'>",
+        "ORDER BY major ASC, minor ASC, patch ASC, pre_rank ASC, pre_num ASC",
+        "</when>",
+        "<otherwise>",
+        "ORDER BY major DESC, minor DESC, patch DESC, pre_rank DESC, pre_num DESC",
+        "</otherwise>",
+        "</choose>",
+        "LIMIT #{limit}",
         "</script>"
     })
     List<RepoTagDTO> selectSeries(@Param("major") Integer major,
                                   @Param("minor") Integer minor,
                                   @Param("patch") Integer patch,
-                                  @Param("preRank") Integer preRank);
+                                  @Param("preRank") Integer preRank,
+                                  @Param("ascending") boolean ascending,
+                                  @Param("limit") int limit);
+
+    /**
+     * 统计版本前缀命中的Tag总数，过滤条件必须与selectSeries保持一致。
+     * 仅在LIMIT N+1确认查询结果被截断时调用，以维持total为真实命中数的接口契约。
+     */
+    @Select({
+        "<script>",
+        "SELECT COUNT(*)",
+        "FROM repo_tag",
+        "WHERE major = #{major}",
+        "<if test='minor != null'> AND minor = #{minor} </if>",
+        "<if test='patch != null'> AND patch = #{patch} </if>",
+        "<if test='preRank != null'> AND pre_rank = #{preRank} </if>",
+        "</script>"
+    })
+    int countSeries(@Param("major") Integer major,
+                    @Param("minor") Integer minor,
+                    @Param("patch") Integer patch,
+                    @Param("preRank") Integer preRank);
 }
