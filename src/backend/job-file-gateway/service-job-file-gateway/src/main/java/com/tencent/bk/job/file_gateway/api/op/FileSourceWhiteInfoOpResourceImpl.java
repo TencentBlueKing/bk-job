@@ -32,6 +32,7 @@ import com.tencent.bk.job.file_gateway.model.dto.FileSourceWhiteInfoDTO;
 import com.tencent.bk.job.file_gateway.model.req.op.AddBkArtifactoryWhiteBaseUrlReq;
 import com.tencent.bk.job.file_gateway.model.req.op.BatchDeleteFileSourceWhiteInfoReq;
 import com.tencent.bk.job.file_gateway.model.resp.op.FileSourceWhiteInfoVO;
+import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,15 +46,19 @@ import java.util.stream.Collectors;
 public class FileSourceWhiteInfoOpResourceImpl implements FileSourceWhiteInfoOpResource {
 
     private final FileSourceWhiteInfoDAO fileSourceWhiteInfoDAO;
+    private final FileSourceValidateService fileSourceValidateService;
 
     @Autowired
-    public FileSourceWhiteInfoOpResourceImpl(FileSourceWhiteInfoDAO fileSourceWhiteInfoDAO) {
+    public FileSourceWhiteInfoOpResourceImpl(FileSourceWhiteInfoDAO fileSourceWhiteInfoDAO,
+                                             FileSourceValidateService fileSourceValidateService) {
         this.fileSourceWhiteInfoDAO = fileSourceWhiteInfoDAO;
+        this.fileSourceValidateService = fileSourceValidateService;
     }
 
     @Override
     public Response<Integer> addBkArtifactoryWhiteBaseUrl(String username, AddBkArtifactoryWhiteBaseUrlReq req) {
-        if(fileSourceWhiteInfoDAO.exists(FileSourceWhiteInfoTypeConsts.BK_ARTIFACTORY_BASE_URL, req.getBaseUrl())){
+        fileSourceValidateService.validateWhiteBaseUrl(req.getBaseUrl());
+        if (fileSourceWhiteInfoDAO.exists(FileSourceWhiteInfoTypeConsts.BK_ARTIFACTORY_BASE_URL, req.getBaseUrl())) {
             return Response.buildCommonFailResp(ErrorCode.FILE_SOURCE_WHITE_INFO_ALREADY_EXISTS);
         }
         FileSourceWhiteInfoDTO fileSourceWhiteInfoDTO = new FileSourceWhiteInfoDTO();

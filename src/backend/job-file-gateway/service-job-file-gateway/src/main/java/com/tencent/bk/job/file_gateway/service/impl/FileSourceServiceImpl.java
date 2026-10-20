@@ -52,6 +52,7 @@ import com.tencent.bk.job.file_gateway.model.req.common.FileSourceMetaData;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,16 +73,19 @@ public class FileSourceServiceImpl implements FileSourceService {
     private final CurrentTenantFileSourceDAO currentTenantFileSourceDAO;
     private final FileWorkerDAO fileWorkerDAO;
     private final FileSourceAuthService fileSourceAuthService;
+    private final FileSourceValidateService fileSourceValidateService;
 
     @Autowired
     public FileSourceServiceImpl(FileSourceTypeDAO fileSourceTypeDAO,
                                  CurrentTenantFileSourceDAO currentTenantFileSourceDAO,
                                  FileWorkerDAO fileWorkerDAO,
-                                 FileSourceAuthService fileSourceAuthService) {
+                                 FileSourceAuthService fileSourceAuthService,
+                                 FileSourceValidateService fileSourceValidateService) {
         this.fileSourceTypeDAO = fileSourceTypeDAO;
         this.currentTenantFileSourceDAO = currentTenantFileSourceDAO;
         this.fileWorkerDAO = fileWorkerDAO;
         this.fileSourceAuthService = fileSourceAuthService;
+        this.fileSourceValidateService = fileSourceValidateService;
     }
 
     @Override
@@ -149,6 +153,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     public FileSourceDTO saveFileSource(User user, Long appId, FileSourceDTO fileSource) {
         authCreate(user, appId);
         authUseTicketIfNeeded(user, appId, fileSource.getCredentialId());
+        checkFileSourceSecurity(fileSource);
         normalizeShareScope(fileSource);
 
         if (existsCode(appId, fileSource.getCode())) {
@@ -172,6 +177,15 @@ public class FileSourceServiceImpl implements FileSourceService {
             log.warn("Fail to register file_source to iam:({},{})", fileSource.getId(), fileSource.getAlias());
         }
         return getFileSourceById(id);
+    }
+
+    /**
+     * Web/ESB 入口均要求传入类型编码，fileSourceType 为空说明编码未匹配到已知类型，按不支持的类型拒绝
+     */
+    private void checkFileSourceSecurity(FileSourceDTO fileSource) {
+        FileSourceTypeDTO fileSourceType = fileSource.getFileSourceType();
+        String fileSourceTypeCode = fileSourceType == null ? null : fileSourceType.getCode();
+        fileSourceValidateService.checkFileSource(fileSourceTypeCode, fileSource.getFileSourceInfoMap());
     }
 
     /**
@@ -235,6 +249,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     public FileSourceDTO updateFileSourceById(User user, Long appId, FileSourceDTO fileSource) {
         authManage(user, appId, fileSource.getId());
         authUseTicketIfNeeded(user, appId, fileSource.getCredentialId());
+        checkFileSourceSecurity(fileSource);
         normalizeShareScope(fileSource);
 
         if (existsCodeExceptId(appId, fileSource.getCode(), fileSource.getId())) {

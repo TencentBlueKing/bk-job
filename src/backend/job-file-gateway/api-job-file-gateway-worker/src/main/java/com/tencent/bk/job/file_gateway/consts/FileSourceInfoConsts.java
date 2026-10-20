@@ -31,4 +31,6 @@ public class FileSourceInfoConsts {
 
     // Key: 蓝鲸制品库根地址
     public static final String KEY_BK_ARTIFACTORY_BASE_URL = "base_url";
+    // Key: 腾讯云 COS 接入点域名
+    public static final String KEY_COS_END_POINT_DOMAIN = "end_point_domain";
 }

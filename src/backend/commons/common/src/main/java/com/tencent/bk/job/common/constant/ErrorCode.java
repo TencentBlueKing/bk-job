@@ -97,6 +97,8 @@ public class ErrorCode {
     public static final int CAN_NOT_FIND_REPO_IN_ARTIFACTORY = 1214003;
     // 制品库认证失败，请检查文件源凭证配置
     public static final int ARTIFACTORY_AUTH_FAILED = 1214004;
+    // 制品库文件上传失败，详情：{0}
+    public static final int ARTIFACTORY_UPLOAD_GENERIC_FILE_ERROR = 1214005;
 
     // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
@@ -569,6 +571,10 @@ public class ErrorCode {
     public static final int FILE_WORKER_CONNECTIVITY_CHECK_FAIL = 1260022;
     // 文件源[id={0}]已被禁用
     public static final int FILE_SOURCE_DISABLED = 1260023;
+    // 内部HTTP请求目标地址不合法
+    public static final int INTERNAL_HTTP_URL_INVALID = 1260024;
+    // 文件源类型[{0}]尚未支持
+    public static final int FILE_SOURCE_TYPE_NOT_SUPPORTED = 1260025;
 
     // 文件网关 end
     // 文件代理 start

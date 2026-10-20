@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -270,5 +271,19 @@ public class IpUtilsTest {
         assertThat(IpUtils.getFirstIpFromMultiIp("127.0.0.1", ",")).isEqualTo("127.0.0.1");
         assertThat(IpUtils.getFirstIpFromMultiIp("127.0.0.1,", ",")).isEqualTo("127.0.0.1");
         assertThat(IpUtils.getFirstIpFromMultiIp("127.0.0.1,127.0.0.2", ",")).isEqualTo("127.0.0.1");
+    }
+
+    @Test
+    void testListMachineIps() throws Exception {
+        List<String> ips = IpUtils.listMachineIps();
+        assertThat(ips).isNotNull();
+        for (String ip : ips) {
+            assertThat(IpUtils.isValidIpAddress(ip)).isTrue();
+            assertThat(ip).doesNotContain("%");
+            InetAddress address = InetAddress.getByName(ip);
+            assertThat(address.isLoopbackAddress()).isFalse();
+            assertThat(address.isLinkLocalAddress()).isFalse();
+            assertThat(address.isAnyLocalAddress()).isFalse();
+        }
     }
 }

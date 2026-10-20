@@ -45,6 +45,13 @@ job:
           # 蓝鲸 AI 开发平台 BK-AIDev
           bkAiDev: true
 ```
+3. 任务回调地址（callback_url）白名单校验默认开启。关闭后仍做 scheme/host 基础校验，不校验 userinfo 与环回地址。当前环境域名匹配时仅拒绝环回 IP，不再拒绝局域网 IP。
+```yaml
+executeConfig:
+  checkCallbackUrl:
+    # 是否开启 callback_url 白名单校验，默认开启。关闭后仍做 scheme/host 基础校验，不校验 userinfo 与环回地址
+    enabled: true
+```
 
 ## 0.9.5
 1. 新增审批相关配置（审批任务 TTL、记录保留期、默认渠道、IMate 渠道地址与 appCode、回查 IMate 使用的开放接口凭证、Mock 渠道开关与通过 ID 列表）

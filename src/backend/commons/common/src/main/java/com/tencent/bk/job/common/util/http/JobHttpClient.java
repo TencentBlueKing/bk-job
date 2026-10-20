@@ -31,8 +31,6 @@ import com.tencent.bk.job.common.model.http.HttpReq;
  */
 public interface JobHttpClient {
 
-    String get(HttpReq req);
-
     String post(HttpReq req);
 
 }

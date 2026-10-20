@@ -24,41 +24,41 @@
 
 package com.tencent.bk.job.file_gateway.service;
 
-import com.tencent.bk.job.common.model.http.HttpReq;
-import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
-import com.tencent.bk.job.common.util.http.JobHttpClient;
+import com.tencent.bk.job.common.util.LogUtil;
+import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.file_gateway.model.req.inner.ConnectivityCheckReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ConnectivityCheckResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Worker 连通性回探服务
- * 由 File-Worker 在启动期反复调用，File-Gateway 根据请求中携带的 accessHost/accessPort
- * 主动访问 Worker 的 /actuator/health 端点，借此真实证明该 Gateway Pod 能访问到 Worker。
+ * 由 File-Worker 在启动期反复调用，File-Gateway 在本 Pod 内解析请求中携带的 accessHost，
+ * 并校验解析结果包含 Worker 上报的当前 IP，借此证明该 Gateway Pod 已能解析到新 Worker 的最新地址，
+ * 而不是 DNS 缓存中的旧 IP。
  * 通过 Worker 侧对 Gateway 集群做"连续 N 次成功"判定，可规避 K8s 各 Pod 间 DNS 缓存
  * 时间差导致的瞬时不可达问题。
+ * <p>
+ * Gateway 只做 DNS 解析，不向请求方指定的地址发起任何连接；Worker 自身健康状态由 Worker 自行判断。
+ * 解析走 {@link InetAddress#getAllByName}，与后续 Gateway 调用 Worker 时共用 JVM DNS 缓存。
  */
 @Slf4j
 @Service
 public class WorkerConnectivityService {
 
     /**
-     * Worker 健康检查端点路径
-     */
-    private static final String WORKER_HEALTH_PATH = "/actuator/health";
-
-    /**
      * 当无法解析出本机 Pod 标识时的兜底值
      */
     private static final String UNKNOWN_POD_HOSTNAME = "unknown";
-
-    private final JobHttpClient jobHttpClient;
 
     /**
      * 当前 Gateway Pod 标识，仅用于日志聚合验证 ClusterIP Service 的 L4 负载均衡是否将
@@ -67,17 +67,20 @@ public class WorkerConnectivityService {
      */
     private final String podHostname;
 
-    @Autowired
-    public WorkerConnectivityService(JobHttpClient jobHttpClient) {
-        this.jobHttpClient = jobHttpClient;
+    private HostResolver hostResolver = InetAddress::getAllByName;
+
+    public WorkerConnectivityService() {
         this.podHostname = resolvePodHostname();
         log.info("WorkerConnectivityService initialized, podHostname={}", podHostname);
     }
 
     /**
-     * 由 Gateway 主动回探 Worker 的健康检查端点。
+     * 在当前 Gateway Pod 内解析 Worker 的访问地址，并校验解析结果包含 Worker 上报的当前 IP。
+     * <p>
+     * Worker 重启后 IP 变化，而 Gateway 的 JVM/CoreDNS 缓存可能仍返回旧 IP，此时解析依然"成功"。
+     * 因此请求携带 expectedIps 时，要求解析结果与之有交集才算成功；未携带时（老版本 Worker）仅校验可解析。
      *
-     * @param req 回探请求，携带 Worker 的访问地址
+     * @param req 回探请求，携带 Worker 的访问地址与当前实际 IP 列表
      * @return 回探结果（成功/失败 + 失败描述）
      */
     public ConnectivityCheckResult check(ConnectivityCheckReq req) {
@@ -85,29 +88,97 @@ public class WorkerConnectivityService {
         // Worker 侧连续 N 次成功探测是否真的被 ClusterIP Service 分散到了多个 Gateway Pod
         log.info(
             "Handle connectivity check: handledByGatewayPod={}, " +
-                "fromWorker(clusterName={}, accessHost={}, accessPort={})",
+                "fromWorker(clusterName={}, accessHost={}, accessPort={}, expectedIps={})",
             podHostname,
             req.getClusterName(),
             req.getAccessHost(),
-            req.getAccessPort()
+            req.getAccessPort(),
+            req.getExpectedIps()
         );
-        String url = buildHealthUrl(req.getAccessHost(), req.getAccessPort());
-        try {
-            HttpReq httpReq = HttpReqGenUtil.genUrlGetReq(url);
-            jobHttpClient.get(httpReq);
-            return new ConnectivityCheckResult(true, null);
-        } catch (Exception e) {
-            // 捕获 UnknownHostException / IOException / RestClientException 等所有异常，
-            // 只把简短错误信息回传给 Worker，避免日志被压垮。
-            String errorMessage = buildErrorMessage(e);
-            log.info(
-                "Gateway connectivity check fail, cluster={}, url={}, errorMessage={}",
-                req.getClusterName(),
-                url,
-                errorMessage
-            );
-            return new ConnectivityCheckResult(false, errorMessage);
+        String accessHost = req.getAccessHost();
+        if (!HttpUrlSafetyUtils.isAllowedServiceHost(accessHost)) {
+            return fail(req, "invalid worker access host");
         }
+        InetAddress[] addresses;
+        try {
+            addresses = hostResolver.resolve(accessHost.trim());
+        } catch (UnknownHostException e) {
+            return fail(req, "UnknownHostException: " + e.getMessage());
+        } catch (Exception e) {
+            return fail(req, e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
+        if (addresses == null || addresses.length == 0) {
+            return fail(req, "UnknownHostException: no address resolved for " + accessHost);
+        }
+        Set<String> resolvedIps = new LinkedHashSet<>();
+        for (InetAddress address : addresses) {
+            if (address != null) {
+                resolvedIps.add(normalizeIp(address));
+            }
+        }
+        Set<String> expectedIps = parseExpectedIps(req.getExpectedIps());
+        log.info(
+            "Worker access host resolved, accessHost={}, resolvedIps={}, expectedIps={}",
+            accessHost,
+            resolvedIps,
+            expectedIps
+        );
+        if (expectedIps.isEmpty() || !Collections.disjoint(resolvedIps, expectedIps)) {
+            return new ConnectivityCheckResult(true, null);
+        }
+        return fail(req, "resolved addresses " + resolvedIps + " do not contain expected ips "
+            + expectedIps + ", gateway DNS cache may be stale");
+    }
+
+    /**
+     * 将 Worker 上报的 IP 规范化，非 IP 字面量直接忽略，保证不会因此触发 DNS 解析
+     */
+    private static Set<String> parseExpectedIps(List<String> expectedIps) {
+        Set<String> result = new LinkedHashSet<>();
+        if (expectedIps == null) {
+            return result;
+        }
+        for (String ip : expectedIps) {
+            String trimmedIp = StringUtils.trim(ip);
+            if (!IpUtils.isValidIpAddress(trimmedIp)) {
+                log.info("Ignore invalid expected ip: {}", LogUtil.sanitizeForLog(ip, 64));
+                continue;
+            }
+            try {
+                result.add(normalizeIp(InetAddress.getByName(trimmedIp)));
+            } catch (UnknownHostException e) {
+                log.info("Ignore invalid expected ip: {}", LogUtil.sanitizeForLog(ip, 64));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 统一 IP 文本表示（如 IPv6 压缩/非压缩形式），并去掉 IPv6 scope id
+     */
+    private static String normalizeIp(InetAddress address) {
+        String hostAddress = address.getHostAddress();
+        int scopeIndex = hostAddress.indexOf('%');
+        return scopeIndex < 0 ? hostAddress : hostAddress.substring(0, scopeIndex);
+    }
+
+    private ConnectivityCheckResult fail(ConnectivityCheckReq req, String errorMessage) {
+        log.info(
+            "Gateway connectivity check fail, cluster={}, accessHost={}, errorMessage={}",
+            req.getClusterName(),
+            req.getAccessHost(),
+            errorMessage
+        );
+        return new ConnectivityCheckResult(false, errorMessage);
+    }
+
+    void setHostResolver(HostResolver hostResolver) {
+        this.hostResolver = hostResolver;
+    }
+
+    @FunctionalInterface
+    interface HostResolver {
+        InetAddress[] resolve(String host) throws UnknownHostException;
     }
 
     /**
@@ -134,22 +205,5 @@ public class WorkerConnectivityService {
             log.warn("Fail to resolve local hostname, fallback to {}", UNKNOWN_POD_HOSTNAME, e);
             return UNKNOWN_POD_HOSTNAME;
         }
-    }
-
-    @SuppressWarnings("HttpUrlsUsage")
-    private String buildHealthUrl(String accessHost, Integer accessPort) {
-        return "http://" + accessHost + ":" + accessPort + WORKER_HEALTH_PATH;
-    }
-
-    /**
-     * 构造对 Worker 友好的简短错误信息（包含异常类型+原始 message），避免泄漏堆栈。
-     */
-    private String buildErrorMessage(Throwable t) {
-        Throwable cause = t;
-        // 取最内层 cause，避免被 Spring 异常包装多层后丢失真实原因（如 UnknownHostException）
-        while (cause.getCause() != null && cause.getCause() != cause) {
-            cause = cause.getCause();
-        }
-        return cause.getClass().getSimpleName() + ": " + cause.getMessage();
     }
 }

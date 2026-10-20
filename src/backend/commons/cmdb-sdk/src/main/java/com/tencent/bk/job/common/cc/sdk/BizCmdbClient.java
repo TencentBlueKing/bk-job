@@ -210,7 +210,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                          MeterRegistry meterRegistry,
                          TenantEnvService tenantEnvService,
                          IVirtualAdminAccountProvider virtualAdminAccountProvider,
-                         Tracer tracer) {
+                         Tracer tracer,
+                         boolean sslVerifyEnabled) {
         super(
             flowController,
             appProperties,
@@ -218,7 +219,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             cmdbConfig,
             meterRegistry,
             tenantEnvService,
-            virtualAdminAccountProvider
+            virtualAdminAccountProvider,
+            sslVerifyEnabled
         );
         this.threadPoolExecutor = threadPoolExecutor;
         this.longTermThreadPoolExecutor = longTermThreadPoolExecutor;

@@ -43,12 +43,10 @@ import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
-import com.tencent.bk.job.common.util.http.JobHttpSslVerifyConfig;
 import com.tencent.bk.job.common.util.http.WatchableHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -106,6 +104,7 @@ public class BaseCmdbClient extends BkApiV1Client {
     protected final FlowController globalFlowController;
     protected final CmdbConfig cmdbConfig;
     protected final HttpHelper cmdbHttpHelper;
+    private final boolean sslVerifyEnabled;
 
     static {
         interfaceNameMap.put(SEARCH_BIZ_INST_TOPO, "search_biz_inst_topo");
@@ -137,14 +136,13 @@ public class BaseCmdbClient extends BkApiV1Client {
                              CmdbConfig cmdbConfig,
                              MeterRegistry meterRegistry,
                              TenantEnvService tenantEnvService,
-                             IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                             IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                             boolean sslVerifyEnabled) {
         super(
             meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
-            HttpHelperFactory.getLongRetryableHttpHelper(
-                JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
-            ),
+            HttpHelperFactory.getLongRetryableHttpHelper(sslVerifyEnabled),
             tenantEnvService
         );
         this.setLogger(LoggerFactory.getLogger(this.getClass()));
@@ -152,6 +150,7 @@ public class BaseCmdbClient extends BkApiV1Client {
         this.cmdbConfig = cmdbConfig;
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
         this.appProperties = appProperties;
+        this.sslVerifyEnabled = sslVerifyEnabled;
         this.cmdbHttpHelper = HttpHelperFactory.createHttpHelper(
             15000,
             15000,
@@ -162,15 +161,13 @@ public class BaseCmdbClient extends BkApiV1Client {
             true,
             new JobHttpRequestRetryHandler(),
             httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor()),
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
+            sslVerifyEnabled
         );
         this.virtualAdminAccountProvider = virtualAdminAccountProvider;
     }
 
     protected WatchableHttpHelper longRetryableHttpHelper() {
-        return HttpHelperFactory.getLongRetryableHttpHelper(
-            JobHttpSslVerifyConfig.isVerifyEnabled(ExternalSystemEnum.CMDB)
-        );
+        return HttpHelperFactory.getLongRetryableHttpHelper(sslVerifyEnabled);
     }
 
 

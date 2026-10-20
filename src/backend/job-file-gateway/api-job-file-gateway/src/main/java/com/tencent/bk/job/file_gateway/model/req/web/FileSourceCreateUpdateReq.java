@@ -39,6 +39,7 @@ import java.util.Map;
 
 @Data
 @Schema(description = "文件源创建、更新请求")
+@ValidFileSourceInfo
 public class FileSourceCreateUpdateReq {
 
     /**
@@ -65,7 +66,6 @@ public class FileSourceCreateUpdateReq {
      * 文件源信息Map
      */
     @Schema(description = "文件源信息Map")
-    @ValidFileSourceInfo
     private Map<String, Object> fileSourceInfoMap;
     /**
      * 是否为公共文件源

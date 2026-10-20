@@ -71,7 +71,7 @@ public class ScriptConverter {
         for (TagDTO tagDTO : tags) {
             TagVO tagVO = new TagVO();
             tagVO.setId(tagDTO.getId());
-            tagVO.setName(tagDTO.getName());
+            tagVO.setName(TagDTO.getDisplayName(tagDTO));
             tagVOS.add(tagVO);
         }
         return tagVOS;

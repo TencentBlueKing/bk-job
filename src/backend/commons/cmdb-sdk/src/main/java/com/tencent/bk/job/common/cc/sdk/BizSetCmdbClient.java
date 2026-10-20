@@ -77,7 +77,8 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
                             FlowController flowController,
                             MeterRegistry meterRegistry,
                             TenantEnvService tenantEnvService,
-                            IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                            IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                            boolean sslVerifyEnabled) {
         super(
             flowController,
             appProperties,
@@ -85,7 +86,8 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
             cmdbConfig,
             meterRegistry,
             tenantEnvService,
-            virtualAdminAccountProvider
+            virtualAdminAccountProvider,
+            sslVerifyEnabled
         );
     }
 
