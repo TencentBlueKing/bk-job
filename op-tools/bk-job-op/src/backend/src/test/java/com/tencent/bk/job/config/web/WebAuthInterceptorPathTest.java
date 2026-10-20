@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.config.web;
 
+import com.tencent.bk.job.config.ApiWebMvcConfig;
 import com.tencent.bk.job.consts.ApiPaths;
 import com.tencent.bk.job.consts.WebPaths;
 import jakarta.servlet.http.HttpServletRequest;
@@ -107,6 +108,19 @@ class WebAuthInterceptorPathTest {
         assertThat(matches(true, ApiPaths.LEGACY_ISSUE_STATUS)).isFalse();
         assertThat(matches(true, WebPaths.ISSUE_STATUS_LIST)).isTrue();
         assertThat(matches(true, WebPaths.ISSUE_STATUS_DELETE)).isTrue();
+    }
+
+    @Test
+    @DisplayName("Web会话接口与兼容旧API路径必须精确注册，禁止使用通配符")
+    void shouldUseExactPatternsForSessionAndLegacyApiPaths() {
+        assertThat(WebPaths.SESSION_API_PATHS)
+            .allMatch(path -> !path.contains("*"));
+        assertThat(ApiWebMvcConfig.resolveInterceptPaths())
+            .contains(ApiPaths.LEGACY_ISSUE_STATUS)
+            .doesNotContain(
+                ApiPaths.LEGACY_ISSUE_STATUS + "/*",
+                ApiPaths.LEGACY_ISSUE_STATUS + "/**"
+            );
     }
 
     @Test

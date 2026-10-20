@@ -69,9 +69,13 @@ class BkTicketLoginServiceImplTest {
     }
 
     private WebAuthProperties properties(long maxSize, int validSeconds, int invalidSeconds) {
+        return properties(API_URL, maxSize, validSeconds, invalidSeconds);
+    }
+
+    private WebAuthProperties properties(String apiUrl, long maxSize, int validSeconds, int invalidSeconds) {
         WebAuthProperties properties = new WebAuthProperties();
         WebAuthProperties.Login login = properties.getAuth().getLogin();
-        login.setApiUrl(API_URL);
+        login.setApiUrl(apiUrl);
         login.getCache().setMaxSize(maxSize);
         login.getCache().setValidSeconds(validSeconds);
         login.getCache().setInvalidSeconds(invalidSeconds);
@@ -108,9 +112,86 @@ class BkTicketLoginServiceImplTest {
 
         URI uri = capturedUri();
         assertThat(uri.getPath()).isEqualTo("/login/api/v3/user/get_info/");
-        assertThat(uri.getQuery()).contains("bk_ticket=" + ticket);
+        assertThat(uri.getQuery()).contains("app_code=job").contains("bk_ticket=" + ticket);
         assertThat(listAppender.list).extracting(ILoggingEvent::getFormattedMessage)
             .allSatisfy(message -> assertThat(message).doesNotContain(ticket));
+    }
+
+    @Test
+    @DisplayName("ret为0且data非空时返回用户名，请求按 /user/get_info/ 协议拼装")
+    void shouldReturnUsernameWhenRetIsZero() {
+        givenResponses("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
+        BkTicketLoginServiceImpl service = newService(100, 300, 30);
+
+        assertThat(service.getUsername("protocol-ticket")).isEqualTo("admin");
+        assertThat(service.getUsername("protocol-ticket")).isEqualTo("admin");
+
+        URI uri = capturedUri();
+        assertThat(uri.getPath()).isEqualTo("/login/api/v3/user/get_info/");
+        assertThat(uri.getQuery()).contains("app_code=job").contains("bk_ticket=protocol-ticket");
+    }
+
+    @Test
+    @DisplayName("api-url带结尾斜杠时不会拼出双斜杠")
+    void shouldTrimTrailingSlashOfApiUrl() {
+        givenResponses("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
+        WebAuthProperties properties = properties(API_URL + "/", 100, 300, 30);
+
+        new BkTicketLoginServiceImpl(properties, loginRestTemplate, ticker)
+            .getUsername("trailing-slash-ticket");
+
+        assertThat(capturedUri().getPath()).isEqualTo("/login/api/v3/user/get_info/");
+    }
+
+    @Test
+    @DisplayName("cookie名可配置，并作为ticket的查询参数名")
+    void shouldUseConfiguredTokenNameAsQueryParam() {
+        givenResponses("{\"ret\":0,\"data\":{\"username\":\"admin\"}}");
+        WebAuthProperties properties = properties(100, 300, 30);
+        properties.getAuth().getLogin().setTokenName("custom_ticket");
+
+        new BkTicketLoginServiceImpl(properties, loginRestTemplate, ticker)
+            .getUsername("custom-token-ticket");
+
+        assertThat(capturedUri().getQuery())
+            .contains("custom_ticket=custom-token-ticket")
+            .doesNotContain("bk_ticket=");
+    }
+
+    @Test
+    @DisplayName("ret非0视为未登录，并写入负缓存")
+    void shouldReturnNullWhenRetIsNotZero() {
+        givenResponses("{\"ret\":1302403,\"data\":null,\"msg\":\"ticket invalid\"}");
+        BkTicketLoginServiceImpl service = newService(100, 300, 30);
+
+        assertThat(service.getUsername("invalid-ret-ticket")).isNull();
+        assertThat(service.getUsername("invalid-ret-ticket")).isNull();
+
+        verify(loginRestTemplate, times(1)).getForObject(any(URI.class), eq(String.class));
+    }
+
+    @Test
+    @DisplayName("ret为0但data为空视为未登录，并写入负缓存")
+    void shouldReturnNullWhenDataIsAbsent() {
+        givenResponses("{\"ret\":0}");
+        BkTicketLoginServiceImpl service = newService(100, 300, 30);
+
+        assertThat(service.getUsername("absent-data-ticket")).isNull();
+        assertThat(service.getUsername("absent-data-ticket")).isNull();
+
+        verify(loginRestTemplate, times(1)).getForObject(any(URI.class), eq(String.class));
+    }
+
+    @Test
+    @DisplayName("响应为空视为未登录且不抛异常，并写入负缓存")
+    void shouldReturnNullWhenResponseIsBlank() {
+        givenResponses("");
+        BkTicketLoginServiceImpl service = newService(100, 300, 30);
+
+        assertThat(service.getUsername("blank-response-ticket")).isNull();
+        assertThat(service.getUsername("blank-response-ticket")).isNull();
+
+        verify(loginRestTemplate, times(1)).getForObject(any(URI.class), eq(String.class));
     }
 
     @Test
