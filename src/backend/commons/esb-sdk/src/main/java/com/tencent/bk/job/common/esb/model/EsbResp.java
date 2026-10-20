@@ -140,6 +140,14 @@ public class EsbResp<T> {
         return resp;
     }
 
+    public static <T> EsbResp<T> buildValidateFailResp(String field, String reason) {
+        return buildCommonFailResp(
+            ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+            new Object[]{field, reason},
+            null
+        );
+    }
+
     @JsonIgnore
     public boolean isSuccess() {
         return (this.result != null && this.result) || (this.code != null && this.code == ErrorCode.RESULT_OK);

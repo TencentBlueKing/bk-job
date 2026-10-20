@@ -39,7 +39,7 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.exception.UnauthenticatedException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
+import com.tencent.bk.job.common.model.error.FieldViolationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
@@ -179,19 +179,26 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatusCode statusCode,
                                                                   WebRequest request) {
-        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
-        log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
-        EsbResp<?> resp = EsbResp.buildValidateFailResp(errorDetail);
+        FieldViolationDTO violation = EsbValidationErrorResolver.resolve(ex);
+        log.warn("HandleMethodArgumentNotValid - violation: {}", violation);
+        EsbResp<?> resp = buildValidateFailResp(violation);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
     ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request, ConstraintViolationException ex) {
-        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
-        log.warn("handleConstraintViolationException - errorDetail: {}", errorDetail);
-        EsbResp<?> resp = EsbResp.buildValidateFailResp(errorDetail);
+        FieldViolationDTO violation = EsbValidationErrorResolver.resolve(ex);
+        log.warn("handleConstraintViolationException - violation: {}", violation);
+        EsbResp<?> resp = buildValidateFailResp(violation);
         return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    private EsbResp<?> buildValidateFailResp(FieldViolationDTO violation) {
+        if (violation == null) {
+            return EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
+        }
+        return EsbResp.buildValidateFailResp(violation.getField(), violation.getDescription());
     }
 
     @ExceptionHandler({ResourceExhaustedException.class})
