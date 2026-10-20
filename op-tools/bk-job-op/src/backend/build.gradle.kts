@@ -1,6 +1,3 @@
-import java.nio.charset.StandardCharsets
-import java.util.Base64
-
 plugins {
     java
     id("org.springframework.boot") version "3.5.5"
@@ -18,37 +15,27 @@ java {
     }
 }
 
-val mavenRepoUrl = providers.gradleProperty("mavenRepoUrl")
-    .orElse(providers.environmentVariable("MAVEN_REPO_URL"))
-    .orNull
-    ?.takeIf { it.isNotBlank() }
-val mavenRepoUsername = providers.environmentVariable("MAVEN_REPO_USERNAME")
-    .orNull
-    ?.takeIf { it.isNotBlank() }
-val mavenRepoPassword = providers.environmentVariable("MAVEN_REPO_PASSWORD")
-    .orNull
-    ?.takeIf { it.isNotBlank() }
-
-if ((mavenRepoUsername == null) != (mavenRepoPassword == null)) {
-    throw GradleException("MAVEN_REPO_USERNAME and MAVEN_REPO_PASSWORD must be configured together")
-}
-
 repositories {
-    if (mavenRepoUrl != null) {
-        clear()
-        maven {
-            name = "customMavenRepository"
-            url = uri(mavenRepoUrl)
-            if (mavenRepoUsername != null && mavenRepoPassword != null) {
-                credentials {
-                    username = mavenRepoUsername
-                    password = mavenRepoPassword
-                }
-            }
-        }
-    } else {
-        mavenCentral()
+    mavenLocal()
+
+    // 用户通过命令行方式指定的Maven仓库
+    var mavenRepoUrls: String? = System.getProperty("mavenRepoUrl")
+    if (mavenRepoUrls.isNullOrBlank()) {
+        // gradle.properties中的Maven仓库，优先级低于命令行-D参数
+        mavenRepoUrls = project.findProperty("MAVEN_REPO_URL")?.toString()
     }
+    if (!mavenRepoUrls.isNullOrBlank()) {
+        mavenRepoUrls.trim()
+            .replace(" ", "")
+            .split(",")
+            .filter { it.isNotBlank() }
+            .forEach { repoUrl ->
+                println("Add maven repo:$repoUrl")
+                maven { url = uri(repoUrl) }
+            }
+    }
+
+    mavenCentral()
 }
 
 val springAiVersion = "1.1.4"
@@ -96,54 +83,16 @@ tasks.withType<Test> {
 val skipFrontend = project.hasProperty("skipFrontend")
 // 前端工程与后端工程在 op-tools/bk-job-op/src 下并列
 val frontendDir = file("../frontend")
-val nodeDistBaseUrl = providers.gradleProperty("nodeDistBaseUrl")
-    .orElse(providers.environmentVariable("NODE_DIST_BASE_URL"))
-    .orNull
-    ?.takeIf { it.isNotBlank() }
-val npmRegistryUrl = providers.gradleProperty("npmRegistryUrl")
-    .orElse(providers.environmentVariable("NPM_REGISTRY_URL"))
-    .orNull
-    ?.takeIf { it.isNotBlank() }
-val npmRepoUsername = providers.environmentVariable("NPM_REPO_USERNAME")
-    .orNull
-    ?.takeIf { it.isNotBlank() }
-val npmRepoPassword = providers.environmentVariable("NPM_REPO_PASSWORD")
-    .orNull
-    ?.takeIf { it.isNotBlank() }
-
-if ((npmRepoUsername == null) != (npmRepoPassword == null)) {
-    throw GradleException("NPM_REPO_USERNAME and NPM_REPO_PASSWORD must be configured together")
-}
-
-val npmEnvironment = if (npmRepoUsername != null && npmRepoPassword != null) {
-    val basicAuth = Base64.getEncoder().encodeToString(
-        "$npmRepoUsername:$npmRepoPassword".toByteArray(StandardCharsets.UTF_8)
-    )
-    mapOf(
-        "NPM_CONFIG__AUTH" to basicAuth,
-        "NPM_CONFIG_ALWAYS_AUTH" to "true"
-    )
-} else {
-    emptyMap()
-}
 
 node {
     // 与 ../frontend/.nvmrc 保持一致
     version.set("16.20.2")
     download.set(true)
-    if (nodeDistBaseUrl != null) {
-        distBaseUrl.set(nodeDistBaseUrl)
-    }
     nodeProjectDir.set(frontendDir)
 }
 
 val npmInstallFrontend by tasks.registering(com.github.gradle.node.npm.task.NpmTask::class) {
-    val installArgs = mutableListOf("install", "--no-audit", "--no-fund")
-    if (npmRegistryUrl != null) {
-        installArgs.add("--registry=$npmRegistryUrl")
-    }
-    args.set(installArgs)
-    environment.set(npmEnvironment)
+    args.set(listOf("install", "--no-audit", "--no-fund"))
     workingDir.set(frontendDir)
     inputs.files(
         file("../frontend/package.json"),
