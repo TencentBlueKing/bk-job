@@ -8,6 +8,7 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.IIamClient;
@@ -182,6 +183,23 @@ class AppAuthServiceImplTest {
     }
 
     @Test
+    void accessBusinessDenied_bizSet_shouldBuildSingleBizSetNode() {
+        assertAccessBusinessApplication(
+            ResourceScopeTypeEnum.BIZ_SET, "9992001", ResourceTypeId.BUSINESS_SET);
+    }
+
+    @Test
+    void accessBusinessDenied_tenantSet_shouldBuildSingleTenantSetNode() {
+        assertAccessBusinessApplication(
+            ResourceScopeTypeEnum.TENANT_SET, "9993001", ResourceTypeId.TENANT_SET);
+    }
+
+    @Test
+    void accessBusinessDenied_biz_shouldBuildSingleBizNode() {
+        assertAccessBusinessApplication(ResourceScopeTypeEnum.BIZ, "2", ResourceTypeId.BIZ);
+    }
+
+    @Test
     void buildFailAuthResultFromResources_invalidResource_shouldFailClosed() {
         BasicAuthService basicAuthService = new BasicAuthService();
         basicAuthService.setResourceNameQueryService(resourceNameQueryService);
@@ -210,6 +228,30 @@ class AppAuthServiceImplTest {
     private PermissionResource firstResource(AuthResult result) {
         return result.getRequiredActionResources().get(0)
             .getResourceGroups().get(0).getPermissionResources().get(0);
+    }
+
+    private void assertAccessBusinessApplication(ResourceScopeTypeEnum scopeType,
+                                                 String scopeId,
+                                                 String expectedResourceType) {
+        AuthResult result = appAuthService.auth(
+            USER,
+            ActionId.ACCESS_BUSINESS,
+            new AppResourceScope(scopeType, scopeId, 1L)
+        );
+        AuthServiceImpl authService = new AuthServiceImpl(
+            authHelper, mock(MessageI18nService.class), iamClient);
+        authService.setResourceNameQueryService(resourceNameQueryService);
+        authService.getApplyUrl(USER.getTenantId(), result.getRequiredActionResources());
+
+        ArgumentCaptor<List<ActionDTO>> captor = ArgumentCaptor.forClass(List.class);
+        verify(iamClient).getApplyUrl(captor.capture());
+        List<List<InstanceDTO>> instances = captor.getValue().get(0)
+            .getRelatedResourceTypes().get(0).getInstance();
+        assertThat(instances).hasSize(1);
+        assertThat(instances.get(0)).extracting(InstanceDTO::getType)
+            .containsExactly(expectedResourceType);
+        assertThat(instances.get(0)).extracting(InstanceDTO::getId)
+            .containsExactly(scopeId);
     }
 
     private void assertPath(PathInfoDTO path, String type, String id) {
