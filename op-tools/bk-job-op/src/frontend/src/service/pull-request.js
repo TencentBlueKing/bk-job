@@ -7,3 +7,5 @@ export const listPullRequests = (params, signal) => request.get('/web/pullReques
   },
   signal,
 });
+
+export const deletePullRequest = prId => request.post('/web/pullRequest/delete', { prId });

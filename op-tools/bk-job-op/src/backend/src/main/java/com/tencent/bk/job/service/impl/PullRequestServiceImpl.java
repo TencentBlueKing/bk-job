@@ -85,6 +85,12 @@ public class PullRequestServiceImpl implements PullRequestService {
     }
 
     @Override
+    public int delete(Long prId) {
+        validatePositiveId(prId, "prId");
+        return pullRequestMapper.deleteByPrId(prId);
+    }
+
+    @Override
     public PageData<PullRequestResp> list(int start, int pageSize) {
         int total = pullRequestMapper.countAll();
         if (start >= total) {

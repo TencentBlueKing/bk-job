@@ -16,6 +16,8 @@ public interface PullRequestService {
 
     PullRequestResp updateStatus(UpdatePullRequestStatusReq req);
 
+    int delete(Long prId);
+
     PageData<PullRequestResp> list(int start, int pageSize);
 
     Map<Long, PullRequestResp> findLatestByIssueIds(Collection<Long> issueIds);

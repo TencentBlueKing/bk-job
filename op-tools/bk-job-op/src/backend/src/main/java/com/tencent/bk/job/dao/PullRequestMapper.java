@@ -1,6 +1,7 @@
 package com.tencent.bk.job.dao;
 
 import com.tencent.bk.job.model.PullRequestDTO;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -34,6 +35,9 @@ public interface PullRequestMapper {
 
     @Select("SELECT " + SELECT_COLUMNS + " FROM pull_request p WHERE p.`pr_id` = #{prId}")
     PullRequestDTO selectByPrId(@Param("prId") Long prId);
+
+    @Delete("DELETE FROM pull_request WHERE `pr_id` = #{prId}")
+    int deleteByPrId(@Param("prId") Long prId);
 
     @Select("SELECT COUNT(*) FROM pull_request")
     int countAll();

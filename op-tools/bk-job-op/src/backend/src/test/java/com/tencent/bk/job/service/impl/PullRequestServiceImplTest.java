@@ -171,6 +171,28 @@ class PullRequestServiceImplTest {
     }
 
     @Test
+    void shouldDeleteByPrIdIdempotently() {
+        when(mapper.deleteByPrId(4564L)).thenReturn(1, 0);
+
+        assertThat(service.delete(4564L)).isEqualTo(1);
+        assertThat(service.delete(4564L)).isZero();
+        verify(mapper, org.mockito.Mockito.times(2)).deleteByPrId(4564L);
+    }
+
+    @Test
+    void shouldRejectNullDeletePrId() {
+        assertBadRequest(() -> service.delete(null), "prId must be a positive integer");
+        verify(mapper, never()).deleteByPrId(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {0, -1})
+    void shouldRejectNonPositiveDeletePrId(long invalidPrId) {
+        assertBadRequest(() -> service.delete(invalidPrId), "prId must be a positive integer");
+        verify(mapper, never()).deleteByPrId(any());
+    }
+
+    @Test
     void shouldListPullRequestsWithTotalAndSkipOutOfRangeQuery() {
         PullRequestDTO first = sampleDto();
         PullRequestDTO second = sampleDto();

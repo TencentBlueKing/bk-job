@@ -47,7 +47,8 @@ class WebAuthInterceptorPathTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-        "/web/issueStatus/list", "/web/issueStatus/delete", "/web/pullRequest/list", "/web/userInfo", "/web/future"
+        "/web/issueStatus/list", "/web/issueStatus/delete", "/web/pullRequest/list",
+        "/web/pullRequest/delete", "/web/userInfo", "/web/future"
     })
     @DisplayName("所有Web接口均被登录态拦截")
     void shouldInterceptWebApiPaths(String uri) {

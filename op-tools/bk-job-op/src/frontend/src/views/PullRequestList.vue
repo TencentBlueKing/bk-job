@@ -74,6 +74,19 @@
         width="180">
         <template slot-scope="{ row }">{{ formatTime(row.updateTime) }}</template>
       </bk-table-column>
+      <bk-table-column
+        fixed="right"
+        label="操作"
+        width="100">
+        <template slot-scope="{ row }">
+          <bk-button
+            text
+            theme="danger"
+            @click="handleDelete(row)">
+            删除
+          </bk-button>
+        </template>
+      </bk-table-column>
       <div slot="empty">暂无 PR 数据</div>
     </bk-table>
     <bk-pagination
@@ -98,7 +111,7 @@
     pullRequestStatusText,
     pullRequestStatusTheme,
   } from '../common/pull-request';
-  import { listPullRequests } from '../service/pull-request';
+  import { deletePullRequest, listPullRequests } from '../service/pull-request';
   import { AuthError } from '../service/request';
 
   const POLL_INTERVAL = 3000;
@@ -124,6 +137,7 @@
       this.hasShownError = false;
       this.stopped = false;
       this.boundaryRetried = false;
+      this.deleteConfirming = false;
       this.onVisibilityChange = this.handleVisibilityChange.bind(this);
     },
     mounted() {
@@ -169,6 +183,48 @@
         this.limit = limit;
         this.current = 1;
         this.restart(false);
+      },
+      handleDelete(row) {
+        const prId = row.prId;
+        this.deleteConfirming = true;
+        this.clearPollTimer();
+        this.requestSeq += 1;
+        this.abortInFlight();
+        this.loading = false;
+
+        this.$bkInfo({
+          title: `确认删除 PR #${prId}？`,
+          subTitle: '将删除该 PR 数据且不可恢复',
+          theme: 'danger',
+          maskClose: false,
+          confirmFn: async () => {
+            try {
+              const result = await deletePullRequest(prId);
+              if (this.list.length === 1 && this.current > 1) {
+                this.current -= 1;
+              }
+              this.$bkMessage({
+                theme: 'success',
+                message: result.deleted > 0 ? '删除成功' : '该 PR 数据已不存在',
+              });
+              this.deleteConfirming = false;
+              this.restart(false);
+              return true;
+            } catch (error) {
+              this.$bkMessage({
+                theme: 'error',
+                message: error.message || '删除PR数据失败',
+              });
+              return false;
+            }
+          },
+          afterLeaveFn: () => {
+            if (this.deleteConfirming) {
+              this.deleteConfirming = false;
+              this.restart(true);
+            }
+          },
+        });
       },
       handleVisibilityChange() {
         if (document.hidden) {
@@ -248,7 +304,7 @@
       },
       scheduleNext() {
         this.clearPollTimer();
-        if (this.stopped || document.hidden) {
+        if (this.stopped || this.deleteConfirming || document.hidden) {
           return;
         }
         const delay = this.failCount > 0

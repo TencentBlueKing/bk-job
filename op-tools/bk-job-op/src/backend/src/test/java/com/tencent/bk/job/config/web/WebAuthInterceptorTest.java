@@ -94,6 +94,12 @@ class WebAuthInterceptorTest {
         return request;
     }
 
+    private MockHttpServletRequest deleteApiRequest() {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/web/pullRequest/delete");
+        request.addHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        return request;
+    }
+
     private WebAuthInterceptor newInterceptor(WebAuthProperties properties) {
         return new WebAuthInterceptor(properties, loginService);
     }
@@ -152,6 +158,32 @@ class WebAuthInterceptorTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
         assertThat(response.getContentType()).contains(MediaType.APPLICATION_JSON_VALUE);
         assertThat(response.getContentAsString()).contains("loginUrl");
+    }
+
+    @Test
+    @DisplayName("PR删除接口无登录态返回401")
+    void shouldRejectPullRequestDeletionWithoutTicket() throws Exception {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        boolean passed = newInterceptor(newProperties("admin", PAGE_URL))
+            .preHandle(deleteApiRequest(), response, new Object());
+
+        assertThat(passed).isFalse();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    @DisplayName("PR删除接口对白名单内已登录用户放行")
+    void shouldAllowPullRequestDeletionForWhitelistedUser() throws Exception {
+        when(loginService.getUsername("t1")).thenReturn("admin");
+        MockHttpServletRequest request = deleteApiRequest();
+        request.setCookies(new Cookie("bk_ticket", "t1"));
+
+        boolean passed = newInterceptor(newProperties("admin", PAGE_URL))
+            .preHandle(request, new MockHttpServletResponse(), new Object());
+
+        assertThat(passed).isTrue();
+        assertThat(request.getAttribute(WebAuthInterceptor.ATTR_USERNAME)).isEqualTo("admin");
     }
 
     @Test

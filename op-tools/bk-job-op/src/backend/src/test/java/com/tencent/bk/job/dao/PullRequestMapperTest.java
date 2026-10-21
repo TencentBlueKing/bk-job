@@ -56,6 +56,15 @@ class PullRequestMapperTest {
     }
 
     @Test
+    void shouldDeleteByPrId() {
+        BoundSql boundSql = statement("deleteByPrId").getBoundSql(Map.of("prId", 4564L));
+
+        assertThat(boundSql.getSql().replaceAll("\\s+", " ").trim())
+            .isEqualTo("DELETE FROM pull_request WHERE `pr_id` = ?");
+        assertThat(boundSql.getParameterMappings()).extracting("property").containsExactly("prId");
+    }
+
+    @Test
     void shouldCountAndListByStableUpdateOrder() {
         assertThat(sqlOf("countAll", Map.of())).isEqualTo("SELECT COUNT(*) FROM pull_request");
 

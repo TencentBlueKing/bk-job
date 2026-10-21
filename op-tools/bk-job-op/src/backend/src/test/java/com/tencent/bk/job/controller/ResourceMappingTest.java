@@ -43,7 +43,7 @@ class ResourceMappingTest {
             "POST /api/pullRequest",
             "GET /api/pullRequest",
             "POST /api/pullRequest/status"
-        );
+        ).doesNotContain("POST /api/pullRequest/delete");
         assertResource(ReleaseStatusResource.class, "api", Set.of("/api/releaseStatus"));
         assertResource(VersionBranchResource.class, "api", Set.of(
             "/api/versionBranch", "/api/versionBranch/list",
@@ -64,9 +64,14 @@ class ResourceMappingTest {
         assertResource(WebIssueStatusResource.class, "web", Set.of(
             "/web/issueStatus/list", "/web/issueStatus/delete"
         ));
-        assertResource(WebPullRequestResource.class, "web", Set.of("/web/pullRequest/list"));
+        assertResource(WebPullRequestResource.class, "web", Set.of(
+            "/web/pullRequest/list", "/web/pullRequest/delete"
+        ));
         assertThat(resolveMethodPaths(WebPullRequestResource.class))
-            .containsExactly("GET /web/pullRequest/list");
+            .containsExactlyInAnyOrder(
+                "GET /web/pullRequest/list",
+                "POST /web/pullRequest/delete"
+            );
         assertResource(WebUserResource.class, "web", Set.of("/web/userInfo"));
     }
 

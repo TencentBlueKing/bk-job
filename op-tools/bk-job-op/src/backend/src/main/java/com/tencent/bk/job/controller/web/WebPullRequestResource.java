@@ -8,9 +8,13 @@
 
 package com.tencent.bk.job.controller.web;
 
+import com.tencent.bk.job.model.DeletePullRequestReq;
+import com.tencent.bk.job.model.DeletePullRequestResp;
 import com.tencent.bk.job.model.PullRequestResp;
 import com.tencent.bk.job.service.model.PageData;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -22,4 +26,7 @@ public interface WebPullRequestResource {
         @RequestParam(value = "start", required = false, defaultValue = "0") Integer start,
         @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize
     );
+
+    @PostMapping("/delete")
+    DeletePullRequestResp deletePullRequest(@RequestBody DeletePullRequestReq req);
 }
