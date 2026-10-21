@@ -16,6 +16,7 @@ import com.tencent.bk.job.controller.api.RepoTagResource;
 import com.tencent.bk.job.controller.api.VersionBranchResource;
 import com.tencent.bk.job.controller.open.CheckServiceDependencyResource;
 import com.tencent.bk.job.controller.web.WebIssueStatusResource;
+import com.tencent.bk.job.controller.web.WebPullRequestResource;
 import com.tencent.bk.job.controller.web.WebUserResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,6 +64,9 @@ class ResourceMappingTest {
         assertResource(WebIssueStatusResource.class, "web", Set.of(
             "/web/issueStatus/list", "/web/issueStatus/delete"
         ));
+        assertResource(WebPullRequestResource.class, "web", Set.of("/web/pullRequest/list"));
+        assertThat(resolveMethodPaths(WebPullRequestResource.class))
+            .containsExactly("GET /web/pullRequest/list");
         assertResource(WebUserResource.class, "web", Set.of("/web/userInfo"));
     }
 

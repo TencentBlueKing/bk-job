@@ -3,6 +3,7 @@ import VueRouter from 'vue-router';
 
 import IssueStatusList from '../views/IssueStatusList.vue';
 import NoPermission from '../views/NoPermission.vue';
+import PullRequestList from '../views/PullRequestList.vue';
 
 Vue.use(VueRouter);
 
@@ -19,6 +20,11 @@ const router = new VueRouter({
       path: '/issue-status',
       name: 'issueStatus',
       component: IssueStatusList,
+    },
+    {
+      path: '/pull-request',
+      name: 'pullRequest',
+      component: PullRequestList,
     },
     {
       path: '/no-permission',

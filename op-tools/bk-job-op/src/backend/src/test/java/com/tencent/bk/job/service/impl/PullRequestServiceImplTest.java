@@ -6,6 +6,7 @@ import com.tencent.bk.job.model.CreatePullRequestReq;
 import com.tencent.bk.job.model.PullRequestDTO;
 import com.tencent.bk.job.model.PullRequestResp;
 import com.tencent.bk.job.model.UpdatePullRequestStatusReq;
+import com.tencent.bk.job.service.model.PageData;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -170,6 +171,23 @@ class PullRequestServiceImplTest {
     }
 
     @Test
+    void shouldListPullRequestsWithTotalAndSkipOutOfRangeQuery() {
+        PullRequestDTO first = sampleDto();
+        PullRequestDTO second = sampleDto();
+        second.setPrId(4563L);
+        when(mapper.countAll()).thenReturn(2);
+        when(mapper.listAll(0, 20)).thenReturn(List.of(first, second));
+
+        PageData<PullRequestResp> result = service.list(0, 20);
+
+        assertThat(result.getTotal()).isEqualTo(2);
+        assertThat(result.getData()).extracting(PullRequestResp::getPrId).containsExactly(4564L, 4563L);
+
+        assertThat(service.list(2, 20).getData()).isEmpty();
+        verify(mapper, never()).listAll(2, 20);
+    }
+
+    @Test
     void shouldBatchDistinctValidIssueIdsAndMapResults() {
         PullRequestDTO first = sampleDto();
         PullRequestDTO second = sampleDto();
@@ -177,19 +195,18 @@ class PullRequestServiceImplTest {
         second.setPrId(4566L);
         when(mapper.selectLatestByIssueIds(List.of(4563L, 4565L))).thenReturn(List.of(first, second));
 
-        Map<Long, Long> result = service.findLatestPrIdsByIssueIds(
+        Map<Long, PullRequestResp> result = service.findLatestByIssueIds(
             java.util.Arrays.asList(4563L, null, 4563L, -1L, 4565L));
 
-        assertThat(result).containsExactly(
-            Map.entry(4563L, 4564L),
-            Map.entry(4565L, 4566L)
-        );
+        assertThat(result.get(4563L).getPrId()).isEqualTo(4564L);
+        assertThat(result.get(4563L).getStatus()).isEqualTo("WAIT_FOR_REVIEW");
+        assertThat(result.get(4565L).getPrId()).isEqualTo(4566L);
         verify(mapper).selectLatestByIssueIds(List.of(4563L, 4565L));
     }
 
     @Test
     void shouldSkipMapperForEmptyIssueIds() {
-        assertThat(service.findLatestPrIdsByIssueIds(List.of())).isEmpty();
+        assertThat(service.findLatestByIssueIds(List.of())).isEmpty();
         verify(mapper, never()).selectLatestByIssueIds(any());
     }
 

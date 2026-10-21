@@ -16,6 +16,7 @@ import com.tencent.bk.job.dao.IssueStatusMapper;
 import com.tencent.bk.job.model.DeleteIssueStatusReq;
 import com.tencent.bk.job.model.DeleteIssueStatusResp;
 import com.tencent.bk.job.model.IssueStatusDTO;
+import com.tencent.bk.job.model.PullRequestResp;
 import com.tencent.bk.job.model.WebIssueStatusResp;
 import com.tencent.bk.job.service.PullRequestService;
 import com.tencent.bk.job.service.model.PageData;
@@ -75,6 +76,11 @@ class WebIssueStatusResourceImplTest {
 
     private IssueStatusDTO dto(String id) {
         return new IssueStatusDTO(id, "issue_todo", "待处理", 1758542400000L);
+    }
+
+    private PullRequestResp pullRequest(Long prId, String status) {
+        return new PullRequestResp(
+            prId, 4555L, "C:\\repo", status, "agent", "author", null, null, 1L, 1L);
     }
 
     @Test
@@ -155,25 +161,29 @@ class WebIssueStatusResourceImplTest {
             dto("issue_9223372036854775808"),
             dto(null)
         ));
-        when(pullRequestService.findLatestPrIdsByIssueIds(Set.of(4555L)))
-            .thenReturn(Map.of(4555L, 4564L));
+        when(pullRequestService.findLatestByIssueIds(Set.of(4555L)))
+            .thenReturn(Map.of(4555L, pullRequest(4564L, "WAIT_FOR_REVIEW")));
 
         PageData<WebIssueStatusResp> result = resource.listIssueStatus(null, 0, 20);
 
         assertThat(result.getData()).extracting(WebIssueStatusResp::getPrId)
             .containsExactly(4564L, 4564L, null, null, null);
-        verify(pullRequestService).findLatestPrIdsByIssueIds(Set.of(4555L));
+        assertThat(result.getData()).extracting(WebIssueStatusResp::getPrStatus)
+            .containsExactly("WAIT_FOR_REVIEW", "WAIT_FOR_REVIEW", null, null, null);
+        verify(pullRequestService).findLatestByIssueIds(Set.of(4555L));
     }
 
     @Test
-    @DisplayName("无PR时列表prId留空")
-    void shouldLeavePrIdNullWhenNoPullRequestExists() {
+    @DisplayName("无PR时列表prId和prStatus留空")
+    void shouldLeavePullRequestFieldsNullWhenNoPullRequestExists() {
         when(issueStatusMapper.countByKeyword(isNull())).thenReturn(1);
         when(issueStatusMapper.listByKeyword(isNull(), eq(0), eq(20)))
             .thenReturn(List.of(dto("issue_4555")));
-        when(pullRequestService.findLatestPrIdsByIssueIds(Set.of(4555L))).thenReturn(Map.of());
+        when(pullRequestService.findLatestByIssueIds(Set.of(4555L))).thenReturn(Map.of());
 
-        assertThat(resource.listIssueStatus(null, 0, 20).getData().get(0).getPrId()).isNull();
+        WebIssueStatusResp result = resource.listIssueStatus(null, 0, 20).getData().get(0);
+        assertThat(result.getPrId()).isNull();
+        assertThat(result.getPrStatus()).isNull();
     }
 
     @Test

@@ -27,6 +27,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Testcontainers
 class PullRequestMySql57IntegrationTest {
 
+    private static final String LIST_QUERY = """
+        SELECT `pr_id`
+        FROM `pull_request`
+        ORDER BY `update_time` DESC, `pr_id` DESC
+        LIMIT ?, ?
+        """;
+
     private static final String LATEST_QUERY = """
         SELECT p.`issue_id`, p.`pr_id`
         FROM `pull_request` p
@@ -70,7 +77,8 @@ class PullRequestMySql57IntegrationTest {
                 "imate_conversation_id", "imate_conversation_title", "create_time", "update_time",
                 "row_create_time", "row_update_time"
             );
-            assertThat(indexNames(connection)).contains("PRIMARY", "uk_pr_id", "idx_issue_id_create_time_pr_id");
+            assertThat(indexNames(connection)).contains(
+                "PRIMARY", "uk_pr_id", "idx_issue_id_create_time_pr_id", "idx_update_time_pr_id");
         }
     }
 
@@ -121,6 +129,49 @@ class PullRequestMySql57IntegrationTest {
                         && possibleKeys.contains("idx_issue_id_create_time_pr_id");
                 }
                 assertThat(compositeIndexAvailable).isTrue();
+            }
+        }
+    }
+
+    @Test
+    void shouldListByUpdateTimeThenPrIdWithPagination() throws Exception {
+        try (Connection connection = MYSQL.createConnection("")) {
+            insert(connection, 4700, 4700, 10000);
+            insert(connection, 4701, 4701, 10000);
+            insert(connection, 4702, 4702, 20000);
+
+            try (PreparedStatement statement = connection.prepareStatement(LIST_QUERY)) {
+                statement.setInt(1, 0);
+                statement.setInt(2, 3);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    List<Long> prIds = new ArrayList<>();
+                    while (resultSet.next()) {
+                        prIds.add(resultSet.getLong("pr_id"));
+                    }
+                    assertThat(prIds).containsExactly(4702L, 4701L, 4700L);
+                }
+            }
+            try (PreparedStatement statement = connection.prepareStatement(LIST_QUERY)) {
+                statement.setInt(1, 1);
+                statement.setInt(2, 1);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    assertThat(resultSet.next()).isTrue();
+                    assertThat(resultSet.getLong("pr_id")).isEqualTo(4701L);
+                    assertThat(resultSet.next()).isFalse();
+                }
+            }
+        }
+    }
+
+    @Test
+    void listQueryShouldUseUpdateTimePrIdIndex() throws Exception {
+        try (Connection connection = MYSQL.createConnection("");
+             PreparedStatement statement = connection.prepareStatement("EXPLAIN " + LIST_QUERY)) {
+            statement.setInt(1, 0);
+            statement.setInt(2, 20);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                assertThat(resultSet.next()).isTrue();
+                assertThat(resultSet.getString("key")).isEqualTo("idx_update_time_pr_id");
             }
         }
     }

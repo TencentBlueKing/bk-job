@@ -8,6 +8,7 @@ import com.tencent.bk.job.model.PullRequestResp;
 import com.tencent.bk.job.model.PullRequestStatusEnum;
 import com.tencent.bk.job.model.UpdatePullRequestStatusReq;
 import com.tencent.bk.job.service.PullRequestService;
+import com.tencent.bk.job.service.model.PageData;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -84,7 +85,19 @@ public class PullRequestServiceImpl implements PullRequestService {
     }
 
     @Override
-    public Map<Long, Long> findLatestPrIdsByIssueIds(Collection<Long> issueIds) {
+    public PageData<PullRequestResp> list(int start, int pageSize) {
+        int total = pullRequestMapper.countAll();
+        if (start >= total) {
+            return new PageData<>(total, start, pageSize, Collections.emptyList());
+        }
+        List<PullRequestResp> records = pullRequestMapper.listAll(start, pageSize).stream()
+            .map(this::toResp)
+            .collect(Collectors.toList());
+        return new PageData<>(total, start, pageSize, records);
+    }
+
+    @Override
+    public Map<Long, PullRequestResp> findLatestByIssueIds(Collection<Long> issueIds) {
         if (issueIds == null || issueIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -95,9 +108,9 @@ public class PullRequestServiceImpl implements PullRequestService {
         if (normalizedIds.isEmpty()) {
             return Collections.emptyMap();
         }
-        Map<Long, Long> result = new LinkedHashMap<>();
+        Map<Long, PullRequestResp> result = new LinkedHashMap<>();
         pullRequestMapper.selectLatestByIssueIds(normalizedIds)
-            .forEach(dto -> result.put(dto.getIssueId(), dto.getPrId()));
+            .forEach(dto -> result.put(dto.getIssueId(), toResp(dto)));
         return result;
     }
 

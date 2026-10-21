@@ -35,6 +35,14 @@ public interface PullRequestMapper {
     @Select("SELECT " + SELECT_COLUMNS + " FROM pull_request p WHERE p.`pr_id` = #{prId}")
     PullRequestDTO selectByPrId(@Param("prId") Long prId);
 
+    @Select("SELECT COUNT(*) FROM pull_request")
+    int countAll();
+
+    @Select("SELECT " + SELECT_COLUMNS + " FROM pull_request p "
+        + "ORDER BY p.`update_time` DESC, p.`pr_id` DESC "
+        + "LIMIT #{start}, #{pageSize}")
+    List<PullRequestDTO> listAll(@Param("start") int start, @Param("pageSize") int pageSize);
+
     @Update("UPDATE pull_request SET `status` = #{status}, `update_time` = #{updateTime} "
         + "WHERE `pr_id` = #{prId}")
     int updateStatusByPrId(@Param("prId") Long prId,

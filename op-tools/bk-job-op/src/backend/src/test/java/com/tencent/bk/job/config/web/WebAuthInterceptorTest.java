@@ -89,7 +89,7 @@ class WebAuthInterceptorTest {
     }
 
     private MockHttpServletRequest apiRequest() {
-        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/web/issueStatus/list");
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/web/pullRequest/list");
         request.addHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
         return request;
     }

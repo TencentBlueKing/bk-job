@@ -6,7 +6,8 @@ import request from './request';
  * @param {Object} params idKeyword / start / pageSize
  * @param {AbortSignal} [signal] 用于取消在途请求
  * @returns {Promise<{total: number, start: number, size: number,
- *   data: Array<{id: string, status: string, statusDescription: string, updateTime: number, prId: number|null}>}>}
+ *   data: Array<{id: string, status: string, statusDescription: string, updateTime: number,
+ *   prStatus: string|null, prId: number|null}>}>}
  */
 export const listIssueStatus = (params, signal) => request.get('/web/issueStatus/list', {
   params: {

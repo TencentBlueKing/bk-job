@@ -56,6 +56,18 @@ class PullRequestMapperTest {
     }
 
     @Test
+    void shouldCountAndListByStableUpdateOrder() {
+        assertThat(sqlOf("countAll", Map.of())).isEqualTo("SELECT COUNT(*) FROM pull_request");
+
+        BoundSql boundSql = statement("listAll").getBoundSql(Map.of("start", 20, "pageSize", 10));
+        assertThat(boundSql.getSql().replaceAll("\\s+", " ").trim())
+            .contains("ORDER BY p.`update_time` DESC, p.`pr_id` DESC")
+            .endsWith("LIMIT ?, ?");
+        assertThat(boundSql.getParameterMappings()).extracting("property")
+            .containsExactly("start", "pageSize");
+    }
+
+    @Test
     void shouldSelectLatestPullRequestWithoutMySql8Syntax() {
         String sql = sqlOf("selectLatestByIssueIds", Map.of("issueIds", List.of(4563L, 4564L)));
 

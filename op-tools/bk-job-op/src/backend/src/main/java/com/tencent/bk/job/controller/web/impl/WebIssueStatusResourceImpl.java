@@ -14,6 +14,7 @@ import com.tencent.bk.job.dao.IssueStatusMapper;
 import com.tencent.bk.job.model.DeleteIssueStatusReq;
 import com.tencent.bk.job.model.DeleteIssueStatusResp;
 import com.tencent.bk.job.model.IssueStatusDTO;
+import com.tencent.bk.job.model.PullRequestResp;
 import com.tencent.bk.job.model.WebIssueStatusResp;
 import com.tencent.bk.job.service.PullRequestService;
 import com.tencent.bk.job.service.model.PageData;
@@ -71,9 +72,9 @@ public class WebIssueStatusResourceImpl implements WebIssueStatusResource {
             .map(this::parseIssueId)
             .filter(id -> id != null)
             .collect(Collectors.toCollection(LinkedHashSet::new));
-        Map<Long, Long> latestPrIds = pullRequestService.findLatestPrIdsByIssueIds(issueIds);
+        Map<Long, PullRequestResp> latestPullRequests = pullRequestService.findLatestByIssueIds(issueIds);
         List<WebIssueStatusResp> records = rows.stream()
-            .map(dto -> toResp(dto, latestPrIds))
+            .map(dto -> toResp(dto, latestPullRequests))
             .collect(Collectors.toList());
         return new PageData<>(total, startIndex, size, records);
     }
@@ -99,11 +100,17 @@ public class WebIssueStatusResourceImpl implements WebIssueStatusResource {
         return StringUtils.defaultIfBlank(username == null ? null : username.toString(), "<unknown>");
     }
 
-    private WebIssueStatusResp toResp(IssueStatusDTO dto, Map<Long, Long> latestPrIds) {
+    private WebIssueStatusResp toResp(IssueStatusDTO dto, Map<Long, PullRequestResp> latestPullRequests) {
         Long issueId = parseIssueId(dto.getId());
-        Long prId = issueId == null ? null : latestPrIds.get(issueId);
+        PullRequestResp pullRequest = issueId == null ? null : latestPullRequests.get(issueId);
         return new WebIssueStatusResp(
-            dto.getId(), dto.getStatus(), dto.getStatusDescription(), dto.getUpdateTime(), prId);
+            dto.getId(),
+            dto.getStatus(),
+            dto.getStatusDescription(),
+            dto.getUpdateTime(),
+            pullRequest == null ? null : pullRequest.getStatus(),
+            pullRequest == null ? null : pullRequest.getPrId()
+        );
     }
 
     private Long parseIssueId(String id) {

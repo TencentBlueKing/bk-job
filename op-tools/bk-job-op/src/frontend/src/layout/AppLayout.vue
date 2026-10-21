@@ -8,6 +8,11 @@
           to="/issue-status">
           Issue状态管理
         </router-link>
+        <router-link
+          class="app-nav-item"
+          to="/pull-request">
+          PR数据管理
+        </router-link>
       </nav>
     </aside>
     <section class="app-main">

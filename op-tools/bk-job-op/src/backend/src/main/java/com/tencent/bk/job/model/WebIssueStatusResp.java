@@ -13,5 +13,6 @@ public class WebIssueStatusResp {
     private String status;
     private String statusDescription;
     private Long updateTime;
+    private String prStatus;
     private Long prId;
 }
