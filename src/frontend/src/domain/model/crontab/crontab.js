@@ -38,20 +38,39 @@ import I18n from '@/i18n';
 const STATUS_NOTSTARTED = 0;
 const STATUS_SUCCESS = 1;
 const STATUS_FAILURE = 2;
+const STATUS_SKIPPED = 3;
+const STATUS_IGNORE_ERROR = 4;
+const STATUS_TERMINATED = 5;
+const STATUS_ABNORMAL_STATE = 6;
+const STATUS_STOP_SUCCESS = 7;
+const STATUS_CONFIRM_TERMINATED = 8;
+const STATUS_ABANDONED = 9;
 
 export default class Crontab {
   static STATUS_MAP = {
-    [STATUS_NOTSTARTED]: I18n.t('未开始'),
-    [STATUS_SUCCESS]: I18n.t('成功'),
-    [STATUS_FAILURE]: I18n.t('失败'),
-
+    [STATUS_NOTSTARTED]: '未开始',
+    [STATUS_SUCCESS]: '成功',
+    [STATUS_FAILURE]: '失败',
+    [STATUS_SKIPPED]: 'cron.跳过',
+    [STATUS_IGNORE_ERROR]: 'cron.忽略错误',
+    [STATUS_TERMINATED]: 'cron.手动结束',
+    [STATUS_ABNORMAL_STATE]: 'cron.状态异常',
+    [STATUS_STOP_SUCCESS]: 'cron.强制终止成功',
+    [STATUS_CONFIRM_TERMINATED]: 'cron.确认终止',
+    [STATUS_ABANDONED]: 'cron.被丢弃',
   };
 
   static STATUS_ICON_TYPE = {
     [STATUS_NOTSTARTED]: 'sync-default',
     [STATUS_SUCCESS]: 'sync-success',
     [STATUS_FAILURE]: 'sync-failed',
-
+    [STATUS_SKIPPED]: 'sync-success',
+    [STATUS_IGNORE_ERROR]: 'sync-success',
+    [STATUS_TERMINATED]: 'sync-failed',
+    [STATUS_ABNORMAL_STATE]: 'sync-failed',
+    [STATUS_STOP_SUCCESS]: 'sync-success',
+    [STATUS_CONFIRM_TERMINATED]: 'sync-failed',
+    [STATUS_ABANDONED]: 'sync-failed',
   };
 
   constructor(payload) {
@@ -180,7 +199,8 @@ export default class Crontab {
      * @returns { String }
      */
   get statusText() {
-    return Crontab.STATUS_MAP[this.lastExecuteStatus];
+    const statusKey = Crontab.STATUS_MAP[this.lastExecuteStatus];
+    return statusKey && I18n.t(statusKey);
   }
 
   /**
