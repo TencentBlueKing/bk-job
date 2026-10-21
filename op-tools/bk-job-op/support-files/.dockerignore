@@ -12,11 +12,12 @@
 *.iws
 
 # 构建产物
-build/
-target/
-out/
-.gradle/
-bin/
+**/build/
+**/target/
+**/out/
+**/.gradle/
+**/bin/
+**/node_modules/
 
 # 测试相关
 .test/

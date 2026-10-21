@@ -70,7 +70,7 @@ bk-job-op
 > java -Dspring.config.additional-location=file:/xxx/application.yml -jar build/libs/bk-job-op-0.0.1-SNAPSHOT.jar
 
 > 在浏览器访问OP系统接口：
-> http://127.0.0.1:8080/checkServiceDependency?namespace=blueking&serviceName=bk-job-gateway
+> http://example.com/public/checkServiceDependency?namespace=blueking&serviceName=bk-job-gateway
 
 ### 4.业务使用数据统计
 
