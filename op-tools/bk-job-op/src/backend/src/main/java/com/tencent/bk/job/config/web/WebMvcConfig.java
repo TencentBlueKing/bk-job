@@ -50,10 +50,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     private static final String PAGE_ISSUE_STATUS = "/issue-status";
 
+    private static final String PAGE_PULL_REQUEST = "/pull-request";
+
     private static final String PAGE_NO_PERMISSION = "/no-permission";
 
     private static final List<String> PAGE_PATHS = List.of(
-        "/", "/index.html", PAGE_ISSUE_STATUS, PAGE_NO_PERMISSION
+        "/", "/index.html", PAGE_ISSUE_STATUS, PAGE_PULL_REQUEST, PAGE_NO_PERMISSION
     );
 
     private final WebAuthProperties webAuthProperties;
@@ -103,6 +105,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
             return;
         }
         registry.addViewController(PAGE_ISSUE_STATUS).setViewName("forward:/index.html");
+        registry.addViewController(PAGE_PULL_REQUEST).setViewName("forward:/index.html");
         registry.addViewController(PAGE_NO_PERMISSION).setViewName("forward:/index.html");
     }
 }

@@ -1,0 +1,24 @@
+package com.tencent.bk.job.service;
+
+import com.tencent.bk.job.model.CreatePullRequestReq;
+import com.tencent.bk.job.model.PullRequestResp;
+import com.tencent.bk.job.model.UpdatePullRequestStatusReq;
+import com.tencent.bk.job.service.model.PageData;
+
+import java.util.Collection;
+import java.util.Map;
+
+public interface PullRequestService {
+
+    PullRequestResp create(CreatePullRequestReq req);
+
+    PullRequestResp getByPrId(Long prId);
+
+    PullRequestResp updateStatus(UpdatePullRequestStatusReq req);
+
+    int delete(Long prId);
+
+    PageData<PullRequestResp> list(int start, int pageSize);
+
+    Map<Long, PullRequestResp> findLatestByIssueIds(Collection<Long> issueIds);
+}

@@ -51,6 +51,30 @@
         </template>
       </bk-table-column>
       <bk-table-column
+        label="PR状态"
+        width="120">
+        <template slot-scope="{ row }">
+          <bk-tag
+            v-if="row.prStatus"
+            :theme="pullRequestStatusTheme(row.prStatus)">
+            {{ pullRequestStatusText(row.prStatus) }}
+          </bk-tag>
+        </template>
+      </bk-table-column>
+      <bk-table-column
+        label="PR"
+        width="100">
+        <template slot-scope="{ row }">
+          <a
+            v-if="resolvePullRequestUrl(row.prId)"
+            :href="resolvePullRequestUrl(row.prId)"
+            rel="noopener noreferrer"
+            target="_blank">
+            前往PR
+          </a>
+        </template>
+      </bk-table-column>
+      <bk-table-column
         label="更新时间"
         prop="updateTime"
         width="180">
@@ -92,7 +116,12 @@
     EMPTY_TEXT,
     formatTime,
     resolveIssueUrl,
+    resolvePullRequestUrl,
   } from '../common/format';
+  import {
+    pullRequestStatusText,
+    pullRequestStatusTheme,
+  } from '../common/pull-request';
   import { deleteIssueStatus, listIssueStatus } from '../service/issue-status';
   import { AuthError } from '../service/request';
 
@@ -164,6 +193,9 @@
       displayText,
       formatTime,
       resolveIssueUrl,
+      resolvePullRequestUrl,
+      pullRequestStatusText,
+      pullRequestStatusTheme,
       statusTheme(status) {
         // status 是自由字符串，未命中映射表一律用默认灰色，绝不因未知状态而不渲染
         return STATUS_THEME[status] || 'default';

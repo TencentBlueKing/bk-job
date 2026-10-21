@@ -45,6 +45,7 @@ val okhttpVersion = "4.12.0"
 val commonsCollectionsVersion = "4.4"
 val mybatisSpringBootVersion = "3.0.3"
 val mysqlConnectorVersion = "8.0.33"
+val testcontainersVersion = "1.20.4"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
@@ -62,6 +63,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
+    testImplementation("org.testcontainers:mysql:$testcontainersVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation(platform("org.springframework.ai:spring-ai-bom:$springAiVersion"))
@@ -76,6 +79,23 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform {
+        excludeTags("mysqlIntegration")
+    }
+}
+
+tasks.register<Test>("mysqlIntegrationTest") {
+    description = "Runs MySQL 5.7 integration tests"
+    group = "verification"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform {
+        includeTags("mysqlIntegration")
+    }
+    shouldRunAfter(tasks.named("test"))
 }
 
 // ---------------------------------------------------------------------------

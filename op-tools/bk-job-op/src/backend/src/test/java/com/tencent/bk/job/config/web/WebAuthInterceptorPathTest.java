@@ -46,7 +46,10 @@ class WebAuthInterceptorPathTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/web/issueStatus/list", "/web/issueStatus/delete", "/web/userInfo", "/web/future"})
+    @ValueSource(strings = {
+        "/web/issueStatus/list", "/web/issueStatus/delete", "/web/pullRequest/list",
+        "/web/pullRequest/delete", "/web/userInfo", "/web/future"
+    })
     @DisplayName("所有Web接口均被登录态拦截")
     void shouldInterceptWebApiPaths(String uri) {
         assertThat(matches(true, uri)).isTrue();
@@ -83,6 +86,8 @@ class WebAuthInterceptorPathTest {
     void shouldInterceptPagePathsOnlyWhenWebEnabled() {
         assertThat(matches(true, "/issue-status")).isTrue();
         assertThat(matches(false, "/issue-status")).isFalse();
+        assertThat(matches(true, "/pull-request")).isTrue();
+        assertThat(matches(false, "/pull-request")).isFalse();
         assertThat(matches(true, "/no-permission")).isTrue();
         assertThat(matches(false, "/no-permission")).isFalse();
         assertThat(matches(false, "/web/issueStatus/list")).isTrue();
@@ -102,7 +107,7 @@ class WebAuthInterceptorPathTest {
     @DisplayName("拦截器只注册Web命名空间和明确页面入口")
     void shouldUseNamespaceAndExactPagePatterns() {
         assertThat(WebMvcConfig.resolveInterceptPaths(true))
-            .containsExactly("/web/**", "/", "/index.html", "/issue-status", "/no-permission");
+            .containsExactly("/web/**", "/", "/index.html", "/issue-status", "/pull-request", "/no-permission");
         assertThat(WebMvcConfig.resolveInterceptPaths(false)).containsExactly("/web/**");
     }
 }

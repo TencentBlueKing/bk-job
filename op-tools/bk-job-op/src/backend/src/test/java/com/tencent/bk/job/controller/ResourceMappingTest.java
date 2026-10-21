@@ -10,16 +10,19 @@ package com.tencent.bk.job.controller;
 
 import com.tencent.bk.job.controller.api.IssueStatusResource;
 import com.tencent.bk.job.controller.api.MigrateBizResource;
+import com.tencent.bk.job.controller.api.PullRequestResource;
 import com.tencent.bk.job.controller.api.ReleaseStatusResource;
 import com.tencent.bk.job.controller.api.RepoTagResource;
 import com.tencent.bk.job.controller.api.VersionBranchResource;
 import com.tencent.bk.job.controller.open.CheckServiceDependencyResource;
 import com.tencent.bk.job.controller.web.WebIssueStatusResource;
+import com.tencent.bk.job.controller.web.WebPullRequestResource;
 import com.tencent.bk.job.controller.web.WebUserResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.reflect.Method;
 import java.util.LinkedHashSet;
@@ -33,6 +36,14 @@ class ResourceMappingTest {
     @DisplayName("API Resource统一位于api包并使用/api命名空间")
     void shouldMapApiResources() {
         assertResource(IssueStatusResource.class, "api", Set.of("/api/issueStatus"));
+        assertResource(PullRequestResource.class, "api", Set.of(
+            "/api/pullRequest", "/api/pullRequest/status"
+        ));
+        assertThat(resolveMethodPaths(PullRequestResource.class)).containsExactlyInAnyOrder(
+            "POST /api/pullRequest",
+            "GET /api/pullRequest",
+            "POST /api/pullRequest/status"
+        ).doesNotContain("POST /api/pullRequest/delete");
         assertResource(ReleaseStatusResource.class, "api", Set.of("/api/releaseStatus"));
         assertResource(VersionBranchResource.class, "api", Set.of(
             "/api/versionBranch", "/api/versionBranch/list",
@@ -53,6 +64,14 @@ class ResourceMappingTest {
         assertResource(WebIssueStatusResource.class, "web", Set.of(
             "/web/issueStatus/list", "/web/issueStatus/delete"
         ));
+        assertResource(WebPullRequestResource.class, "web", Set.of(
+            "/web/pullRequest/list", "/web/pullRequest/delete"
+        ));
+        assertThat(resolveMethodPaths(WebPullRequestResource.class))
+            .containsExactlyInAnyOrder(
+                "GET /web/pullRequest/list",
+                "POST /web/pullRequest/delete"
+            );
         assertResource(WebUserResource.class, "web", Set.of("/web/userInfo"));
     }
 
@@ -81,6 +100,21 @@ class ResourceMappingTest {
             }
         }
         return paths;
+    }
+
+    private Set<String> resolveMethodPaths(Class<?> resourceType) {
+        RequestMapping classMapping = AnnotatedElementUtils.findMergedAnnotation(resourceType, RequestMapping.class);
+        assertThat(classMapping).isNotNull();
+        String prefix = firstPath(classMapping);
+        Set<String> methodPaths = new LinkedHashSet<>();
+        for (Method method : resourceType.getMethods()) {
+            RequestMapping mapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
+            if (mapping != null) {
+                RequestMethod httpMethod = mapping.method()[0];
+                methodPaths.add(httpMethod.name() + " " + prefix + firstPath(mapping));
+            }
+        }
+        return methodPaths;
     }
 
     private String firstPath(RequestMapping mapping) {

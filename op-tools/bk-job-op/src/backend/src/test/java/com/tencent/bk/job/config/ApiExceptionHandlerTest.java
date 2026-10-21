@@ -59,6 +59,16 @@ class ApiExceptionHandlerTest {
     }
 
     @Test
+    void shouldMapInvalidPullRequestIdToBadRequest() {
+        OpApiException ex = new OpApiException(HttpStatus.BAD_REQUEST, "prId must be a positive integer");
+        ResponseEntity<Map<String, Object>> resp = handler.handleOpApiException(ex);
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        assertEquals("Bad Request", resp.getBody().get("error"));
+        assertEquals("prId must be a positive integer", resp.getBody().get("message"));
+        assertEquals(400, resp.getBody().get("status"));
+    }
+
+    @Test
     void shouldMapIllegalArgumentToBadRequest() {
         ResponseEntity<Map<String, Object>> resp =
             handler.handleIllegalArgumentException(new IllegalArgumentException("versionBranch is required"));
