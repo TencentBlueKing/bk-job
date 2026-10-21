@@ -27,13 +27,11 @@ package com.tencent.bk.job.common.exception;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 内部服务异常
  */
 @Getter
-@ToString
 public class InternalException extends ServiceException {
 
     public InternalException(String message) {
