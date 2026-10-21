@@ -88,7 +88,9 @@ class ActuatorSecurityIntegrationTest {
     })
     @DisplayName("除health外的Actuator端点匿名访问返回401")
     void shouldRejectAnonymousProtectedActuator(String path) throws Exception {
-        mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get(path))
+            .andExpect(status().isUnauthorized())
+            .andExpect(header().exists("WWW-Authenticate"));
     }
 
     @Test
@@ -104,26 +106,33 @@ class ActuatorSecurityIntegrationTest {
     void shouldRejectIncorrectBasicCredentials() throws Exception {
         mockMvc.perform(get("/actuator/info")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic("monitor", "wrong")))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isUnauthorized())
+            .andExpect(header().exists("WWW-Authenticate"));
     }
 
     @Test
-    @DisplayName("公开依赖检查接口不需要任何认证")
-    void shouldAllowPublicEndpointWithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/public/checkServiceDependency"))
+    @DisplayName("错误Basic凭据不影响公开接口")
+    void shouldIgnoreIncorrectBasicCredentialsForPublicEndpoint() throws Exception {
+        mockMvc.perform(get("/public/checkServiceDependency")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic("monitor", "wrong")))
             .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("非Actuator API仍由API Key拦截器鉴权")
-    void shouldLeaveApiAuthenticationToExistingInterceptor() throws Exception {
-        mockMvc.perform(get("/api/issueStatus").param("id", "issue_4523"))
+    @DisplayName("错误Basic凭据不抢占非Actuator API的API Key鉴权")
+    void shouldIgnoreIncorrectBasicCredentialsForApiEndpoint() throws Exception {
+        mockMvc.perform(get("/api/issueStatus")
+                .param("id", "issue_4523")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic("monitor", "wrong")))
             .andExpect(status().isUnauthorized())
-            .andExpect(header().doesNotExist("WWW-Authenticate"));
+            .andExpect(header().doesNotExist("WWW-Authenticate"))
+            .andExpect(jsonPath("$.message").value("Missing API Key in request header: "
+                + CommonHeader.OP_API_AUTH_HEADER_KEY));
 
         mockMvc.perform(get("/api/issueStatus")
                 .param("id", "issue_4523")
-                .header(CommonHeader.OP_API_AUTH_HEADER_KEY, "synthetic-api-key"))
+                .header(CommonHeader.OP_API_AUTH_HEADER_KEY, "synthetic-api-key")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic("monitor", "wrong")))
             .andExpect(status().isOk());
     }
 
@@ -140,14 +149,17 @@ class ActuatorSecurityIntegrationTest {
     }
 
     @Test
-    @DisplayName("Web登录态鉴权与SPA回落不受Spring Security影响")
+    @DisplayName("错误Basic凭据不影响Web登录态鉴权与SPA回落")
     void shouldPreserveWebAuthenticationAndSpaFallback() throws Exception {
-        mockMvc.perform(get("/web/userInfo"))
+        mockMvc.perform(get("/web/userInfo")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic("monitor", "wrong")))
             .andExpect(status().isUnauthorized())
             .andExpect(header().doesNotExist("WWW-Authenticate"));
 
         Cookie ticket = new Cookie("bk_ticket", "synthetic-ticket");
-        mockMvc.perform(get("/web/userInfo").cookie(ticket))
+        mockMvc.perform(get("/web/userInfo")
+                .cookie(ticket)
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic("monitor", "wrong")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.username").value("tester"));
         mockMvc.perform(get("/issue-status").cookie(ticket))
@@ -156,9 +168,10 @@ class ActuatorSecurityIntegrationTest {
     }
 
     @Test
-    @DisplayName("MCP请求仍由MCP拦截器鉴权")
+    @DisplayName("错误Basic凭据不抢占MCP拦截器鉴权")
     void shouldLeaveMcpAuthenticationToExistingInterceptor() throws Exception {
-        mockMvc.perform(post("/mcp"))
+        mockMvc.perform(post("/mcp")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic("monitor", "wrong")))
             .andExpect(status().isUnauthorized())
             .andExpect(header().doesNotExist("WWW-Authenticate"));
     }

@@ -93,11 +93,11 @@ class IssueStatusMapperTest {
     }
 
     @Test
-    @DisplayName("按最后修改时间倒序，id升序作为次级全序键")
+    @DisplayName("按最后修改时间倒序，同一修改时间按id倒序稳定排序")
     void shouldOrderByUpdateTimeAndStableId() {
         String sql = sqlOf("listByKeyword", pageParams(null));
 
-        assertThat(sql).contains("ORDER BY `update_time` DESC, `id` ASC")
+        assertThat(sql).contains("ORDER BY `update_time` DESC, `id` DESC")
             .doesNotContain("issue_no");
     }
 

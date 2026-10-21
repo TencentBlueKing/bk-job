@@ -46,9 +46,9 @@ public interface IssueStatusMapper {
         + "`update_time` AS updateTime";
 
     /**
-     * 列表按最后修改时间倒序，id作为稳定分页的次级全序键。
+     * 列表按最后修改时间倒序，同一修改时间按id倒序稳定排序。
      */
-    String ORDER_BY = "ORDER BY `update_time` DESC, `id` ASC";
+    String ORDER_BY = "ORDER BY `update_time` DESC, `id` DESC";
 
     /**
      * 关键字为空时不加过滤条件。keyword中的 % _ \ 已由调用方转义，这里显式声明转义符，

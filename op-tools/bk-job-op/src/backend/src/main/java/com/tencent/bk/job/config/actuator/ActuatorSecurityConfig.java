@@ -8,9 +8,11 @@
 
 package com.tencent.bk.job.config.actuator;
 
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -30,8 +32,10 @@ import org.springframework.security.web.SecurityFilterChain;
 public class ActuatorSecurityConfig {
 
     @Bean
+    @Order(1)
     SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
         http
+            .securityMatcher(EndpointRequest.toAnyEndpoint())
             .csrf(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
@@ -39,10 +43,23 @@ public class ActuatorSecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                .requestMatchers("/actuator/**").authenticated()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults());
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    SecurityFilterChain nonActuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable)
+            .requestCache(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
 
