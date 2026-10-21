@@ -10,7 +10,7 @@ package com.tencent.bk.job.controller.web;
 
 import com.tencent.bk.job.model.DeleteIssueStatusReq;
 import com.tencent.bk.job.model.DeleteIssueStatusResp;
-import com.tencent.bk.job.model.IssueStatusResp;
+import com.tencent.bk.job.model.WebIssueStatusResp;
 import com.tencent.bk.job.service.model.PageData;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface WebIssueStatusResource {
 
     @GetMapping("/list")
-    PageData<IssueStatusResp> listIssueStatus(
+    PageData<WebIssueStatusResp> listIssueStatus(
         @RequestParam(value = "idKeyword", required = false) String idKeyword,
         @RequestParam(value = "start", required = false, defaultValue = "0") Integer start,
         @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize

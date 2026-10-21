@@ -16,7 +16,8 @@ import com.tencent.bk.job.dao.IssueStatusMapper;
 import com.tencent.bk.job.model.DeleteIssueStatusReq;
 import com.tencent.bk.job.model.DeleteIssueStatusResp;
 import com.tencent.bk.job.model.IssueStatusDTO;
-import com.tencent.bk.job.model.IssueStatusResp;
+import com.tencent.bk.job.model.WebIssueStatusResp;
+import com.tencent.bk.job.service.PullRequestService;
 import com.tencent.bk.job.service.model.PageData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,6 +47,8 @@ class WebIssueStatusResourceImplTest {
 
     private IssueStatusMapper issueStatusMapper;
 
+    private PullRequestService pullRequestService;
+
     private WebIssueStatusResourceImpl resource;
 
     private Logger logger;
@@ -53,7 +58,8 @@ class WebIssueStatusResourceImplTest {
     @BeforeEach
     void setUp() {
         issueStatusMapper = mock(IssueStatusMapper.class);
-        resource = new WebIssueStatusResourceImpl(issueStatusMapper);
+        pullRequestService = mock(PullRequestService.class);
+        resource = new WebIssueStatusResourceImpl(issueStatusMapper, pullRequestService);
         logger = (Logger) LoggerFactory.getLogger(WebIssueStatusResourceImpl.class);
         listAppender = new ListAppender<>();
         listAppender.start();
@@ -78,10 +84,10 @@ class WebIssueStatusResourceImplTest {
         when(issueStatusMapper.listByKeyword(isNull(), eq(0), eq(2)))
             .thenReturn(List.of(dto("issue_4523"), dto("issue_100")));
 
-        PageData<IssueStatusResp> pageData = resource.listIssueStatus(null, 0, 2);
+        PageData<WebIssueStatusResp> pageData = resource.listIssueStatus(null, 0, 2);
 
         assertThat(pageData.getTotal()).isEqualTo(4);
-        assertThat(pageData.getData()).extracting(IssueStatusResp::getId)
+        assertThat(pageData.getData()).extracting(WebIssueStatusResp::getId)
             .containsExactly("issue_4523", "issue_100");
     }
 
@@ -131,11 +137,43 @@ class WebIssueStatusResourceImplTest {
     void shouldReturnEmptyDataWhenStartExceedsTotal() {
         when(issueStatusMapper.countByKeyword(isNull())).thenReturn(2);
 
-        PageData<IssueStatusResp> pageData = resource.listIssueStatus(null, 100, 20);
+        PageData<WebIssueStatusResp> pageData = resource.listIssueStatus(null, 100, 20);
 
         assertThat(pageData.getTotal()).isEqualTo(2);
         assertThat(pageData.getData()).isEmpty();
         verify(issueStatusMapper, never()).listByKeyword(any(), anyInt(), anyInt());
+    }
+
+    @Test
+    @DisplayName("列表一次批量查询去重后的合法Issue ID并聚合PR")
+    void shouldBatchLatestPullRequestsForValidIssueIds() {
+        when(issueStatusMapper.countByKeyword(isNull())).thenReturn(5);
+        when(issueStatusMapper.listByKeyword(isNull(), eq(0), eq(20))).thenReturn(List.of(
+            dto("issue_4555"),
+            dto("issue_4555"),
+            dto("invalid"),
+            dto("issue_9223372036854775808"),
+            dto(null)
+        ));
+        when(pullRequestService.findLatestPrIdsByIssueIds(Set.of(4555L)))
+            .thenReturn(Map.of(4555L, 4564L));
+
+        PageData<WebIssueStatusResp> result = resource.listIssueStatus(null, 0, 20);
+
+        assertThat(result.getData()).extracting(WebIssueStatusResp::getPrId)
+            .containsExactly(4564L, 4564L, null, null, null);
+        verify(pullRequestService).findLatestPrIdsByIssueIds(Set.of(4555L));
+    }
+
+    @Test
+    @DisplayName("无PR时列表prId留空")
+    void shouldLeavePrIdNullWhenNoPullRequestExists() {
+        when(issueStatusMapper.countByKeyword(isNull())).thenReturn(1);
+        when(issueStatusMapper.listByKeyword(isNull(), eq(0), eq(20)))
+            .thenReturn(List.of(dto("issue_4555")));
+        when(pullRequestService.findLatestPrIdsByIssueIds(Set.of(4555L))).thenReturn(Map.of());
+
+        assertThat(resource.listIssueStatus(null, 0, 20).getData().get(0).getPrId()).isNull();
     }
 
     @Test

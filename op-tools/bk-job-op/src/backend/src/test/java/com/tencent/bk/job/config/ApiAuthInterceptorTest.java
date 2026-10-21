@@ -10,8 +10,10 @@ package com.tencent.bk.job.config;
 
 import com.tencent.bk.job.consts.CommonHeader;
 import com.tencent.bk.job.controller.api.impl.IssueStatusResourceImpl;
+import com.tencent.bk.job.controller.api.impl.PullRequestResourceImpl;
 import com.tencent.bk.job.controller.api.impl.ReleaseStatusResourceImpl;
 import com.tencent.bk.job.dao.IssueStatusMapper;
+import com.tencent.bk.job.service.PullRequestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,6 +55,7 @@ class ApiAuthInterceptorTest {
         String[] paths = ApiWebMvcConfig.resolveInterceptPaths().toArray(String[]::new);
         return standaloneSetup(
             new IssueStatusResourceImpl(mock(IssueStatusMapper.class)),
+            new PullRequestResourceImpl(mock(PullRequestService.class)),
             new ReleaseStatusResourceImpl(redisTemplate)
         )
             .addMappedInterceptors(paths, new ApiAuthInterceptor(properties))
@@ -65,6 +68,14 @@ class ApiAuthInterceptorTest {
             post("/api/issueStatus")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"id\":\"issue_4523\",\"status\":\"issue_todo\",\"statusDescription\":\"待处理\"}"),
+            post("/api/pullRequest")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"prId\":4564,\"issueId\":4563,\"codeDir\":\"F:\\\\Job\","
+                    + "\"status\":\"WAIT_FOR_REVIEW\",\"agentName\":\"agent\",\"authorName\":\"author\"}"),
+            get("/api/pullRequest").param("prId", "4564"),
+            post("/api/pullRequest/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"prId\":4564,\"status\":\"HANDLING\"}"),
             get("/api/releaseStatus").param("env", "test"),
             post("/api/releaseStatus").param("env", "test").param("releasing", "true")
         );

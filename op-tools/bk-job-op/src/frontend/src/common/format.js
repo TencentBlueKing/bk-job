@@ -37,3 +37,13 @@ export const resolveIssueUrl = (id) => {
   const matched = /^issue_(\d+)$/.exec(String(id).trim());
   return matched ? `https://github.com/TencentBlueKing/bk-job/issues/${matched[1]}` : '';
 };
+
+/**
+ * 正整数 PR ID 转换为 GitHub Pull Request 链接，非法值返回空字符串
+ */
+export const resolvePullRequestUrl = (prId) => {
+  if (!Number.isSafeInteger(prId) || prId <= 0) {
+    return '';
+  }
+  return `https://github.com/TencentBlueKing/bk-job/pull/${prId}`;
+};
