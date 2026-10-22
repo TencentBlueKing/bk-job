@@ -135,6 +135,25 @@ class WhiteIpHostValidatorTest {
     }
 
     @Test
+    @DisplayName("相同 IP 在不同管控区域时按完整 cloudIp 独立匹配")
+    void resolveSameIpInDifferentCloudAreas() {
+        List<String> cloudIps = Arrays.asList(CLOUD_IP, "1:127.0.0.1");
+        when(currentTenantHostDAO.listHostInfoByCloudIps(cloudIps))
+            .thenReturn(Arrays.asList(host(5L, 0L, "127.0.0.1"), host(6L, 1L, "127.0.0.1")));
+        when(bizCmdbClient.listHostsByCloudIps(TENANT_ID, cloudIps))
+            .thenReturn(Arrays.asList(host(6L, 1L, "127.0.0.1"), host(5L, 0L, "127.0.0.1")));
+
+        List<HostIdWithMeta> hosts = validator.resolveWhiteIpHosts(Arrays.asList(
+            new WhiteIpHostLocator(null, 0L, "127.0.0.1"),
+            new WhiteIpHostLocator(null, 1L, "127.0.0.1")
+        ));
+
+        assertThat(hosts).extracting(HostIdWithMeta::getHostId).containsExactly(5L, 6L);
+        verify(currentTenantHostDAO, times(1)).listHostInfoByCloudIps(cloudIps);
+        verify(bizCmdbClient, times(1)).listHostsByCloudIps(TENANT_ID, cloudIps);
+    }
+
+    @Test
     @DisplayName("每个 cloudIp 独立判断唯一性并忽略同 hostId 重复行")
     void resolveEachCloudIpIndependentlyAndDedupeRows() {
         List<String> cloudIps = Arrays.asList(CLOUD_IP, "1:127.0.0.2");
