@@ -274,13 +274,9 @@ true
 {{- else if eq $name "file-worker" -}}
 {{- if $ctx.Values.fileWorkerConfig.enabled }}true{{- end -}}
 {{- else if eq $name "execute" -}}
-{{- $executeDs := $ctx.Values.executeConfig.mysql.verticalSharding.datasource | default dict -}}
-{{- if and $ctx.Values.executeConfig.mysql.verticalSharding.enabled (gt (len $executeDs) 0) }}true{{- end -}}
+{{- if or (eq $ctx.Values.deploy.mode "lite") $ctx.Values.executeConfig.enabled }}true{{- end -}}
 {{- else if eq $name "backup" -}}
-{{- $backupMariadb := $ctx.Values.backupConfig.archive.execute.mariadb | default dict -}}
-{{- $backupVs := index $backupMariadb "verticalSharding" | default dict -}}
-{{- $backupDs := index $backupVs "datasource" | default dict -}}
-{{- if and $ctx.Values.backupConfig.archive.execute.enabled (eq $backupMariadb.dataSourceMode "vertical_sharding") (gt (len $backupDs) 0) }}true{{- end -}}
+{{- if or (eq $ctx.Values.deploy.mode "lite") $ctx.Values.backupConfig.enabled }}true{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -1494,14 +1490,15 @@ Return Extension volumes
 {{- end }}
 
 {{/*
-execute 的 mysql 整块输出。execute 凭证未接管时原样 toYaml。
-接管后去掉分片 password：Java 读的是 spring.datasource.<名>，不是这段。
+execute 的 mysql 整块输出。未开垂直分片，或 execute 凭证未接管时，原样 toYaml。
+垂直分片且凭证已接管时去掉分片 password：Java 读的是 spring.datasource.<名>，不是这段。
 */}}
 {{- define "job.configmap.omitMysqlPasswords" -}}
 {{- $mysql := .mysql -}}
-{{- if eq (include "job.kms.credential.active" (dict "name" "execute" "context" .context)) "true" -}}
-{{- $mysql = deepCopy $mysql -}}
 {{- $vs := index $mysql "verticalSharding" | default dict -}}
+{{- if and (index $vs "enabled") (eq (include "job.kms.credential.active" (dict "name" "execute" "context" .context)) "true") -}}
+{{- $mysql = deepCopy $mysql -}}
+{{- $vs = index $mysql "verticalSharding" | default dict -}}
 {{- $dsMap := index $vs "datasource" | default dict -}}
 {{- range $name, $ds := $dsMap -}}
 {{- $_ := unset $ds "password" -}}
@@ -1527,9 +1524,9 @@ archive-mariadb 接管后去掉归档库 password 和 TLS 口令；backup 接管
 {{- $_ := unset $tls "trustStorePassword" -}}
 {{- $_ := unset $tls "keyStorePassword" -}}
 {{- end -}}
-{{- if $kmsBackup -}}
 {{- $execute := index $archive "execute" | default dict -}}
 {{- $executeMariadb := index $execute "mariadb" | default dict -}}
+{{- if and $kmsBackup (eq (index $executeMariadb "dataSourceMode") "vertical_sharding") -}}
 {{- $vs := index $executeMariadb "verticalSharding" | default dict -}}
 {{- $dsMap := index $vs "datasource" | default dict -}}
 {{- range $name, $ds := $dsMap -}}

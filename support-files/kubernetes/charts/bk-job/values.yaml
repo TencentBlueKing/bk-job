@@ -67,7 +67,9 @@ serviceAccount:
 ## values 里 job.security.actuator.user.name/password 仍需填写，供 bkmonitor 使用。
 ## 各服务 ConfigMap 抽出的项按服务各一份凭证，信封同样用 Spring 属性名：
 ## manage：job.public-app.code/secret；analysis：job.analysis.approval.channels.imate.openApi.appId/secret；
-## file-worker：job.file-worker.token；execute / backup：仅配置了垂直分片时，spring.datasource.<分片名>.username/password。
+## file-worker：job.file-worker.token。
+## execute / backup 跟随服务是否部署：标准模式看 executeConfig.enabled / backupConfig.enabled，轻量模式由 job-assemble 挂载。
+## 垂直分片账号密码只在对应分片开启时写入信封；没开分片时信封录 {}。
 ## 轻量模式不另建 assemble 凭证，job-assemble 按用到的短名挂载。
 ## Redis / MongoDB 的 TLS 口令仅在开启 KMS 时写入各自中间件信封（redis-truststore-password 等），ConfigMap 改为占位符；关闭 KMS 时 ConfigMap 仍写 values 明文，明文 Secret 不新增 TLS 口令 key。
 ## RabbitMQ TLS 口令现网明文 Secret 里本来就有。开启 KMS 后 ConfigMap 改用 ${rabbitmq-truststore-password} / ${rabbitmq-keystore-password}；关闭时 ConfigMap 仍写 values 明文。
