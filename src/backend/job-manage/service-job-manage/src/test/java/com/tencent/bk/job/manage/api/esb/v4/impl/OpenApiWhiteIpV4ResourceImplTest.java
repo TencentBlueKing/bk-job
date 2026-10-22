@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.esb.impl.v4.OpenApiWhiteIpV4ResourceImpl;
+import com.tencent.bk.job.manage.api.esb.impl.v4.OpenApiWhiteIpV4Validator;
 import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.ActionScopeDTO;
@@ -101,12 +102,16 @@ class OpenApiWhiteIpV4ResourceImplTest {
         appScopeMappingService = mock(AppScopeMappingService.class);
         MessageI18nService messageI18nService = mock(MessageI18nService.class);
         when(messageI18nService.getI18n(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+        OpenApiWhiteIpV4Validator validator = new OpenApiWhiteIpV4Validator(
+            actionScopeDAO,
+            appScopeMappingService,
+            messageI18nService
+        );
         resource = new OpenApiWhiteIpV4ResourceImpl(
             whiteIPService,
             noResourceScopeAuthService,
             actionScopeDAO,
-            appScopeMappingService,
-            messageI18nService
+            validator
         );
         user = new User("default", USERNAME, USERNAME);
         when(noResourceScopeAuthService.authCreateWhiteList(user)).thenReturn(AuthResult.pass(user));

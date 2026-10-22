@@ -84,13 +84,18 @@ class WhiteIPServiceImplResolveTest {
         currentTenantHostDAO = mock(CurrentTenantHostDAO.class);
         bizCmdbClient = mock(IBizCmdbClient.class);
         when(i18nService.getI18n(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+        WhiteIpHostValidator whiteIpHostValidator = new WhiteIpHostValidator(
+            currentTenantHostDAO,
+            bizCmdbClient,
+            i18nService
+        );
         service = new WhiteIPServiceImpl(
             actionScopeDAO,
             whiteIPRecordDAO,
             applicationDAO,
             i18nService,
             appScopeMappingService,
-            currentTenantHostDAO,
+            whiteIpHostValidator,
             bizCmdbClient
         );
         JobContextUtil.setUser(new User(TENANT_ID, "tester", "tester"));
