@@ -1477,7 +1477,7 @@ execute 的 mysql 整块输出。未开垂直分片，或 execute 凭证未接�
 
 {{/*
 归档整块输出。对应凭证未接管时原样 toYaml。
-archive-mariadb 接管后去掉归档库 password 和 TLS 口令；backup 接管后去掉热库分片 password。
+archive-mariadb 接管后去掉归档库 username、password 和 TLS 口令。这段 username 没有代码读取，连接用的是 spring.datasource.job-execute-archive.username。backup 接管后去掉热库分片 password。
 */}}
 {{- define "job.configmap.omitArchiveSecrets" -}}
 {{- $archive := .archive -}}
@@ -1487,6 +1487,7 @@ archive-mariadb 接管后去掉归档库 password 和 TLS 口令；backup 接管
 {{- $archive = deepCopy $archive -}}
 {{- if $kmsArchive -}}
 {{- $mariadb := index $archive "mariadb" | default dict -}}
+{{- $_ := unset $mariadb "username" -}}
 {{- $_ := unset $mariadb "password" -}}
 {{- $tls := index $mariadb "tls" | default dict -}}
 {{- $_ := unset $tls "trustStorePassword" -}}
