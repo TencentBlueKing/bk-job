@@ -1,0 +1,171 @@
+### Description
+
+List existing IP whitelist records by page. The caller must have permission to manage the IP whitelist.
+
+Records can be filtered by IP, business, action scope, creator, and last modifier, with paging and sorting. When paging is omitted, the query starts at offset 0 and returns 10 records. length must be from 1 to 200. A value less than 1 or greater than 200 is a parameter error. This API does not return the full result set in one request.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|------|------|------|------|
+| ip | string | No | Comma-separated IPv4 values. Matches saved IPv4 addresses by fuzzy search. Empty or omitted means no IP filter |
+| scope_list | array | No | Exact filter by business. Multiple businesses are combined with OR. Empty or omitted means no business filter. Only businesses bound on the record are matched. A record that applies to all businesses is not included when filtering a single business |
+| action_scope_list | array | No | Exact filter by action scope. Multiple values are combined with OR. Empty or omitted means no action-scope filter. Allowed values: SCRIPT_EXECUTE (script execution), FILE_DISTRIBUTION (file distribution) |
+| creator | string | No | Creator, fuzzy match. Empty or omitted means no creator filter |
+| last_modifier | string | No | Last modifier, fuzzy match. Empty or omitted means no modifier filter |
+| start | long | No | Start offset, beginning at 0. Defaults to 0 when omitted. A value less than 0 is a parameter error |
+| length | long | No | Page size. Defaults to 10 when omitted. Only 1 to 200 is allowed. A value less than 1 or greater than 200 is a parameter error and is not rewritten to another page size |
+| order_field | string | No | Sort field. Allowed values: last_modify_time (last modification time), last_modifier (last modifier). When omitted, records are sorted by last modification time descending and order is ignored |
+| order | long | No | Sort direction. Allowed values: 0 (descending), 1 (ascending). Used only when order_field is set. Defaults to 0 when omitted. Any other value is a parameter error |
+
+##### scope_list[] element
+
+| Field | Type | Required | Description |
+|------|------|------|------|
+| bk_scope_type | string | Yes | Resource scope type. Allowed values: biz (business), biz_set (business set), tenant_set (tenant set) |
+| bk_scope_id | string | Yes | Resource scope ID corresponding to bk_scope_type. It is a business ID, business set ID, or tenant set ID. A scope that does not exist is a parameter error |
+
+##### action_scope_list[] element
+
+| Field | Type | Required | Description |
+|------|------|------|------|
+| (element) | string | Yes | Action scope. Allowed values: SCRIPT_EXECUTE (script execution), FILE_DISTRIBUTION (file distribution) |
+
+### Request Example
+
+- POST
+
+```json
+{
+    "ip": "127.0.0.1,127.0.0.2",
+    "scope_list": [
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "2"
+        },
+        {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": "3"
+        }
+    ],
+    "action_scope_list": [
+        "SCRIPT_EXECUTE",
+        "FILE_DISTRIBUTION"
+    ],
+    "creator": "admin",
+    "last_modifier": "admin",
+    "start": 0,
+    "length": 10,
+    "order_field": "last_modify_time",
+    "order": 0
+}
+```
+
+### Response Examples
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+If paging, sorting, action scope, or business scope is invalid, the HTTP status is 400 and error.code is INVALID_ARGUMENT. If the caller cannot manage the IP whitelist, the HTTP status is 403 and error.code is NO_PERMISSION.
+
+#### Success
+
+```json
+# http status=200
+{
+    "data": {
+        "start": 0,
+        "length": 10,
+        "total": 1,
+        "data": [
+            {
+                "id": 1001,
+                "bk_cloud_id": 0,
+                "host_list": [
+                    {
+                        "bk_host_id": 101,
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.1"
+                    },
+                    {
+                        "bk_host_id": 102,
+                        "bk_cloud_id": 0,
+                        "ip": "127.0.0.2"
+                    }
+                ],
+                "action_scope_list": [
+                    "SCRIPT_EXECUTE"
+                ],
+                "all_scope": false,
+                "scope_list": [
+                    {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "2",
+                        "name": "demo-biz"
+                    }
+                ],
+                "remark": "allow script execute",
+                "creator": "admin",
+                "create_time": 1735689600000,
+                "last_modifier": "admin",
+                "last_modify_time": 1735689600000
+            }
+        ]
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Description |
+|------|------|------|
+| start | long | Start offset used by this query |
+| length | long | Page size used by this query. 10 when omitted, or the valid value sent by the caller |
+| total | long | Total number of matched records |
+| data | array | Whitelist records |
+
+##### data[] element
+
+| Field | Type | Description |
+|------|------|------|
+| id | long | Whitelist record ID |
+| bk_cloud_id | long | Summary cloud area ID of the record. When hosts in the same record belong to different cloud areas, use bk_cloud_id of each host in host_list. Omitted when the record has no host |
+| host_list | array | Whitelist hosts |
+| action_scope_list | array | Action scopes. Allowed values: SCRIPT_EXECUTE (script execution), FILE_DISTRIBUTION (file distribution) |
+| all_scope | boolean | Whether the record applies to all businesses. Allowed values: true (all businesses), false (only businesses in scope_list) |
+| scope_list | array | Businesses the record applies to. Empty array when all_scope is true |
+| remark | string | Remark |
+| creator | string | Creator |
+| create_time | long | Creation time, Unix timestamp in milliseconds |
+| last_modifier | string | Last modifier |
+| last_modify_time | long | Last modification time, Unix timestamp in milliseconds |
+
+##### host_list[] element
+
+| Field | Type | Description |
+|------|------|------|
+| bk_host_id | long | CMDB host ID |
+| bk_cloud_id | long | Cloud area ID |
+| ip | string | Host IPv4. Omitted when the host has no IPv4 |
+| ipv6 | string | Host IPv6. Omitted when the host has no IPv6 |
+
+##### action_scope_list[] element
+
+| Field | Type | Description |
+|------|------|------|
+| (element) | string | Action scope. Allowed values: SCRIPT_EXECUTE (script execution), FILE_DISTRIBUTION (file distribution) |
+
+##### scope_list[] element
+
+| Field | Type | Description |
+|------|------|------|
+| bk_scope_type | string | Resource scope type. Allowed values: biz (business), biz_set (business set), tenant_set (tenant set). May be omitted when the business has been deleted |
+| bk_scope_id | string | Resource scope ID. May be omitted when the business has been deleted |
+| name | string | Name of the business, business set, or tenant set. A placeholder text is returned when the business has been deleted |

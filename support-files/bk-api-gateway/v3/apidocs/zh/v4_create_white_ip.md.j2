@@ -1,0 +1,178 @@
+### 功能描述
+
+新增一条 IP 白名单，使指定主机在脚本执行和/或文件分发时，对全部业务或指定业务生效。调用方需要具备新增 IP 白名单的权限。
+
+同时提供主机 ID 与管控区域、IP 时，以主机 ID 为准。只提供管控区域与 IP 时，必须能唯一对应一台主机，否则请求失败且不会创建白名单。
+
+### 请求参数
+
+#### Body参数
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| all_scope | boolean | 否 | 是否对全部业务生效。可选值：true（对全部业务生效）、false（只对 scope_list 中的业务生效，默认 false）。为 true 时忽略 scope_list |
+| scope_list | array | 否 | 生效业务列表。all_scope 为 false 时至少 1 个；all_scope 为 true 时忽略该字段 |
+| host_list | array | 是 | 加入白名单的主机列表，至少 1 台。重复主机只保留第一次出现的记录 |
+| remark | string | 是 | 备注，不能为空 |
+| action_scope_list | array | 是 | 生效范围，至少 1 个。可选值：SCRIPT_EXECUTE（脚本执行）、FILE_DISTRIBUTION（文件分发）。可同时传入两个，重复值会去重 |
+
+##### scope_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值：biz（业务）、biz_set（业务集）、tenant_set（租户集） |
+| bk_scope_id | string | 是 | 资源范围 ID，与 bk_scope_type 对应，表示业务 ID、业务集 ID 或租户集 ID |
+
+##### host_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| bk_host_id | long | 否 | CMDB 主机 ID，为正整数。传入后以该主机为准，并忽略同元素上的 bk_cloud_id 与 ip |
+| bk_cloud_id | long | 否 | 管控区域 ID，大于或等于 0，直连区域为 0。未传 bk_host_id 时必须与 ip 同时填写 |
+| ip | string | 否 | 主机 IPv4。未传 bk_host_id 时必须与 bk_cloud_id 同时填写。管控区域与 IP 不能唯一对应一台主机时，请求失败且不会创建 |
+
+##### action_scope_list[] 元素
+
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| （元素） | string | 是 | 生效范围。可选值：SCRIPT_EXECUTE（脚本执行）、FILE_DISTRIBUTION（文件分发） |
+
+### 请求参数示例
+
+- POST
+
+示例 1：按主机 ID 对指定业务生效
+
+```json
+{
+    "all_scope": false,
+    "scope_list": [
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "2"
+        },
+        {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": "3"
+        }
+    ],
+    "host_list": [
+        {
+            "bk_host_id": 101
+        },
+        {
+            "bk_host_id": 102
+        }
+    ],
+    "remark": "allow script execute and file distribution",
+    "action_scope_list": [
+        "SCRIPT_EXECUTE",
+        "FILE_DISTRIBUTION"
+    ]
+}
+```
+
+示例 2：按管控区域与 IP 对全部业务生效
+
+```json
+{
+    "all_scope": true,
+    "host_list": [
+        {
+            "bk_cloud_id": 0,
+            "ip": "127.0.0.1"
+        }
+    ],
+    "remark": "allow all businesses",
+    "action_scope_list": [
+        "SCRIPT_EXECUTE"
+    ]
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+主机身份无法唯一确定、分页或生效范围不合法、业务范围不存在时，HTTP 状态码为 400，error.code 为 INVALID_ARGUMENT。没有新增 IP 白名单权限时，HTTP 状态码为 403，error.code 为 NO_PERMISSION。
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "id": 1001,
+        "bk_cloud_id": 0,
+        "host_list": [
+            {
+                "bk_host_id": 101,
+                "bk_cloud_id": 0,
+                "ip": "127.0.0.1"
+            }
+        ],
+        "action_scope_list": [
+            "SCRIPT_EXECUTE",
+            "FILE_DISTRIBUTION"
+        ],
+        "all_scope": false,
+        "scope_list": [
+            {
+                "bk_scope_type": "biz",
+                "bk_scope_id": "2",
+                "name": "demo-biz"
+            }
+        ],
+        "remark": "allow script execute and file distribution",
+        "creator": "admin",
+        "create_time": 1735689600000,
+        "last_modifier": "admin",
+        "last_modify_time": 1735689600000
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| id | long | 白名单记录 ID |
+| bk_cloud_id | long | 记录上的汇总管控区域 ID。同一记录下多台主机的管控区域不一致时，以 host_list 中每台主机的 bk_cloud_id 为准。没有主机时不返回该字段 |
+| host_list | array | 白名单主机列表 |
+| action_scope_list | array | 生效范围。可选值：SCRIPT_EXECUTE（脚本执行）、FILE_DISTRIBUTION（文件分发） |
+| all_scope | boolean | 是否对全部业务生效。可选值：true（全部业务）、false（仅 scope_list 中的业务） |
+| scope_list | array | 生效业务列表。all_scope 为 true 时为空数组 |
+| remark | string | 备注 |
+| creator | string | 创建人 |
+| create_time | long | 创建时间，Unix 时间戳，单位毫秒 |
+| last_modifier | string | 最后更新人 |
+| last_modify_time | long | 最后更新时间，Unix 时间戳，单位毫秒 |
+
+##### host_list[] 元素
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| bk_host_id | long | CMDB 主机 ID |
+| bk_cloud_id | long | 管控区域 ID |
+| ip | string | 主机 IPv4。没有 IPv4 时不返回该字段 |
+| ipv6 | string | 主机 IPv6。没有 IPv6 时不返回该字段 |
+
+##### action_scope_list[] 元素
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| （元素） | string | 生效范围。可选值：SCRIPT_EXECUTE（脚本执行）、FILE_DISTRIBUTION（文件分发） |
+
+##### scope_list[] 元素
+
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| bk_scope_type | string | 资源范围类型。可选值：biz（业务）、biz_set（业务集）、tenant_set（租户集）。业务已删除时可能不返回 |
+| bk_scope_id | string | 资源范围 ID。业务已删除时可能不返回 |
+| name | string | 业务、业务集或租户集名称。业务已删除时为占位文本 |

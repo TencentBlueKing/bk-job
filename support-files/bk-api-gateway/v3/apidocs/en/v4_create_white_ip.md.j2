@@ -1,0 +1,178 @@
+### Description
+
+Create an IP whitelist record so the specified hosts take effect for script execution and/or file distribution, either for all businesses or for the selected businesses. The caller must have permission to create an IP whitelist.
+
+When both a host ID and a cloud area plus IP are provided, the host ID is used. When only a cloud area and IP are provided, they must match exactly one host; otherwise the request fails and no whitelist record is created.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field | Type | Required | Description |
+|------|------|------|------|
+| all_scope | boolean | No | Whether the record applies to all businesses. Allowed values: true (all businesses), false (only businesses in scope_list, default false). scope_list is ignored when this is true |
+| scope_list | array | No | Businesses the record applies to. At least one item is required when all_scope is false. Ignored when all_scope is true |
+| host_list | array | Yes | Hosts to add. At least one host is required. Duplicate hosts keep the first occurrence |
+| remark | string | Yes | Remark. Cannot be empty |
+| action_scope_list | array | Yes | Action scopes. At least one item is required. Allowed values: SCRIPT_EXECUTE (script execution), FILE_DISTRIBUTION (file distribution). Both may be sent together. Duplicate values are removed |
+
+##### scope_list[] element
+
+| Field | Type | Required | Description |
+|------|------|------|------|
+| bk_scope_type | string | Yes | Resource scope type. Allowed values: biz (business), biz_set (business set), tenant_set (tenant set) |
+| bk_scope_id | string | Yes | Resource scope ID corresponding to bk_scope_type. It is a business ID, business set ID, or tenant set ID |
+
+##### host_list[] element
+
+| Field | Type | Required | Description |
+|------|------|------|------|
+| bk_host_id | long | No | CMDB host ID. Must be a positive integer. When set, this host is used and bk_cloud_id and ip on the same element are ignored |
+| bk_cloud_id | long | No | Cloud area ID, greater than or equal to 0. 0 is the direct-connect area. Required together with ip when bk_host_id is absent |
+| ip | string | No | Host IPv4. Required together with bk_cloud_id when bk_host_id is absent. If the cloud area and IP do not match exactly one host, the request fails and nothing is created |
+
+##### action_scope_list[] element
+
+| Field | Type | Required | Description |
+|------|------|------|------|
+| (element) | string | Yes | Action scope. Allowed values: SCRIPT_EXECUTE (script execution), FILE_DISTRIBUTION (file distribution) |
+
+### Request Example
+
+- POST
+
+Example 1: target selected businesses by host ID
+
+```json
+{
+    "all_scope": false,
+    "scope_list": [
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "2"
+        },
+        {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": "3"
+        }
+    ],
+    "host_list": [
+        {
+            "bk_host_id": 101
+        },
+        {
+            "bk_host_id": 102
+        }
+    ],
+    "remark": "allow script execute and file distribution",
+    "action_scope_list": [
+        "SCRIPT_EXECUTE",
+        "FILE_DISTRIBUTION"
+    ]
+}
+```
+
+Example 2: target all businesses by cloud area and IP
+
+```json
+{
+    "all_scope": true,
+    "host_list": [
+        {
+            "bk_cloud_id": 0,
+            "ip": "127.0.0.1"
+        }
+    ],
+    "remark": "allow all businesses",
+    "action_scope_list": [
+        "SCRIPT_EXECUTE"
+    ]
+}
+```
+
+### Response Examples
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+If the host cannot be identified uniquely, or the page, action scope, or business scope is invalid, the HTTP status is 400 and error.code is INVALID_ARGUMENT. If the caller cannot create an IP whitelist, the HTTP status is 403 and error.code is NO_PERMISSION.
+
+#### Success
+
+```json
+# http status=200
+{
+    "data": {
+        "id": 1001,
+        "bk_cloud_id": 0,
+        "host_list": [
+            {
+                "bk_host_id": 101,
+                "bk_cloud_id": 0,
+                "ip": "127.0.0.1"
+            }
+        ],
+        "action_scope_list": [
+            "SCRIPT_EXECUTE",
+            "FILE_DISTRIBUTION"
+        ],
+        "all_scope": false,
+        "scope_list": [
+            {
+                "bk_scope_type": "biz",
+                "bk_scope_id": "2",
+                "name": "demo-biz"
+            }
+        ],
+        "remark": "allow script execute and file distribution",
+        "creator": "admin",
+        "create_time": 1735689600000,
+        "last_modifier": "admin",
+        "last_modify_time": 1735689600000
+    }
+}
+```
+
+### Response Parameters
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field | Type | Description |
+|------|------|------|
+| id | long | Whitelist record ID |
+| bk_cloud_id | long | Summary cloud area ID of the record. When hosts in the same record belong to different cloud areas, use bk_cloud_id of each host in host_list. Omitted when the record has no host |
+| host_list | array | Whitelist hosts |
+| action_scope_list | array | Action scopes. Allowed values: SCRIPT_EXECUTE (script execution), FILE_DISTRIBUTION (file distribution) |
+| all_scope | boolean | Whether the record applies to all businesses. Allowed values: true (all businesses), false (only businesses in scope_list) |
+| scope_list | array | Businesses the record applies to. Empty array when all_scope is true |
+| remark | string | Remark |
+| creator | string | Creator |
+| create_time | long | Creation time, Unix timestamp in milliseconds |
+| last_modifier | string | Last modifier |
+| last_modify_time | long | Last modification time, Unix timestamp in milliseconds |
+
+##### host_list[] element
+
+| Field | Type | Description |
+|------|------|------|
+| bk_host_id | long | CMDB host ID |
+| bk_cloud_id | long | Cloud area ID |
+| ip | string | Host IPv4. Omitted when the host has no IPv4 |
+| ipv6 | string | Host IPv6. Omitted when the host has no IPv6 |
+
+##### action_scope_list[] element
+
+| Field | Type | Description |
+|------|------|------|
+| (element) | string | Action scope. Allowed values: SCRIPT_EXECUTE (script execution), FILE_DISTRIBUTION (file distribution) |
+
+##### scope_list[] element
+
+| Field | Type | Description |
+|------|------|------|
+| bk_scope_type | string | Resource scope type. Allowed values: biz (business), biz_set (business set), tenant_set (tenant set). May be omitted when the business has been deleted |
+| bk_scope_id | string | Resource scope ID. May be omitted when the business has been deleted |
+| name | string | Name of the business, business set, or tenant set. A placeholder text is returned when the business has been deleted |

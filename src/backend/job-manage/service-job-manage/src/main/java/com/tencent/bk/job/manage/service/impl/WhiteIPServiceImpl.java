@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -50,13 +49,13 @@ import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPRecordDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.ActionScopeDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
+import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIpHostLocator;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.HostIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
@@ -88,7 +87,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     private final WhiteIPRecordDAO whiteIPRecordDAO;
     private final ApplicationDAO applicationDAO;
     private final AppScopeMappingService appScopeMappingService;
-    private final CurrentTenantHostDAO currentTenantHostDAO;
+    private final WhiteIpHostValidator whiteIpHostValidator;
     private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
@@ -98,14 +97,14 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         ApplicationDAO applicationDAO,
         MessageI18nService i18nService,
         AppScopeMappingService appScopeMappingService,
-        CurrentTenantHostDAO currentTenantHostDAO,
+        WhiteIpHostValidator whiteIpHostValidator,
         IBizCmdbClient bizCmdbClient) {
         this.actionScopeDAO = actionScopeDAO;
         this.whiteIPRecordDAO = whiteIPRecordDAO;
         this.applicationDAO = applicationDAO;
         this.i18nService = i18nService;
         this.appScopeMappingService = appScopeMappingService;
-        this.currentTenantHostDAO = currentTenantHostDAO;
+        this.whiteIpHostValidator = whiteIpHostValidator;
         this.bizCmdbClient = bizCmdbClient;
     }
 
@@ -257,33 +256,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         if (CollectionUtils.isEmpty(hostList)) {
             return Collections.emptyList();
         }
-        // 从本地DB查询
         List<Long> hostIdList = hostList.stream().map(HostIdWithMeta::getHostId).collect(Collectors.toList());
-        List<ApplicationHostDTO> hostDTOList = currentTenantHostDAO.listHostInfoByHostIds(hostIdList);
-        Map<Long, ApplicationHostDTO> hostMap = new HashMap<>();
-        hostDTOList.forEach(hostDTO -> hostMap.put(hostDTO.getHostId(), hostDTO));
-
-        // 本地DB不存在的HostId从CMDB查询hostId
-        List<Long> notInDbHostIdList = hostIdList.stream()
-            .filter(hostId -> !hostMap.containsKey(hostId))
-            .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(notInDbHostIdList)) {
-            String tenantId = JobContextUtil.getTenantId();
-            List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByHostIds(tenantId, notInDbHostIdList);
-            if (CollectionUtils.isNotEmpty(cmdbHostList)) {
-                cmdbHostList.forEach(hostDTO -> hostMap.put(hostDTO.getHostId(), hostDTO));
-            }
-            // CMDB中也查不到的IP需要记录
-            notInDbHostIdList.removeIf(hostMap::containsKey);
-            if (!notInDbHostIdList.isEmpty()) {
-                log.warn("Cannot find hostIds in db/cmdb:{}", notInDbHostIdList);
-                throw new InvalidParamException(
-                    ErrorCode.HOST_ID_NOT_EXIST_IN_CMDB,
-                    StringUtil.concatCollection(notInDbHostIdList)
-                );
-            }
-        }
-
+        Map<Long, ApplicationHostDTO> hostMap = whiteIpHostValidator.validateAndLoadHosts(hostIdList);
         return hostIdList.stream().map(hostId -> {
             ApplicationHostDTO hostDTO = hostMap.get(hostId);
             return new WhiteIPIPDTO(
@@ -320,6 +294,11 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                 }).collect(Collectors.toList());
         }
         return appIdList;
+    }
+
+    @Override
+    public List<HostIdWithMeta> resolveWhiteIpHosts(List<WhiteIpHostLocator> locators) {
+        return whiteIpHostValidator.resolveWhiteIpHosts(locators);
     }
 
     @Override
