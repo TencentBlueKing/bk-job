@@ -39,11 +39,12 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.exception.UnauthenticatedException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
+import com.tencent.bk.job.common.model.error.FieldViolationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -51,15 +52,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.validation.BindException;
+import org.springframework.validation.Validator;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
@@ -77,10 +81,24 @@ import jakarta.validation.ConstraintViolationException;
 @Slf4j
 public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase {
     private final AuthService authService;
+    private final Validator validator;
 
     @Autowired
-    public EsbExceptionControllerAdvice(AuthService authService) {
+    public EsbExceptionControllerAdvice(
+        AuthService authService,
+        @Qualifier("jobLocalValidatorFactoryBean") Validator validator
+    ) {
         this.authService = authService;
+        this.validator = validator;
+    }
+
+    /**
+     * ESB V2/V3 requests use the project validator for localized messages and external field names.
+     * Keep the MVC default validator for Web and ESB V4 controllers to preserve their existing behavior.
+     */
+    @InitBinder
+    void initBinder(WebDataBinder binder) {
+        binder.setValidator(validator);
     }
 
     @ExceptionHandler(Throwable.class)
@@ -179,19 +197,26 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatusCode statusCode,
                                                                   WebRequest request) {
-        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
-        log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
-        EsbResp<?> resp = EsbResp.buildValidateFailResp(errorDetail);
+        FieldViolationDTO violation = EsbValidationErrorResolver.resolve(ex);
+        log.warn("HandleMethodArgumentNotValid - violation: {}", violation);
+        EsbResp<?> resp = buildValidateFailResp(violation);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
     ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request, ConstraintViolationException ex) {
-        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
-        log.warn("handleConstraintViolationException - errorDetail: {}", errorDetail);
-        EsbResp<?> resp = EsbResp.buildValidateFailResp(errorDetail);
+        FieldViolationDTO violation = EsbValidationErrorResolver.resolve(ex);
+        log.warn("handleConstraintViolationException - violation: {}", violation);
+        EsbResp<?> resp = buildValidateFailResp(violation);
         return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    private EsbResp<?> buildValidateFailResp(FieldViolationDTO violation) {
+        if (violation == null) {
+            return EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
+        }
+        return EsbResp.buildValidateFailResp(violation.getField(), violation.getDescription());
     }
 
     @ExceptionHandler({ResourceExhaustedException.class})

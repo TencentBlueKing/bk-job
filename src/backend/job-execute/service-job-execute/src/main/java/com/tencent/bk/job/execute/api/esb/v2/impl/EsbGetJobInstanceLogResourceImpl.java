@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -69,6 +70,7 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final AppScopeMappingService appScopeMappingService;
     private final StepInstanceService stepInstanceService;
+    private final EsbRequestValidator esbRequestValidator;
 
     public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
                                             ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
@@ -76,7 +78,8 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
                                             LogService logService,
                                             TaskInstanceAccessProcessor taskInstanceAccessProcessor,
                                             AppScopeMappingService appScopeMappingService,
-                                            StepInstanceService stepInstanceService) {
+                                            StepInstanceService stepInstanceService,
+                                            EsbRequestValidator esbRequestValidator) {
         this.taskInstanceService = taskInstanceService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
@@ -84,6 +87,7 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.appScopeMappingService = appScopeMappingService;
         this.stepInstanceService = stepInstanceService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -202,6 +206,7 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
+        esbRequestValidator.validate(req);
         req.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceLogUsingPost(username, appCode, req);
     }

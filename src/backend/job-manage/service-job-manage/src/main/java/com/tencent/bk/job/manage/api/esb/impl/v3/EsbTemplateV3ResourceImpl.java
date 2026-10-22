@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.manage.api.esb.v3.EsbTemplateV3Resource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetTemplateListV3Request;
@@ -52,12 +53,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     private final TaskTemplateService taskTemplateService;
     private final AppScopeMappingService appScopeMappingService;
+    private final EsbRequestValidator esbRequestValidator;
 
     @Autowired
     public EsbTemplateV3ResourceImpl(TaskTemplateService taskTemplateService,
-                                     AppScopeMappingService appScopeMappingService) {
+                                     AppScopeMappingService appScopeMappingService,
+                                     EsbRequestValidator esbRequestValidator) {
         this.taskTemplateService = taskTemplateService;
         this.appScopeMappingService = appScopeMappingService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -88,6 +92,7 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         request.setLastModifyTimeStart(lastModifyTimeStart);
         request.setStart(start);
         request.setLength(length);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getTemplateListUsingPost(username, appCode, request);
     }

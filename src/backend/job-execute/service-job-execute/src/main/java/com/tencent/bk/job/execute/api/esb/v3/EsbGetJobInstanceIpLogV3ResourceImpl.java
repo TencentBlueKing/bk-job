@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
@@ -69,15 +70,18 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final AppScopeMappingService appScopeMappingService;
+    private final EsbRequestValidator esbRequestValidator;
 
     public EsbGetJobInstanceIpLogV3ResourceImpl(LogService logService,
                                                 StepInstanceService stepInstanceService,
                                                 TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                                AppScopeMappingService appScopeMappingService) {
+                                                AppScopeMappingService appScopeMappingService,
+                                                EsbRequestValidator esbRequestValidator) {
         this.logService = logService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.appScopeMappingService = appScopeMappingService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -258,6 +262,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
         request.setHostId(hostId);
         request.setCloudAreaId(cloudAreaId);
         request.setIp(ip);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceIpLogUsingPost(username, appCode, request);
     }

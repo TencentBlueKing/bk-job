@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
@@ -78,12 +79,15 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
 
     private final ScriptDTOBuilder scriptDTOBuilder;
     private final PublicScriptService publicScriptService;
+    private final EsbRequestValidator esbRequestValidator;
 
     @Autowired
     public EsbPublicScriptResourceV3Impl(PublicScriptService publicScriptService,
-                                         ScriptDTOBuilder scriptDTOBuilder) {
+                                         ScriptDTOBuilder scriptDTOBuilder,
+                                         EsbRequestValidator esbRequestValidator) {
         this.publicScriptService = publicScriptService;
         this.scriptDTOBuilder = scriptDTOBuilder;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -99,6 +103,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         request.setScriptLanguage(scriptLanguage);
         request.setStart(start);
         request.setLength(length);
+        esbRequestValidator.validate(request);
         return getPublicScriptListUsingPost(username, appCode, request);
     }
 
@@ -115,6 +120,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         request.setReturnScriptContent(returnScriptContent);
         request.setStart(start);
         request.setLength(length);
+        esbRequestValidator.validate(request);
         return getPublicScriptVersionListUsingPost(username, appCode, request);
     }
 
@@ -129,6 +135,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         request.setId(scriptVersionId);
         request.setScriptId(scriptId);
         request.setVersion(version);
+        esbRequestValidator.validate(request);
         return getPublicScriptVersionDetailUsingPost(username, appCode, request);
     }
 

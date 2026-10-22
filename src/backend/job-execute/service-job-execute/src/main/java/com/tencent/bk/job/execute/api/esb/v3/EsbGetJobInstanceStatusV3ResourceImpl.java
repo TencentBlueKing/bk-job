@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -67,17 +68,20 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final AppScopeMappingService appScopeMappingService;
     private final StepInstanceService stepInstanceService;
+    private final EsbRequestValidator esbRequestValidator;
 
     public EsbGetJobInstanceStatusV3ResourceImpl(TaskInstanceService taskInstanceService,
                                                  ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                                  FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                                  AppScopeMappingService appScopeMappingService,
-                                                 StepInstanceService stepInstanceService) {
+                                                 StepInstanceService stepInstanceService,
+                                                 EsbRequestValidator esbRequestValidator) {
         this.taskInstanceService = taskInstanceService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.appScopeMappingService = appScopeMappingService;
         this.stepInstanceService = stepInstanceService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -210,6 +214,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);
         request.setReturnIpResult(returnIpResult);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceStatusUsingPost(username, appCode, request);
     }

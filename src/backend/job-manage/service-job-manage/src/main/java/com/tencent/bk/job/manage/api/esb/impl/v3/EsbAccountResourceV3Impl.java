@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbAccountV3Resource;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
@@ -59,12 +60,15 @@ import java.util.List;
 public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
     private final AccountService accountService;
     private final AppScopeMappingService appScopeMappingService;
+    private final EsbRequestValidator esbRequestValidator;
 
     @Autowired
     public EsbAccountResourceV3Impl(AccountService accountService,
-                                    AppScopeMappingService appScopeMappingService) {
+                                    AppScopeMappingService appScopeMappingService,
+                                    EsbRequestValidator esbRequestValidator) {
         this.accountService = accountService;
         this.appScopeMappingService = appScopeMappingService;
+        this.esbRequestValidator = esbRequestValidator;
     }
 
     @Override
@@ -148,6 +152,7 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
         request.setAlias(alias);
         request.setStart(start);
         request.setLength(length);
+        esbRequestValidator.validate(request);
         request.fillAppResourceScope(appScopeMappingService);
         return getAccountListUsingPost(username, appCode, request);
     }

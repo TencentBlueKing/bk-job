@@ -36,18 +36,26 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
+import com.tencent.bk.job.common.web.validation.EsbRequestValidator;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbGetFileSourceDetailV3Req;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validation;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import static com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext.EMPTY;
+import static com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,6 +68,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -77,6 +86,10 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("EsbFileSourceV3ResourceImpl 文件源详情查询鉴权测试")
 class EsbFileSourceV3ResourceImplTest {
+
+    private static jakarta.validation.ValidatorFactory validatorFactory;
+    private static MockedStatic<FeatureToggle> featureToggle;
+    private static EsbRequestValidator esbRequestValidator;
 
     private FileSourceService fileSourceService;
     private AppScopeMappingService appScopeMappingService;
@@ -96,6 +109,21 @@ class EsbFileSourceV3ResourceImplTest {
     private static final String FILE_SOURCE_ALIAS = "fs_alias";
     private static final String CREDENTIAL_ID = "credential_1";
 
+    @BeforeAll
+    static void setUpValidator() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        esbRequestValidator = new EsbRequestValidator(validatorFactory.getValidator());
+        featureToggle = Mockito.mockStatic(FeatureToggle.class);
+        featureToggle.when(() -> FeatureToggle.checkFeature(FEATURE_BK_BIZ_ID_COMPATIBLE, EMPTY))
+            .thenReturn(true);
+    }
+
+    @AfterAll
+    static void tearDownValidator() {
+        featureToggle.close();
+        validatorFactory.close();
+    }
+
     @BeforeEach
     void setUp() {
         fileSourceService = mock(FileSourceService.class);
@@ -104,7 +132,8 @@ class EsbFileSourceV3ResourceImplTest {
         resource = new EsbFileSourceV3ResourceImpl(
             fileSourceService,
             appScopeMappingService,
-            fileSourceAuthService
+            fileSourceAuthService,
+            esbRequestValidator
         );
 
         // appScopeMappingService.getAppIdByScope(scopeType, scopeId) → APP_ID
@@ -233,6 +262,42 @@ class EsbFileSourceV3ResourceImplTest {
     }
 
     // ============================ GET 入口 ============================
+
+    @Test
+    @DisplayName("GET: 非法 scope 在映射与业务调用前被拒绝")
+    void getShouldRejectInvalidScopeBeforeDependencies() {
+        Object[][] invalidScopes = {
+            {null, null},
+            {SCOPE_TYPE, null},
+            {null, SCOPE_ID},
+            {"invalid", SCOPE_ID}
+        };
+
+        for (Object[] scope : invalidScopes) {
+            assertThatThrownBy(() -> resource.getFileSourceDetail(
+                USERNAME, "appCode", null, (String) scope[0], (String) scope[1], FILE_SOURCE_CODE))
+                .isInstanceOf(ConstraintViolationException.class);
+        }
+
+        verifyNoInteractions(appScopeMappingService, fileSourceService, fileSourceAuthService);
+    }
+
+    @Test
+    @DisplayName("GET: 仅传 bk_biz_id 时兼容路径继续可用")
+    void getShouldKeepBizIdCompatiblePathWorking() {
+        when(fileSourceService.getFileSourceByCode(eq(APP_ID), eq(FILE_SOURCE_CODE)))
+            .thenReturn(buildFileSourceDTO());
+        when(fileSourceAuthService.authViewFileSource(
+            any(), any(AppResourceScope.class), eq(FILE_SOURCE_ID), eq(FILE_SOURCE_ALIAS)))
+            .thenReturn(AuthResult.pass(new User(TENANT_ID, USERNAME, USERNAME)));
+
+        EsbResp<EsbFileSourceV3DTO> resp = resource.getFileSourceDetail(
+            USERNAME, "appCode", APP_ID, null, null, FILE_SOURCE_CODE);
+
+        assertThat(resp.getData()).isNotNull();
+        verify(appScopeMappingService, times(2)).getAppIdByScope(SCOPE_TYPE, SCOPE_ID);
+        verify(fileSourceService).getFileSourceByCode(APP_ID, FILE_SOURCE_CODE);
+    }
 
     @Test
     @DisplayName("GET: 委托给 POST，文件源存在且有权限时同样返回详情")
