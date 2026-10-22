@@ -50,6 +50,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -92,6 +93,15 @@ class WhiteIpHostValidatorTest {
     }
 
     @Test
+    @DisplayName("空主机列表直接返回且不查询本地与 CMDB")
+    void resolveEmptyLocators() {
+        assertThat(validator.resolveWhiteIpHosts(Collections.emptyList())).isEmpty();
+
+        verify(currentTenantHostDAO, never()).listHostInfoByCloudIps(any());
+        verify(bizCmdbClient, never()).listHostsByCloudIps(any(), any());
+    }
+
+    @Test
     @DisplayName("非正数主机 ID、缺失管控区域或 IP、负数管控区域、非法 IPv4 均抛参数错误")
     void rejectInvalidLocatorParameters() {
         assertIllegalHost(Collections.singletonList(null));
@@ -106,29 +116,140 @@ class WhiteIpHostValidatorTest {
     }
 
     @Test
-    @DisplayName("管控区域+IP 在本地与 CMDB 唯一一致或本地缺失 CMDB 唯一命中时解析成功，否则抛参数错误")
-    void resolveByCloudIpUniqueness() {
+    @DisplayName("多台管控区域+IP 主机仅批量查询一次并按输入顺序返回")
+    void resolveMultipleCloudIpsInOneBatch() {
+        List<String> cloudIps = Arrays.asList(CLOUD_IP, "1:127.0.0.2");
+        when(currentTenantHostDAO.listHostInfoByCloudIps(cloudIps))
+            .thenReturn(Arrays.asList(host(5L, 0L, "127.0.0.1"), host(6L, 1L, "127.0.0.2")));
+        when(bizCmdbClient.listHostsByCloudIps(TENANT_ID, cloudIps))
+            .thenReturn(Arrays.asList(host(6L, 1L, "127.0.0.2"), host(5L, 0L, "127.0.0.1")));
+
+        List<HostIdWithMeta> hosts = validator.resolveWhiteIpHosts(Arrays.asList(
+            new WhiteIpHostLocator(null, 0L, "127.0.0.1"),
+            new WhiteIpHostLocator(null, 1L, "127.0.0.2")
+        ));
+
+        assertThat(hosts).extracting(HostIdWithMeta::getHostId).containsExactly(5L, 6L);
+        verify(currentTenantHostDAO, times(1)).listHostInfoByCloudIps(cloudIps);
+        verify(bizCmdbClient, times(1)).listHostsByCloudIps(TENANT_ID, cloudIps);
+    }
+
+    @Test
+    @DisplayName("每个 cloudIp 独立判断唯一性并忽略同 hostId 重复行")
+    void resolveEachCloudIpIndependentlyAndDedupeRows() {
+        List<String> cloudIps = Arrays.asList(CLOUD_IP, "1:127.0.0.2");
+        when(currentTenantHostDAO.listHostInfoByCloudIps(cloudIps))
+            .thenReturn(Arrays.asList(
+                host(5L, 0L, "127.0.0.1"),
+                host(5L, 0L, "127.0.0.1")
+            ));
+        when(bizCmdbClient.listHostsByCloudIps(TENANT_ID, cloudIps))
+            .thenReturn(Arrays.asList(
+                host(5L, 0L, "127.0.0.1"),
+                host(5L, 0L, "127.0.0.1"),
+                host(6L, 1L, "127.0.0.2"),
+                host(6L, 1L, "127.0.0.2")
+            ));
+
+        List<HostIdWithMeta> hosts = validator.resolveWhiteIpHosts(Arrays.asList(
+            new WhiteIpHostLocator(null, 0L, "127.0.0.1"),
+            new WhiteIpHostLocator(null, 1L, "127.0.0.2")
+        ));
+
+        assertThat(hosts).extracting(HostIdWithMeta::getHostId).containsExactly(5L, 6L);
+        verify(currentTenantHostDAO, times(1)).listHostInfoByCloudIps(cloudIps);
+        verify(bizCmdbClient, times(1)).listHostsByCloudIps(TENANT_ID, cloudIps);
+    }
+
+    @Test
+    @DisplayName("混合定位时主机 ID 优先且最终按首次出现顺序去重")
+    void resolveMixedLocatorsWithHostIdPriority() {
+        List<String> cloudIps = Collections.singletonList(CLOUD_IP);
+        when(currentTenantHostDAO.listHostInfoByCloudIps(cloudIps))
+            .thenReturn(Collections.singletonList(host(9L)));
+        when(bizCmdbClient.listHostsByCloudIps(TENANT_ID, cloudIps))
+            .thenReturn(Collections.singletonList(host(9L)));
+
+        List<HostIdWithMeta> hosts = validator.resolveWhiteIpHosts(Arrays.asList(
+            new WhiteIpHostLocator(8L, -1L, "invalid"),
+            new WhiteIpHostLocator(null, 0L, " 127.0.0.1 "),
+            new WhiteIpHostLocator(9L, 2L, "127.0.0.2"),
+            new WhiteIpHostLocator(10L, null, null)
+        ));
+
+        assertThat(hosts).extracting(HostIdWithMeta::getHostId).containsExactly(8L, 9L, 10L);
+        verify(currentTenantHostDAO, times(1)).listHostInfoByCloudIps(cloudIps);
+        verify(bizCmdbClient, times(1)).listHostsByCloudIps(TENANT_ID, cloudIps);
+    }
+
+    @Test
+    @DisplayName("批量结果中某个 cloudIp 对应多个 hostId 时保持不唯一错误语义")
+    void rejectMultipleHostsForOneCloudIp() {
+        List<String> cloudIps = Arrays.asList(CLOUD_IP, "1:127.0.0.2");
+        when(currentTenantHostDAO.listHostInfoByCloudIps(cloudIps))
+            .thenReturn(Arrays.asList(
+                host(5L, 0L, "127.0.0.1"),
+                host(7L, 0L, "127.0.0.1"),
+                host(6L, 1L, "127.0.0.2")
+            ));
+        when(bizCmdbClient.listHostsByCloudIps(TENANT_ID, cloudIps))
+            .thenReturn(Arrays.asList(
+                host(5L, 0L, "127.0.0.1"),
+                host(6L, 1L, "127.0.0.2")
+            ));
+
+        assertHostNotUnique(Arrays.asList(
+            new WhiteIpHostLocator(null, 0L, "127.0.0.1"),
+            new WhiteIpHostLocator(null, 1L, "127.0.0.2")
+        ));
+        verify(bizCmdbClient, times(1)).listHostsByCloudIps(TENANT_ID, cloudIps);
+    }
+
+    @Test
+    @DisplayName("CMDB 中不存在对应 cloudIp 时保持不唯一错误语义")
+    void rejectCloudIpMissingFromCmdb() {
         when(currentTenantHostDAO.listHostInfoByCloudIps(Collections.singletonList(CLOUD_IP)))
             .thenReturn(Collections.singletonList(host(5L)));
         when(bizCmdbClient.listHostsByCloudIps(TENANT_ID, Collections.singletonList(CLOUD_IP)))
-            .thenReturn(Collections.singletonList(host(5L)));
-        assertThat(validator.resolveWhiteIpHosts(
-            Collections.singletonList(new WhiteIpHostLocator(null, 0L, "127.0.0.1"))
-        )).extracting(HostIdWithMeta::getHostId).containsExactly(5L);
+            .thenReturn(Collections.emptyList());
 
+        assertHostNotUnique(Collections.singletonList(
+            new WhiteIpHostLocator(null, 0L, "127.0.0.1")
+        ));
+        verify(bizCmdbClient, times(1))
+            .listHostsByCloudIps(TENANT_ID, Collections.singletonList(CLOUD_IP));
+    }
+
+    @Test
+    @DisplayName("本地和 CMDB 均不存在对应 cloudIp 时保持不唯一错误语义")
+    void rejectCloudIpMissingFromLocalAndCmdb() {
         when(currentTenantHostDAO.listHostInfoByCloudIps(Collections.singletonList(CLOUD_IP)))
             .thenReturn(Collections.emptyList());
         when(bizCmdbClient.listHostsByCloudIps(TENANT_ID, Collections.singletonList(CLOUD_IP)))
-            .thenReturn(Collections.singletonList(host(6L)));
-        assertThat(validator.resolveWhiteIpHosts(
-            Collections.singletonList(new WhiteIpHostLocator(null, 0L, "127.0.0.1"))
-        )).extracting(HostIdWithMeta::getHostId).containsExactly(6L);
+            .thenReturn(Collections.emptyList());
 
+        assertHostNotUnique(Collections.singletonList(
+            new WhiteIpHostLocator(null, 0L, "127.0.0.1")
+        ));
+        verify(currentTenantHostDAO, times(1))
+            .listHostInfoByCloudIps(Collections.singletonList(CLOUD_IP));
+        verify(bizCmdbClient, times(1))
+            .listHostsByCloudIps(TENANT_ID, Collections.singletonList(CLOUD_IP));
+    }
+
+    @Test
+    @DisplayName("本地和 CMDB 对同一 cloudIp 返回不同 hostId 时保持不唯一错误语义")
+    void rejectInconsistentLocalAndCmdbHostIds() {
         when(currentTenantHostDAO.listHostInfoByCloudIps(Collections.singletonList(CLOUD_IP)))
             .thenReturn(Collections.singletonList(host(5L)));
         when(bizCmdbClient.listHostsByCloudIps(TENANT_ID, Collections.singletonList(CLOUD_IP)))
             .thenReturn(Collections.singletonList(host(7L)));
-        assertIllegalHost(Collections.singletonList(new WhiteIpHostLocator(null, 0L, "127.0.0.1")));
+
+        assertHostNotUnique(Collections.singletonList(
+            new WhiteIpHostLocator(null, 0L, "127.0.0.1")
+        ));
+        verify(bizCmdbClient, times(1))
+            .listHostsByCloudIps(TENANT_ID, Collections.singletonList(CLOUD_IP));
     }
 
     @Test
@@ -165,11 +286,27 @@ class WhiteIpHostValidatorTest {
             });
     }
 
+    private void assertHostNotUnique(List<WhiteIpHostLocator> locators) {
+        assertThatThrownBy(() -> validator.resolveWhiteIpHosts(locators))
+            .isInstanceOf(InvalidParamException.class)
+            .satisfies(exception -> {
+                InvalidParamException invalidParamException = (InvalidParamException) exception;
+                assertThat(invalidParamException.getErrorCode())
+                    .isEqualTo(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON);
+                assertThat(invalidParamException.getErrorParams())
+                    .containsExactly("host_list", "whiteip.illegal.host.not.unique");
+            });
+    }
+
     private ApplicationHostDTO host(Long hostId) {
+        return host(hostId, 0L, "127.0.0.1");
+    }
+
+    private ApplicationHostDTO host(Long hostId, Long cloudAreaId, String ip) {
         ApplicationHostDTO host = new ApplicationHostDTO();
         host.setHostId(hostId);
-        host.setCloudAreaId(0L);
-        host.setIp("127.0.0.1");
+        host.setCloudAreaId(cloudAreaId);
+        host.setIp(ip);
         return host;
     }
 }

@@ -81,9 +81,22 @@ public class WhiteIpHostValidator {
         if (CollectionUtils.isEmpty(locators)) {
             return Collections.emptyList();
         }
-        LinkedHashMap<Long, HostIdWithMeta> hosts = new LinkedHashMap<>();
+        List<NormalizedHostLocator> normalizedLocators = new ArrayList<>(locators.size());
+        Set<String> cloudIps = new LinkedHashSet<>();
         for (WhiteIpHostLocator locator : locators) {
-            Long hostId = resolveOneWhiteIpHost(locator);
+            NormalizedHostLocator normalizedLocator = normalizeHostLocator(locator);
+            normalizedLocators.add(normalizedLocator);
+            if (normalizedLocator.getCloudIp() != null) {
+                cloudIps.add(normalizedLocator.getCloudIp());
+            }
+        }
+
+        Map<String, Long> hostIdByCloudIp = resolveHostIdsByCloudIps(cloudIps);
+        LinkedHashMap<Long, HostIdWithMeta> hosts = new LinkedHashMap<>();
+        for (NormalizedHostLocator locator : normalizedLocators) {
+            Long hostId = locator.getHostId() != null
+                ? locator.getHostId()
+                : hostIdByCloudIp.get(locator.getCloudIp());
             hosts.putIfAbsent(hostId, new HostIdWithMeta(hostId, null));
         }
         return new ArrayList<>(hosts.values());
@@ -122,10 +135,9 @@ public class WhiteIpHostValidator {
     }
 
     /**
-     * 主机 ID 优先。只给管控区域和 IP 时，本地缓存与 CMDB 按 hostId 去重后必须是同一台主机。
-     * 本地唯一命中不能代替 CMDB 校验。
+     * 主机 ID 优先。
      */
-    private Long resolveOneWhiteIpHost(WhiteIpHostLocator locator) {
+    private NormalizedHostLocator normalizeHostLocator(WhiteIpHostLocator locator) {
         if (locator == null) {
             throw illegalHostParam(REASON_HOST_IDENTITY);
         }
@@ -133,7 +145,7 @@ public class WhiteIpHostValidator {
             if (locator.getHostId() < 1L) {
                 throw illegalHostParam(REASON_HOST_ID);
             }
-            return locator.getHostId();
+            return NormalizedHostLocator.byHostId(locator.getHostId());
         }
         if (locator.getCloudAreaId() == null || isBlank(locator.getIp())) {
             throw illegalHostParam(REASON_HOST_IDENTITY);
@@ -145,38 +157,54 @@ public class WhiteIpHostValidator {
         if (!IPV4_PATTERN.matcher(ip).matches()) {
             throw illegalHostParam(REASON_HOST_IPV4);
         }
-        return resolveHostIdByCloudIp(locator.getCloudAreaId(), ip);
+        return NormalizedHostLocator.byCloudIp(locator.getCloudAreaId() + ":" + ip);
     }
 
-    private Long resolveHostIdByCloudIp(Long cloudAreaId, String ip) {
-        List<String> cloudIps = Collections.singletonList(cloudAreaId + ":" + ip);
-        List<ApplicationHostDTO> localHosts = currentTenantHostDAO.listHostInfoByCloudIps(cloudIps);
+    private Map<String, Long> resolveHostIdsByCloudIps(Set<String> cloudIpSet) {
+        if (CollectionUtils.isEmpty(cloudIpSet)) {
+            return Collections.emptyMap();
+        }
+        List<String> cloudIps = new ArrayList<>(cloudIpSet);
+        Map<String, Set<Long>> localHostIdsByCloudIp = groupDistinctHostIdsByCloudIp(
+            currentTenantHostDAO.listHostInfoByCloudIps(cloudIps),
+            cloudIpSet
+        );
         List<ApplicationHostDTO> cmdbHosts = bizCmdbClient.listHostsByCloudIps(
             JobContextUtil.getTenantId(),
             cloudIps
         );
-        Set<Long> localHostIds = distinctHostIds(localHosts);
-        Set<Long> cmdbHostIds = distinctHostIds(cmdbHosts);
-        Set<Long> unionHostIds = new LinkedHashSet<>();
-        unionHostIds.addAll(localHostIds);
-        unionHostIds.addAll(cmdbHostIds);
-        if (cmdbHostIds.size() != 1 || unionHostIds.size() != 1) {
-            throw illegalHostParam(REASON_HOST_NOT_UNIQUE);
+        Map<String, Set<Long>> cmdbHostIdsByCloudIp = groupDistinctHostIdsByCloudIp(cmdbHosts, cloudIpSet);
+        Map<String, Long> hostIdByCloudIp = new LinkedHashMap<>();
+        for (String cloudIp : cloudIps) {
+            Set<Long> localHostIds = localHostIdsByCloudIp.getOrDefault(cloudIp, Collections.emptySet());
+            Set<Long> cmdbHostIds = cmdbHostIdsByCloudIp.getOrDefault(cloudIp, Collections.emptySet());
+            Set<Long> unionHostIds = new LinkedHashSet<>(localHostIds);
+            unionHostIds.addAll(cmdbHostIds);
+            if (cmdbHostIds.size() != 1 || unionHostIds.size() != 1) {
+                throw illegalHostParam(REASON_HOST_NOT_UNIQUE);
+            }
+            hostIdByCloudIp.put(cloudIp, cmdbHostIds.iterator().next());
         }
-        return cmdbHostIds.iterator().next();
+        return hostIdByCloudIp;
     }
 
-    private Set<Long> distinctHostIds(List<ApplicationHostDTO> hosts) {
-        Set<Long> hostIds = new LinkedHashSet<>();
+    private Map<String, Set<Long>> groupDistinctHostIdsByCloudIp(List<ApplicationHostDTO> hosts,
+                                                                 Set<String> requestedCloudIps) {
+        Map<String, Set<Long>> hostIdsByCloudIp = new LinkedHashMap<>();
         if (CollectionUtils.isEmpty(hosts)) {
-            return hostIds;
+            return hostIdsByCloudIp;
         }
         for (ApplicationHostDTO host : hosts) {
-            if (host != null && host.getHostId() != null) {
-                hostIds.add(host.getHostId());
+            if (host == null || host.getHostId() == null) {
+                continue;
             }
+            String cloudIp = host.getCloudIp();
+            if (!requestedCloudIps.contains(cloudIp)) {
+                continue;
+            }
+            hostIdsByCloudIp.computeIfAbsent(cloudIp, key -> new LinkedHashSet<>()).add(host.getHostId());
         }
-        return hostIds;
+        return hostIdsByCloudIp;
     }
 
     private InvalidParamException illegalHostParam(String reasonKey) {
@@ -188,5 +216,32 @@ public class WhiteIpHostValidator {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private static class NormalizedHostLocator {
+
+        private final Long hostId;
+        private final String cloudIp;
+
+        private NormalizedHostLocator(Long hostId, String cloudIp) {
+            this.hostId = hostId;
+            this.cloudIp = cloudIp;
+        }
+
+        private static NormalizedHostLocator byHostId(Long hostId) {
+            return new NormalizedHostLocator(hostId, null);
+        }
+
+        private static NormalizedHostLocator byCloudIp(String cloudIp) {
+            return new NormalizedHostLocator(null, cloudIp);
+        }
+
+        private Long getHostId() {
+            return hostId;
+        }
+
+        private String getCloudIp() {
+            return cloudIp;
+        }
     }
 }
