@@ -27,13 +27,11 @@ package com.tencent.bk.job.common.exception;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * DAO层异常
  */
 @Getter
-@ToString
 public class DAOException extends ServiceException {
 
     public DAOException(Throwable cause) {

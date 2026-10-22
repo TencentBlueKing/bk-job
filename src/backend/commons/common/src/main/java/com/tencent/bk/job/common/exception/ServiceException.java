@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.exception;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.I18nUtil;
 import lombok.Getter;
-import lombok.ToString;
 
 import java.util.Locale;
 
@@ -36,7 +35,6 @@ import java.util.Locale;
  * 若是非服务端的自定义异常继承于ServiceException，确保能被更具体的异常处理器处理，否则将会被统一处理为服务器异常
  */
 @Getter
-@ToString
 public class ServiceException extends RuntimeException {
     private final ErrorType errorType;
     private final Integer errorCode;

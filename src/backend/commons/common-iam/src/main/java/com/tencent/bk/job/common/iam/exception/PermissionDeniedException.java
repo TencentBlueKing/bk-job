@@ -29,13 +29,11 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 权限不足异常
  */
 @Getter
-@ToString
 public class PermissionDeniedException extends ServiceException {
     private final AuthResult authResult;
 
@@ -46,5 +44,10 @@ public class PermissionDeniedException extends ServiceException {
 
     public AuthResult getAuthResult() {
         return authResult;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getName() + "(authResult=" + authResult + ")";
     }
 }

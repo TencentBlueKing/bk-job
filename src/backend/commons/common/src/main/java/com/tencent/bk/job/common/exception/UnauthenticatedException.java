@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 认证失败
  */
 @Getter
-@ToString
 public class UnauthenticatedException extends ServiceException {
 
     public UnauthenticatedException(Integer errorCode) {

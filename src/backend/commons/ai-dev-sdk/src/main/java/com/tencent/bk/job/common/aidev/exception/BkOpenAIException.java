@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.aidev.exception;
 
 import com.tencent.bk.job.common.exception.InternalException;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 调用蓝鲸OpenAI接口异常
  */
 @Getter
-@ToString
 public class BkOpenAIException extends InternalException {
 
     public BkOpenAIException(Throwable cause, Integer errorCode) {

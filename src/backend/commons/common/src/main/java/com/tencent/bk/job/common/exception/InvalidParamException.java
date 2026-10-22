@@ -27,13 +27,11 @@ package com.tencent.bk.job.common.exception;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 请求参数非法异常
  */
 @Getter
-@ToString
 public class InvalidParamException extends ServiceException {
     public InvalidParamException(Integer errorCode) {
         super(ErrorType.INVALID_PARAM, errorCode);

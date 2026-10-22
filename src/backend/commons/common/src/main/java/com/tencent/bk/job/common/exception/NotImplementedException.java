@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 方法/特性/功能未实现
  */
 @Getter
-@ToString
 public class NotImplementedException extends ServiceException {
 
     public NotImplementedException(Integer errorCode) {

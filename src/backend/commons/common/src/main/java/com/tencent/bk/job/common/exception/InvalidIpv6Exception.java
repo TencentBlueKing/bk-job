@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * IPv6地址不合法
  */
 @Getter
-@ToString
 public class InvalidIpv6Exception extends ServiceException {
 
     public InvalidIpv6Exception(Integer errorCode) {
