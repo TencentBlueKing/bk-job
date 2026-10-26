@@ -119,18 +119,13 @@ public class AuthServiceImpl extends AbstractAuthResultBuilder implements AuthSe
     public AuthResult batchAuthResources(User user,
                                          String actionId,
                                          List<PermissionResource> resources) {
-        ResourceTypeEnum resourceType = resources.get(0).getResourceType();
         List<String> allowResourceIds = pickExecutor(user).listAllowedResourceIds(user, actionId, resources);
-        List<String> notAllowResourceIds = resources.stream()
+        List<PermissionResource> deniedResources = resources.stream()
             .filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
-            .map(PermissionResource::getResourceId)
             .collect(Collectors.toList());
-        if (notAllowResourceIds.isEmpty()) {
-            AuthResult authResult = new AuthResult();
-            authResult.setPass(true);
-            return authResult;
-        }
-        return buildFailAuthResult(user, actionId, resourceType, notAllowResourceIds);
+        return deniedResources.isEmpty()
+            ? AuthResult.pass(user)
+            : buildFailAuthResultFromResources(user, actionId, deniedResources);
     }
 
     @Override
@@ -170,7 +165,7 @@ public class AuthServiceImpl extends AbstractAuthResultBuilder implements AuthSe
                 new PermissionResource(resourceType, resourceId, resourceName);
             if (pathInfo != null) {
                 List<PermissionResource> parentResources =
-                    buildParentHierarchicalResources(pathInfo, resourceType, resourceId);
+                    buildParentHierarchicalResources(pathInfo, permissionResource);
                 if (!parentResources.isEmpty()) {
                     permissionResource.setParentHierarchicalResources(parentResources);
                 }
@@ -181,18 +176,27 @@ public class AuthServiceImpl extends AbstractAuthResultBuilder implements AuthSe
     }
 
     /**
-     * 将 pathInfo 链表解析为父级层级资源列表（跳过与被鉴权资源 type+id 匹配的节点，避免重复）。
+     * 将 pathInfo 链表解析为父级层级资源列表。
+     * <p>
+     * pathInfo 可能只含祖先（如 biz/{bizId}），也可能带上资源自身（如 biz/{bizId} → account/{accountId}）。
+     * 跳过 type+id 与被鉴权资源匹配的节点，只保留祖先。
+     *
+     * @param pathInfo           资源路径信息
+     * @param permissionResource 被鉴权资源
+     * @return 父级层级资源列表
      */
     private List<PermissionResource> buildParentHierarchicalResources(PathInfoDTO pathInfo,
-                                                                      ResourceTypeEnum resourceType,
-                                                                      String resourceId) {
+                                                                      PermissionResource permissionResource) {
         List<PermissionResource> parentResources = new ArrayList<>();
+        String resourceType = StringUtils.isNotEmpty(permissionResource.getType())
+            ? permissionResource.getType() : permissionResource.getResourceType().getId();
+        String resourceId = permissionResource.getResourceId();
         PathInfoDTO node = pathInfo;
         while (node != null) {
             ResourceTypeEnum nodeType = ResourceTypeEnum.getByResourceTypeId(node.getType());
             String nodeId = node.getId();
             if (nodeType != null && StringUtils.isNotEmpty(nodeId)
-                && !(nodeType == resourceType && nodeId.equals(resourceId))) {
+                && !(node.getType().equals(resourceType) && nodeId.equals(resourceId))) {
                 String parentName = resourceNameQueryService.getResourceName(nodeType, nodeId);
                 PermissionResource parentResource = new PermissionResource(nodeType, nodeId, parentName);
                 parentResources.add(parentResource);

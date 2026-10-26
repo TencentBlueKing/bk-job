@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.auth.impl;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -41,6 +42,7 @@ import com.tencent.bk.job.common.iam.util.IamAuthVersionHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.auth.ExecuteAuthDecision;
 import com.tencent.bk.job.execute.auth.ExecuteAuthExecutor;
 import com.tencent.bk.job.execute.auth.ExecuteAuthResource;
@@ -85,6 +87,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private final ResourceNameQueryService resourceNameQueryService;
     private final AuthService authService;
     private final AppAuthService appAuthService;
+    private final AppScopeMappingService appScopeMappingService;
     private final JobExecuteConfig jobExecuteConfig;
 
     @Autowired
@@ -97,6 +100,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                   ResourceNameQueryService resourceNameQueryService,
                                   AuthService authService,
                                   AppAuthService appAuthService,
+                                  AppScopeMappingService appScopeMappingService,
                                   JobExecuteConfig jobExecuteConfig) {
         this.v3Executor = v3ExecuteAuthExecutor;
         this.v4Executor = v4ExecuteAuthExecutor;
@@ -104,6 +108,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         this.resourceNameQueryService = resourceNameQueryService;
         this.authService = authService;
         this.appAuthService = appAuthService;
+        this.appScopeMappingService = appScopeMappingService;
         this.jobExecuteConfig = jobExecuteConfig;
         this.authService.setResourceNameQueryService(resourceNameQueryService);
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
@@ -186,6 +191,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                    ExecuteAuthResource resource,
                                    String resourceName,
                                    ExecuteTargetDTO executeTarget) {
+        ensureCompleteScope(appResourceScope);
         ExecuteAuthDecision decision = selectExecutor(user)
             .authExecute(user, actionId, appResourceScope, resource, executeTarget);
         if (decision.isPass()) {
@@ -200,7 +206,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             decision.getFailureScope() != ExecuteAuthDecision.FailureScope.RESOURCE;
 
         if (needResource) {
-            authResult.addRequiredPermission(failedActionId, buildResourcePermission(resource, resourceName));
+            authResult.addRequiredPermission(
+                failedActionId, buildResourcePermission(appResourceScope, resource, resourceName));
         }
         if (needExecuteTarget) {
             authResult.addRequiredPermissions(failedActionId,
@@ -213,13 +220,23 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
-    private PermissionResource buildResourcePermission(ExecuteAuthResource resource, String resourceName) {
+    private PermissionResource buildResourcePermission(AppResourceScope appResourceScope,
+                                                       ExecuteAuthResource resource,
+                                                       String resourceName) {
         PermissionResource permissionResource = new PermissionResource();
         permissionResource.setSystemId(SystemId.JOB);
         permissionResource.setResourceId(resource.getResourceId());
         permissionResource.setResourceType(resource.getResourceType());
         permissionResource.setResourceName(StringUtils.isNotEmpty(resourceName) ? resourceName
             : resourceNameQueryService.getResourceName(resource.getResourceType(), resource.getResourceId()));
+        // 公共脚本无业务父路径。执行方案的 path 要带到作业模板，申请单才能找到正确审批人
+        if (resource.getResourceType() != ResourceTypeEnum.PUBLIC_SCRIPT) {
+            PathInfoDTO pathInfo = resource.getParentResourceType() == null
+                ? ExecuteIamPathBuilder.buildAppScopePath(appResourceScope)
+                : ExecuteIamPathBuilder.buildAppScopeResourcePath(
+                    appResourceScope, resource.getParentResourceType(), resource.getParentResourceId());
+            permissionResource.setPathInfo(pathInfo);
+        }
         return permissionResource;
     }
 
@@ -441,6 +458,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (!shouldAuthAccount(appResourceScope)) {
             return AuthResult.pass(user);
         }
+        ensureCompleteScope(appResourceScope);
         return authService.auth(user, ActionId.USE_ACCOUNT,
             ResourceTypeEnum.ACCOUNT, accountId.toString(), ExecuteIamPathBuilder.buildAppScopeResourcePath(
                 appResourceScope, ResourceTypeEnum.ACCOUNT, accountId.toString()));
@@ -478,13 +496,30 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return true;
     }
 
+    private void ensureCompleteScope(AppResourceScope appResourceScope) {
+        if (appResourceScope == null
+            || (appResourceScope.getAppId() == null
+            && (appResourceScope.getType() == null || StringUtils.isBlank(appResourceScope.getId())))) {
+            log.error("Invalid app resource scope before completion, appResourceScope={}", appResourceScope);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
+        }
+        appScopeMappingService.fillAppResourceScope(appResourceScope);
+        if (appResourceScope.getAppId() == null
+            || appResourceScope.getType() == null
+            || StringUtils.isBlank(appResourceScope.getId())) {
+            log.error("Incomplete app resource scope after completion, appResourceScope={}", appResourceScope);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
+        }
+    }
+
     @Override
     public AuthResult batchAuthAccountExecutable(User user,
                                                  AppResourceScope appResourceScope,
                                                  Collection<Long> accountIds) {
-        if (!shouldAuthAccount(appResourceScope)) {
+        if (!shouldAuthAccount(appResourceScope) || CollectionUtils.isEmpty(accountIds)) {
             return AuthResult.pass(user);
         }
+        ensureCompleteScope(appResourceScope);
         List<PermissionResource> accountResources = accountIds.stream().map(accountId -> {
             PermissionResource accountResource = new PermissionResource();
             accountResource.setResourceId(accountId.toString());
@@ -504,6 +539,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (MapUtils.isEmpty(fileSourceIdToName)) {
             return AuthResult.pass(user);
         }
+        ensureCompleteScope(appResourceScope);
         List<String> idList = fileSourceIdToName.keySet().stream()
             .map(String::valueOf)
             .collect(Collectors.toList());

@@ -24,11 +24,15 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.model.User;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 
@@ -39,6 +43,7 @@ import java.util.Collection;
  * <p>不涉及任何 IAM 版本相关的资源 DTO 构造（v3 的 {@code InstanceDTO} 由 {@code IamV3InstanceBuilder}
  * 及 v3 执行器负责，v4 的 {@code V4AuthResourceDTO} 由 v4 执行器负责）。</p>
  */
+@Slf4j
 public abstract class AbstractAuthResultBuilder {
 
     protected ResourceNameQueryService resourceNameQueryService;
@@ -62,5 +67,41 @@ public abstract class AbstractAuthResultBuilder {
             }
         }
         return authResult;
+    }
+
+    /**
+     * 用原始无权限资源构造失败结果，保留 path 和父级层级，避免按 id 重建时丢掉申请单需要的父路径。
+     */
+    protected AuthResult buildFailAuthResultFromResources(User user,
+                                                          String actionId,
+                                                          Collection<PermissionResource> deniedResources) {
+        AuthResult authResult = AuthResult.fail(user);
+        deniedResources.forEach(resource ->
+            authResult.addRequiredPermission(actionId, copyAndCompleteDeniedResource(actionId, resource)));
+        return authResult;
+    }
+
+    private PermissionResource copyAndCompleteDeniedResource(String actionId, PermissionResource source) {
+        if (source == null
+            || source.getResourceType() == null
+            || StringUtils.isBlank(source.getResourceId())) {
+            log.error("Invalid denied permission resource, actionId={}, resource={}", actionId, source);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
+        }
+        ResourceTypeEnum resourceType = source.getResourceType();
+        PermissionResource target = new PermissionResource();
+        target.setResourceType(resourceType);
+        target.setResourceId(source.getResourceId());
+        target.setSystemId(StringUtils.defaultIfBlank(source.getSystemId(), resourceType.getSystemId()));
+        target.setType(StringUtils.defaultIfBlank(source.getType(), resourceType.getId()));
+        String resourceName = source.getResourceName();
+        if (StringUtils.isBlank(resourceName)) {
+            resourceName = resourceNameQueryService.getResourceName(resourceType, source.getResourceId());
+        }
+        target.setResourceName(resourceName);
+        target.setSubResourceType(source.getSubResourceType());
+        target.setPathInfo(source.getPathInfo());
+        target.setParentHierarchicalResources(source.getParentHierarchicalResources());
+        return target;
     }
 }

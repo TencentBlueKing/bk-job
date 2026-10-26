@@ -1,0 +1,22 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-size: 14px;
+  color: #63656e;
+  background: #f5f7fa;
+  font-family: Helvetica, Arial, "Microsoft Yahei", "PingFang SC", sans-serif;
+}
+
+#app {
+  height: 100%;
+}
+
+a {
+  color: #3a84ff;
+  text-decoration: none;
+}

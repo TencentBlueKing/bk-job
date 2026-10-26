@@ -1,0 +1,193 @@
+spring:
+  application:
+    name: bk-job-op
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:mysql://${GCS_MYSQL_HOST:127.0.0.1}:${GCS_MYSQL_PORT:3306}/${GCS_MYSQL_NAME:job_op}?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    username: ${GCS_MYSQL_USER:root}
+    password: ${GCS_MYSQL_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${BK_PAAS_REDIS_HOST:127.0.0.1}
+      port: ${BK_PAAS_REDIS_PORT:6379}
+      password: ${BK_PAAS_REDIS_PASSWORD:}
+      database: 0
+      lettuce:
+        pool:
+          min-idle: 5
+          max-idle: 10
+          max-active: 8
+          max-wait: 1ms
+        shutdown-timeout: 100ms
+  ai:
+    mcp:
+      server:
+        name: bk-job-op    # MCP服务器名称
+        version: 1.0.0                # 服务器版本号
+        type: ASYNC #异步
+        stdio: false
+        protocol: STREAMABLE
+        streamable-http:
+          mcp-endpoint: /mcp
+          keep-alive-interval: 15s
+
+# HTTP客户端配置
+http:
+  client:
+    # 连接超时时间（秒）
+    connect-timeout: 10
+    # 读取超时时间（秒）
+    read-timeout: 60
+
+# Spring Boot Actuator 配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,metrics,beans,configprops
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
+    # 配置中可能含有密钥，显式禁止端点回显配置值
+    env:
+      show-values: NEVER
+    configprops:
+      show-values: NEVER
+  info:
+    env:
+      enabled: true
+
+# MCP认证配置
+mcp:
+  # 认证token
+  auth:
+    enabled: true
+    apiKey: ${JOB_OP_MCP_API_KEY:}
+
+# API 认证配置
+api:
+  auth:
+    apiKey: ${JOB_OP_API_KEY:}
+
+# OP Web页面配置
+job:
+  op:
+    actuator:
+      auth:
+        # 两项都为空时允许启动，但除health外的Actuator端点均拒绝访问；只配置一项时启动失败
+        username: ${JOB_OP_ACTUATOR_USERNAME:}
+        password: ${JOB_OP_ACTUATOR_PASSWORD:}
+    web:
+      # 页面总开关。
+      # true：托管前端静态页面与SPA路由回落；
+      # false：仅关闭页面入口，/web/issueStatus/list 与 /web/userInfo 仍可访问且仍受登录态+白名单保护。
+      # 注意：这不是安全开关，安全边界由接口鉴权保证。
+      enabled: ${JOB_OP_WEB_ENABLED:true}
+      auth:
+        # 逗号分隔的用户白名单。留空表示任何人都不允许访问，绝不是放行所有人
+        whitelist: ${JOB_OP_WEB_AUTH_WHITELIST:}
+        # 是否允许白名单中的 "*" 通配所有已登录用户。仅供本地调试，生产必须为false
+        allow-wildcard: ${JOB_OP_WEB_AUTH_ALLOW_WILDCARD:false}
+        # 登录配置，协议与主项目的自定义登录（paas.login.custom）一致：
+        # GET {api-url}/user/get_info/?app_code={app-code}&{token-name}={ticket}
+        # 响应 {"ret":0,"data":{"username":"xxx"}}
+        login:
+          # 承载登录态的Cookie名称
+          token-name: ${JOB_OP_WEB_LOGIN_TOKEN_NAME:bk_ticket}
+          # 统一登录页地址，未登录时302跳转的目标。留空时页面请求返回503提示页
+          login-url: ${JOB_OP_WEB_LOGIN_URL:}
+          # 回跳参数名，登录成功后由登录页带用户跳回
+          redirect-param-name: ${JOB_OP_WEB_LOGIN_REDIRECT_PARAM:c_url}
+          # 统一登录服务的API根地址（不含 /user/get_info/）。留空时所有Web访问都被视为未登录，且不会发起HTTP请求
+          api-url: ${JOB_OP_WEB_LOGIN_API_URL:}
+          # 调用登录服务时声明的应用标识
+          app-code: ${JOB_OP_WEB_LOGIN_APP_CODE:job}
+          connect-timeout-ms: ${JOB_OP_WEB_LOGIN_CONNECT_TIMEOUT_MS:2000}
+          read-timeout-ms: ${JOB_OP_WEB_LOGIN_READ_TIMEOUT_MS:3000}
+          cache:
+            # 有效ticket的缓存秒数
+            valid-seconds: ${JOB_OP_WEB_LOGIN_CACHE_SECONDS:300}
+            # 无效ticket的负缓存秒数
+            invalid-seconds: ${JOB_OP_WEB_LOGIN_INVALID_CACHE_SECONDS:30}
+            # 本地缓存最大条目数，0表示禁用缓存
+            max-size: ${JOB_OP_WEB_LOGIN_CACHE_MAX_SIZE:10000}
+
+# BK API网关统一配置
+bkApiGateway:
+  # 默认apigw认证信息（默认正式环境的，若是想调用个别别的环境的网关，使用子项覆盖）
+  bkAppCode: "bk-job-op"
+  bkAppSecret: ${JOB_OP_BK_APP_SECRET:}
+  
+  # 调用bklog网关的配置
+  bkLog:
+    url: bklog.com
+    retry-count: 3
+    retry-interval: 3
+
+bk:
+  # BK-Log配置（多接入点 + 多日志源）
+  log:
+    defaultSource: prod-service
+
+    # 多个 bklog 接入点（不同环境的 bklog 网关）
+    # 每个 endpoint 对应一份独立的 url + 认证信息；endpoint 内 appCode/appSecret 可省略，
+    # 省略时回退到 bk-api-gateway.bkAppCode/bkAppSecret；username 可省略，缺省为 admin；
+    # tenantId 会以请求头 X-Bk-Tenant-Id 发送，可省略，缺省为 default
+    endpoints: {}
+#      env-a:
+#        url: http://bklog.aaa.com
+#        bkAppCode: ""
+#        bkAppSecret: ""
+#        username: admin
+#        tenantId: default
+#        retryCount: 3
+#        retryInterval: 3
+#      env-b:
+#        url: http://bklog.bbb.com
+#        username: admin
+#        bkAppCode : ""
+#        bkAppSecret: ""
+#        tenantId: tenant-b
+#        retryCount: 3
+#        retryInterval: 3
+
+    # 多个日志源，每个 source 通过 endpoint 字段绑定到一个接入点
+    sources: {}
+#      prod-service:
+#        label: "生产环境-微服务日志"
+#        endpoint: env-a
+#        sortField: "log_time"
+#        indices: ""
+#        indexSetId: 100
+#        expireTime: 7
+#      prod-gateway-access:
+#        label: "生产环境-网关Access日志"
+#        endpoint: env-a
+#        sortField: "time"
+#        indices: ""
+#        indexSetId: 101
+#        expireTime: 7
+#      prod-stdout:
+#        label: "生产环境-标准输出日志"
+#        endpoint: env-a
+#        sortField: "log_time"
+#        indices: ""
+#        indexSetId: 102
+#        expireTime: 7
+#      stag-service:
+#        label: "预发布环境-微服务日志"
+#        endpoint: env-a
+#        sortField: "log_time"
+#        indices: ""
+#        indexSetId: 200
+#        expireTime: 7
+#      other-service:
+#        label: "其他环境-微服务日志"
+#        endpoint: env-b
+#        sortField: "log_time"
+#        indexSetId: 300
+#        expireTime: 7

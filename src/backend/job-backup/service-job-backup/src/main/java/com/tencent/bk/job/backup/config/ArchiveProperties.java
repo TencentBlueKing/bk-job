@@ -31,8 +31,10 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -75,6 +77,11 @@ public class ArchiveProperties {
      * 每次执行删除的最大行数
      */
     private int deleteRowLimit = 1000;
+
+    /**
+     * 写入归档库时要忽略的字段，key 为表名，value 为字段名集合。默认为空，即不忽略任何字段。
+     */
+    private Map<String, Set<String>> ignoredColumns = new HashMap<>();
 
     /**
      * 每批次从 db 表中读取的记录数量

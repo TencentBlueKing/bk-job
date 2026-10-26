@@ -102,11 +102,15 @@ public class IamV3ApplyActionBuilder {
                 List<List<InstanceDTO>> instanceList = new ArrayList<>();
                 for (PermissionResource relatedResource : relatedResources) {
                     InstanceDTO instance = IamV3InstanceBuilder.convertPermissionResourceToInstance(relatedResource);
-                    if (!CustomCollectionUtils.isEmptyCollection(relatedResource.getParentHierarchicalResources())) {
+                    List<PermissionResource> parentResources = relatedResource.getParentHierarchicalResources();
+                    if (CollectionUtils.isEmpty(parentResources) && relatedResource.getPathInfo() != null) {
+                        parentResources = IamResourcePathSupport.parentResources(
+                            relatedResource.getPathInfo(), relatedResource);
+                    }
+                    if (!CustomCollectionUtils.isEmptyCollection(parentResources)) {
                         List<InstanceDTO> hierarchicalInstance = new ArrayList<>();
-                        relatedResource.getParentHierarchicalResources().forEach(resource ->
-                            hierarchicalInstance.add(
-                                IamV3InstanceBuilder.convertPermissionResourceToInstance(resource)));
+                        parentResources.forEach(resource -> hierarchicalInstance.add(
+                            IamV3InstanceBuilder.convertPermissionResourceToInstance(resource)));
                         hierarchicalInstance.add(instance);
                         instanceList.add(hierarchicalInstance);
                     } else {

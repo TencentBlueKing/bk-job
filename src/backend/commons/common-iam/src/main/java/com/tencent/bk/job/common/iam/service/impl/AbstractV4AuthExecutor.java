@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.iam.service.impl;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
+import com.tencent.bk.job.common.iam.util.IamResourcePathSupport;
 import com.tencent.bk.job.common.iam.util.IamV4ResourceTypeMapper;
 import com.tencent.bk.sdk.iam.constants.AttributeKey;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -149,9 +150,13 @@ public abstract class AbstractV4AuthExecutor {
         V4ApplyResourceDTO.V4ApplyResourceDTOBuilder builder = V4ApplyResourceDTO.builder()
             .id(resource.getResourceId())
             .type(IamV4ResourceTypeMapper.toV4ResourceTypeId(resolveResourceType(resource)));
-        if (CollectionUtils.isNotEmpty(resource.getParentHierarchicalResources())) {
+        List<PermissionResource> parents = resource.getParentHierarchicalResources();
+        if (CollectionUtils.isEmpty(parents) && resource.getPathInfo() != null) {
+            parents = IamResourcePathSupport.parentResources(resource.getPathInfo(), resource);
+        }
+        if (CollectionUtils.isNotEmpty(parents)) {
             List<V4AncestorDTO> ancestors = new ArrayList<>();
-            for (PermissionResource parent : resource.getParentHierarchicalResources()) {
+            for (PermissionResource parent : parents) {
                 ancestors.add(V4AncestorDTO.builder()
                     .id(parent.getResourceId())
                     .type(IamV4ResourceTypeMapper.toV4ResourceTypeId(resolveResourceType(parent)))

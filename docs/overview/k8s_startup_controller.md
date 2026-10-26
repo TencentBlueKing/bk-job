@@ -73,7 +73,7 @@ env:
   # 已准备就绪：{"ready": true}
   # 未准备就绪：{"ready": false}
   - name: BK_JOB_EXTERNAL_DEPENDENCY_CHECK_URL
-    value: "http://example.com/checkServiceDependency"
+    value: "http://example.com/public/checkServiceDependency"
 ```
 
 ### 实际部署示例
