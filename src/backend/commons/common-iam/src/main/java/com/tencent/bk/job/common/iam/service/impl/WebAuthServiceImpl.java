@@ -107,9 +107,17 @@ public class WebAuthServiceImpl implements WebAuthService {
             int topoNodeCount = 0;
             int dynamicGroupCount = 0;
             int bizSetCount = 0;
+            int tenantSetCount = 0;
             int containerCount = 0;
+            List<String> bizSetNames = new ArrayList<>();
+            List<String> tenantSetNames = new ArrayList<>();
+            List<String> otherNames = new ArrayList<>();
             for (PermissionResource resource : resourceGroup.getPermissionResources()) {
                 String subResourceType = resource.getSubResourceType();
+                if (subResourceType == null) {
+                    collectResourceName(otherNames, resource);
+                    continue;
+                }
                 switch (subResourceType) {
                     case "host":
                         hostCount++;
@@ -122,9 +130,17 @@ public class WebAuthServiceImpl implements WebAuthService {
                         break;
                     case "biz_set":
                         bizSetCount++;
+                        collectResourceName(bizSetNames, resource);
+                        break;
+                    case "tenant_set":
+                        tenantSetCount++;
+                        collectResourceName(tenantSetNames, resource);
                         break;
                     case "container":
                         containerCount++;
+                        break;
+                    default:
+                        collectResourceName(otherNames, resource);
                         break;
                 }
             }
@@ -138,17 +154,36 @@ public class WebAuthServiceImpl implements WebAuthService {
             if (dynamicGroupCount > 0) {
                 stringJoiner.add(dynamicGroupCount + " " + i18nService.getI18n("resource.dynamic_group.name"));
             }
-            if (bizSetCount > 0) {
-                stringJoiner.add(bizSetCount + " " + i18nService.getI18n("resource.biz_set.name"));
-            }
+            appendNamesOrCount(stringJoiner, bizSetNames, bizSetCount, "resource.biz_set.name");
+            appendNamesOrCount(stringJoiner, tenantSetNames, tenantSetCount, "resource.tenant_set.name");
             if (containerCount > 0) {
                 stringJoiner.add(containerCount + " " + i18nService.getI18n("resource.container.name"));
+            }
+            if (!otherNames.isEmpty()) {
+                stringJoiner.add(String.join(",", otherNames));
             }
             return stringJoiner.toString();
         } else {
             StringJoiner stringJoiner = new StringJoiner(",");
             resourceGroup.getPermissionResources().forEach(resource -> stringJoiner.add(resource.getResourceName()));
             return stringJoiner.toString();
+        }
+    }
+
+    /**
+     * 业务集、租户集没有单台主机名，优先展示范围本身的名称；名称为空时退回数量文案，避免返回空字符串。
+     */
+    private void appendNamesOrCount(StringJoiner joiner, List<String> names, int count, String countNameKey) {
+        if (!names.isEmpty()) {
+            joiner.add(String.join(",", names));
+        } else if (count > 0) {
+            joiner.add(count + " " + i18nService.getI18n(countNameKey));
+        }
+    }
+
+    private void collectResourceName(List<String> names, PermissionResource resource) {
+        if (StringUtils.isNotBlank(resource.getResourceName())) {
+            names.add(resource.getResourceName());
         }
     }
 }

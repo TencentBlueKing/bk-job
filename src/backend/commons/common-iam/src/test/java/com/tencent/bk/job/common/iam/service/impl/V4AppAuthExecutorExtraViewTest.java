@@ -27,15 +27,20 @@ package com.tencent.bk.job.common.iam.service.impl;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.IamV4ResourceTypeId;
+import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.sdk.iam.constants.AttributeKey;
 import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceDTO;
+import com.tencent.bk.sdk.iamv4.dto.response.V4AuthorizedResourceDTO;
 import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -108,6 +113,40 @@ class V4AppAuthExecutorExtraViewTest {
         assertThat(resource.getId()).isEqualTo("*");
         assertThat(pathOf(resource)).isEqualTo("/tenant_set,1/");
         assertThat(resource.getCorrelationId()).isEqualTo("/tenant_set,1/");
+    }
+
+    @Test
+    @DisplayName("biz 授权含 *：全部资源范围有权限，不把 * 写入范围列表")
+    void unrestrictedBizMarksAny() {
+        when(iamV4AuthService.listAuthorizedResources(eq(TENANT_ID), eq(USERNAME), eq(ActionId.ACCESS_BUSINESS)))
+            .thenReturn(Arrays.asList(
+                authorized("biz", "1", "3", "4", "*"),
+                authorized("biz_set", "1", "2"),
+                authorized("tenant_set", "1")));
+
+        AppResourceScopeResult result = executor.getAppResourceScopeList(TEST_USER, Collections.emptyList());
+
+        assertThat(result.getAny()).isTrue();
+        assertThat(result.getAppResourceScopeList()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("仅业务集含 *：不当成全部范围有权限")
+    void bizSetWildcardIsNotUnrestricted() {
+        when(iamV4AuthService.listAuthorizedResources(eq(TENANT_ID), eq(USERNAME), eq(ActionId.ACCESS_BUSINESS)))
+            .thenReturn(Collections.singletonList(authorized("biz_set", "1", "*")));
+        AppResourceScope bizSet = new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, "1", 10L);
+
+        AppResourceScopeResult result = executor.getAppResourceScopeList(
+            TEST_USER, Collections.singletonList(bizSet));
+
+        assertThat(result.getAny()).isFalse();
+        assertThat(result.getAppResourceScopeList()).extracting(AppResourceScope::getId)
+            .containsExactly("1", "*");
+    }
+
+    private static V4AuthorizedResourceDTO authorized(String type, String... ids) {
+        return V4AuthorizedResourceDTO.builder().type(type).ids(Arrays.asList(ids)).build();
     }
 
     private V4AuthResourceDTO captureAuthResource() {

@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.auth.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -49,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -275,5 +277,29 @@ class V4ExecuteAuthExecutorPathTest {
                 "/biz,2/",
                 "/biz_dynamic_group,2/dynamic_group,dg-1/",
                 "/biz_container,2/cluster,100/namespace,45/");
+    }
+
+    @Test
+    @DisplayName("容器鉴权失败的申请资源：通配主机，祖先为容器路径")
+    void containerApplyResourceKeepsContainerPath() {
+        AppResourceScope scope = new AppResourceScope(ResourceScopeTypeEnum.BIZ, "1", 1L);
+        ExecuteTargetDTO target = new ExecuteTargetDTO();
+        Container container = new Container();
+        container.setId(1L);
+        container.setClusterId(1L);
+        container.setNamespaceId(17L);
+        target.setStaticContainerList(Collections.singletonList(container));
+
+        List<PermissionResource> resources = executor.buildContainerPermissionResources(scope, target);
+
+        assertThat(resources).hasSize(1);
+        assertThat(resources.get(0).getResourceId()).isEqualTo("*");
+        assertThat(resources.get(0).getType()).isEqualTo("host");
+        assertThat(resources.get(0).getParentHierarchicalResources())
+            .extracting(PermissionResource::getType, PermissionResource::getResourceId)
+            .containsExactly(
+                tuple("biz_container", "1"),
+                tuple("cluster", "1"),
+                tuple("namespace", "17"));
     }
 }

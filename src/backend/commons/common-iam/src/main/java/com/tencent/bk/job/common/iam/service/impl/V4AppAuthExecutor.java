@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.IamV4ResourceTypeId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -102,9 +103,33 @@ public class V4AppAuthExecutor extends AbstractV4AuthExecutor implements AppAuth
         List<V4AuthorizedResourceDTO> authorized = iamV4AuthService.listAuthorizedResources(
             user.getTenantId(), user.getUsername(), ActionId.ACCESS_BUSINESS);
         AppResourceScopeResult result = new AppResourceScopeResult();
+        if (hasUnrestrictedBiz(authorized)) {
+            // biz 上的 * 覆盖业务、业务集、租户集，调用方按 any 放行，不再逐个匹配
+            result.setAny(true);
+            result.setAppResourceScopeList(Collections.emptyList());
+            return result;
+        }
         result.setAny(false);
         result.setAppResourceScopeList(toAppResourceScopes(authorized, allAppResourceScopeList));
         return result;
+    }
+
+    /**
+     * 仅 biz 的授权 ID 含通配 * 时视为无限制。业务集、租户集上的 * 仍按具体 ID 处理。
+     */
+    private boolean hasUnrestrictedBiz(List<V4AuthorizedResourceDTO> authorized) {
+        if (CollectionUtils.isEmpty(authorized)) {
+            return false;
+        }
+        for (V4AuthorizedResourceDTO group : authorized) {
+            if (group == null || CollectionUtils.isEmpty(group.getIds())) {
+                continue;
+            }
+            if (IamV4ResourceTypeId.BIZ.equals(group.getType()) && group.getIds().contains(ANY_INSTANCE_ID)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

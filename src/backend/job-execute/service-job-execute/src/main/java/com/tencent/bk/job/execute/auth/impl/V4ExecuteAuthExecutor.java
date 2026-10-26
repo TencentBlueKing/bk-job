@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.auth.impl;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.IamV4ResourceTypeId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.impl.AbstractV4AuthExecutor;
 import com.tencent.bk.job.common.iam.util.IamV4ResourceTypeMapper;
 import com.tencent.bk.job.common.model.User;
@@ -38,6 +39,7 @@ import com.tencent.bk.job.execute.auth.ExecuteAuthDecision;
 import com.tencent.bk.job.execute.auth.ExecuteAuthExecutor;
 import com.tencent.bk.job.execute.auth.ExecuteAuthResource;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
+import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceDTO;
 import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceKey;
@@ -271,5 +273,43 @@ public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements Exe
         }
         path.append(IamV4ResourceTypeId.NAMESPACE).append(',').append(namespaceId).append('/');
         return path.toString();
+    }
+
+    /**
+     * 容器鉴权失败时的申请资源，与 {@link #buildContainerPaths} 同一条路径。
+     * 资源本身是通配主机，路径各段作为祖先，避免申请单退化为整个业务。
+     */
+    List<PermissionResource> buildContainerPermissionResources(AppResourceScope appResourceScope,
+                                                               ExecuteTargetDTO executeTarget) {
+        List<PermissionResource> resources = new ArrayList<>();
+        for (String containerPath : buildContainerPaths(appResourceScope, executeTarget)) {
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(ANY_INSTANCE_ID);
+            resource.setResourceType(ResourceTypeEnum.HOST);
+            resource.setSubResourceType("container");
+            resource.setType(ResourceTypeEnum.HOST.getId());
+            resource.setSystemId(SystemId.CMDB);
+            resource.setParentHierarchicalResources(toPathAncestors(containerPath));
+            resources.add(resource);
+        }
+        return resources;
+    }
+
+    private List<PermissionResource> toPathAncestors(String path) {
+        List<PermissionResource> ancestors = new ArrayList<>();
+        for (String segment : path.split("/")) {
+            if (segment.isEmpty()) {
+                continue;
+            }
+            int separator = segment.indexOf(',');
+            if (separator <= 0 || separator == segment.length() - 1) {
+                continue;
+            }
+            PermissionResource ancestor = new PermissionResource();
+            ancestor.setType(segment.substring(0, separator));
+            ancestor.setResourceId(segment.substring(separator + 1));
+            ancestors.add(ancestor);
+        }
+        return ancestors;
     }
 }

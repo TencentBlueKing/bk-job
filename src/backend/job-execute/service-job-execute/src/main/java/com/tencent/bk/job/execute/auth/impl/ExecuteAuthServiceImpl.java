@@ -211,7 +211,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         }
         if (needExecuteTarget) {
             authResult.addRequiredPermissions(failedActionId,
-                convertHostsToPermissionResourceList(appResourceScope, executeTarget));
+                convertHostsToPermissionResourceList(appResourceScope, executeTarget,
+                    IamAuthVersionHelper.useV4(user.getUsername())));
         }
         if (log.isDebugEnabled()) {
             log.debug("Auth execute denied, actionId:{}, decision:{}, authResult:{}",
@@ -270,13 +271,24 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return resourceNameQueryService.getResourceName(resourceType, resourceId);
     }
 
+    /**
+     * 业务集、租户集的展示名。查不到名称时用范围 ID，避免无权限结果里主机名为空。
+     */
+    private String resolveScopeDisplayName(AppResourceScope appResourceScope) {
+        String name = getResourceName(appResourceScope);
+        if (StringUtils.isNotBlank(name)) {
+            return name;
+        }
+        return appResourceScope.getId();
+    }
+
     private List<PermissionResource> convertBizSetStaticIpToPermissionResourceList(AppResourceScope appResourceScope) {
         List<PermissionResource> hostResources = new ArrayList<>();
         PermissionResource resource = new PermissionResource();
         resource.setResourceId(appResourceScope.getId());
         resource.setResourceType(ResourceTypeEnum.HOST);
         resource.setSubResourceType("biz_set");
-        resource.setResourceName(getResourceName(appResourceScope));
+        resource.setResourceName(resolveScopeDisplayName(appResourceScope));
         resource.setSystemId(SystemId.CMDB);
         resource.setType(ResourceTypeId.BUSINESS_SET);
         hostResources.add(resource);
@@ -290,7 +302,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         resource.setResourceId(appResourceScope.getId());
         resource.setResourceType(ResourceTypeEnum.HOST);
         resource.setSubResourceType("tenant_set");
-        resource.setResourceName(getResourceName(appResourceScope));
+        resource.setResourceName(resolveScopeDisplayName(appResourceScope));
         resource.setSystemId(SystemId.CMDB);
         resource.setType(ResourceTypeId.TENANT_SET);
         hostResources.add(resource);
@@ -369,7 +381,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<PermissionResource> convertHostsToPermissionResourceList(AppResourceScope appResourceScope,
-                                                                          ExecuteTargetDTO executeTarget) {
+                                                                          ExecuteTargetDTO executeTarget,
+                                                                          boolean useV4) {
         List<PermissionResource> hostResources = new ArrayList<>();
 
         // 静态IP
@@ -402,10 +415,15 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (!CollectionUtils.isEmpty(executeTarget.getDynamicServerGroups())) {
             hostResources.addAll(convertDynamicGroupsToPermissionResourceList(appResourceScope, executeTarget));
         }
-        // 容器：静态容器与动态条件过滤器（containerFilters）共用业务级容器鉴权资源，去重后只构造一次
+        // 容器：v3 按业务维度申请；v4 与鉴权使用同一条容器路径
         if (!CollectionUtils.isEmpty(executeTarget.getStaticContainerList())
             || !CollectionUtils.isEmpty(executeTarget.getContainerFilters())) {
-            hostResources.addAll(convertContainersToPermissionResourceList(appResourceScope));
+            if (useV4) {
+                hostResources.addAll(((V4ExecuteAuthExecutor) v4Executor)
+                    .buildContainerPermissionResources(appResourceScope, executeTarget));
+            } else {
+                hostResources.addAll(convertContainersToPermissionResourceList(appResourceScope));
+            }
         }
         return hostResources;
     }
