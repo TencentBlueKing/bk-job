@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -71,6 +72,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -534,6 +536,52 @@ public class TaskExecuteServiceImplFileAuthTest {
             verify(executeAuthService, never())
                 .authFastPushFile(any(), any(), any());
         }
+
+        @Test
+        @DisplayName("仅容器过滤器：不能当成空目标跳过执行目标鉴权")
+        void containerFiltersOnly_authsExecuteTarget() {
+            ExecuteTargetDTO target = containerFilterTarget();
+            StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, target);
+            stubAccountAuthPass();
+            stubFastPushFilePass();
+
+            service.authFileTransfer(
+                operator, new AppResourceScope(APP_ID), step, Collections.emptyMap(), Collections.emptyList());
+
+            ArgumentCaptor<ExecuteTargetDTO> targetCaptor = ArgumentCaptor.forClass(ExecuteTargetDTO.class);
+            verify(executeAuthService).authFastPushFile(
+                any(User.class), any(AppResourceScope.class), targetCaptor.capture());
+            assertThat(targetCaptor.getValue().getContainerFilters()).hasSize(1);
+        }
+    }
+
+    @Nested
+    @DisplayName("仅容器过滤器的脚本执行鉴权")
+    class ContainerFilterScriptAuthTest {
+
+        @Test
+        @DisplayName("不能当成空目标跳过执行目标鉴权")
+        void containerFiltersOnly_authsFastExecuteScript() throws Exception {
+            StepInstanceDTO step = new StepInstanceDTO();
+            step.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
+            step.setAccountId(TARGET_ACCOUNT_ID);
+            step.setScriptSource(ScriptSourceEnum.CUSTOM.getValue());
+            step.setTargetExecuteObjects(containerFilterTarget());
+            when(executeAuthService.authAccountExecutable(any(), any(), any()))
+                .thenReturn(AuthResult.pass(operator));
+            when(executeAuthService.authFastExecuteScript(any(), any(), any()))
+                .thenReturn(AuthResult.pass(operator));
+
+            Method method = TaskExecuteServiceImpl.class.getDeclaredMethod(
+                "authExecuteScript", User.class, AppResourceScope.class, StepInstanceDTO.class, Map.class);
+            method.setAccessible(true);
+            method.invoke(service, operator, new AppResourceScope(APP_ID), step, Collections.emptyMap());
+
+            ArgumentCaptor<ExecuteTargetDTO> targetCaptor = ArgumentCaptor.forClass(ExecuteTargetDTO.class);
+            verify(executeAuthService).authFastExecuteScript(
+                any(User.class), any(AppResourceScope.class), targetCaptor.capture());
+            assertThat(targetCaptor.getValue().getContainerFilters()).hasSize(1);
+        }
     }
 
     // ========================================================================
@@ -634,6 +682,21 @@ public class TaskExecuteServiceImplFileAuthTest {
             // executeAuthService 不应被调用（extractNeedAuthHostsAndAccounts 不触发鉴权）
             verifyNoInteractions(executeAuthService);
         }
+
+        @Test
+        @DisplayName("脚本步骤只有容器过滤器时，汇总后的执行目标仍带过滤器")
+        void planPath_keepsContainerFilters() {
+            StepInstanceDTO step = new StepInstanceDTO();
+            step.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
+            step.setAccountId(TARGET_ACCOUNT_ID);
+            step.setTargetExecuteObjects(containerFilterTarget());
+
+            Pair<ExecuteTargetDTO, Set<Long>> result =
+                service.extractNeedAuthHostsAndAccounts(step, Collections.emptyMap());
+
+            assertThat(result.getLeft().isEmpty()).isFalse();
+            assertThat(result.getLeft().getContainerFilters()).hasSize(1);
+        }
     }
 
     // ========================================================================
@@ -648,6 +711,14 @@ public class TaskExecuteServiceImplFileAuthTest {
     private void stubFastPushFilePass() {
         when(executeAuthService.authFastPushFile(any(), any(), any()))
             .thenReturn(AuthResult.pass(operator));
+    }
+
+    private static ExecuteTargetDTO containerFilterTarget() {
+        ExecuteTargetDTO target = new ExecuteTargetDTO();
+        KubeContainerFilter filter = new KubeContainerFilter();
+        filter.setName("namespace-filter");
+        target.setContainerFilters(Collections.singletonList(filter));
+        return target;
     }
 
     private static ExecuteTargetDTO staticHosts(long... hostIds) {
