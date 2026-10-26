@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.iam.service.impl;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -62,6 +63,18 @@ class WebAuthServiceImplTest {
             if ("resource.host.name".equals(key)) {
                 return "主机";
             }
+            if ("permission.resource.type.name.biz".equals(key)) {
+                return "业务";
+            }
+            if ("permission.resource.type.name.business_set".equals(key)) {
+                return "业务集";
+            }
+            if ("permission.resource.type.name.tenant_set".equals(key)) {
+                return "租户集";
+            }
+            if ("permission.resource.type.name.host".equals(key)) {
+                return "主机";
+            }
             return key;
         });
         webAuthService = new WebAuthServiceImpl(i18nService, mock(AuthService.class));
@@ -89,10 +102,27 @@ class WebAuthServiceImplTest {
     }
 
     @Test
+    void accessBusinessDenied_shouldShowScopeTypeName() {
+        assertThat(resourceTypeName(toVo(scopeResource(ResourceTypeId.BIZ, "蓝鲸"))))
+            .isEqualTo("业务");
+        assertThat(resourceTypeName(toVo(scopeResource(ResourceTypeId.BUSINESS_SET, "LJ业务集"))))
+            .isEqualTo("业务集");
+        assertThat(resourceTypeName(toVo(scopeResource(ResourceTypeId.TENANT_SET, "租户集A"))))
+            .isEqualTo("租户集");
+    }
+
+    @Test
     void staticHost_shouldKeepCountText() {
         AuthResultVO vo = toVo(hostResource("host", "101", "10.0.0.1"));
 
         assertThat(resourceName(vo)).isEqualTo("1 主机");
+        assertThat(resourceTypeName(vo)).isEqualTo("主机");
+    }
+
+    private PermissionResource scopeResource(String type, String resourceName) {
+        PermissionResource resource = new PermissionResource(ResourceTypeEnum.BUSINESS, "1", resourceName);
+        resource.setType(type);
+        return resource;
     }
 
     private AuthResultVO toVo(PermissionResource resource) {
@@ -112,5 +142,9 @@ class WebAuthServiceImplTest {
 
     private String resourceName(AuthResultVO vo) {
         return vo.getRequiredPermissions().get(0).getRelatedResources().get(0).getResourceName();
+    }
+
+    private String resourceTypeName(AuthResultVO vo) {
+        return vo.getRequiredPermissions().get(0).getRelatedResources().get(0).getResourceTypeName();
     }
 }

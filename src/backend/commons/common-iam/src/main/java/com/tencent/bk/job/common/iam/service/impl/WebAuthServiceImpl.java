@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -83,9 +84,8 @@ public class WebAuthServiceImpl implements WebAuthService {
                 List<PermissionResourceVO> resourceVOS = new ArrayList<>();
                 actionResource.getResourceGroups().forEach(resourceGroup -> {
                     PermissionResourceVO resourceVO = new PermissionResourceVO();
-                    ResourceTypeEnum resourceType = resourceGroup.getResourceType();
-                    resourceVO.setResourceTypeName(
-                        i18nService.getI18n("permission.resource.type.name." + resourceType.getId().toLowerCase()));
+                    resourceVO.setResourceTypeName(i18nService.getI18n(
+                        "permission.resource.type.name." + displayResourceTypeId(resourceGroup).toLowerCase()));
                     resourceVO.setResourceName(buildResourceName(resourceGroup));
                     resourceVOS.add(resourceVO);
                 });
@@ -97,6 +97,28 @@ public class WebAuthServiceImpl implements WebAuthService {
         }
 
         return vo;
+    }
+
+    /**
+     * 业务访问失败时分组类型仍是 biz，以便申请链接对上 access_business。
+     * 业务集、租户集用资源自身的 type 展示，避免提示成「业务」。
+     */
+    private String displayResourceTypeId(PermissionResourceGroup resourceGroup) {
+        ResourceTypeEnum resourceType = resourceGroup.getResourceType();
+        List<PermissionResource> resources = resourceGroup.getPermissionResources();
+        if (resourceType != ResourceTypeEnum.BUSINESS || resources == null || resources.isEmpty()) {
+            return resourceType.getId();
+        }
+        String scopeType = resources.get(0).getType();
+        for (PermissionResource resource : resources) {
+            if (!StringUtils.equals(scopeType, resource.getType())) {
+                return resourceType.getId();
+            }
+        }
+        if (ResourceTypeId.BUSINESS_SET.equals(scopeType) || ResourceTypeId.TENANT_SET.equals(scopeType)) {
+            return scopeType;
+        }
+        return resourceType.getId();
     }
 
     private String buildResourceName(PermissionResourceGroup resourceGroup) {

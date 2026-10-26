@@ -481,6 +481,10 @@
           "id": "create_public_script"
         },
         {
+          "resource_type_id": "public_script",
+          "id": "manage_public_script_instance"
+        },
+        {
           "resource_type_id": "",
           "id": "dashboard_view"
         }
