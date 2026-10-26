@@ -130,8 +130,8 @@ public class LocalFileDownloadTask implements Callable<Boolean> {
             return false;
         }
         // 本地存储路径
-        String localPath = PathUtil.joinFilePath(jobStorageRootPath, Consts.LOCAL_FILE_DIR_NAME);
-        localPath = PathUtil.joinFilePath(localPath, filePath);
+        String localBaseDir = PathUtil.joinFilePath(jobStorageRootPath, Consts.LOCAL_FILE_DIR_NAME);
+        String localPath = PathUtil.resolveSafely(localBaseDir, filePath).getPath();
         // 如果本地文件还未下载就已存在并且Md5正确，直接完成准备阶段
         if (currentLocalFileValid(localPath, nodeDTO)) {
             // 将最后修改时间设置为当前时间，避免在分发过程中被清理

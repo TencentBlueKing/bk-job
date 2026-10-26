@@ -34,6 +34,7 @@ import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.file_gateway.consts.FileSourceWhiteInfoTypeConsts;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceWhiteInfoDAO;
 import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
+import com.tencent.bk.job.file_gateway.util.FilePrefixValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,16 @@ public class FileSourceValidateServiceImpl implements FileSourceValidateService 
             return;
         }
         rejectUnsupportedType(fileSourceTypeCode);
+    }
+
+    @Override
+    public void checkFilePrefix(String filePrefix) {
+        String invalidReason = FilePrefixValidator.getInvalidReason(filePrefix);
+        if (invalidReason != null) {
+            log.warn("FileSource filePrefix rejected: reason={}, filePrefix={}",
+                invalidReason, LogUtil.sanitizeForLog(filePrefix, 64));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"filePrefix"});
+        }
     }
 
     @Override

@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.file_gateway.service.remote.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.JobUUID;
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.model.req.ClearTaskFilesReq;
 import com.tencent.bk.job.file.worker.model.req.DownloadFilesTaskReq;
@@ -38,6 +41,7 @@ import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
+import com.tencent.bk.job.file_gateway.util.FilePrefixValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -62,9 +66,21 @@ public class FileSourceTaskReqGenServiceImpl
         String url = fillBaseReqGetUrl(req, fileWorkerDTO, fileSourceDTO, "/filetask/downloadFiles/start");
 
         req.setTaskId(fileSourceTaskDTO.getId());
-        // 前缀生成
+        // 前缀生成与透传白名单校验（防御历史存量脏数据）
         String filePrefix = fileSourceDTO.getFilePrefix();
-        if ("${UUID}".equals(filePrefix)) {
+        String invalidReason = FilePrefixValidator.getInvalidReason(filePrefix);
+        if (invalidReason != null) {
+            log.warn("Reject illegal filePrefix before dispatching to worker: appId={}, taskId={}, fileSourceId={}, "
+                    + "fileSourceCode={}, reason={}, filePrefix={}",
+                appId,
+                fileSourceTaskDTO.getId(),
+                fileSourceDTO.getId(),
+                LogUtil.sanitizeForLog(fileSourceDTO.getCode(), 64),
+                invalidReason,
+                LogUtil.sanitizeForLog(filePrefix, 64));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"filePrefix"});
+        }
+        if (FilePrefixValidator.FILE_PREFIX_UUID.equals(filePrefix)) {
             filePrefix = JobUUID.getUUID();
         }
         req.setFilePrefix(filePrefix);

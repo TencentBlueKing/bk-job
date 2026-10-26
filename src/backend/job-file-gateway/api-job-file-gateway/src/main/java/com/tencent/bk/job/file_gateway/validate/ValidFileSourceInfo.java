@@ -24,10 +24,13 @@
 
 package com.tencent.bk.job.file_gateway.validate;
 
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
 import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
 import com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq;
+import com.tencent.bk.job.file_gateway.util.FilePrefixValidator;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import jakarta.validation.Constraint;
@@ -44,7 +47,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * 文件源接入参数格式校验：仅对蓝鲸制品库类型检查 base_url 必须为 http(s)
+ * 文件源接入参数格式校验：校验 filePrefix 安全白名单以及蓝鲸制品库类型的 base_url 必须为 http(s)
  */
 @Target({TYPE, ANNOTATION_TYPE})
 @Constraint(validatedBy = ValidFileSourceInfo.Validator.class)
@@ -58,19 +61,51 @@ public @interface ValidFileSourceInfo {
 
     Class<? extends Payload>[] payload() default {};
 
+    @Slf4j
     class Validator implements ConstraintValidator<ValidFileSourceInfo, Object> {
+
+        private static final String FILE_PREFIX_INVALID_MESSAGE_TEMPLATE =
+            "{validation.constraints.FileSourceFilePrefixInvalid.message}";
 
         @Override
         public boolean isValid(Object value, ConstraintValidatorContext constraintValidatorContext) {
             if (value instanceof FileSourceCreateUpdateReq) {
                 FileSourceCreateUpdateReq req = (FileSourceCreateUpdateReq) value;
+                if (!checkFilePrefix(req.getCode(), req.getFilePrefix(), "filePrefix", constraintValidatorContext)) {
+                    return false;
+                }
                 return isValid(req.getFileSourceTypeCode(), req.getFileSourceInfoMap());
             }
             if (value instanceof EsbCreateOrUpdateFileSourceV3Req) {
                 EsbCreateOrUpdateFileSourceV3Req req = (EsbCreateOrUpdateFileSourceV3Req) value;
+                if (!checkFilePrefix(req.getCode(), req.getFilePrefix(), "file_prefix", constraintValidatorContext)) {
+                    return false;
+                }
                 return isValid(req.getType(), req.getAccessParams());
             }
             return true;
+        }
+
+        private boolean checkFilePrefix(String fileSourceCode,
+                                        String filePrefix,
+                                        String fieldName,
+                                        ConstraintValidatorContext constraintValidatorContext) {
+            String invalidReason = FilePrefixValidator.getInvalidReason(filePrefix);
+            if (invalidReason == null) {
+                return true;
+            }
+            log.warn("ValidFileSourceInfo rejected illegal {}: code={}, reason={}, value={}",
+                fieldName,
+                LogUtil.sanitizeForLog(fileSourceCode, 64),
+                invalidReason,
+                LogUtil.sanitizeForLog(filePrefix, 64));
+            if (constraintValidatorContext != null) {
+                constraintValidatorContext.disableDefaultConstraintViolation();
+                constraintValidatorContext.buildConstraintViolationWithTemplate(FILE_PREFIX_INVALID_MESSAGE_TEMPLATE)
+                    .addPropertyNode(fieldName)
+                    .addConstraintViolation();
+            }
+            return false;
         }
 
         private boolean isValid(String fileSourceTypeCode, Map<String, Object> fileSourceInfoMap) {
