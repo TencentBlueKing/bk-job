@@ -118,14 +118,14 @@ public class CredentialDAOImpl implements CredentialDAO {
         log.debug("Update credentialStr={}", credentialStr);
         try {
             UpdateConditionStep<CredentialRecord> query = dslContext.update(defaultTable)
-                .set(defaultTable.APP_ID, credentialDTO.getAppId())
                 .set(defaultTable.NAME, credentialDTO.getName())
                 .set(defaultTable.TYPE, credentialDTO.getType())
                 .set(defaultTable.DESCRIPTION, credentialDTO.getDescription())
                 .set(defaultTable.VALUE, credentialCryptoService.encryptCredential(credentialStr))
                 .set(defaultTable.LAST_MODIFY_USER, credentialDTO.getLastModifyUser())
                 .set(defaultTable.LAST_MODIFY_TIME, System.currentTimeMillis())
-                .where(defaultTable.ID.eq(credentialDTO.getId()));
+                .where(defaultTable.ID.eq(credentialDTO.getId())
+                    .and(defaultTable.APP_ID.eq(credentialDTO.getAppId())));
             sql = query.getSQL(ParamType.INLINED);
             query.execute();
             return credentialDTO.getId();
@@ -138,10 +138,35 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     @Override
-    public int deleteCredentialById(String id) {
+    public int deleteCredentialById(Long appId, String id) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.eq(id)
+                .and(defaultTable.APP_ID.eq(appId))
         ).execute();
+    }
+
+    @Override
+    public CredentialDTO getCredentialById(Long appId, String id) {
+        val record = dslContext.select(
+            defaultTable.ID,
+            defaultTable.APP_ID,
+            defaultTable.NAME,
+            defaultTable.TYPE,
+            defaultTable.DESCRIPTION,
+            defaultTable.VALUE,
+            defaultTable.CREATOR,
+            defaultTable.CREATE_TIME,
+            defaultTable.LAST_MODIFY_USER,
+            defaultTable.LAST_MODIFY_TIME
+        ).from(defaultTable).where(
+            defaultTable.ID.eq(id)
+                .and(defaultTable.APP_ID.eq(appId))
+        ).fetchOne();
+        if (record == null) {
+            return null;
+        } else {
+            return convertRecordToDto(record);
+        }
     }
 
     @Override

@@ -1,9 +1,22 @@
 buildscript {
     repositories {
-        repositories {
-            maven { url "https://plugins.gradle.org/m2/" }
-            mavenCentral()
+        mavenLocal()
+
+        // 用户通过命令行方式指定的 maven repo
+        def mavenRepoUrls = System.getProperty("mavenRepoUrl")
+        if (mavenRepoUrls == null || mavenRepoUrls.trim().length() == 0) {
+            mavenRepoUrls = project.findProperty("MAVEN_REPO_URL")
         }
+        if (mavenRepoUrls != null && mavenRepoUrls.trim().length() > 0) {
+            String[] repoUrls = mavenRepoUrls.trim().replace(" ", "").split(",")
+            for (String repoUrl : repoUrls) {
+                println("Add maven repo:" + repoUrl)
+                maven { url repoUrl }
+            }
+        }
+
+        maven { url "https://plugins.gradle.org/m2/" }
+        mavenCentral()
     }
     dependencies {
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
@@ -30,11 +43,23 @@ version '1.0.0'
 
 allprojects {
     repositories {
-        repositories {
-            mavenLocal()
-            maven { url "https://plugins.gradle.org/m2/" }
-            mavenCentral()
+        mavenLocal()
+
+        // 用户通过命令行方式指定的 maven repo
+        def mavenRepoUrls = System.getProperty("mavenRepoUrl")
+        if (mavenRepoUrls == null || mavenRepoUrls.trim().length() == 0) {
+            mavenRepoUrls = project.findProperty("MAVEN_REPO_URL")
         }
+        if (mavenRepoUrls != null && mavenRepoUrls.trim().length() > 0) {
+            String[] repoUrls = mavenRepoUrls.trim().replace(" ", "").split(",")
+            for (String repoUrl : repoUrls) {
+                println("Add maven repo:" + repoUrl)
+                maven { url repoUrl }
+            }
+        }
+
+        maven { url "https://plugins.gradle.org/m2/" }
+        mavenCentral()
     }
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"

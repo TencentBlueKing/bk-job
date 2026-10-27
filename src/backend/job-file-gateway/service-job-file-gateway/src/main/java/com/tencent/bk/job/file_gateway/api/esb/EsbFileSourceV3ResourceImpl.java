@@ -133,6 +133,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         if (StringUtils.isBlank(req.getCredentialId())) {
             throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, new String[]{"credential_id"});
         }
+        fileSourceValidateService.checkFilePrefix(req.getFilePrefix());
     }
 
     private void checkCreateParam(EsbCreateOrUpdateFileSourceV3Req req) {
@@ -165,6 +166,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
                 new String[]{"type"});
         }
+        fileSourceValidateService.checkFilePrefix(req.getFilePrefix());
         checkBkArtifactoryBaseUrlIfNeed(req);
         return id;
     }

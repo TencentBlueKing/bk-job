@@ -72,10 +72,14 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
             log.warn("Get script version by id, param scriptVersionId is empty");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        ScriptDTO script = scriptManager.getScriptVersion(appId, scriptVersionId);
+        ScriptDTO script = scriptManager.getScriptVersion(scriptVersionId);
         if (script == null) {
             log.warn("Get script version by id:{}, the script is not exist", scriptVersionId);
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptVersionId));
+        }
+        if (!script.isPublicScript() && !script.getAppId().equals(appId)) {
+            log.warn("Script:{} is not in current app:{}", script.getId(), appId);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
         }
         ServiceScriptDTO scriptVersion = ScriptConverter.convertToServiceScriptDTO(script);
         return InternalResponse.buildSuccessResp(scriptVersion);

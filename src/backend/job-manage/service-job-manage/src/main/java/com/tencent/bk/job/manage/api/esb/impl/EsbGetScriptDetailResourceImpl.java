@@ -87,8 +87,7 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
 
 
         Long appId = request.getAppId();
-        ScriptDTO scriptVersion = scriptManager.getScriptVersion(request.getAppId(),
-            request.getScriptVersionId());
+        ScriptDTO scriptVersion = scriptManager.getScriptVersion(request.getScriptVersionId());
         if (scriptVersion == null) {
             log.warn("Cannot find scriptVersion by id {}", request.getScriptVersionId());
             throw new NotFoundException(ErrorCode.SCRIPT_VERSION_NOT_EXIST);
@@ -100,13 +99,6 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
 
         // 非公共脚本鉴权
         if (!scriptVersion.isPublicScript()) {
-            AuthResult authResult =
-                scriptAuthService.authViewScript(username, request.getAppResourceScope(), scriptId, null);
-            if (!authResult.isPass()) {
-                throw new PermissionDeniedException(authResult);
-            }
-        }
-        if (!scriptVersion.isPublicScript()) {
             if (appId == null || appId < 1) {
                 log.warn("AppId:{} is empty or illegal", request.getAppId());
                 throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM);
@@ -115,6 +107,11 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
                     log.warn("Script:{} is not in app:{}", request.getScriptVersionId(), request.getAppId());
                     throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
                 }
+            }
+            AuthResult authResult =
+                scriptAuthService.authViewScript(username, request.getAppResourceScope(), scriptId, null);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
             }
         }
 

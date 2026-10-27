@@ -96,8 +96,9 @@ public class ScriptServiceImpl implements ScriptService {
         content = EventContentConstants.VIEW_SCRIPT
     )
     public ScriptDTO getScript(String username, Long appId, String scriptId) {
+        ScriptDTO script = getScript(appId, scriptId);
         authViewScript(username, appId, scriptId);
-        return getScript(appId, scriptId);
+        return script;
     }
 
     @Override
@@ -133,12 +134,12 @@ public class ScriptServiceImpl implements ScriptService {
     )
     public void deleteScript(String username, Long appId, String scriptId) {
         log.info("Delete script[{}], operator={}, appId={}, scriptId", scriptId, username, scriptId);
-        authManageScript(username, appId, scriptId);
-
         ScriptDTO script = getScript(appId, scriptId);
         if (script == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
+
+        authManageScript(username, appId, scriptId);
 
         ActionAuditContext.current().setInstanceName(script.getName());
 
@@ -164,8 +165,17 @@ public class ScriptServiceImpl implements ScriptService {
         content = EventContentConstants.VIEW_SCRIPT
     )
     public ScriptDTO getScriptVersion(String username, long appId, Long scriptVersionId) {
-        ScriptDTO scriptVersion = getScriptVersion(appId, scriptVersionId);
-        authViewScript(username, appId, scriptVersion.getId());
+        ScriptDTO scriptVersion = getScriptVersion(scriptVersionId);
+        if (scriptVersion == null) {
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
+        }
+        if (!scriptVersion.isPublicScript()) {
+            if (!scriptVersion.getAppId().equals(appId)) {
+                log.warn("Script:{} is not in current app:{}", scriptVersion.getId(), appId);
+                throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
+            }
+            authViewScript(username, appId, scriptVersion.getId());
+        }
 
         ActionAuditContext.current()
             .setInstanceId(scriptVersion.getId())
@@ -199,6 +209,7 @@ public class ScriptServiceImpl implements ScriptService {
         content = EventContentConstants.CREATE_SCRIPT_VERSION
     )
     public ScriptDTO createScriptVersion(String username, ScriptDTO scriptVersion) {
+        getScript(scriptVersion.getAppId(), scriptVersion.getId());
         authCreateScript(username, scriptVersion.getAppId());
         return scriptManager.createScriptVersion(scriptVersion);
     }
@@ -212,7 +223,8 @@ public class ScriptServiceImpl implements ScriptService {
         content = EventContentConstants.EDIT_SCRIPT_VERSION
     )
     public ScriptDTO updateScriptVersion(String username, ScriptDTO scriptVersion) {
-        ScriptDTO originScriptVersion = getScriptVersion(scriptVersion.getScriptVersionId());
+        ScriptDTO originScriptVersion = getScriptVersion(
+            scriptVersion.getAppId(), scriptVersion.getScriptVersionId());
         if (originScriptVersion == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
@@ -303,12 +315,12 @@ public class ScriptServiceImpl implements ScriptService {
         content = EventContentConstants.EDIT_SCRIPT
     )
     public ScriptDTO updateScriptDesc(Long appId, String username, String scriptId, String desc) {
-        authManageScript(username, appId, scriptId);
-
         ScriptDTO originScript = getScript(appId, scriptId);
         if (originScript == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
+
+        authManageScript(username, appId, scriptId);
 
         ScriptDTO updateScript = scriptManager.updateScriptDesc(username, appId, scriptId, desc);
 
@@ -335,12 +347,12 @@ public class ScriptServiceImpl implements ScriptService {
         content = EventContentConstants.EDIT_SCRIPT
     )
     public ScriptDTO updateScriptName(Long appId, String username, String scriptId, String newName) {
-        authManageScript(username, appId, scriptId);
-
         ScriptDTO originScript = getScript(appId, scriptId);
         if (originScript == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
+
+        authManageScript(username, appId, scriptId);
 
         ScriptDTO updateScript = scriptManager.updateScriptName(username, appId, scriptId, newName);
 
@@ -361,12 +373,12 @@ public class ScriptServiceImpl implements ScriptService {
                                       String username,
                                       String scriptId,
                                       List<TagDTO> tags) {
-        authManageScript(username, appId, scriptId);
-
         ScriptDTO originScript = getScript(appId, scriptId);
         if (originScript == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
+
+        authManageScript(username, appId, scriptId);
 
         ScriptDTO updateScript = scriptManager.updateScriptTags(username, appId, scriptId, tags);
 
@@ -396,6 +408,7 @@ public class ScriptServiceImpl implements ScriptService {
         content = EventContentConstants.VIEW_SCRIPT
     )
     public ScriptDTO getOnlineScriptVersionByScriptId(String username, long appId, String scriptId) {
+        getScript(appId, scriptId);
         authViewScript(username, appId, scriptId);
         return scriptManager.getOnlineScriptVersionByScriptId(appId, scriptId);
     }
@@ -435,8 +448,8 @@ public class ScriptServiceImpl implements ScriptService {
         content = EventContentConstants.VIEW_SCRIPT
     )
     public ScriptDTO getByScriptIdAndVersion(String username, Long appId, String scriptId, String version) {
-        authViewScript(username, appId, scriptId);
         ScriptDTO script = scriptManager.getByScriptIdAndVersion(appId, scriptId, version);
+        authViewScript(username, appId, scriptId);
 
         ActionAuditContext.current()
             .setInstanceId(scriptId)

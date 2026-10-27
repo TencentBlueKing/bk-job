@@ -17,6 +17,7 @@ import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@ValidFileSourceInfo
 public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
 
     /**

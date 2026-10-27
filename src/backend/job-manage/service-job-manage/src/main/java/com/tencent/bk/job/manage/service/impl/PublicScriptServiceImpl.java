@@ -126,12 +126,12 @@ public class PublicScriptServiceImpl implements PublicScriptService {
     )
     public void deleteScript(String username, String scriptId) {
         log.info("Delete script[{}], operator={}", scriptId, username);
-        authManagePublicScript(username, scriptId);
-
         ScriptDTO script = getScript(scriptId);
         if (script == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
+
+        authManagePublicScript(username, scriptId);
 
         ActionAuditContext.current().setInstanceName(script.getName());
 
@@ -162,6 +162,10 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         content = EventContentConstants.CREATE_PUBLIC_SCRIPT_VERSION
     )
     public ScriptDTO saveScriptVersion(String username, ScriptDTO scriptVersion) {
+        ScriptDTO script = getScript(scriptVersion.getId());
+        if (script == null) {
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
+        }
         authManagePublicScript(username, scriptVersion.getId());
         return scriptManager.createScriptVersion(scriptVersion);
     }
@@ -175,16 +179,15 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         content = EventContentConstants.EDIT_PUBLIC_SCRIPT_VERSION
     )
     public ScriptDTO updateScriptVersion(String username, ScriptDTO scriptVersion) {
-        authManagePublicScript(username, scriptVersion.getId());
-
-        ScriptDTO originScript = getScriptByScriptId(scriptVersion.getId());
-        if (originScript == null) {
+        ScriptDTO originScriptVersion = getScriptVersion(scriptVersion.getScriptVersionId());
+        if (originScriptVersion == null || !originScriptVersion.getId().equals(scriptVersion.getId())) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
+        authManagePublicScript(username, originScriptVersion.getId());
         ScriptDTO updateScript = scriptManager.updateScriptVersion(scriptVersion);
 
         // 审计
-        addModifyPublicScriptVersionAuditInfo(originScript, updateScript);
+        addModifyPublicScriptVersionAuditInfo(originScriptVersion, updateScript);
 
         return updateScript;
     }
