@@ -132,6 +132,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     public Response<ScriptVO> getScriptBasicInfo(String username,
                                                  String scriptId) {
         ScriptDTO script = publicScriptService.getScript(JobContextUtil.getTenantId(), scriptId);
+        AssertUtil.scriptAvailable(() -> script != null);
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(script);
         return Response.buildSuccessResp(scriptVO);
     }
@@ -242,6 +243,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
                                                         List<String> scriptIds) {
         ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setAppId(PUBLIC_APP_ID);
+        scriptQuery.setTenantId(JobContextUtil.getTenantId());
         scriptQuery.setIds(scriptIds);
         scriptQuery.setPublicScript(true);
         List<ScriptDTO> scripts = publicScriptService.listScripts(scriptQuery);
@@ -258,13 +260,12 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @Override
     public Response<List<ScriptVO>> listScriptVersion(String username,
                                                       String scriptId) {
-        // 鉴权
         User user = JobContextUtil.getUser();
-        AuthResult manageAuthResult = noResourceScopeAuthService.authManagePublicScript(user, scriptId);
-
         List<ScriptDTO> scripts = publicScriptService.listScriptVersion(user.getTenantId(), scriptId);
         List<ScriptVO> resultVOS = new ArrayList<>();
         if (scripts != null && !scripts.isEmpty()) {
+            // 鉴权
+            AuthResult manageAuthResult = noResourceScopeAuthService.authManagePublicScript(user, scriptId);
             for (ScriptDTO scriptDTO : scripts) {
                 ScriptVO scriptVO = ScriptConverter.convertToScriptVO(scriptDTO);
                 scriptVO.setCanView(true);
