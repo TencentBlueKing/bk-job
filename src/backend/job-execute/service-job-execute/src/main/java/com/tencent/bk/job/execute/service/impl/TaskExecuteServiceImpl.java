@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.PropagatableInvalidParamException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -2112,7 +2113,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (account.getCategory() != expectedCategory) {
             log.warn("Resolved account category mismatch, stepId={}, accountVar={}, accountId={}, expected={}, " +
                     "actual={}", stepId, accountVar, accountId, expectedCategory, account.getCategory());
-            throw new InvalidParamException(
+            throw new PropagatableInvalidParamException(
                 ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new Object[]{"variables", String.format("variable[%s] must use a %s account", accountVar,
                     expectedCategory.getName())}
