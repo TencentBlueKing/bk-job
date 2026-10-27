@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.common.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.PropagatableInvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
 import com.tencent.bk.job.common.model.error.ErrorType;
@@ -59,6 +61,14 @@ public class InternalResponse<T> {
 
     @Schema(description = "错误信息")
     private String errorMsg;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(description = "错误参数，供调用方按请求语言生成错误提示")
+    private Object[] errorParams;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(description = "是否允许调用方还原此参数错误，仅true时允许")
+    private Boolean allowPropagation;
 
     @Schema(description = "请求成功返回的数据")
     private T data;
@@ -118,7 +128,18 @@ public class InternalResponse<T> {
     }
 
     public static <T> InternalResponse<T> buildCommonFailResp(ServiceException e) {
-        return new InternalResponse<>(e.getErrorType(), e.getErrorCode(), e.getErrorParams(), null);
+        Object[] originalParams = null;
+        if (e instanceof PropagatableInvalidParamException) {
+            // 先复制参数，避免国际化时被原地替换。
+            originalParams = e.getErrorParams() == null ? new Object[0] : e.getErrorParams().clone();
+        }
+        InternalResponse<T> response =
+            new InternalResponse<>(e.getErrorType(), e.getErrorCode(), e.getErrorParams(), null);
+        if (originalParams != null) {
+            response.allowPropagation = true;
+            response.errorParams = originalParams;
+        }
+        return response;
     }
 
     public static <T> InternalResponse<T> buildValidateFailResp(ValidateResult validateResult) {
