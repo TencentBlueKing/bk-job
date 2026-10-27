@@ -113,7 +113,7 @@ class WebAuthServiceImplTest {
 
     @Test
     void staticHost_shouldKeepCountText() {
-        AuthResultVO vo = toVo(hostResource("host", "101", "10.0.0.1"));
+        AuthResultVO vo = toVo(hostResource("host", "101", "127.0.0.1"));
 
         assertThat(resourceName(vo)).isEqualTo("1 主机");
         assertThat(resourceTypeName(vo)).isEqualTo("主机");
