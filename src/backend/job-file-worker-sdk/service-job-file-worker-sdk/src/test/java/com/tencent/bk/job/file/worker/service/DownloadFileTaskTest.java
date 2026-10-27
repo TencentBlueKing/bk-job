@@ -68,10 +68,9 @@ class DownloadFileTaskTest {
         "/etc/passwd",
         "a/b",
         "a\\b",
-        "a..b",
         "prefix\0"
     })
-    @DisplayName("含路径穿越或非法字符的 filePrefix 应直接抛出 InvalidParamException")
+    @DisplayName("含路径穿越、路径分隔符或空字节的 filePrefix 应直接抛出 InvalidParamException")
     void shouldRejectTraversalFilePrefix(String maliciousPrefix, @TempDir Path tempDir) {
         assertThatThrownBy(() -> DownloadFileTask.resolveDownloadPathSafely(
             tempDir.toString(), "task_01", "bucket/a.txt", maliciousPrefix

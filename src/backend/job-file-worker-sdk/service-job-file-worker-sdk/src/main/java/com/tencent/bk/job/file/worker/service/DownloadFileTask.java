@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
-import com.tencent.bk.job.file_gateway.util.FilePrefixValidator;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -166,15 +165,6 @@ class DownloadFileTask extends Thread {
                                             String taskId,
                                             String filePath,
                                             String filePrefix) {
-        String invalidPrefixReason = FilePrefixValidator.getInvalidReason(filePrefix);
-        if (invalidPrefixReason != null) {
-            log.warn("DownloadFileTask rejected illegal filePrefix: taskId={}, filePath={}, reason={}, filePrefix={}",
-                LogUtil.sanitizeForLog(taskId, 64),
-                LogUtil.sanitizeForLog(filePath, 256),
-                invalidPrefixReason,
-                LogUtil.sanitizeForLog(filePrefix, 64));
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"filePrefix"});
-        }
         if (StringUtils.isBlank(filePath)) {
             log.warn("DownloadFileTask rejected blank filePath: taskId={}", LogUtil.sanitizeForLog(taskId, 64));
             throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
@@ -194,7 +184,19 @@ class DownloadFileTask extends Thread {
             throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
         }
         String safePrefix = filePrefix == null ? "" : filePrefix;
-        String relativeFilePath = dirPart + safePrefix + fileName;
+        String prefixedFileName = safePrefix + fileName;
+        if (prefixedFileName.indexOf('/') >= 0
+            || prefixedFileName.indexOf('\\') >= 0
+            || prefixedFileName.indexOf('\0') >= 0
+            || ".".equals(prefixedFileName)
+            || "..".equals(prefixedFileName)) {
+            log.warn("DownloadFileTask rejected illegal prefixedFileName: taskId={}, filePath={}, filePrefix={}",
+                LogUtil.sanitizeForLog(taskId, 64),
+                LogUtil.sanitizeForLog(filePath, 256),
+                LogUtil.sanitizeForLog(filePrefix, 64));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+        }
+        String relativeFilePath = dirPart + prefixedFileName;
         return PathUtil.resolveSafely(downloadFileDir, taskId, relativeFilePath).getPath();
     }
 
