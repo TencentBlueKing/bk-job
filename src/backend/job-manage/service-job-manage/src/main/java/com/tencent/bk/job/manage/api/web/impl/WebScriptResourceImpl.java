@@ -307,13 +307,14 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                       String scopeId,
                                                       String scriptId) {
         long appId = appResourceScope.getAppId();
-        ScriptDTO script = scriptService.getScriptByScriptId(scriptId);
+        ScriptDTO script = scriptService.getScript(appId, scriptId);
         if (script == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
         // 鉴权
         AuthResult viewAuthResult = scriptAuthService.authViewScript(username, appResourceScope, scriptId, null);
+        viewAuthResult.denyIfNoPermission();
         AuthResult manageAuthResult = scriptAuthService.authManageScript(username, appResourceScope, scriptId, null);
 
         List<ScriptDTO> scripts = scriptService.listScriptVersion(appId, scriptId);
@@ -641,6 +642,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                         String scopeId,
                                                         String scriptId,
                                                         Long scriptVersionId) {
+        scriptService.getScript(appResourceScope.getAppId(), scriptId);
         ScriptCiteInfoVO scriptCiteInfoVO = getScriptCiteInfoOfAllScript(scriptId, scriptVersionId);
         return Response.buildSuccessResp(scriptCiteInfoVO);
     }
@@ -652,6 +654,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                           String scopeId,
                                                           String scriptId,
                                                           Long scriptVersionId) {
+        scriptService.getScript(appResourceScope.getAppId(), scriptId);
         ScriptCiteCountVO scriptCiteCountVO = getScriptCiteCountOfAllScript(scriptId, scriptVersionId);
         return Response.buildSuccessResp(scriptCiteCountVO);
     }

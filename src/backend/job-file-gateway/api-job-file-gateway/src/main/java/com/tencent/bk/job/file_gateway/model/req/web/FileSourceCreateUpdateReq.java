@@ -39,6 +39,7 @@ import java.util.Map;
 
 @Data
 @Schema(description = "文件源创建、更新请求")
+@ValidFileSourceInfo
 public class FileSourceCreateUpdateReq {
 
     /**

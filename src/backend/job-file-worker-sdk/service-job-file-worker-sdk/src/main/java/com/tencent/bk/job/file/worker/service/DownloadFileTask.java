@@ -27,13 +27,16 @@ package com.tencent.bk.job.file.worker.service;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.FileDownloadException;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpRequestBase;
 
@@ -158,18 +161,51 @@ class DownloadFileTask extends Thread {
         }
     }
 
+    static String resolveDownloadPathSafely(String downloadFileDir,
+                                            String taskId,
+                                            String filePath,
+                                            String filePrefix) {
+        if (StringUtils.isBlank(filePath)) {
+            log.warn("DownloadFileTask rejected blank filePath: taskId={}", LogUtil.sanitizeForLog(taskId, 64));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+        }
+        String normalizedFilePath = filePath.replace('\\', '/');
+        while (normalizedFilePath.endsWith("/")) {
+            normalizedFilePath = normalizedFilePath.substring(0, normalizedFilePath.length() - 1);
+        }
+        int lastSlashIndex = normalizedFilePath.lastIndexOf('/');
+        String dirPart = lastSlashIndex >= 0 ? normalizedFilePath.substring(0, lastSlashIndex + 1) : "";
+        String fileName = lastSlashIndex >= 0 ? normalizedFilePath.substring(lastSlashIndex + 1) : normalizedFilePath;
+        if (StringUtils.isBlank(fileName) || ".".equals(fileName) || "..".equals(fileName)) {
+            log.warn("DownloadFileTask rejected illegal fileName in filePath: taskId={}, filePath={}, fileName={}",
+                LogUtil.sanitizeForLog(taskId, 64),
+                LogUtil.sanitizeForLog(filePath, 256),
+                LogUtil.sanitizeForLog(fileName, 64));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+        }
+        String safePrefix = filePrefix == null ? "" : filePrefix;
+        String prefixedFileName = safePrefix + fileName;
+        if (prefixedFileName.indexOf('/') >= 0
+            || prefixedFileName.indexOf('\\') >= 0
+            || prefixedFileName.indexOf('\0') >= 0
+            || ".".equals(prefixedFileName)
+            || "..".equals(prefixedFileName)) {
+            log.warn("DownloadFileTask rejected illegal prefixedFileName: taskId={}, filePath={}, filePrefix={}",
+                LogUtil.sanitizeForLog(taskId, 64),
+                LogUtil.sanitizeForLog(filePath, 256),
+                LogUtil.sanitizeForLog(filePrefix, 64));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+        }
+        String relativeFilePath = dirPart + prefixedFileName;
+        return PathUtil.resolveSafely(downloadFileDir, taskId, relativeFilePath).getPath();
+    }
+
     @Override
     public void run() {
         String fileTaskKey = taskId + "_" + filePath;
-        String downloadPath = PathUtil.joinFilePath(downloadFileDir, taskId + "/" + filePath);
-        // 加前缀
-        int i = downloadPath.lastIndexOf("/");
-        String dir = downloadPath.substring(0, i + 1);
-        String fileName = downloadPath.substring(i + 1);
-        if (filePrefix == null) filePrefix = "";
-        fileName = filePrefix + fileName;
-        downloadPath = dir + fileName;
+        String downloadPath = "";
         try {
+            downloadPath = resolveDownloadPathSafely(downloadFileDir, taskId, filePath, filePrefix);
             taskReporter.reportFileDownloadStart(taskId, filePath, downloadPath);
             downloadFileToLocal(remoteClient, filePath, downloadPath, fileSize, speed, process);
             watchingTask.stopWatching();

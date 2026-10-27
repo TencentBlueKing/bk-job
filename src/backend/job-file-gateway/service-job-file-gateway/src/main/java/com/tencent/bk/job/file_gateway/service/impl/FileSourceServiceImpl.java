@@ -33,11 +33,13 @@ import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
@@ -51,6 +53,7 @@ import com.tencent.bk.job.file_gateway.model.req.common.FileSourceMetaData;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import com.tencent.bk.job.file_gateway.util.FilePrefixValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -148,6 +151,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     public FileSourceDTO saveFileSource(String username, Long appId, FileSourceDTO fileSource) {
         authCreate(username, appId);
         authUseTicketIfNeeded(username, appId, fileSource.getCredentialId());
+        checkFilePrefixSecurity(fileSource.getFilePrefix());
         normalizeShareScope(fileSource);
 
         if (existsCode(appId, fileSource.getCode())) {
@@ -171,6 +175,15 @@ public class FileSourceServiceImpl implements FileSourceService {
             log.warn("Fail to register file_source to iam:({},{})", fileSource.getId(), fileSource.getAlias());
         }
         return getFileSourceById(id);
+    }
+
+    private void checkFilePrefixSecurity(String filePrefix) {
+        String invalidReason = FilePrefixValidator.getInvalidReason(filePrefix);
+        if (invalidReason != null) {
+            log.warn("FileSource filePrefix rejected: reason={}, filePrefix={}",
+                invalidReason, LogUtil.sanitizeForLog(filePrefix, 64));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"filePrefix"});
+        }
     }
 
     /**
@@ -227,6 +240,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     public FileSourceDTO updateFileSourceById(String username, Long appId, FileSourceDTO fileSource) {
         authManage(username, appId, fileSource.getId());
         authUseTicketIfNeeded(username, appId, fileSource.getCredentialId());
+        checkFilePrefixSecurity(fileSource.getFilePrefix());
         normalizeShareScope(fileSource);
 
         if (existsCodeExceptId(appId, fileSource.getCode(), fileSource.getId())) {

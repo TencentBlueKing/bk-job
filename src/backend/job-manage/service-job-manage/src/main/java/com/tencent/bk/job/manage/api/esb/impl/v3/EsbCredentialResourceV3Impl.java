@@ -70,6 +70,7 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbCreateOrUpdateCredentialV3Req req) {
+        req.fillAppResourceScope(appScopeMappingService);
         checkCreateParam(req);
 
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
@@ -100,6 +101,7 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbCreateOrUpdateCredentialV3Req req) {
+        req.fillAppResourceScope(appScopeMappingService);
         checkUpdateParam(req);
 
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
