@@ -280,8 +280,8 @@ class V4ExecuteAuthExecutorPathTest {
     }
 
     @Test
-    @DisplayName("容器鉴权失败的申请资源：通配主机，祖先为容器路径")
-    void containerApplyResourceKeepsContainerPath() {
+    @DisplayName("容器鉴权失败的申请资源：叶子是命名空间，祖先到集群")
+    void containerApplyResourceUsesNamespaceLeaf() {
         AppResourceScope scope = new AppResourceScope(ResourceScopeTypeEnum.BIZ, "1", 1L);
         ExecuteTargetDTO target = new ExecuteTargetDTO();
         Container container = new Container();
@@ -293,13 +293,12 @@ class V4ExecuteAuthExecutorPathTest {
         List<PermissionResource> resources = executor.buildContainerPermissionResources(scope, target);
 
         assertThat(resources).hasSize(1);
-        assertThat(resources.get(0).getResourceId()).isEqualTo("*");
-        assertThat(resources.get(0).getType()).isEqualTo("host");
+        assertThat(resources.get(0).getResourceId()).isEqualTo("17");
+        assertThat(resources.get(0).getType()).isEqualTo("namespace");
         assertThat(resources.get(0).getParentHierarchicalResources())
             .extracting(PermissionResource::getType, PermissionResource::getResourceId)
             .containsExactly(
                 tuple("biz_container", "1"),
-                tuple("cluster", "1"),
-                tuple("namespace", "17"));
+                tuple("cluster", "1"));
     }
 }

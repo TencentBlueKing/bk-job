@@ -276,26 +276,33 @@ public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements Exe
     }
 
     /**
-     * 容器鉴权失败时的申请资源，与 {@link #buildContainerPaths} 同一条路径。
-     * 资源本身是通配主机，路径各段作为祖先，避免申请单退化为整个业务。
+     * 容器鉴权失败时的申请资源。叶子是可定位的那一级实例（命名空间、集群或业务），
+     * 其上各级作为祖先，申请单才能选中该实例。
      */
     List<PermissionResource> buildContainerPermissionResources(AppResourceScope appResourceScope,
                                                                ExecuteTargetDTO executeTarget) {
         List<PermissionResource> resources = new ArrayList<>();
         for (String containerPath : buildContainerPaths(appResourceScope, executeTarget)) {
+            List<PermissionResource> segments = toPathSegments(containerPath);
+            if (segments.isEmpty()) {
+                continue;
+            }
+            PermissionResource leaf = segments.remove(segments.size() - 1);
             PermissionResource resource = new PermissionResource();
-            resource.setResourceId(ANY_INSTANCE_ID);
+            resource.setResourceId(leaf.getResourceId());
+            resource.setType(leaf.getType());
             resource.setResourceType(ResourceTypeEnum.HOST);
             resource.setSubResourceType("container");
-            resource.setType(ResourceTypeEnum.HOST.getId());
             resource.setSystemId(SystemId.CMDB);
-            resource.setParentHierarchicalResources(toPathAncestors(containerPath));
+            if (!segments.isEmpty()) {
+                resource.setParentHierarchicalResources(segments);
+            }
             resources.add(resource);
         }
         return resources;
     }
 
-    private List<PermissionResource> toPathAncestors(String path) {
+    private List<PermissionResource> toPathSegments(String path) {
         List<PermissionResource> ancestors = new ArrayList<>();
         for (String segment : path.split("/")) {
             if (segment.isEmpty()) {

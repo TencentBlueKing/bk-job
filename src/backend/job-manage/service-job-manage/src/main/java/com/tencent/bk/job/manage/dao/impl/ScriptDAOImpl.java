@@ -274,7 +274,9 @@ public class ScriptDAOImpl implements ScriptDAO {
                 TB_SCRIPT.TYPE,
                 TB_SCRIPT.IS_PUBLIC
             ).from(Script.SCRIPT)
-            .where(TB_SCRIPT.ID.in(scriptIds)).fetch();
+            .where(TB_SCRIPT.ID.in(scriptIds))
+            .and(TB_SCRIPT.IS_DELETED.eq(UByte.valueOf(0)))
+            .fetch();
         return records.map(this::extractScriptBasicDTO);
     }
 
