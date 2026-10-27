@@ -36,6 +36,13 @@ public interface FileSourceValidateService {
     void checkFileSource(String fileSourceTypeCode, Map<String, Object> fileSourceInfoMap);
 
     /**
+     * 检查文件源前缀名是否合法
+     *
+     * @param filePrefix 文件前缀
+     */
+    void checkFilePrefix(String filePrefix);
+
+    /**
      * 检查对接的蓝鲸制品库根地址是否合法
      *
      * @param baseUrl 根地址

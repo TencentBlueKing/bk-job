@@ -218,12 +218,14 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         content = EventContentConstants.EDIT_PUBLIC_SCRIPT_VERSION
     )
     public ScriptDTO updateScriptVersion(User user, ScriptDTO scriptVersion) {
-        ScriptDTO originScript = getAndCheckScriptAvailable(user.getTenantId(), scriptVersion.getId());
-        authManagePublicScript(user, scriptVersion.getId());
+        ScriptDTO originScriptVersion = getAndCheckScriptVersionAvailable(
+            user.getTenantId(), scriptVersion.getScriptVersionId());
+        AssertUtil.scriptAvailable(() -> originScriptVersion.getId().equals(scriptVersion.getId()));
+        authManagePublicScript(user, originScriptVersion.getId());
         ScriptDTO updateScript = scriptManager.updateScriptVersion(scriptVersion);
 
         // 审计
-        addModifyPublicScriptVersionAuditInfo(originScript, updateScript);
+        addModifyPublicScriptVersionAuditInfo(originScriptVersion, updateScript);
 
         return updateScript;
     }

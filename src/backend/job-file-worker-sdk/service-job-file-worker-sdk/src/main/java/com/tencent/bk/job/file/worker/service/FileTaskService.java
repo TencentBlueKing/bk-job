@@ -86,6 +86,7 @@ public class FileTaskService {
                 .taskId(taskId)
                 .filePath(filePath)
                 .downloadFileDir(workerConfig.getWorkspaceDirPath())
+                .filePrefix(filePrefix)
                 .fileSize(fileSize)
                 .speed(speed)
                 .process(process)

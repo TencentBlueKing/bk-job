@@ -345,6 +345,78 @@ class FileSourceValidateServiceImplTest {
     }
 
     @Test
+    @DisplayName("checkFilePrefix：null、空串、${UUID} 以及字母数字下划线连字符（<=64）应放行")
+    void shouldAllowValidFilePrefix() {
+        FileSourceValidateServiceImpl service = buildService(ENV_BASE_URL);
+        assertThatCode(() -> service.checkFilePrefix(null)).doesNotThrowAnyException();
+        assertThatCode(() -> service.checkFilePrefix("")).doesNotThrowAnyException();
+        assertThatCode(() -> service.checkFilePrefix("${UUID}")).doesNotThrowAnyException();
+        assertThatCode(() -> service.checkFilePrefix("prefix_01-abc")).doesNotThrowAnyException();
+        String max64 = "a".repeat(64);
+        assertThatCode(() -> service.checkFilePrefix(max64)).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "..",
+        "../",
+        "../../etc/cron.d/x",
+        "..\\..\\windows\\win.ini",
+        "/etc/passwd",
+        "\\windows\\system32",
+        "a/b",
+        "a\\b",
+        "a..b",
+        "prefix.txt",
+        "prefix\0",
+        " ",
+        "prefix with space",
+        "${OTHER}",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    })
+    @DisplayName("checkFilePrefix：含路径穿越、路径分隔符、点号、空字节、空白或超长字符串应拦截并打印原因日志")
+    void shouldRejectInvalidFilePrefix(String invalidPrefix) {
+        FileSourceValidateServiceImpl service = buildService(ENV_BASE_URL);
+        List<String> messages = captureWarnLogs(() -> service.checkFilePrefix(invalidPrefix));
+        assertThat(messages).anySatisfy(message ->
+            assertThat(message).contains("FileSource filePrefix rejected: reason="));
+    }
+
+    @Test
+    @DisplayName("ValidFileSourceInfo 校验器：Web 与 ESB 请求体对非法 filePrefix 应拒绝")
+    void validFileSourceInfoShouldRejectIllegalFilePrefix() {
+        com.tencent.bk.job.file_gateway.validate.ValidFileSourceInfo.Validator validator =
+            new com.tencent.bk.job.file_gateway.validate.ValidFileSourceInfo.Validator();
+
+        com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq webReq =
+            new com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq();
+        webReq.setFileSourceTypeCode(FileSourceTypeEnum.BLUEKING_ARTIFACTORY.name());
+        Map<String, Object> infoMap = new HashMap<>();
+        infoMap.put(FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL, "http://bkrepo.example.com");
+        webReq.setFileSourceInfoMap(infoMap);
+
+        webReq.setFilePrefix("../../etc/cron.d/x");
+        assertThat(validator.isValid(webReq, null)).isFalse();
+
+        webReq.setFilePrefix("${UUID}");
+        assertThat(validator.isValid(webReq, null)).isTrue();
+
+        webReq.setFilePrefix("custom_prefix-1");
+        assertThat(validator.isValid(webReq, null)).isTrue();
+
+        com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req esbReq =
+            new com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req();
+        esbReq.setType(FileSourceTypeEnum.BLUEKING_ARTIFACTORY.name());
+        esbReq.setAccessParams(infoMap);
+
+        esbReq.setFilePrefix("../outside_");
+        assertThat(validator.isValid(esbReq, null)).isFalse();
+
+        esbReq.setFilePrefix("safe_prefix");
+        assertThat(validator.isValid(esbReq, null)).isTrue();
+    }
+
+    @Test
     @DisplayName("写入白名单的制品库根地址必须是合法 http(s) URL")
     void shouldValidateWhiteBaseUrlFormat() {
         FileSourceValidateServiceImpl service = buildService(ENV_BASE_URL);
