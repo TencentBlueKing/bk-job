@@ -246,12 +246,11 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @Override
     public Response<List<ScriptVO>> listScriptVersion(String username,
                                                       String scriptId) {
-        // 鉴权
-        AuthResult manageAuthResult = noResourceScopeAuthService.authManagePublicScript(username, scriptId);
-
         List<ScriptDTO> scripts = publicScriptService.listScriptVersion(scriptId);
         List<ScriptVO> resultVOS = new ArrayList<>();
         if (scripts != null && !scripts.isEmpty()) {
+            // 鉴权
+            AuthResult manageAuthResult = noResourceScopeAuthService.authManagePublicScript(username, scriptId);
             for (ScriptDTO scriptDTO : scripts) {
                 ScriptVO scriptVO = ScriptConverter.convertToScriptVO(scriptDTO);
                 scriptVO.setCanView(true);
