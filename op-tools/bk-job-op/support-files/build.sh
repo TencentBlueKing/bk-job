@@ -18,8 +18,11 @@ PUSH_IMAGE=false
 USERNAME=""
 PASSWORD=""
 MAVEN_REPO=""
+SKIP_FRONTEND=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# 后端Gradle工程位于 src/backend，与 src/frontend 并列
+BACKEND_DIR="${PROJECT_ROOT}/src/backend"
 BUILD_TEMP_DIR="${SCRIPT_DIR}/docker-build"
 
 # 颜色输出
@@ -48,17 +51,17 @@ show_help() {
 
 选项:
   -t, --tag TAG        指定镜像版本标签 (必需，例如: 1.0.0)
-  -r, --registry REG   指定镜像仓库地址 (必需，例如: mirrors.com/bk-job)
+  -r, --registry REG   指定镜像仓库地址 (必需，例如: registry.example.com/bk-job)
   -u, --username USER  镜像仓库用户名 (推送时需要)
   -w, --password PASS  镜像仓库密码 (推送时需要)
-  -m, --maven-repo URL 指定Maven仓库地址 (例如: https://maven.example.com/repository/public/)
+  -m, --maven-repo URL 指定Maven仓库地址，多个地址用逗号分隔 (例如: https://maven.example.com/repository/public/)
   -p, --push           构建后推送到镜像仓库
+      --skip-frontend  跳过OP Web前端构建 (镜像中不包含Web页面，仅调试后端时使用)
   -h, --help           显示帮助信息
 
 示例:
-  ./build.sh -r mirrors.com/bk-job -t 1.0.0
-  ./build.sh -r mirrors.com/bk-job -t 1.0.0 -u admin -w password123 -p
-  ./build.sh -r mirrors.com/bk-job -t 1.0.0 -m https://maven.example.com/repository/public/
+  ./build.sh -r registry.example.com/bk-job -t 1.0.0
+  ./build.sh -r registry.example.com/bk-job -t 1.0.0 -m https://maven.example.com/repository/public/
 
 EOF
 }
@@ -87,6 +90,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -p|--push)
             PUSH_IMAGE=true
+            shift
+            ;;
+        --skip-frontend)
+            SKIP_FRONTEND=true
             shift
             ;;
         -h|--help)
@@ -122,12 +129,13 @@ log_info "=========================================="
 log_info "开始构建 bk-job-op Docker镜像"
 log_info "=========================================="
 log_info "项目目录: ${PROJECT_ROOT}"
+log_info "后端目录: ${BACKEND_DIR}"
 log_info "镜像名称: ${FULL_IMAGE_NAME}"
 log_info "构建时间: $(date '+%Y-%m-%d %H:%M:%S')"
 log_info "=========================================="
 
-# 切换到项目根目录
-cd "${PROJECT_ROOT}"
+# 切换到后端工程目录
+cd "${BACKEND_DIR}"
 
 # 清理旧的临时构建目录
 if [ -d "${BUILD_TEMP_DIR}" ]; then
@@ -141,8 +149,8 @@ mkdir -p "${BUILD_TEMP_DIR}"
 
 # 使用 Gradle 编译项目
 log_info "开始编译项目..."
-if [ -f "${PROJECT_ROOT}/gradlew" ]; then
-    chmod +x "${PROJECT_ROOT}/gradlew"
+if [ -f "${BACKEND_DIR}/gradlew" ]; then
+    chmod +x "${BACKEND_DIR}/gradlew"
     
     # 构建Gradle命令参数
     GRADLE_ARGS="clean build -x test"
@@ -150,17 +158,25 @@ if [ -f "${PROJECT_ROOT}/gradlew" ]; then
     # 如果指定了Maven仓库，添加仓库配置
     if [ -n "$MAVEN_REPO" ]; then
         log_info "使用自定义Maven仓库: ${MAVEN_REPO}"
-        GRADLE_ARGS="${GRADLE_ARGS} -PmavenRepoUrl=${MAVEN_REPO}"
+        GRADLE_ARGS="${GRADLE_ARGS} -DmavenRepoUrl=${MAVEN_REPO}"
     fi
-    
-    "${PROJECT_ROOT}/gradlew" ${GRADLE_ARGS}
+
+    # 前端构建开关
+    if [ "$SKIP_FRONTEND" = true ]; then
+        log_warn "已跳过前端构建，产出的镜像不包含OP Web页面"
+        GRADLE_ARGS="${GRADLE_ARGS} -PskipFrontend"
+    else
+        log_info "将同时构建前端（首次构建会下载Node与npm依赖，耗时较长）"
+    fi
+
+    "${BACKEND_DIR}/gradlew" ${GRADLE_ARGS}
 else
     log_error "找不到 gradlew 文件"
     exit 1
 fi
 
 # 查找编译产物
-JAR_FILE=$(find "${PROJECT_ROOT}/build/libs" -name "*.jar" -type f | grep -v "plain" | head -n 1)
+JAR_FILE=$(find "${BACKEND_DIR}/build/libs" -name "*.jar" -type f | grep -v "plain" | head -n 1)
 if [ -z "$JAR_FILE" ]; then
     log_error "找不到编译产物 JAR 文件"
     exit 1

@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.manage.api.common.ExecuteAccountVariableValidator;
 import com.tencent.bk.job.manage.api.common.constants.TemplateTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.api.web.WebTaskTemplateResource;
@@ -86,6 +87,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     private final TaskTemplateAuthService taskTemplateAuthService;
     private final TagService tagService;
     private final TemplateAuthService templateAuthService;
+    private final ExecuteAccountVariableValidator executeAccountVariableValidator;
 
     @Autowired
     public WebTaskTemplateResourceImpl(
@@ -93,12 +95,14 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         TaskTemplateAuthService taskTemplateAuthService,
         TagService tagService,
-        TemplateAuthService templateAuthService) {
+        TemplateAuthService templateAuthService,
+        ExecuteAccountVariableValidator executeAccountVariableValidator) {
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.templateAuthService = templateAuthService;
         this.taskTemplateAuthService = taskTemplateAuthService;
         this.tagService = tagService;
+        this.executeAccountVariableValidator = executeAccountVariableValidator;
     }
 
     @Override
@@ -253,9 +257,11 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                    @AuditRequestBody TaskTemplateCreateUpdateReq request) {
 
         request.validate();
+        TaskTemplateInfoDTO templateInfo = TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(), request);
+        executeAccountVariableValidator.validate(appResourceScope.getAppId(), templateInfo.getStepList(),
+            templateInfo.getVariableList());
         User user = JobContextUtil.getUser();
-        TaskTemplateInfoDTO createdTemplate = templateService.saveTaskTemplate(user,
-            TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(), request));
+        TaskTemplateInfoDTO createdTemplate = templateService.saveTaskTemplate(user, templateInfo);
         return Response.buildSuccessResp(TaskTemplateInfoDTO.toVO(createdTemplate));
     }
 
@@ -291,10 +297,13 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                    @AuditRequestBody TaskTemplateCreateUpdateReq request) {
         request.setId(templateId);
         request.validate();
+        TaskTemplateInfoDTO templateInfo = TaskTemplateInfoDTO.fromReq(username,
+            appResourceScope.getAppId(), request);
+        executeAccountVariableValidator.validate(appResourceScope.getAppId(), templateInfo.getStepList(),
+            templateInfo.getVariableList());
 
         User user = JobContextUtil.getUser();
-        TaskTemplateInfoDTO updatedTemplate = templateService.updateTaskTemplate(
-            user, TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(), request));
+        TaskTemplateInfoDTO updatedTemplate = templateService.updateTaskTemplate(user, templateInfo);
 
         return Response.buildSuccessResp(TaskTemplateInfoDTO.toVO(updatedTemplate));
     }
@@ -421,4 +430,5 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
         return ValidateResult.pass();
     }
+
 }

@@ -85,6 +85,8 @@ public class ErrorCode {
     public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
     // 未知的CMSI渠道: {0}
     public static final int CMSI_UNKNOWN_CHANNEL = 1213005;
+    // 通知渠道中不存在有效的消息接收人：{0}
+    public static final int CMSI_NO_VALID_RECEIVER = 1213006;
 
     // 制品库异常
     // Artifactory接口返回数据结构异常
@@ -203,6 +205,7 @@ public class ErrorCode {
     // 尚未支持的功能
     public static final int NOT_SUPPORT_FEATURE = 1241011;
 
+    // 请求参数不合法，原因：{0}
     public static final int ILLEGAL_PARAM_WITH_REASON = 1241012;
     // 该功能暂不支持，支持的资源范围：{0}，当前资源范围：{1}
     public static final int NOT_SUPPORT_FEATURE_FOR_RESOURCE_SCOPE = 1241013;
@@ -455,6 +458,20 @@ public class ErrorCode {
     public static final int DELETE_CRON_FAILED = 1245008;
     // 保存定时任务(id={0})自定义消息通知策略失败
     public static final int SAVE_CRON_CUSTOM_NOTIFY_FAILED = 1245009;
+    // 定时任务提前通知时间已失效（结束前通知，Web 保存校验）
+    public static final int CRON_JOB_END_NOTIFY_TIME_ALREADY_PASSED = 1245010;
+    // 定时任务提前通知时间已失效（执行前通知，Web 保存校验）
+    public static final int CRON_JOB_EXECUTE_NOTIFY_TIME_ALREADY_PASSED = 1245011;
+    // 定时任务配置了提前通知，请指定通知人或通知角色
+    public static final int CRON_JOB_NOTIFY_USER_EMPTY = 1245012;
+    // 定时任务配置了提前通知，请指定通知渠道
+    public static final int CRON_JOB_NOTIFY_CHANNEL_EMPTY = 1245013;
+    // 定时任务必须指定有效的执行方案或脚本
+    public static final int CRON_JOB_PLAN_OR_SCRIPT_INVALID = 1245014;
+    // 定时任务cron表达式不正确
+    public static final int CRON_JOB_CRON_EXPRESSION_INVALID = 1245015;
+    // 定时任务必须指定cron表达式，或指定晚于当前时间的执行时间
+    public static final int CRON_JOB_EXECUTE_TIME_CONFIG_INVALID = 1245016;
     // 定时作业 end
 
     // 日志服务

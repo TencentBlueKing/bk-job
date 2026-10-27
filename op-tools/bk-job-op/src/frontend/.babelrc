@@ -1,0 +1,22 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "loose": false,
+        "useBuiltIns": "usage",
+        "corejs": {
+          "version": 3
+        }
+      }
+    ]
+  ],
+  "plugins": [
+    [
+      "import-bk-magic-vue",
+      {
+        "baseLibName": "bk-magic-vue"
+      }
+    ]
+  ]
+}

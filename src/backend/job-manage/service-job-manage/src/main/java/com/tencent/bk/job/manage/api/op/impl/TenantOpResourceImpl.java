@@ -25,22 +25,12 @@
 package com.tencent.bk.job.manage.api.op.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.redis.util.DistributedUniqueTask;
-import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.api.op.TenantOpResource;
-import com.tencent.bk.job.manage.background.ha.BackGroundTaskDaemon;
-import com.tencent.bk.job.manage.background.sync.BizSetSyncService;
-import com.tencent.bk.job.manage.background.sync.BizSyncService;
-import com.tencent.bk.job.manage.background.sync.tenantset.ITenantSetSyncService;
-import com.tencent.bk.job.manage.background.sync.TenantHostSyncService;
 import com.tencent.bk.job.manage.model.op.req.InitTenantReq;
-import com.tencent.bk.job.manage.service.impl.notify.NotifyChannelInitService;
+import com.tencent.bk.job.manage.service.TenantInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -49,49 +39,19 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 public class TenantOpResourceImpl implements TenantOpResource {
-    private static final String machineIp = IpUtils.getFirstMachineIP();
-    private static final String REDIS_KEY_INIT_TENANT_PREFIX = "initTenant-";
-    private final RedisTemplate<String, String> redisTemplate;
-    private final BizSyncService bizSyncService;
-    private final BizSetSyncService bizSetSyncService;
-    private final ITenantSetSyncService tenantSetSyncService;
-    private final TenantHostSyncService tenantHostSyncService;
-    private final NotifyChannelInitService notifyChannelInitService;
-    private final BackGroundTaskDaemon backGroundTaskDaemon;
 
+    private final TenantInitService tenantInitService;
 
     @Autowired
-    public TenantOpResourceImpl(RedisTemplate<String, String> redisTemplate,
-                                BizSyncService bizSyncService,
-                                BizSetSyncService bizSetSyncService,
-                                ITenantSetSyncService tenantSetSyncService,
-                                TenantHostSyncService tenantHostSyncService,
-                                NotifyChannelInitService notifyChannelInitService,
-                                BackGroundTaskDaemon backGroundTaskDaemon) {
-        this.redisTemplate = redisTemplate;
-        this.bizSyncService = bizSyncService;
-        this.bizSetSyncService = bizSetSyncService;
-        this.tenantSetSyncService = tenantSetSyncService;
-        this.tenantHostSyncService = tenantHostSyncService;
-        this.notifyChannelInitService = notifyChannelInitService;
-        this.backGroundTaskDaemon = backGroundTaskDaemon;
+    public TenantOpResourceImpl(TenantInitService tenantInitService) {
+        this.tenantInitService = tenantInitService;
     }
 
     @Override
     public Response<Object> initTenant(InitTenantReq req) {
         String tenantId = req.getTenantId();
-        log.info("initTenantTask(tenantId={}) start", tenantId);
-        StopWatch watch = new StopWatch();
-        Object taskResult = false;
         try {
-            // 分布式唯一性保证
-            taskResult = new DistributedUniqueTask<>(
-                redisTemplate,
-                "InitTenant-" + tenantId,
-                REDIS_KEY_INIT_TENANT_PREFIX + tenantId,
-                machineIp,
-                () -> doInitTenant(tenantId, watch)
-            ).execute();
+            Boolean taskResult = tenantInitService.initTenant(tenantId);
             if (taskResult == null) {
                 // 任务已在其他实例执行
                 return Response.buildCommonFailResp(ErrorCode.INIT_TENANT_TASK_ALREADY_RUNNING, new String[]{tenantId});
@@ -100,48 +60,6 @@ public class TenantOpResourceImpl implements TenantOpResource {
         } catch (Exception e) {
             log.error("initTenantTask failed", e);
             return Response.buildCommonFailResp(ErrorCode.INIT_TENANT_ERROR, new String[]{tenantId});
-        } finally {
-            if (watch.isRunning()) {
-                watch.stop();
-            }
-            if (taskResult != null) {
-                log.info("initTenantTask finished, timeConsuming={}", watch.prettyPrint());
-            }
         }
-    }
-
-    private Object doInitTenant(String tenantId, StopWatch watch) {
-        // 1.同步业务
-        watch.start("syncBizFromCMDB");
-        bizSyncService.syncBizFromCMDB(tenantId);
-        watch.stop();
-
-        // 2.同步业务集
-        watch.start("syncBizSetFromCMDB");
-        bizSetSyncService.syncBizSetFromCMDB(tenantId);
-        watch.stop();
-
-        // 3.同步租户集
-        watch.start("syncTenantSetFromCMDB");
-        tenantSetSyncService.syncTenantSetFromCMDB();
-        watch.stop();
-
-        // 4.同步租户下所有业务的主机
-        watch.start("syncAllBizHostsAtOnce");
-        tenantHostSyncService.syncAllBizHostsAtOnce(tenantId);
-        watch.stop();
-
-        // 5.启动该租户下的CMDB事件监听后台任务
-        watch.start("checkAndResumeTaskForTenant");
-        backGroundTaskDaemon.checkAndResumeTaskForTenant(tenantId);
-        watch.stop();
-
-        // 6.启用默认消息渠道
-        if (!TenantIdConstants.SYSTEM_TENANT_ID.equals(tenantId)) {
-            // system租户初始化时，CMSI不可以，后续采用懒加载
-            notifyChannelInitService.tryToInitDefaultNotifyChannelsWithSingleTenant(tenantId);
-        }
-
-        return true;
     }
 }

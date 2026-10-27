@@ -87,7 +87,12 @@
         {{ stepInfo.ignoreErrorText }}
       </detail-item>
       <detail-item :label="$t('template.执行账号：')">
-        {{ executeAccountText }}
+        <render-execute-account
+          :account-id="stepInfo.account"
+          :account-list="account"
+          :account-var="stepInfo.accountVar"
+          :all-variables="allVariables"
+          theme="blue" />
       </detail-item>
     </div>
     <detail-item
@@ -125,6 +130,7 @@
   import DetailItem from '@components/detail-layout/item';
   import JbEditTextarea from '@components/jb-edit/textarea';
   import MonacoEditor from '@components/monaco-editor';
+  import RenderExecuteAccount from '@components/render-execute-account';
 
   import RenderGlobalVariable from './components/render-global-variable';
   import SyncScriptVersionDiff from './components/sync-script-version-diff';
@@ -136,6 +142,7 @@
       DetailItem,
       JbEditTextarea,
       RenderGlobalVariable,
+      RenderExecuteAccount,
       SyncScriptVersionDiff,
     },
     props: {
@@ -147,11 +154,15 @@
         type: Array,
         default: () => [],
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     data() {
       return {
         stepInfo: {},
-        executeAccountText: '',
+        account: [],
         language: '',
         scriptName: '',
         scriptInfo: {},
@@ -203,12 +214,7 @@
         this.requestQueue.push(true);
         AccountManageService.fetchAccountWhole()
           .then((data) => {
-            const accountData = data.find(item => item.id === this.stepInfo.account);
-            if (accountData) {
-              this.executeAccountText = accountData.alias;
-            } else {
-              this.executeAccountText = '--';
-            }
+            this.account = data
           })
           .finally(() => {
             this.requestQueue.pop();

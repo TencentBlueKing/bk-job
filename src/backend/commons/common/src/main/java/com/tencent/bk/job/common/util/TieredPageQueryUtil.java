@@ -611,7 +611,7 @@ public class TieredPageQueryUtil {
      * 相比阻塞式 future.get()，非阻塞轮询能更快地发现任意位置的子任务异常，
      * 不会因为前面的 Future 仍在执行而阻塞对后面已失败 Future 的检测。
      */
-    private static final int POLL_INTERVAL_SECONDS = 2;
+    private static final long POLL_INTERVAL_MILLIS = 500L;
 
     private static void waitForFutures(List<Future<?>> futures,
                                        String tierName) {
@@ -644,7 +644,7 @@ public class TieredPageQueryUtil {
             }
             // 等待一个轮询间隔后再次扫描
             try {
-                TimeUnit.SECONDS.sleep(POLL_INTERVAL_SECONDS);
+                TimeUnit.MILLISECONDS.sleep(POLL_INTERVAL_MILLIS);
             } catch (InterruptedException e) {
                 log.warn("[{}] Interrupted while polling futures", tierName, e);
                 Thread.currentThread().interrupt();

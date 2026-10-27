@@ -106,11 +106,45 @@
         <td>--</td>
       </template>
       <td>
-        <account-select
-          class="account-add-btn"
-          type="system"
-          :value="serverFile.account"
-          @change="handleAccountChange" />
+        <div class="account-edit-box">
+          <bk-select
+            class="account-type-select"
+            :clearable="false"
+            ext-popover-cls="server-file-popover-class"
+            :popover-width="$i18n.locale === 'en-US' ? 130 : 85"
+            style="width: 78px;"
+            :value="accountType"
+            @change="handleAccountTypeChange">
+            <bk-option
+              id="globalVar"
+              :name="$t('全局变量')" />
+            <bk-option
+              id="manualAddition"
+              :name="$t('手动添加')" />
+          </bk-select>
+          <template v-if="accountType === 'globalVar'">
+            <bk-select
+              class="account-add-variable variable-edit-select"
+              :clearable="false"
+              :placeholder="$t('请选择执行账号变量')"
+              searchable
+              :value="serverFile.accountVar"
+              @change="handleAccountVariableChange">
+              <bk-option
+                v-for="(option, index) in accountVariable"
+                :id="option.name"
+                :key="index"
+                :name="option.name" />
+            </bk-select>
+          </template>
+          <template v-else>
+            <account-select
+              class="account-add-btn-var"
+              type="system"
+              :value="serverFile.account"
+              @change="handleAccountChange" />
+          </template>
+        </div>
       </td>
       <td>
         <bk-button
@@ -174,6 +208,10 @@
         type: Array,
         required: true,
       },
+      scriptVariables: {
+        type: Array,
+        default: () => [],
+      },
     },
     data() {
       return {
@@ -181,9 +219,16 @@
         // 服务器文件列表为空时，默认显示
         hasSaved: this.data.length > 0,
         sourceFileType: 'globalVar',
+        // 账号来源：globalVar 全局变量｜manualAddition 指定账号
+        accountType: 'manualAddition',
         serverFile: new SourceFileVO(generatorDefault()),
         reset: 0,
       };
+    },
+    computed: {
+      accountVariable() {
+        return this.scriptVariables.filter(item => !item.delete && item.isAccount);
+      },
     },
     created() {
       if (this.variable.length > 0) {
@@ -192,6 +237,14 @@
         window.changeFlag = false;
         // 设置默认数据，需要取消服务器文件的编辑状态
         this.editNewSourceFile(false);
+      }
+      // 已存在账号全局变量时默认切换到全局变量
+      if (this.serverFile.accountVar) {
+        this.accountType = 'globalVar';
+        this.serverFile.account = '';
+      } else if (this.serverFile.account) {
+        this.accountType = 'manualAddition';
+        this.serverFile.accountVar = '';
       }
     },
     methods: {
@@ -275,6 +328,39 @@
         }
       },
       /**
+       * @desc 账号来源切换（全局变量/指定账号）
+       * @param {String} type 账号来源类型
+       */
+      handleAccountTypeChange(type) {
+        this.accountType = type;
+        if (type === 'globalVar') {
+          this.serverFile.account = '';
+        } else {
+          this.serverFile.accountVar = '';
+        }
+        const formItem = findParent(this, 'JbFormItem');
+        if (formItem) {
+          setTimeout(() => {
+            formItem.clearValidator();
+          });
+        }
+      },
+      /**
+       * @desc 账号来源为全局变量时更新选择的账号变量
+       * @param {String} variable 账号全局变量名
+       */
+      handleAccountVariableChange(variable) {
+        this.serverFile.accountVar = variable;
+        window.changeFlag = true;
+        this.editNewSourceFile(true);
+        const formItem = findParent(this, 'JbFormItem');
+        if (formItem) {
+          setTimeout(() => {
+            formItem.clearValidator();
+          });
+        }
+      },
+      /**
        * @desc 添加一个服务器文件
        */
       handleAddNew() {
@@ -284,6 +370,12 @@
        * @desc 保存添加的服务器文件
        */
       handlerSave() {
+        // account 与 accountVar 互斥，只向后端传递当前生效的那一个
+        if (this.accountType === 'globalVar') {
+          this.serverFile.account = '';
+        } else {
+          this.serverFile.accountVar = '';
+        }
         this.$emit('on-change', this.serverFile);
         this.handlerCancel();
       },
@@ -294,6 +386,7 @@
         this.$emit('on-cancel');
         this.serverFile = generatorDefault();
         this.sourceFileType = 'globalVar';
+        this.accountType = 'manualAddition';
         this.$refs.ipSelector.resetValue();
         this.reset += 1;
         this.hasSaved = true;
@@ -304,3 +397,44 @@
     },
   };
 </script>
+<style lang="postcss">
+  .account-edit-box {
+    display: flex;
+    height: 30px;
+    margin-left: -10px;
+    font-size: 12px;
+    cursor: pointer;
+    background: #f7f8fa;
+    border-radius: 2px;
+    align-items: center;
+
+    &:hover {
+      background: #f0f1f5;
+    }
+
+    .account-type-select {
+      flex: 0 0 auto;
+    }
+
+    .line {
+      height: 16px;
+      background: #dcdee5;
+      flex: 0 0 1px;
+    }
+
+    .account-add-variable,
+    .account-add-btn-var {
+      flex: 1;
+    }
+
+    .account-add-btn-var {
+      margin-left: 0;
+
+      :deep(.bk-select) {
+        width: 100%;
+        background: transparent;
+        border: none;
+      }
+    }
+  }
+</style>

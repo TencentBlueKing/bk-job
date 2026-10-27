@@ -155,6 +155,15 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
+    public Map<Long, ScriptDTO> batchGetScriptVersionsByIds(Collection<Long> scriptVersionIds) {
+        if (CollectionUtils.isEmpty(scriptVersionIds)) {
+            return Collections.emptyMap();
+        }
+        return scriptDAO.batchGetScriptVersionsByIds(scriptVersionIds).stream()
+            .collect(Collectors.toMap(ScriptDTO::getScriptVersionId, script -> script, (first, second) -> first));
+    }
+
+    @Override
     public ScriptDTO getScript(Long appId, String scriptId) {
         ScriptDTO script = scriptDAO.getScriptByScriptId(scriptId);
         checkScriptInApp(appId, script);
@@ -343,6 +352,10 @@ public class ScriptManagerImpl implements ScriptManager {
         if (scriptVersionToBeUpdate == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
+        if (StringUtils.isNotBlank(scriptVersion.getId())
+            && !scriptVersionToBeUpdate.getId().equals(scriptVersion.getId())) {
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
+        }
         if (!scriptVersionToBeUpdate.getStatus().equals(JobResourceStatusEnum.DRAFT.getValue())) {
             log.warn("Script status is not draft, can not update.scriptVersionId={}",
                 scriptVersion.getScriptVersionId());
@@ -399,16 +412,7 @@ public class ScriptManagerImpl implements ScriptManager {
         Long appId,
         ScriptDTO existScript
     ) {
-        if (existScript == null) {
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-        }
-        long targetAppId = appId;
-        if (existScript.isPublicScript()) {
-            targetAppId = PUBLIC_APP_ID;
-        }
-        if (!existScript.getAppId().equals(targetAppId)) {
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
-        }
+        checkScriptInApp(appId, existScript);
     }
 
     @Override
@@ -423,17 +427,11 @@ public class ScriptManagerImpl implements ScriptManager {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
-        boolean isPublicScript = scriptVersions.get(0).isPublicScript();
-        long targetAppId = appId;
-        if (isPublicScript) {
-            targetAppId = PUBLIC_APP_ID;
-        }
-
         boolean isScriptVersionInCurrentScript = false;
         ScriptDTO scriptVersionToBePublished = null;
         for (ScriptDTO scriptVersion : scriptVersions) {
-            if (!isPublicScript && !scriptVersion.getAppId().equals(targetAppId)) {
-                log.warn("Publish script, script:{} is not in current app:{}", scriptId, targetAppId);
+            if (!scriptVersion.getAppId().equals(appId)) {
+                log.warn("Publish script, script:{} is not in current app:{}", scriptId, appId);
                 throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
             }
             if (scriptVersion.getScriptVersionId().equals(scriptVersionId)) {
@@ -483,17 +481,11 @@ public class ScriptManagerImpl implements ScriptManager {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
-        boolean isPublicScript = scriptVersions.get(0).isPublicScript();
-        long targetAppId = appId;
-        if (isPublicScript) {
-            targetAppId = PUBLIC_APP_ID;
-        }
-
         boolean isScriptVersionInCurrentScript = false;
         ScriptDTO scriptVersionToBeDisabled = null;
         for (ScriptDTO scriptVersion : scriptVersions) {
-            if (!scriptVersion.getAppId().equals(targetAppId)) {
-                log.warn("Disable script, script:{} is not in current app:{}", scriptId, targetAppId);
+            if (!scriptVersion.getAppId().equals(appId)) {
+                log.warn("Disable script, script:{} is not in current app:{}", scriptId, appId);
                 throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
             }
             if (scriptVersion.getScriptVersionId().equals(scriptVersionId)) {
@@ -543,11 +535,9 @@ public class ScriptManagerImpl implements ScriptManager {
         if (script == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
-        if (!script.isPublicScript()) {
-            if (!script.getAppId().equals(appId)) {
-                log.warn("Script:{} is not in current app:{}", script.getId(), appId);
-                throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
-            }
+        if (!script.getAppId().equals(appId)) {
+            log.warn("Script:{} is not in current app:{}", script.getId(), appId);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
         }
     }
 
@@ -560,11 +550,7 @@ public class ScriptManagerImpl implements ScriptManager {
         if (script.getName().equals(newName)) {
             return script;
         }
-        long targetAppId = appId;
-        if (script.isPublicScript()) {
-            targetAppId = PUBLIC_APP_ID;
-        }
-        boolean isNameExist = scriptDAO.isExistDuplicateName(operator.getTenantId(), targetAppId, newName);
+        boolean isNameExist = scriptDAO.isExistDuplicateName(operator.getTenantId(), appId, newName);
         if (isNameExist) {
             log.warn("Update script name, script:{} new name {} is duplicate", scriptId, newName);
             throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
@@ -582,11 +568,7 @@ public class ScriptManagerImpl implements ScriptManager {
             tags);
         ScriptDTO script = scriptDAO.getScriptByScriptId(scriptId);
         checkScriptInApp(appId, script);
-        long targetAppId = appId;
-        if (script.isPublicScript()) {
-            targetAppId = PUBLIC_APP_ID;
-        }
-        saveScriptTags(operator, targetAppId, scriptId, tags);
+        saveScriptTags(operator, appId, scriptId, tags);
 
         script.setTags(tags);
         return script;

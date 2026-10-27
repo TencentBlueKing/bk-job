@@ -164,7 +164,10 @@
         const editVariable = variableList[index];
         if (editVariable.id > 0) {
           // 删除已存在的变量——设置delete
-          editVariable.delete = 1;
+          variableList.splice(index, 1, new GlobalVariableModel({
+            ...editVariable,
+            delete: 1,
+          }));
         } else {
           // 删除新建的变量——直接删除
           variableList.splice(index, 1);

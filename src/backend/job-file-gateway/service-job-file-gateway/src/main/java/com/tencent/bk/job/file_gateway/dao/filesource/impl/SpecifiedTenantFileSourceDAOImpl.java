@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.dao.filesource.impl;
 
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceShareDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.SpecifiedTenantFileSourceDAO;
@@ -48,6 +49,11 @@ import java.util.Set;
 @Repository
 public class SpecifiedTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl implements SpecifiedTenantFileSourceDAO {
 
+    /**
+     * IN 条件单批的 ID 数量。取 2000 与仓库既有实践一致，实测该规模下性能最好。
+     */
+    private static final int MAX_IN_CLAUSE_SIZE = 2000;
+
     private final DSLContext dslContext;
 
     @Autowired
@@ -63,12 +69,16 @@ public class SpecifiedTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl impl
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
         }
-        val records = dslContext.select(BASIC_INFO_FIELDS)
-            .from(defaultTable)
-            .where(defaultTable.TENANT_ID.eq(tenantId))
-            .and(defaultTable.ID.in(ids))
-            .fetch();
-        return records.map(this::convertRecordToBasicInfoDto);
+        List<FileSourceBasicInfoDTO> result = new ArrayList<>(ids.size());
+        for (List<Integer> idBatch : CollectionUtil.partitionCollection(ids, MAX_IN_CLAUSE_SIZE)) {
+            val records = dslContext.select(BASIC_INFO_FIELDS)
+                .from(defaultTable)
+                .where(defaultTable.TENANT_ID.eq(tenantId))
+                .and(defaultTable.ID.in(idBatch))
+                .fetch();
+            result.addAll(records.map(this::convertRecordToBasicInfoDto));
+        }
+        return result;
     }
 
     @Override
@@ -76,17 +86,21 @@ public class SpecifiedTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl impl
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptySet();
         }
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(defaultTable.TENANT_ID.eq(tenantId));
-        conditions.add(defaultTable.ID.in(ids));
-        conditions.add(genAppScopeCondition(appId));
-        val records = dslContext.selectDistinct(defaultTable.ID)
-            .from(defaultTable)
-            .join(tableFileSourceShare)
-            .on(defaultTable.ID.eq(tableFileSourceShare.FILE_SOURCE_ID))
-            .where(conditions)
-            .fetch();
-        return new HashSet<>(records.map(record -> record.get(defaultTable.ID)));
+        Set<Integer> result = new HashSet<>();
+        for (List<Integer> idBatch : CollectionUtil.partitionCollection(ids, MAX_IN_CLAUSE_SIZE)) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(defaultTable.TENANT_ID.eq(tenantId));
+            conditions.add(defaultTable.ID.in(idBatch));
+            conditions.add(genAppScopeCondition(appId));
+            val records = dslContext.selectDistinct(defaultTable.ID)
+                .from(defaultTable)
+                .join(tableFileSourceShare)
+                .on(defaultTable.ID.eq(tableFileSourceShare.FILE_SOURCE_ID))
+                .where(conditions)
+                .fetch();
+            result.addAll(records.map(record -> record.get(defaultTable.ID)));
+        }
+        return result;
     }
 
 }

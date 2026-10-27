@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
+import com.tencent.bk.job.common.cc.model.req.KubeContainerQueryReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
@@ -342,6 +343,14 @@ public class RetryableBizCmdbClient implements IBizCmdbClient {
         return retryExecutor.executeWithRetry(
             () -> delegate.listKubeContainerByUIds(bizId, containerUIds),
             "listKubeContainerByUIds"
+        );
+    }
+
+    @Override
+    public PageData<ContainerDetailDTO> listKubeContainerByCondition(KubeContainerQueryReq req) {
+        return retryExecutor.executeWithRetry(
+            () -> delegate.listKubeContainerByCondition(req),
+            "listKubeContainerByCondition"
         );
     }
 }

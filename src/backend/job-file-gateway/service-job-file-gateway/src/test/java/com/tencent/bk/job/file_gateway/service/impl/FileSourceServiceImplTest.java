@@ -362,4 +362,28 @@ class FileSourceServiceImplTest {
         verify(fileSourceValidateService, times(1))
             .checkFileSource(FileSourceTypeEnum.BLUEKING_ARTIFACTORY.name(), fileSourceInfoMap);
     }
+
+    @Test
+    @DisplayName("save/update：filePrefix 非法时应拒绝且不写库")
+    void saveAndUpdateWithIllegalFilePrefixShouldBeRejected() {
+        User user = mockUser();
+        givenFileSourceCreatePermission();
+        givenFileSourceManagePermission();
+        doThrow(new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"filePrefix"}))
+            .when(fileSourceValidateService).checkFilePrefix(eq("../../etc/cron.d/x"));
+
+        FileSourceDTO toSave = buildFileSourceDTO(null, null);
+        toSave.setFilePrefix("../../etc/cron.d/x");
+
+        assertThatThrownBy(() -> fileSourceService.saveFileSource(user, APP_ID, toSave))
+            .isInstanceOf(InvalidParamException.class);
+        verify(currentTenantFileSourceDAO, never()).insertFileSource(any(FileSourceDTO.class));
+
+        FileSourceDTO toUpdate = buildFileSourceDTO(null, FILE_SOURCE_ID);
+        toUpdate.setFilePrefix("../../etc/cron.d/x");
+
+        assertThatThrownBy(() -> fileSourceService.updateFileSourceById(user, APP_ID, toUpdate))
+            .isInstanceOf(InvalidParamException.class);
+        verify(currentTenantFileSourceDAO, never()).updateFileSource(any(FileSourceDTO.class));
+    }
 }

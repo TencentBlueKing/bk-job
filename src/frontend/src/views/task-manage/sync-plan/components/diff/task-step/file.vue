@@ -58,13 +58,14 @@
       <file-source
         :id="id"
         :account="account"
-        :data="data.originFileList" />
+        :all-variables="allVariables"
+        :data="data.fileSourceList" />
     </div>
     <div
       class="row"
-      :class="diff.destinationFileLocation">
+      :class="diff.destinationPath">
       <span class="label">{{ $t('template.目标路径：') }}</span>
-      <span class="value">{{ data.destinationFileLocation }}</span>
+      <span class="value">{{ data.fileDestination.path }}</span>
     </div>
     <div
       class="row"
@@ -73,20 +74,27 @@
       <span class="value">{{ data.transferModeText }}</span>
     </div>
     <div
-      class="row"
-      :class="diff.executeAccount">
+      class="row">
       <span class="label">{{ $t('template.执行账号：') }}</span>
-      <span class="value">{{ findName(data.executeAccount) }}</span>
+      <render-execute-account
+        :account-id="data.fileDestination.account"
+        :account-list="account"
+        :account-var="data.fileDestination.accountVar"
+        :all-variables="allVariables"
+        :highlight="diff.destinationAccount === 'changed'"
+        theme="gray" />
     </div>
     <div
       class="row"
-      :class="diff.destination">
+      :class="diff.destinationServer">
       <span class="label">{{ $t('template.执行目标：') }}</span>
       <file-execute-target />
     </div>
   </div>
 </template>
 <script>
+  import RenderExecuteAccount from '@components/render-execute-account';
+
   import FileExecuteTarget from './components/file-execute-target';
   import FileSource from './components/file-source';
 
@@ -95,6 +103,7 @@
     components: {
       FileSource,
       FileExecuteTarget,
+      RenderExecuteAccount,
     },
     props: {
       id: {
@@ -113,15 +122,10 @@
         type: Array,
         default: () => [],
       },
-    },
-    methods: {
-      findName(accountId) {
-        const account = this.account.find(_ => _.id === accountId);
-        if (!account) {
-          return '-';
-        }
-        return account.alias;
-      },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
   };
 </script>

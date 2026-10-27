@@ -65,6 +65,10 @@ public class FileStepInstanceDTO {
      */
     private String account;
     /**
+     * 执行账号全局变量名
+     */
+    private String accountVar;
+    /**
      * 上传文件限速，单位KB
      */
     private Integer fileUploadSpeedLimit;

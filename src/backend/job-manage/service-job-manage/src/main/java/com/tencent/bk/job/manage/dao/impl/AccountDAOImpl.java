@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -36,11 +37,14 @@ import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
 import com.tencent.bk.job.manage.model.tables.Account;
 import com.tencent.bk.job.manage.model.tables.Application;
+import com.tencent.bk.job.manage.model.tables.TaskPlan;
+import com.tencent.bk.job.manage.model.tables.TaskPlanVariable;
 import com.tencent.bk.job.manage.model.tables.TaskTemplate;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStep;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStepFile;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStepFileList;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStepScript;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateVariable;
 import com.tencent.bk.job.manage.model.tables.records.AccountRecord;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -642,6 +646,41 @@ public class AccountDAOImpl implements AccountDAO {
             .on(tbStep.TEMPLATE_ID.eq(tbTemplate.ID))
             .where(tbStepFileList.HOST_ACCOUNT.eq(ULong.valueOf(accountId)))
             .and(tbTemplate.IS_DELETED.eq(UByte.valueOf(0)))
+            .limit(1)
+            .fetchOne();
+        return record != null;
+    }
+
+    @Override
+    public boolean isAccountRefByAnyExecuteAccountVariable(Long accountId) {
+        return isAccountRefByAnyTemplateVariable(accountId) || isAccountRefByAnyPlanVariable(accountId);
+    }
+
+    private boolean isAccountRefByAnyTemplateVariable(Long accountId) {
+        TaskTemplateVariable tbVariable = TaskTemplateVariable.TASK_TEMPLATE_VARIABLE;
+        TaskTemplate tbTemplate = TaskTemplate.TASK_TEMPLATE;
+        Record record = ctx.select(tbVariable.ID)
+            .from(tbVariable)
+            .join(tbTemplate)
+            .on(tbVariable.TEMPLATE_ID.eq(tbTemplate.ID))
+            .where(tbVariable.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType())))
+            .and(tbVariable.DEFAULT_VALUE.eq(String.valueOf(accountId)))
+            .and(tbTemplate.IS_DELETED.eq(UByte.valueOf(0)))
+            .limit(1)
+            .fetchOne();
+        return record != null;
+    }
+
+    private boolean isAccountRefByAnyPlanVariable(Long accountId) {
+        TaskPlanVariable tbVariable = TaskPlanVariable.TASK_PLAN_VARIABLE;
+        TaskPlan tbPlan = TaskPlan.TASK_PLAN;
+        Record record = ctx.select(tbVariable.ID)
+            .from(tbVariable)
+            .join(tbPlan)
+            .on(tbVariable.PLAN_ID.eq(tbPlan.ID))
+            .where(tbVariable.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType())))
+            .and(tbVariable.DEFAULT_VALUE.eq(String.valueOf(accountId)))
+            .and(tbPlan.IS_DELETED.eq(UByte.valueOf(0)))
             .limit(1)
             .fetchOne();
         return record != null;

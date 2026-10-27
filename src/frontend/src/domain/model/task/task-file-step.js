@@ -78,6 +78,7 @@ export default class TaskFileStep {
     if (!_.isObject(fileDestination)) {
       return {
         account: '',
+        accountVar: '',
         path: '',
         server: new ExecuteTargetModel({}),
       };
@@ -86,9 +87,11 @@ export default class TaskFileStep {
       account,
       path,
       server,
+      accountVar,
     } = fileDestination;
     return {
       account: account || '',
+      accountVar: accountVar || '',
       path: path || '',
       server: new ExecuteTargetModel(server || {}),
     };
@@ -107,6 +110,7 @@ export default class TaskFileStep {
       fileSourceId: item.fileSourceId || 0,
       host: new ExecuteTargetModel(item.host || {}),
       account: item.account || 0,
+      accountVar: item.accountVar || '',
     }));
   }
 }

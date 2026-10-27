@@ -1,0 +1,13 @@
+| Field          | Type   | Required | Description                                                                                     |
+|----------------|--------|----------|---------------------------------------------------------------------------------------------------|
+| file_type      | int    | Yes      | Source file type. Allowed values: `1` (server file), `2` (local file), `3` (file source file)   |
+| file_list      | array  | Yes      | Source file paths, elements are string, must be non-empty                                       |
+| file_source_id | int    | No       | File source ID. Required when `file_type` is 3                                                  |
+| account        | object | No       | Execute account, see `account` below. Required when `file_type` is 1                            |
+| execute_target | object | No       | Hosts holding the source files, see `execute_target` below. Required when `file_type` is 1      |
+
+Requirements per type:
+
+- **Server file** (`file_type=1`): `file_list` holds absolute paths on the source hosts; both `account` and `execute_target` are required
+- **Local file** (`file_type=2`): upload the file first via the v3 API `generate_local_file_upload_url`, then put the returned file path into `file_list`; one element may carry only one path (one `file_source_list` entry per local file); file size and checksum are filled in by the server from the artifact repository; a path that does not exist or does not belong to the current resource scope results in a parameter error
+- **File source file** (`file_type=3`): `file_list` holds paths inside the file source; `file_source_id` can be found on the **File Source** management page of the business — it is an auto-increment primary key and differs between environments. Writes accept `file_source_id` only; `file_source_code` returned by `get_job_template_detail` is a read-only display field and is silently ignored on write, so a read-modify-write round trip works. The referenced file source must exist, be usable in the current business (created by it or shared with it) and be enabled, otherwise the request fails

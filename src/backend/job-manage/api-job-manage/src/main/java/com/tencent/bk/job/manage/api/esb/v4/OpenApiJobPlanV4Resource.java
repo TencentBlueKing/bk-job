@@ -29,6 +29,9 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.manage.model.esb.v4.OpenApiV4JobPlanDTO;
 import com.tencent.bk.job.manage.model.esb.v4.req.V4CreateJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4SyncJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4UpdateJobPlanRequest;
+import com.tencent.bk.job.manage.model.esb.v4.resp.OpenApiV4SyncJobPlanResultDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,11 +39,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
- * OpenAPI V4 执行方案管理资源。当前包含基于作业模板创建执行方案的接口。
+ * OpenAPI V4 执行方案管理资源，包含执行方案的创建、更新与同步。
  * <p>
  * <b>类级 MVC 注解（@RestController / @RequestMapping）必须留在实现类上，不能挪到本接口</b>：
  * 本接口同时是 Feign 客户端，一旦接口上带这两个注解之一，Feign 代理会被
  * RequestMappingHandlerMapping 判定为 handler，在调用方服务上凭空注册出一个同路径的转发端点。
+ * 因此各方法的 @PostMapping 必须写全路径。
  */
 @EsbV4API
 @Validated
@@ -59,5 +63,27 @@ public interface OpenApiJobPlanV4Resource {
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestHeader(value = JobCommonHeaders.BK_JOB_DRY_RUN, required = false) Boolean dryRun,
         @RequestBody @Validated V4CreateJobPlanRequest request
+    );
+
+    /**
+     * 更新执行方案。
+     *
+     * <p>作用于执行方案当前的步骤快照，不要求方案已与作业模板同步。
+     */
+    @PostMapping("/esb/api/v4/update_job_plan")
+    EsbV4Response<OpenApiV4JobPlanDTO> updateJobPlan(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody @Validated V4UpdateJobPlanRequest request
+    );
+
+    /**
+     * 将执行方案同步至其所属作业模板的当前最新版本。
+     */
+    @PostMapping("/esb/api/v4/sync_job_plan")
+    EsbV4Response<OpenApiV4SyncJobPlanResultDTO> syncJobPlan(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody @Validated V4SyncJobPlanRequest request
     );
 }

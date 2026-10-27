@@ -88,6 +88,11 @@
             :value="executeObjectsInfo" />
         </scroll-faker>
       </div>
+      <template #footer>
+        <bk-button @click="isShowDetail = false">
+          {{ $t('template.关闭') }}
+        </bk-button>
+      </template>
     </jb-dialog>
   </div>
 </template>
@@ -123,6 +128,9 @@
       return false;
     }
     if (executeTarget.executeObjectsInfo.containerList.length > 0) {
+      return false;
+    }
+    if ((executeTarget.executeObjectsInfo.containerFilterList || []).length > 0) {
       return false;
     }
     return true;
@@ -178,6 +186,10 @@
       this.diffHostMemo = {};
       this.composeGroup = [];
       this.diffGroupMemo = {};
+      this.composeContainer = [];
+      this.diffContainerMemo = {};
+      this.composeContainerFilter = [];
+      this.diffContainerFilterMemo = {};
     },
     mounted() {
       this.stepParent = findParent(this, 'DiffTaskStep');
@@ -202,7 +214,6 @@
           this.ipText = host.text;
         }
 
-        console.log('pref = ', this.preHost);
         this.executeObjectsInfo = this.originExecuteObjectsInfo;
       },
       checkDiff() {
@@ -251,7 +262,7 @@
         // 对比主机
         const hostDiffMap = {};
         const hostList = [];
-        const genHostId = host => `${host.cloudAreaInfo.id}:${host.ip}`;
+        const genHostId = host => `${host.cloudArea.id}:${host.ip}`;
         lastValue.hostList.forEach((host) => {
           hostDiffMap[genHostId(host)] = 'new';
           hostList.push(host);
@@ -320,6 +331,32 @@
             this.hostEqual = false;
           }
         });
+
+        // 对比容器过滤条件
+        const containerFilterDiffMap = {};
+        const containerFilterList = [];
+        const genContainerFilterId = containerFilter => JSON.stringify(containerFilter);
+        (lastValue.containerFilterList || []).forEach((containerFilter) => {
+          containerFilterDiffMap[genContainerFilterId(containerFilter)] = 'new';
+          containerFilterList.push(containerFilter);
+        });
+        (preValue.containerFilterList || []).forEach((containerFilter) => {
+          const realContainerFilterId = genContainerFilterId(containerFilter);
+          if (containerFilterDiffMap[realContainerFilterId]) {
+            containerFilterDiffMap[realContainerFilterId] = 'same';
+          } else {
+            containerFilterDiffMap[realContainerFilterId] = 'delete';
+            containerFilterList.push(containerFilter);
+          }
+        });
+
+        this.composeContainerFilter = Object.freeze(containerFilterList);
+        this.diffContainerFilterMemo = Object.freeze(containerFilterDiffMap);
+        Object.values(this.diffContainerFilterMemo).forEach((value) => {
+          if (value !== 'same') {
+            this.hostEqual = false;
+          }
+        });
       },
       handlerView() {
         this.executeObjectsInfo = this.originExecuteObjectsInfo;
@@ -336,11 +373,13 @@
             hostList: this.composeHost,
             nodeList: this.composeNode,
             containerList: this.composeContainer,
+            containerFilterList: this.composeContainerFilter,
           });
           this.nodeDiff = this.diffNodeMemo;
           this.hostDiff = this.diffHostMemo;
           this.groupDiff = this.diffGroupMemo;
           this.containerDiff = this.diffContainerMemo;
+          this.containerFilterDiff = this.diffContainerFilterMemo;
           this.isShowDiff = true;
         } else {
           this.handlerView();

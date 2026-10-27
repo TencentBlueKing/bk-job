@@ -108,12 +108,13 @@ Query Cron job details
 
 #### global_var
 
-| Fields | Type   | Never null | Description                                                                                                   |
-|--------|--------|------------|---------------------------------------------------------------------------------------------------------------|
-| id     | long   | yes        | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
-| name   | string | yes        | Global variable name                                                                                          |
-| value  | string | no         | Character, password, value of global variable of array type                                                   |
-| server | object | no         | Host type global variable value                                                                               |
+| Fields | Type   | Never null | Description                                                                                                                                   |
+|--------|--------|------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| id     | long   | yes        | Global variable id, unique identification. If the id is empty, then name is used as the unique identification                                 |
+| name   | string | yes        | Global variable name                                                                                                                          |
+| type   | int    | yes        | Global variable type. `7` means execute account                                                                                               |
+| value  | string | no         | Values of global variables of String, Ciphertext, Namespace, Array, and Execute Account types; execute account value is the account ID string |
+| server | object | no         | Host type global variable value                                                                                                               |
 
 #### server
 

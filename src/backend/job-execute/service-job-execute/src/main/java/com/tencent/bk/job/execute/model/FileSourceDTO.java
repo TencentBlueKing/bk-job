@@ -79,6 +79,11 @@ public class FileSourceDTO implements Cloneable {
     @JsonProperty("accountId")
     private Long accountId;
     /**
+     * 执行账号全局变量名
+     */
+    @JsonProperty("accountVar")
+    private String accountVar;
+    /**
      * 文件源服务器
      */
     @JsonProperty("servers")
@@ -107,6 +112,7 @@ public class FileSourceDTO implements Cloneable {
         cloneFileSourceDTO.setLocalUpload(localUpload);
         cloneFileSourceDTO.setAccountId(accountId);
         cloneFileSourceDTO.setAccount(account);
+        cloneFileSourceDTO.setAccountVar(accountVar);
         cloneFileSourceDTO.setFileSourceId(fileSourceId);
         cloneFileSourceDTO.setFileSourceTaskId(fileSourceTaskId);
         if (servers != null) {

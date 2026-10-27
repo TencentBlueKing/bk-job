@@ -110,6 +110,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         T_STEP_INSTANCE_SCRIPT.EXECUTION_TIMEOUT,
         T_STEP_INSTANCE_SCRIPT.SYSTEM_ACCOUNT_ID,
         T_STEP_INSTANCE_SCRIPT.SYSTEM_ACCOUNT,
+        T_STEP_INSTANCE_SCRIPT.ACCOUNT_VAR,
         T_STEP_INSTANCE_SCRIPT.DB_ACCOUNT_ID,
         T_STEP_INSTANCE_SCRIPT.DB_ACCOUNT,
         T_STEP_INSTANCE_SCRIPT.DB_TYPE,
@@ -134,7 +135,8 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         T_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER,
         T_STEP_INSTANCE_FILE.EXECUTION_TIMEOUT,
         T_STEP_INSTANCE_FILE.SYSTEM_ACCOUNT_ID,
-        T_STEP_INSTANCE_FILE.SYSTEM_ACCOUNT
+        T_STEP_INSTANCE_FILE.SYSTEM_ACCOUNT,
+        T_STEP_INSTANCE_FILE.ACCOUNT_VAR
     };
     private static final TableField<?, ?>[] T_STEP_INSTANCE_CONFIRM_ALL_FIELDS = {
         T_STEP_INSTANCE_CONFIRM.TASK_INSTANCE_ID,
@@ -227,6 +229,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
             t.EXECUTION_TIMEOUT,
             t.SYSTEM_ACCOUNT_ID,
             t.SYSTEM_ACCOUNT,
+            t.ACCOUNT_VAR,
             t.DB_ACCOUNT_ID,
             t.DB_TYPE,
             t.DB_ACCOUNT,
@@ -249,6 +252,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
             stepInstance.getTimeout(),
             stepInstance.getAccountId(),
             stepInstance.getAccount(),
+            stepInstance.getAccountVar(),
             stepInstance.getDbAccountId(),
             JooqDataTypeUtil.toByte(stepInstance.getDbType()),
             stepInstance.getDbAccount(),
@@ -279,7 +283,8 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
             t.NOT_EXIST_PATH_HANDLER,
             t.EXECUTION_TIMEOUT,
             t.SYSTEM_ACCOUNT_ID,
-            t.SYSTEM_ACCOUNT
+            t.SYSTEM_ACCOUNT,
+            t.ACCOUNT_VAR
         ).values(
             stepInstance.getId(),
             stepInstance.getTaskInstanceId(),
@@ -292,7 +297,8 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
             JooqDataTypeUtil.toUByte(stepInstance.getNotExistPathHandler()),
             stepInstance.getTimeout(),
             stepInstance.getAccountId(),
-            stepInstance.getAccount()
+            stepInstance.getAccount(),
+            stepInstance.getAccountVar()
         ).execute();
     }
 
@@ -388,6 +394,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         stepInstance.setTimeout(record.get(t.EXECUTION_TIMEOUT));
         stepInstance.setAccountId(record.get(t.SYSTEM_ACCOUNT_ID));
         stepInstance.setAccount(record.get(t.SYSTEM_ACCOUNT));
+        stepInstance.setAccountVar(record.get(t.ACCOUNT_VAR));
         stepInstance.setDbAccountId(record.get(t.DB_ACCOUNT_ID));
         stepInstance.setDbType(JooqDataTypeUtil.toInteger(record.get(t.DB_TYPE)));
         stepInstance.setDbAccount(record.get(t.DB_ACCOUNT));
@@ -442,6 +449,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         stepInstance.setResolvedFileTargetPath(record.get(t.RESOLVED_FILE_TARGET_PATH));
         stepInstance.setAccountId(record.get(t.SYSTEM_ACCOUNT_ID));
         stepInstance.setAccount(record.get(t.SYSTEM_ACCOUNT));
+        stepInstance.setAccountVar(record.get(t.ACCOUNT_VAR));
         stepInstance.setFileUploadSpeedLimit(record.get(t.FILE_UPLOAD_SPEED_LIMIT));
         stepInstance.setFileDownloadSpeedLimit(record.get(t.FILE_DOWNLOAD_SPEED_LIMIT));
         stepInstance.setFileDuplicateHandle(JooqDataTypeUtil.toInteger(record.get(t.FILE_DUPLICATE_HANDLE)));

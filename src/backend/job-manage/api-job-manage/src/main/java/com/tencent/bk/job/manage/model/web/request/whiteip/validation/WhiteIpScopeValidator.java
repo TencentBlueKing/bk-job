@@ -35,7 +35,16 @@ public class WhiteIpScopeValidator implements ConstraintValidator<CheckWhiteIpSc
     @Override
     public boolean isValid(WhiteIPRecordCreateUpdateReq whiteIPRecordCreateUpdateReq,
                            ConstraintValidatorContext constraintValidatorContext) {
-        return whiteIPRecordCreateUpdateReq.isAllScope()
-            || CollectionUtils.isNotEmpty(whiteIPRecordCreateUpdateReq.getScopeList());
+        if (whiteIPRecordCreateUpdateReq.isAllScope()
+            || CollectionUtils.isNotEmpty(whiteIPRecordCreateUpdateReq.getScopeList())) {
+            return true;
+        }
+        // 绑定到字段上，使校验文案能透出到 errorMsg，而不是被降级为通用的“错误的请求”
+        constraintValidatorContext.disableDefaultConstraintViolation();
+        constraintValidatorContext
+            .buildConstraintViolationWithTemplate("{validation.constraints.InvalidWhiteIpScope.message}")
+            .addPropertyNode("scopeList")
+            .addConstraintViolation();
+        return false;
     }
 }

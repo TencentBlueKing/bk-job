@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.check.ParamCheckUtil;
 import com.tencent.bk.job.crontab.model.CronJobVariableVO;
 import com.tencent.bk.job.crontab.model.inner.ServerDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
@@ -36,6 +37,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 3/10/2019 17:14
@@ -100,10 +102,21 @@ public class CronJobVariableDTO implements Cloneable {
         }
         if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == variableInfo.getType()) {
             variableInfo.setServer(ServerDTO.fromTargetVO(variableVO.getTargetValue()));
+        } else if (TaskVariableTypeEnum.EXECUTE_ACCOUNT == variableInfo.getType()) {
+            variableInfo.setValue(validateExecuteAccountValue(variableVO.getValue(), variableVO.getName()));
         } else {
             variableInfo.setValue(variableVO.getValue());
         }
         return variableInfo;
+    }
+
+    public static String validateExecuteAccountValue(String value, String variableName) {
+        String accountValue = StringUtils.trim(value);
+        if (StringUtils.isBlank(accountValue)) {
+            return accountValue;
+        }
+        ParamCheckUtil.parseExecuteAccountId(accountValue, variableName);
+        return accountValue;
     }
 
     public static ServiceTaskVariable toServiceTaskVariable(CronJobVariableDTO variableInfo) {
@@ -118,6 +131,7 @@ public class CronJobVariableDTO implements Cloneable {
             case CIPHER:
             case INDEX_ARRAY:
             case ASSOCIATIVE_ARRAY:
+            case EXECUTE_ACCOUNT:
                 taskVariable.setStringValue(variableInfo.getValue());
                 break;
             case NAMESPACE:

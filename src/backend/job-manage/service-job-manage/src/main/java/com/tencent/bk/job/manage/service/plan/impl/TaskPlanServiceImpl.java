@@ -45,6 +45,7 @@ import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.model.CronJobVO;
+import com.tencent.bk.job.manage.api.common.ExecuteAccountVariableValidator;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
@@ -95,6 +96,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     private final PlanAuthService planAuthService;
     private final TaskPlanVarFollowService taskPlanVarFollowService;
     private final TaskPlanSyncService taskPlanSyncService;
+    private final ExecuteAccountVariableValidator executeAccountVariableValidator;
     private CronJobService cronJobService;
     private TaskTemplateService taskTemplateService;
     private final TemplateAuthService templateAuthService;
@@ -128,7 +130,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         PlanAuthService planAuthService,
         TemplateAuthService templateAuthService,
         TaskPlanVarFollowService taskPlanVarFollowService,
-        TaskPlanSyncService taskPlanSyncService) {
+        TaskPlanSyncService taskPlanSyncService,
+        ExecuteAccountVariableValidator executeAccountVariableValidator) {
         this.taskPlanDAO = taskPlanDAO;
         this.taskPlanStepService = taskPlanStepService;
         this.taskTemplateVariableService = taskTemplateVariableService;
@@ -138,6 +141,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         this.templateAuthService = templateAuthService;
         this.taskPlanVarFollowService = taskPlanVarFollowService;
         this.taskPlanSyncService = taskPlanSyncService;
+        this.executeAccountVariableValidator = executeAccountVariableValidator;
     }
 
     @Override
@@ -290,6 +294,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         TaskTemplateInfoDTO taskTemplate =
             taskTemplateService.getTaskTemplateById(taskPlanInfo.getAppId(), taskPlanInfo.getTemplateId());
         TaskPlanInfoDTO.buildPlanInfo(taskPlanInfo, taskTemplate);
+        executeAccountVariableValidator.validate(taskPlanInfo.getAppId(), taskPlanInfo.getStepList(),
+            taskPlanInfo.getVariableList());
 
         // 保存执行方案
         taskPlanInfo.setCreateTime(DateUtils.currentTimeSeconds());
@@ -383,6 +389,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         if (originPlan == null) {
             throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
+        executeAccountVariableValidator.validate(taskPlanInfo.getAppId(), originPlan.getStepList(),
+            taskPlanInfo.getVariableList());
         // 修改执行方案
         if (!taskPlanDAO.updateTaskPlanById(taskPlanInfo)) {
             throw new InternalException(ErrorCode.UPDATE_TASK_PLAN_FAILED);

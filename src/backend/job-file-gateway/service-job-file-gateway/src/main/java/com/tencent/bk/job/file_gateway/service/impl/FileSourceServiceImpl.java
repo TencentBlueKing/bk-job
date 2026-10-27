@@ -183,6 +183,7 @@ public class FileSourceServiceImpl implements FileSourceService {
      * Web/ESB 入口均要求传入类型编码，fileSourceType 为空说明编码未匹配到已知类型，按不支持的类型拒绝
      */
     private void checkFileSourceSecurity(FileSourceDTO fileSource) {
+        fileSourceValidateService.checkFilePrefix(fileSource.getFilePrefix());
         FileSourceTypeDTO fileSourceType = fileSource.getFileSourceType();
         String fileSourceTypeCode = fileSourceType == null ? null : fileSourceType.getCode();
         fileSourceValidateService.checkFileSource(fileSourceTypeCode, fileSource.getFileSourceInfoMap());

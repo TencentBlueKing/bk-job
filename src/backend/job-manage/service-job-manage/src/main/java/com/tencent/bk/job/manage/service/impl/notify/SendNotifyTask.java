@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
+import com.tencent.bk.job.common.paas.exception.CmsiInvalidReceiverException;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.util.ThreadUtils;
@@ -85,6 +86,7 @@ public class SendNotifyTask implements Runnable {
                 handleSendFail(null);
             }
             // SendResult.QUOTA_EXCEEDED: already logged as INFO in WatchableSendMsgService, skip error log
+            // SendResult.INVALID_RECEIVER: already logged as WARN in sendMsgWithRetry, skip error log
         } catch (Exception e) {
             handleSendFail(e);
         }
@@ -118,6 +120,11 @@ public class SendNotifyTask implements Runnable {
             } catch (ResourceExhaustedException e) {
                 // 超配额属于预期内情况，WatchableSendMsgService 已打印 INFO 日志，此处忽略异常不再重试
                 return SendResult.QUOTA_EXCEEDED;
+            } catch (CmsiInvalidReceiverException e) {
+                // 接收人被通知渠道判定为无效（如已离职），重试也不会成功，不作为错误上报
+                log.warn("Invalid receivers in channel:{}, ignore to send notify to them, msgType={}, title={}",
+                    e.getInvalidReceivers(), msgType, title);
+                return SendResult.INVALID_RECEIVER;
             } catch (Exception e) {
                 if (count < NOTIFY_MAX_RETRY_COUNT) {
                     long sleepMills = count * 1000;
@@ -139,7 +146,8 @@ public class SendNotifyTask implements Runnable {
     private enum SendResult {
         SUCCESS,
         FAIL,
-        QUOTA_EXCEEDED
+        QUOTA_EXCEEDED,
+        INVALID_RECEIVER
     }
 
     private void logSendSuccess() {

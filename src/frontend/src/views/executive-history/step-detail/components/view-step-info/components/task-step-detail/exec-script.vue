@@ -71,7 +71,12 @@
         {{ stepInfo.ignoreErrorText }}
       </detail-item>
       <detail-item :label="$t('template.执行账号：')">
-        {{ executeAccountText }}
+        <render-execute-account
+          :account-id="stepInfo.account"
+          :account-list="account"
+          :account-var="stepInfo.accountVar"
+          theme="blue"
+          :variables="variable" />
       </detail-item>
     </div>
     <detail-item
@@ -105,6 +110,7 @@
   import DetailItem from '@components/detail-layout/item';
   import JbEditTextarea from '@components/jb-edit/textarea';
   import MonacoEditor from '@components/monaco-editor';
+  import RenderExecuteAccount from '@components/render-execute-account';
 
   import {
     containerDetail,
@@ -116,6 +122,11 @@
       type: Object,
       default: () => ({}),
     },
+    // 全局变量列表，用于按 accountVar 解析账号别名
+    variable: {
+      type: Array,
+      default: () => [],
+    },
   });
 
   const router = useRouter();
@@ -125,7 +136,7 @@
 
   const stepInfo = shallowRef(props.data.scriptStepInfo);
 
-  const executeAccountText = ref('');
+  const account = shallowRef([]);
   const scriptName = ref('');
   const scriptContent = ref(stepInfo.value.content);
   const scriptInfo = shallowRef({});
@@ -157,12 +168,7 @@
    */
   AccountManageService.fetchAccountWhole()
     .then((data) => {
-      const accountData = data.find(item => item.id === stepInfo.value.account);
-      if (accountData) {
-        executeAccountText.value = accountData.alias;
-      } else {
-        executeAccountText.value = '--';
-      }
+      account.value = data;
     })
     .finally(() => {
       requestQueue.value.pop();
@@ -208,4 +214,5 @@
       }
     }
   }
+
 </style>

@@ -58,7 +58,12 @@
       {{ stepInfo.transferModeText }}
     </detail-item>
     <detail-item :label="$t('template.执行账号：')">
-      {{ executeAccountText }}
+      <render-execute-account
+        :account-id="stepInfo.fileDestination.account"
+        :account-list="account"
+        :account-var="stepInfo.fileDestination.accountVar"
+        theme="blue"
+        :variables="variable" />
     </detail-item>
     <detail-item
       :label="$t('template.执行目标：')"
@@ -81,6 +86,7 @@
   import AccountManageService from '@service/account-manage';
 
   import DetailItem from '@components/detail-layout/item';
+  import RenderExecuteAccount from '@components/render-execute-account';
 
   import {
     containerDetail,
@@ -102,19 +108,12 @@
 
   const isLoading = ref(true);
 
-  const executeAccountText = ref('');
   const account = shallowRef([]);
   const stepInfo = shallowRef(props.data.fileStepInfo);
 
   AccountManageService.fetchAccountWhole()
     .then((data) => {
       account.value = data;
-      const accountData = data.find(item => item.id === stepInfo.value.fileDestination.account);
-      if (accountData) {
-        executeAccountText.value = accountData.alias;
-      } else {
-        executeAccountText.value = '--';
-      }
     })
     .finally(() => {
       isLoading.value = false;
@@ -129,5 +128,7 @@
     .detail-item {
       margin-bottom: 0;
     }
+
+
   }
 </style>

@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.execute.common.util.label.selector;
 
-import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParse;
-import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParseException;
-import com.tencent.bk.job.execute.util.label.selector.Operator;
-import com.tencent.bk.job.execute.util.label.selector.Requirement;
+import com.tencent.bk.job.common.util.label.selector.LabelSelectorParse;
+import com.tencent.bk.job.common.util.label.selector.LabelSelectorParseException;
+import com.tencent.bk.job.common.util.label.selector.Operator;
+import com.tencent.bk.job.common.util.label.selector.Requirement;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

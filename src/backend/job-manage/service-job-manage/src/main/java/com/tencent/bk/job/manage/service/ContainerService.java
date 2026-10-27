@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
 
 import java.util.List;
@@ -78,5 +79,19 @@ public interface ContainerService {
      * @return 容器列表
      */
     List<ContainerDetailDTO> listKubeContainerByUIds(Long bizId, List<String> containerUIds);
+
+    /**
+     * 按动态条件过滤器分页查询容器（拓扑过滤 + 字段级 propConditions）。
+     *
+     * @param bizId    业务 ID
+     * @param filter   动态条件过滤器
+     * @param start    分页起始位置，可空
+     * @param pageSize 分页大小，可空（由 sdk 用默认值）
+     * @return 容器列表（分页）
+     */
+    PageData<ContainerDetailDTO> listKubeContainerByCondition(Long bizId,
+                                                              KubeContainerFilter filter,
+                                                              Integer start,
+                                                              Integer pageSize);
 
 }

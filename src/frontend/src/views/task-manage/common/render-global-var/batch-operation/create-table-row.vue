@@ -26,99 +26,107 @@
 -->
 
 <template>
-  <tr class="global-variable-create-row">
-    <td>
-      <bk-select
-        class="offset-left"
-        :clearable="false"
-        :value="formData.type"
-        @change="value => handleChange('type', value)">
-        <bk-option
-          v-for="item in typeList"
-          :id="item.id"
-          :key="item.id"
-          :name="item.name" />
-      </bk-select>
-    </td>
-    <td>
-      <div
-        class="variable-name-box offset-left"
-        :class="{
-          'edit-error': isNameError,
-        }">
-        <bk-input
-          :value="formData.name"
-          @blur="handleShowNameError"
-          @change="value => handleChange('name', value)" />
-        <icon
-          v-if="isNameError"
-          v-bk-tooltips="errorNameText"
-          class="input-error"
-          type="info" />
-      </div>
-    </td>
-    <td>
-      <template v-if="isHostVarialbe">
-        <div
-          v-if="formData.defaultTargetValue.isEmpty"
-          class="add-host-btn offset-left"
-          @click="handleShowChooseIp">
-          <icon
-            style="margin-right: 6px;"
-            type="plus" />
-          {{ $t('添加服务器') }}
-        </div>
-        <jb-edit-host
-          v-else
-          field="defaultTargetValue"
-          :value="formData.defaultTargetValue" />
-      </template>
-      <template v-else>
-        <bk-input
+  <tbody class="global-variable-create-row">
+    <tr>
+      <td>
+        <bk-select
           class="offset-left"
-          :value="formData.defaultValue"
-          @change="value => handleChange('defaultValue', value)" />
-      </template>
-    </td>
-    <td>
-      <jb-textarea
-        class="offset-left"
-        :value="formData.description"
-        @change="value => handleChange('description', value)" />
-    </td>
-    <td>
-      <bk-checkbox
-        v-if="withChangable"
-        :false-value="0"
-        :true-value="1"
-        :value="formData.changeable"
-        @change="value => handleChange('changeable', value)" />
-      <span v-else>--</span>
-    </td>
-    <td>
-      <bk-checkbox
-        :false-value="0"
-        :true-value="1"
-        :value="formData.required"
-        @change="value => handleChange('required', value)" />
-    </td>
-    <td class="action-row">
-      <icon
-        class="action-btn"
-        type="add-fill"
-        @click="handleCreate" />
-      <icon
-        class="action-btn"
-        type="reduce-fill"
-        @click="handleDelete" />
-    </td>
+          :clearable="false"
+          :value="formData.type"
+          @change="value => handleChange('type', value)">
+          <bk-option
+            v-for="item in typeList"
+            :id="item.id"
+            :key="item.id"
+            :name="item.name" />
+        </bk-select>
+      </td>
+      <td>
+        <div
+          class="variable-name-box offset-left"
+          :class="{
+            'edit-error': isNameError,
+          }">
+          <bk-input
+            :value="formData.name"
+            @blur="handleShowNameError"
+            @change="value => handleChange('name', value)" />
+          <icon
+            v-if="isNameError"
+            v-bk-tooltips="errorNameText"
+            class="input-error"
+            type="info" />
+        </div>
+      </td>
+      <td>
+        <template v-if="isHostVarialbe">
+          <div
+            v-if="formData.defaultTargetValue.isEmpty"
+            class="add-host-btn offset-left"
+            @click="handleShowChooseIp">
+            <icon
+              style="margin-right: 6px;"
+              type="plus" />
+            {{ $t('添加服务器') }}
+          </div>
+          <jb-edit-host
+            v-else
+            field="defaultTargetValue"
+            :value="formData.defaultTargetValue" />
+        </template>
+        <template v-else-if="isAccountVariable">
+          <account-select
+            class="offset-left"
+            :value="formData.defaultValue"
+            @change="value => handleChange('defaultValue', value)" />
+        </template>
+        <template v-else>
+          <bk-input
+            class="offset-left"
+            :value="formData.defaultValue"
+            @change="value => handleChange('defaultValue', value)" />
+        </template>
+      </td>
+      <td>
+        <jb-textarea
+          class="offset-left"
+          :value="formData.description"
+          @change="value => handleChange('description', value)" />
+      </td>
+      <td>
+        <bk-checkbox
+          v-if="withChangable"
+          :false-value="0"
+          :true-value="1"
+          :value="formData.changeable"
+          @change="value => handleChange('changeable', value)" />
+        <span v-else>--</span>
+      </td>
+      <td>
+        <bk-checkbox
+          :false-value="0"
+          :true-value="1"
+          :value="formData.required"
+          @change="value => handleChange('required', value)" />
+      </td>
+      <td class="action-row">
+        <icon
+          class="action-btn"
+          type="add-fill"
+          @click="handleCreate" />
+        <icon
+          class="action-btn"
+          type="reduce-fill"
+          @click="handleDelete" />
+      </td>
+    </tr>
     <jb-ip-selector
       :original-value="originalValue"
       :show-dialog="isShowChooseIp"
       :value="formData.defaultTargetValue.executeObjectsInfo"
       @change="handleExecuteObjectsInfoChange"
       @close-dialog="handleCloseIPSelector" />
-  </tr>
+  </tbody>
 </template>
 <script>
   import ExecuteTargetModel from '@model/execute-target';
@@ -126,6 +134,7 @@
 
   import { globalVariableNameRule } from '@utils/validator';
 
+  import AccountSelect from '@components/account-select';
   import JbEditHost from '@components/jb-edit/host';
 
   import I18n from '@/i18n';
@@ -135,6 +144,7 @@
   export default {
     name: '',
     components: {
+      AccountSelect,
       JbEditHost,
     },
     props: {
@@ -176,6 +186,13 @@
         ].includes(this.formData.type);
       },
       /**
+       * @desc 执行账号变量
+       * @returns { Boolean }
+       */
+      isAccountVariable() {
+        return this.formData.type === GlobalVariableModel.TYPE_ACCOUNT;
+      },
+      /**
        * @desc 变量名验证失败
        * @returns { Boolean }
        */
@@ -210,6 +227,10 @@
         {
           id: GlobalVariableModel.TYPE_INDEX_ARRAY,
           name: I18n.t('template.索引数组'),
+        },
+        {
+          id: GlobalVariableModel.TYPE_ACCOUNT,
+          name: I18n.t('template.执行账号'),
         },
       ];
     },

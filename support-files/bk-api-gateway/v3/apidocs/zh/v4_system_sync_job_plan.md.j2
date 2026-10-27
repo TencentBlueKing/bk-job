@@ -1,0 +1,68 @@
+### 功能描述
+
+把指定的执行方案同步到其所属作业模板的**当前最新版本**。
+
+同步会按作业模板重建方案的步骤：模板新增的步骤会出现在方案中（默认未启用），模板删除的步骤会从方案中消失，其余步骤保留原有的启用状态；`follow_template` 为 `false` 的变量保留方案中已设置的取值，其余变量跟随模板默认值。
+
+本接口不接收模板版本号。服务层的版本参数是给页面做乐观锁用的（用户看到版本差异对比后再确认），API 调用方没有这个界面概念，因此本接口语义固定为「同步到模板当前最新版本」，并在响应中回传实际同步到的版本。
+
+方案未处于待同步状态（`need_update` 为 `false`）时调用本接口不会报错，同步到当前版本即为空操作。
+
+调用前须满足：执行方案存在于该资源范围内；调用身份对该方案具备同步权限。
+
+### 请求参数
+
+#### Body参数
+
+| 字段            | 类型     | 必选 | 描述                                            |
+|---------------|--------|----|-----------------------------------------------|
+| bk_scope_type | string | 是  | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集）           |
+| bk_scope_id   | string | 是  | 资源范围 ID，须与 `bk_scope_type` 对应，表示业务 ID 或业务集 ID |
+| job_plan_id   | long   | 是  | 执行方案 ID，须大于 0，且对应方案须已存在                       |
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_plan_id": 50001
+}
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "job_plan_id": 50001,
+        "job_template_id": 1000,
+        "template_version": "b6b1f5b8d0a94f0e9a0f2c1d3e4f5a6b"
+    }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段               | 类型     | 描述                                  |
+|------------------|--------|-------------------------------------|
+| bk_scope_type    | string | 资源范围类型。可选值：`biz`（业务）、`biz_set`（业务集） |
+| bk_scope_id      | string | 资源范围 ID                             |
+| job_plan_id      | long   | 执行方案 ID                             |
+| job_template_id  | long   | 作业模板 ID                             |
+| template_version | string | 实际同步到的作业模板版本号                       |

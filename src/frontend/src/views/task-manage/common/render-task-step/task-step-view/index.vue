@@ -38,6 +38,7 @@
     <component
       :is="stepCom"
       ref="stepCom"
+      :all-variables="allVariables"
       :data="data"
       :variable="variable">
       <slot />
@@ -77,6 +78,10 @@
         type: Object,
         default: () => ({}),
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     computed: {
       stepTypeText() {

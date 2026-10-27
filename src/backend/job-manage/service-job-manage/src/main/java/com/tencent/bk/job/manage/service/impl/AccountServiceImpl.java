@@ -366,7 +366,8 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public boolean isAccountRefByAnyStep(Long accountId) {
         return accountDAO.isAccountRefByAnyScriptStep(accountId) || accountDAO.isAccountRefByAnyFileStep(accountId)
-            || accountDAO.isAccountRefByAnySourceFile(accountId);
+            || accountDAO.isAccountRefByAnySourceFile(accountId)
+            || accountDAO.isAccountRefByAnyExecuteAccountVariable(accountId);
     }
 
     @Override

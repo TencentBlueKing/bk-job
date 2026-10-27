@@ -18,12 +18,12 @@ Start Job Plan
 
 #### global_var
 
-| Fields | Type   | Required | Description                                                                                       |
-|--------|--------|----------|---------------------------------------------------------------------------------------------------|
-| id     | long   | no       | Global variable id, unique identifier. If id is empty, then name is used as the unique identifier |
-| name   | string | no       | Global variable name                                                                              |
-| value  | string | no       | Values of global variables of String, Ciphertext, Array, and Namespace types                      |
-| server | object | no       | The value of the global variable of the Host type, see server definition                          |
+| Fields | Type   | Required | Description                                                                                                                                   |
+|--------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| id     | long   | no       | Global variable id, unique identifier. If id is empty, then name is used as the unique identifier                                             |
+| name   | string | no       | Global variable name                                                                                                                          |
+| value  | string | no       | Values of global variables of String, Ciphertext, Array, Namespace, and Execute Account types; execute account value is the account ID string |
+| server | object | no       | The value of the global variable of the Host type, see server definition                                                                      |
 
 #### server
 

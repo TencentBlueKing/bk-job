@@ -27,8 +27,10 @@ package com.tencent.bk.job.manage.dao.plan.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
@@ -40,8 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
-import org.jooq.Record15;
-import org.jooq.Record16;
+import org.jooq.Record17;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
@@ -78,8 +79,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         this.sensitiveParamCryptoService = sensitiveParamCryptoService;
     }
 
-    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record16<ULong, ULong, ULong, UByte,
-            String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte, UByte, String> record) {
+    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record17<ULong, ULong, ULong, UByte, String, ULong,
+        String, UByte, String, ULong, ULong, String, String, UByte, UByte, UByte, String> record) {
         if (record == null) {
             return null;
         }
@@ -95,7 +96,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         taskScriptStep.setContent(record.get(TABLE.CONTENT));
         taskScriptStep.setLanguage(ScriptTypeEnum.valOf((record.get(TABLE.LANGUAGE)).intValue()));
         taskScriptStep.setTimeout((record.get(TABLE.SCRIPT_TIMEOUT)).longValue());
-        taskScriptStep.setAccount((record.get(TABLE.EXECUTE_ACCOUNT)).longValue());
+        taskScriptStep.setAccount(JooqDataTypeUtil.getLongFromULong(record.get(TABLE.EXECUTE_ACCOUNT)));
+        taskScriptStep.setAccountVar(record.get(TABLE.EXECUTE_ACCOUNT_VAR));
         taskScriptStep.setExecuteTarget(TaskTargetDTO.fromJsonString(record.get(TABLE.DESTINATION_HOST_LIST)));
         taskScriptStep.setSecureParam((record.get(TABLE.IS_SECURE_PARAM)).intValue() == 1);
         String encryptedScriptParam = record.get(TABLE.SCRIPT_PARAM);
@@ -116,8 +118,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.PLAN_ID.eq(ULong.valueOf(parentId)));
         Result<
-            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte, String>> result =
+            Record17<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, String,
+                UByte, UByte, UByte, String>> result =
             context
                 .select(
                     TABLE.ID,
@@ -131,6 +133,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                     TABLE.SCRIPT_PARAM,
                     TABLE.SCRIPT_TIMEOUT,
                     TABLE.EXECUTE_ACCOUNT,
+                    TABLE.EXECUTE_ACCOUNT_VAR,
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
@@ -152,8 +155,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.in(stepIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         Result<
-            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte, String>> result =
+            Record17<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String,
+                String, UByte, UByte, UByte, String>> result =
             context
                 .select(
                     TABLE.ID,
@@ -167,6 +170,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                     TABLE.SCRIPT_PARAM,
                     TABLE.SCRIPT_TIMEOUT,
                     TABLE.EXECUTE_ACCOUNT,
+                    TABLE.EXECUTE_ACCOUNT_VAR,
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
@@ -189,8 +193,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
     public TaskScriptStepDTO getScriptStepById(long stepId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
-        Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte,
-            UByte, String> record = context.select(
+        Record17<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, String,
+            UByte, UByte, UByte, String> record = context.select(
             TABLE.ID,
             TABLE.PLAN_ID,
             TABLE.STEP_ID,
@@ -202,6 +206,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
             TABLE.SCRIPT_PARAM,
             TABLE.SCRIPT_TIMEOUT,
             TABLE.EXECUTE_ACCOUNT,
+            TABLE.EXECUTE_ACCOUNT_VAR,
             TABLE.DESTINATION_HOST_LIST,
             TABLE.IS_SECURE_PARAM,
             TABLE.STATUS,
@@ -238,6 +243,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                 TABLE.SCRIPT_PARAM,
                 TABLE.SCRIPT_TIMEOUT,
                 TABLE.EXECUTE_ACCOUNT,
+                TABLE.EXECUTE_ACCOUNT_VAR,
                 TABLE.DESTINATION_HOST_LIST,
                 TABLE.IS_SECURE_PARAM,
                 TABLE.STATUS,
@@ -254,7 +260,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                 sensitiveParamCryptoService.encryptParamIfNeeded(scriptStep.getSecureParam(),
                     scriptStep.getScriptParam()),
                 ULong.valueOf(scriptStep.getTimeout()),
-                ULong.valueOf(scriptStep.getAccount()),
+                DbRecordMapper.getJooqLongValue(scriptStep.getAccount()),
+                scriptStep.getAccountVar(),
                 scriptStep.getExecuteTarget().toJsonString(),
                 isSecureParam,
                 status,

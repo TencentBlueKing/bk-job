@@ -205,6 +205,7 @@
         <task-step-view
           v-if="isShowDetail"
           ref="stepViewRef"
+          :all-variables="variable"
           :data="detailInfo"
           :variable="hostVariables" />
       </jb-sideslider>

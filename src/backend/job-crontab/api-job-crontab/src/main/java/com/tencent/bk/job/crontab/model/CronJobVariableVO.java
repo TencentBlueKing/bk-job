@@ -45,7 +45,7 @@ public class CronJobVariableVO {
      *
      * @see TaskVariableTypeEnum
      */
-    @Schema(description = "变量类型 1-字符串 2-命名空间 3-执行目标列表 4-密码", required = true)
+    @Schema(description = "变量类型 1-字符串 2-命名空间 3-执行目标列表 4-密码 5-关联数组 6-索引数组 7-执行账号", required = true)
     private Integer type;
 
     /**
@@ -59,7 +59,7 @@ public class CronJobVariableVO {
      * <p>
      * 命名空间，字符串，密码从该字段获取值，type 为 1 2 4 时必填
      */
-    @Schema(description = "字符变量值，命名空间，字符串，密码从该字段获取值，type 为 1 2 4 时必填")
+    @Schema(description = "字符、命名空间、密码、数组、执行账号变量值；执行账号变量值为账号 ID 字符串")
     private String value;
 
     /**

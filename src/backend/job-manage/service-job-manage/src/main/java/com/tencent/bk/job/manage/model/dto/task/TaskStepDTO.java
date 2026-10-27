@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbStepV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -88,6 +89,14 @@ public class TaskStepDTO {
      * 填充；{@link #toVO} 会将其转为 {@code ref_variables} 变量名列表。OpenAPI V4 模板详情等不消费此字段。
      */
     private List<TaskVariableDTO> refVariables;
+
+    /**
+     * 判断步骤是否标记为删除。
+     */
+    @JsonIgnore
+    public boolean isDeleted() {
+        return delete != null && delete == 1;
+    }
 
     /**
      * 转 Web VO；若需 {@code ref_variables}，须先经 {@link com.tencent.bk.job.manage.manager.variable.StepRefVariableParser} 填充 {@link #refVariables}。

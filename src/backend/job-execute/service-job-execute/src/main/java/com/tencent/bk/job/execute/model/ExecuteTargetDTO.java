@@ -32,6 +32,13 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.KubeClusterFilter;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
+import com.tencent.bk.job.common.model.dto.KubeContainerPropFilter;
+import com.tencent.bk.job.common.model.dto.KubeNamespaceFilter;
+import com.tencent.bk.job.common.model.dto.KubePodFilter;
+import com.tencent.bk.job.common.model.dto.KubeWorkloadFilter;
+import com.tencent.bk.job.common.model.dto.LabelSelectExprDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
@@ -40,10 +47,11 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.util.converter.WebContainerConditionFilterConverter;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.inner.ServiceExecuteTargetDTO;
-import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParse;
+import com.tencent.bk.job.common.util.label.selector.LabelSelectorParse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,8 +60,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -424,6 +434,12 @@ public class ExecuteTargetDTO implements Cloneable {
             executeTargetDTO.setStaticContainerList(containerList);
         }
 
+        // 处理动态条件过滤器：Web 入参 containerFilterList → 内部 KubeContainerFilter
+        if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getContainerFilterList())) {
+            executeTargetDTO.setContainerFilters(WebContainerConditionFilterConverter.toKubeContainerFilters(
+                taskExecuteObjectsInfoVO.getContainerFilterList()));
+        }
+
         return executeTargetDTO;
     }
 
@@ -485,17 +501,30 @@ public class ExecuteTargetDTO implements Cloneable {
                 executeObjects.addAll(hosts.stream().map(ExecuteObject::new)
                     .collect(Collectors.toList()));
             }
-            if (CollectionUtils.isNotEmpty(staticContainerList)) {
-                executeObjects.addAll(staticContainerList.stream().map(ExecuteObject::new)
-                    .collect(Collectors.toList()));
-            }
-            if (CollectionUtils.isNotEmpty(containerFilters)) {
-                containerFilters.forEach(containerFilter -> {
-                    if (CollectionUtils.isNotEmpty(containerFilter.getContainers())) {
-                        executeObjects.addAll(containerFilter.getContainers().stream().map(ExecuteObject::new)
-                            .collect(Collectors.toList()));
-                    }
-                });
+            // 容器执行对象按容器 ID 全局去重，避免以下场景导致下游 execute_obj_id 重复：
+            // 背景：可能多个 containerFilter 分别命中相同的容器。
+            if (CollectionUtils.isNotEmpty(staticContainerList) || CollectionUtils.isNotEmpty(containerFilters)) {
+                Set<Long> distinctContainerIds = new HashSet<>();
+                if (CollectionUtils.isNotEmpty(staticContainerList)) {
+                    staticContainerList.forEach(container -> {
+                        if (container != null && container.getId() != null
+                            && distinctContainerIds.add(container.getId())) {
+                            executeObjects.add(new ExecuteObject(container));
+                        }
+                    });
+                }
+                if (CollectionUtils.isNotEmpty(containerFilters)) {
+                    containerFilters.forEach(containerFilter -> {
+                        if (CollectionUtils.isNotEmpty(containerFilter.getContainers())) {
+                            containerFilter.getContainers().forEach(container -> {
+                                if (container != null && container.getId() != null
+                                    && distinctContainerIds.add(container.getId())) {
+                                    executeObjects.add(new ExecuteObject(container));
+                                }
+                            });
+                        }
+                    });
+                }
             }
             this.executeObjects = executeObjects;
         } else {

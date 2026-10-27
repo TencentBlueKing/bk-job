@@ -32,12 +32,14 @@ export default class TaskHostNode {
       hostList,
       nodeList,
       containerList,
+      containerFilterList = [],
     } = hostNodeInfo;
 
     return dynamicGroupList.length < 1
             && hostList.length < 1
             && nodeList.length < 1
-            && containerList.length < 1;
+            && containerList.length < 1
+            && containerFilterList.length < 1;
   }
 
   constructor(payload = {}) {
@@ -74,6 +76,7 @@ export default class TaskHostNode {
       dynamicGroupList,
       nodeList,
       containerList,
+      containerFilterList,
     } = hostNodeInfo;
 
     return Object.freeze({
@@ -81,6 +84,7 @@ export default class TaskHostNode {
       dynamicGroupList: dynamicGroupList || [],
       nodeList: nodeList || [],
       containerList: containerList || [],
+      containerFilterList: containerFilterList || [],
     });
   }
 }

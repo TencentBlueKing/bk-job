@@ -71,6 +71,7 @@
           field="fileSourceList"
           :form-data="formData"
           name="sourceFileOfTemplate"
+          :script-variables="scriptVariables"
           :variable="variable"
           @on-change="handleChange" />
       </card-layout>
@@ -94,11 +95,14 @@
           field="account"
           :form-data="formData"
           name="executeAccount"
+          :variable="scriptVariables"
+          support-account-variable
           @on-change="handleChange" />
         <item-factory
           field="server"
           :form-data="formData"
           name="targetServerOfTemplate"
+          :script-variables="scriptVariables"
           :variable="variable"
           @on-change="handleChange" />
       </card-layout>
@@ -146,6 +150,8 @@
     //     server: {} // 执行目标
     // }
     account: '',
+    // 执行账号变量
+    accountVar: '',
     path: '',
     server: new ExecuteTargetModel({}),
   });
@@ -159,6 +165,10 @@
     inheritAttrs: false,
     props: {
       variable: {
+        type: Array,
+        default: () => [],
+      },
+      scriptVariables: {
         type: Array,
         default: () => [],
       },
@@ -185,8 +195,11 @@
     watch: {
       data: {
         handler(newData) {
-          // 本地新建的步骤id为-1，已提交后端保存的id大于0
-          if (!newData.id) {
+          // 步骤数据包含 fileDestination（已保存、编辑过或克隆的步骤，数据为模型结构）
+          // 需要将 fileDestination 拍平回填表单
+          // 注意：克隆步骤的 id 为 -0（falsy），不能通过 id 是否为真值判断
+          if (!newData.fileDestination) {
+            // 本地新建的步骤数据为拍平后的表单结构，直接合并
             this.formData = Object.assign({}, this.formData, newData);
             return;
           }
@@ -194,6 +207,7 @@
             account,
             path,
             server,
+            accountVar,
           } = newData.fileDestination;
 
           const originData = { ...newData };
@@ -203,6 +217,7 @@
             ...this.formData,
             ...originData,
             account,
+            accountVar,
             path,
             server,
           };
@@ -227,6 +242,12 @@
        * @param {Any} value 字段值
        */
       handleChange(field, value) {
+        // 执行账号回写 account / accountVar：生效字段赋值，失效字段置空
+        if (value && typeof value === 'object' && 'activeField' in value) {
+          this.formData[value.activeField] = value.activeValue;
+          this.formData[value.inactiveField] = '';
+          return;
+        }
         this.formData[field] = value;
       },
       /**
@@ -333,6 +354,7 @@
               ignoreError,
               fileSourceList,
               account,
+              accountVar,
               path,
               server,
             } = this.formData;
@@ -351,6 +373,7 @@
                 fileSourceList,
                 fileDestination: {
                   account,
+                  accountVar,
                   path,
                   server,
                 },

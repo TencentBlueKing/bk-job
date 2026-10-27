@@ -78,6 +78,8 @@ public class TaskScriptStepDTO {
 
     private Long account;
 
+    private String accountVar;
+
     private TaskTargetDTO executeTarget;
 
     private Boolean secureParam;
@@ -105,6 +107,7 @@ public class TaskScriptStepDTO {
         scriptStepVO.setWindowsInterpreter(scriptStep.getWindowsInterpreter());
         scriptStepVO.setTimeout(scriptStep.getTimeout());
         scriptStepVO.setAccount(scriptStep.getAccount());
+        scriptStepVO.setAccountVar(scriptStep.getAccountVar());
         scriptStepVO.setExecuteTarget(TaskTargetDTO.toVO(scriptStep.getExecuteTarget()));
         scriptStepVO.setSecureParam(scriptStep.getSecureParam() ? 1 : 0);
         scriptStepVO.setStatus(scriptStep.getStatus());
@@ -135,6 +138,7 @@ public class TaskScriptStepDTO {
             scriptStep.setTimeout(scriptStepVO.getTimeout());
         }
         scriptStep.setAccount(scriptStepVO.getAccount());
+        scriptStep.setAccountVar(scriptStepVO.getAccountVar());
         scriptStep.setExecuteTarget(TaskTargetDTO.fromVO(scriptStepVO.getExecuteTarget()));
         scriptStep.setSecureParam(scriptStepVO.getSecureParam() == 1);
         scriptStep.setStatus(scriptStepVO.getStatus());
@@ -184,6 +188,7 @@ public class TaskScriptStepDTO {
 
         serviceScriptStep.setAccount(new ServiceAccountDTO());
         serviceScriptStep.getAccount().setId(scriptStepInfo.getAccount());
+        serviceScriptStep.getAccount().setAccountVar(scriptStepInfo.getAccountVar());
 
         serviceScriptStep.setExecuteTarget(scriptStepInfo.getExecuteTarget().toServiceTaskTargetDTO());
         serviceScriptStep.setSecureParam(scriptStepInfo.getSecureParam());

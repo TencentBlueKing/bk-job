@@ -512,7 +512,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
      */
     private void buildInitialGlobalVarScript(List<TaskVariableDTO> taskVars, StringBuffer sb) {
         for (TaskVariableDTO taskVar : taskVars) {
-            if (taskVar.getType() != TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()) {
+            if (taskVar.getType() != TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
+                && taskVar.getType() != TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType()) {
                 buildDeclareScript(taskVar, sb);
             }
         }

@@ -121,6 +121,11 @@ public class StepRefVariableParser {
             refVarNames.add(scriptStep.getExecuteTarget().getVariable());
         }
 
+        // 执行账号全局变量
+        if (StringUtils.isNotBlank(scriptStep.getAccountVar())) {
+            refVarNames.add(scriptStep.getAccountVar());
+        }
+
         step.setRefVariables(variables.stream().filter(variable -> refVarNames.contains(variable.getName()))
             .distinct().collect(Collectors.toList()));
     }
@@ -180,6 +185,9 @@ public class StepRefVariableParser {
             if (originFile.getHost() != null && StringUtils.isNoneBlank(originFile.getHost().getVariable())) {
                 refVarNames.add(originFile.getHost().getVariable());
             }
+            if (StringUtils.isNotBlank(originFile.getHostAccountVar())) {
+                refVarNames.add(originFile.getHostAccountVar());
+            }
         });
         List<String> destFilePathVarNames =
             VariableResolver.resolveJobStandardVar(fileStep.getDestinationFileLocation());
@@ -190,6 +198,9 @@ public class StepRefVariableParser {
         if (fileStep.getDestinationHostList() != null
             && StringUtils.isNoneBlank(fileStep.getDestinationHostList().getVariable())) {
             refVarNames.add(fileStep.getDestinationHostList().getVariable());
+        }
+        if (StringUtils.isNotBlank(fileStep.getExecuteAccountVar())) {
+            refVarNames.add(fileStep.getExecuteAccountVar());
         }
 
         step.setRefVariables(variables.stream().filter(variable -> refVarNames.contains(variable.getName()))

@@ -26,26 +26,21 @@
 -->
 
 <template>
-  <jb-form-item
-    :label="$t('执行账号')"
-    :property="field"
-    required
-    :rules="rules">
-    <account-select
-      class="form-item-content"
-      type="system"
-      :value="formData[field]"
-      @change="handleChange" />
-  </jb-form-item>
+  <execute-account
+    account-type="system"
+    :field="field"
+    :form-data="formData"
+    :support-account-variable="supportAccountVariable"
+    :variable="variable"
+    v-on="$listeners" />
 </template>
 <script>
-  import AccountSelect from '@components/account-select';
-
-  import I18n from '@/i18n';
+  import ExecuteAccount from '@components/task-step/common/execute-account';
 
   export default {
+    name: 'FileExecuteAccount',
     components: {
-      AccountSelect,
+      ExecuteAccount,
     },
     props: {
       field: {
@@ -56,19 +51,14 @@
         type: Object,
         required: true,
       },
-    },
-    created() {
-      this.rules = [
-        {
-          required: true,
-          message: I18n.t('执行账号必填'),
-          trigger: 'blur',
-        },
-      ];
-    },
-    methods: {
-      handleChange(value) {
-        this.$emit('on-change', this.field, value);
+      variable: {
+        type: Array,
+        default: () => [],
+      },
+      // 是否需要【执行账号】全局变量
+      supportAccountVariable: {
+        type: Boolean,
+        default: false,
       },
     },
   };

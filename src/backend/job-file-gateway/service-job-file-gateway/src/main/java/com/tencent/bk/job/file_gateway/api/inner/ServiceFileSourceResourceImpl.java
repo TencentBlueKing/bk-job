@@ -32,6 +32,7 @@ import com.tencent.bk.job.file_gateway.dao.filesource.SpecifiedTenantFileSourceD
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceBasicInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,6 +122,26 @@ public class ServiceFileSourceResourceImpl implements ServiceFileSourceResource 
                 basicInfo == null ? null : basicInfo.getEnable()
             ));
         }
+        return InternalResponse.buildSuccessResp(resultList);
+    }
+
+    @Override
+    public InternalResponse<List<ServiceFileSourceBasicInfoDTO>> listFileSourceBasicInfoByIds(
+        String tenantId,
+        List<Integer> fileSourceIdList
+    ) {
+        if (CollectionUtils.isEmpty(fileSourceIdList)) {
+            return InternalResponse.buildSuccessResp(Collections.emptyList());
+        }
+        List<ServiceFileSourceBasicInfoDTO> resultList =
+            specifiedTenantFileSourceDAO.listFileSourceBasicInfoByIds(tenantId, new HashSet<>(fileSourceIdList))
+                .stream()
+                .map(basicInfo -> new ServiceFileSourceBasicInfoDTO(
+                    basicInfo.getId(),
+                    basicInfo.getCode(),
+                    basicInfo.getAlias()
+                ))
+                .collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
     }
 }

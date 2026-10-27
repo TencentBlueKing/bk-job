@@ -52,11 +52,12 @@ import com.tencent.bk.job.manage.model.tables.TaskTemplate;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStepFileList;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Record;
+import org.jooq.Record10;
 import org.jooq.Record11;
+import org.jooq.Record12;
 import org.jooq.Record13;
-import org.jooq.Record15;
+import org.jooq.Record16;
 import org.jooq.Record6;
-import org.jooq.Record9;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 
@@ -138,8 +139,8 @@ public class DbRecordMapper {
         return taskStep;
     }
 
-    public static TaskScriptStepDTO convertRecordToTaskScriptStep(Record15<ULong, ULong, ULong, UByte, String, ULong,
-        String, UByte, String, ULong, ULong, String, UByte, UByte, UByte> record, TaskTypeEnum taskType) {
+    public static TaskScriptStepDTO convertRecordToTaskScriptStep(Record16<ULong, ULong, ULong, UByte, String, ULong,
+        String, UByte, String, ULong, ULong, String, String, UByte, UByte, UByte> record, TaskTypeEnum taskType) {
         if (record == null) {
             return null;
         }
@@ -165,17 +166,18 @@ public class DbRecordMapper {
         taskScriptStep.setLanguage(ScriptTypeEnum.valOf(((UByte) record.get(7)).intValue()));
         taskScriptStep.setScriptParam((String) record.get(8));
         taskScriptStep.setTimeout(((ULong) record.get(9)).longValue());
-        taskScriptStep.setAccount(((ULong) record.get(10)).longValue());
-        taskScriptStep.setExecuteTarget(TaskTargetDTO.fromJsonString((String) record.get(11)));
-        taskScriptStep.setSecureParam(((UByte) record.get(12)).intValue() == 1);
-        taskScriptStep.setStatus(((UByte) record.get(13)).intValue());
-        taskScriptStep.setIgnoreError(((UByte) record.get(14)).intValue() == 1);
+        taskScriptStep.setAccount(JooqDataTypeUtil.getLongFromULong((ULong) record.get(10)));
+        taskScriptStep.setAccountVar((String) record.get(11));
+        taskScriptStep.setExecuteTarget(TaskTargetDTO.fromJsonString((String) record.get(12)));
+        taskScriptStep.setSecureParam(((UByte) record.get(13)).intValue() == 1);
+        taskScriptStep.setStatus(((UByte) record.get(14)).intValue());
+        taskScriptStep.setIgnoreError(((UByte) record.get(15)).intValue() == 1);
         return taskScriptStep;
     }
 
     public static TaskFileStepDTO
     convertRecordToTaskFileStep(
-        Record11<ULong, ULong, String, ULong, String, ULong, ULong, ULong, UByte, UByte, UByte> record) {
+        Record12<ULong, ULong, String, ULong, String, String, ULong, ULong, ULong, UByte, UByte, UByte> record) {
         if (record == null) {
             return null;
         }
@@ -184,17 +186,18 @@ public class DbRecordMapper {
         taskFileStep.setStepId(((ULong) record.get(1)).longValue());
         taskFileStep.setOriginFileList(new ArrayList<>());
         taskFileStep.setDestinationFileLocation((String) record.get(2));
-        taskFileStep.setExecuteAccount(((ULong) record.get(3)).longValue());
-        taskFileStep.setDestinationHostList(TaskTargetDTO.fromJsonString((String) record.get(4)));
-        taskFileStep.setTimeout(((ULong) record.get(5)).longValue());
-        taskFileStep.setOriginSpeedLimit(JooqDataTypeUtil.getLongFromULong((ULong) record.get(6)));
-        taskFileStep.setTargetSpeedLimit(JooqDataTypeUtil.getLongFromULong((ULong) record.get(7)));
-        taskFileStep.setIgnoreError(((UByte) record.get(8)).intValue() == 1);
-        taskFileStep.setDuplicateHandler(DuplicateHandlerEnum.valueOf(((UByte) record.get(9)).intValue()));
-        if (record.get(10) == null) {
+        taskFileStep.setExecuteAccount(JooqDataTypeUtil.getLongFromULong((ULong) record.get(3)));
+        taskFileStep.setExecuteAccountVar((String) record.get(4));
+        taskFileStep.setDestinationHostList(TaskTargetDTO.fromJsonString((String) record.get(5)));
+        taskFileStep.setTimeout(((ULong) record.get(6)).longValue());
+        taskFileStep.setOriginSpeedLimit(JooqDataTypeUtil.getLongFromULong((ULong) record.get(7)));
+        taskFileStep.setTargetSpeedLimit(JooqDataTypeUtil.getLongFromULong((ULong) record.get(8)));
+        taskFileStep.setIgnoreError(((UByte) record.get(9)).intValue() == 1);
+        taskFileStep.setDuplicateHandler(DuplicateHandlerEnum.valueOf(((UByte) record.get(10)).intValue()));
+        if (record.get(11) == null) {
             taskFileStep.setNotExistPathHandler(NotExistPathHandlerEnum.CREATE_DIR);
         } else {
-            taskFileStep.setNotExistPathHandler(NotExistPathHandlerEnum.valueOf(((UByte) record.get(10)).intValue()));
+            taskFileStep.setNotExistPathHandler(NotExistPathHandlerEnum.valueOf(((UByte) record.get(11)).intValue()));
         }
         return taskFileStep;
     }
@@ -206,7 +209,8 @@ public class DbRecordMapper {
      * @return
      */
     public static TaskFileInfoDTO
-    convertRecordToTaskFileInfo(Record9<ULong, ULong, UByte, String, ULong, String, String, ULong, Integer> record) {
+    convertRecordToTaskFileInfo(Record10<ULong, ULong, UByte, String, ULong, String, String, ULong, String,
+        Integer> record) {
         if (record == null) {
             return null;
         }
@@ -224,11 +228,12 @@ public class DbRecordMapper {
         taskFileInfo.setFileHash((String) record.get(5));
         taskFileInfo.setHost(TaskTargetDTO.fromJsonString((String) record.get(6)));
         if (record.get(7) != null) {
-            taskFileInfo.setHostAccount(((ULong) record.get(7)).longValue());
+            taskFileInfo.setHostAccount(JooqDataTypeUtil.getLongFromULong((ULong) record.get(7)));
         } else {
             taskFileInfo.setHostAccount(null);
         }
-        taskFileInfo.setFileSourceId((Integer) record.get(8));
+        taskFileInfo.setHostAccountVar((String) record.get(8));
+        taskFileInfo.setFileSourceId((Integer) record.get(9));
         return taskFileInfo;
     }
 

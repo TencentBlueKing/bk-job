@@ -48,6 +48,7 @@
       <render-source-file
         v-if="!isLoading"
         :account="account"
+        :all-variables="allVariables"
         :data="stepInfo.fileSourceList"
         :variable="variable" />
     </detail-item>
@@ -58,7 +59,12 @@
       {{ stepInfo.transferModeText }}
     </detail-item>
     <detail-item :label="$t('template.执行账号：')">
-      {{ executeAccountText }}
+      <render-execute-account
+        :account-id="stepInfo.fileDestination.account"
+        :account-list="account"
+        :account-var="stepInfo.fileDestination.accountVar"
+        :all-variables="allVariables"
+        theme="blue" />
     </detail-item>
     <detail-item
       v-if="stepInfo.fileDestination.server.variable"
@@ -84,6 +90,7 @@
   import AccountManageService from '@service/account-manage';
 
   import DetailItem from '@components/detail-layout/item';
+  import RenderExecuteAccount from '@components/render-execute-account';
 
   import RenderGlobalVariable from './components/render-global-variable';
   import RenderSourceFile from './components/render-source-file';
@@ -93,6 +100,7 @@
     components: {
       RenderSourceFile,
       RenderGlobalVariable,
+      RenderExecuteAccount,
       DetailItem,
     },
     props: {
@@ -104,12 +112,15 @@
         type: Array,
         default: () => [],
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     data() {
       return {
         isLoading: true,
         stepInfo: {},
-        executeAccountText: '',
         account: [],
       };
     },
@@ -123,12 +134,6 @@
         AccountManageService.fetchAccountWhole()
           .then((data) => {
             this.account = data;
-            const accountData = data.find(item => item.id === this.stepInfo.fileDestination.account);
-            if (accountData) {
-              this.executeAccountText = accountData.alias;
-            } else {
-              this.executeAccountText = '--';
-            }
           })
           .finally(() => {
             this.isLoading = false;
@@ -147,4 +152,6 @@
       margin-bottom: 0;
     }
   }
+
+
 </style>

@@ -86,7 +86,14 @@
                     :pre-host="preServerList[index].host" />
                 </td>
                 <td :class="checkDiffClass(row, 'account')">
-                  {{ generatorAccountAlias(row.account) }}
+                  <render-execute-account
+                    :account-id="row.account"
+                    :account-list="account"
+                    :account-var="row.accountVar"
+                    :all-variables="allVariables"
+                    empty-text=""
+                    :highlight="checkDiffClass(row, 'account') === 'changed'"
+                    theme="gray" />
                 </td>
               </tr>
             </tbody>
@@ -104,6 +111,7 @@
   } from '@utils/vdom';
 
   import JbCollapseItem from '@components/jb-collapse-item';
+  import RenderExecuteAccount from '@components/render-execute-account';
 
   import SourceFileVO from '@domain/variable-object/source-file';
 
@@ -117,6 +125,7 @@
     name: '',
     components: {
       JbCollapseItem,
+      RenderExecuteAccount,
       FileSourceServer,
     },
     props: {
@@ -132,6 +141,10 @@
         type: Array,
         default: () => [],
       },
+      allVariables: {
+        type: Array,
+        default: () => []
+      }
     },
     data() {
       return {
@@ -161,13 +174,6 @@
       this.checkDiff();
     },
     methods: {
-      generatorAccountAlias(accountId) {
-        const account = this.account.find(_ => _.id === accountId);
-        if (!account) {
-          return '';
-        }
-        return account.alias;
-      },
       checkDiff() {
         const dataSourceParent = findParent(this, 'SyncPlanStep2');
 
@@ -324,10 +330,14 @@
                 };
               }
             } else {
-              // 在模板中不存在，表示被删掉了
+              // 模板中的同名文件已经匹配完，执行方案中多出来的这一个表示被删掉了
+              const sameFileKey = `${currentFile.realId}_${Math.random()}_${Math.random()}`;
+              currentFile.sameFileKey = sameFileKey;
+              serverFileDiff[sameFileKey] = {
+                type: 'delete',
+              };
               const index = _.findIndex(serverFileList, _ => _.realId === currentFile.realId);
-              serverFileList.splice(index + 1, 0, deleteServerFile);
-              deleteServerFile = null;
+              serverFileList.splice(index + 1, 0, currentFile);
             }
             continue;
           }
@@ -363,8 +373,9 @@
           }
           return fileItem;
         });
+        // localFileDiff 的值是状态字符串，同步前只需要保留被删除的标记
         const preLocalFileDiff = Object.keys(localFileDiff).reduce((result, key) => {
-          if (localFileDiff[key].type === 'different') {
+          if (localFileDiff[key] === 'delete') {
             result[key] = localFileDiff[key];
           }
           return result;
@@ -436,6 +447,8 @@
 <style lang='postcss'>
 .sync-step-server-file {
   flex: 1;
+
+
 
   .bk-collapse-item-header {
     display: flex;

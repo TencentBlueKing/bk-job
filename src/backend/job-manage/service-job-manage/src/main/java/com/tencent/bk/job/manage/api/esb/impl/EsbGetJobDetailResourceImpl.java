@@ -207,11 +207,12 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
 
         ServiceAccountDTO account = buildAccount(scriptStep.getAccount(), cacheAccountMap);
         if (account == null) {
-            log.error("Script account is empty! planId:{}, stepId:{}", scriptStep.getPlanId(), scriptStep.getId());
             esbStep.setAccount(null);
+            esbStep.setAccountVar(scriptStep.getAccountVar());
         } else {
             esbStep.setAccount(account.getAlias());
             esbStep.setAccountId(account.getId());
+            esbStep.setAccountVar(null);
         }
         fillStepTargetServerInfo(esbStep, scriptStep.getExecuteTarget());
     }
@@ -257,11 +258,17 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
 
 
     private ServiceAccountDTO buildAccount(Long accountId, Map<Long, ServiceAccountDTO> cacheAccountMap) {
+        if (accountId == null || accountId <= 0) {
+            return null;
+        }
         ServiceAccountDTO cacheAccount = cacheAccountMap.get(accountId);
         if (cacheAccount != null) {
             return cacheAccount;
         } else {
             AccountDTO account = accountService.getAccountById(accountId);
+            if (account == null) {
+                return null;
+            }
             ServiceAccountDTO serviceAccountDTO = account.toServiceAccountDTO();
             cacheAccountMap.put(accountId, serviceAccountDTO);
             return serviceAccountDTO;
@@ -282,7 +289,14 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
             fileSource.setFileSourceId(originFile.getFileSourceId());
             // 本地文件分发、文件源分发不需要设置账号和服务器信息
             if (originFile.getFileType() == TaskFileTypeEnum.SERVER) {
-                fileSource.setAccount(buildAccount(originFile.getHostAccount(), cacheAccountMap).getAlias());
+                ServiceAccountDTO account = buildAccount(originFile.getHostAccount(), cacheAccountMap);
+                if (account == null) {
+                    fileSource.setAccount(null);
+                    fileSource.setAccountVar(originFile.getHostAccountVar());
+                } else {
+                    fileSource.setAccount(account.getAlias());
+                    fileSource.setAccountVar(null);
+                }
                 TaskTargetDTO targetServer = originFile.getHost();
                 // TODO 需要新增源文件服务器支持动态节点/主机变量的参数
                 if (targetServer != null) {
@@ -296,7 +310,15 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
         });
         esbStep.setFileSources(fileSources);
 
-        esbStep.setAccount(buildAccount(fileStep.getExecuteAccount(), cacheAccountMap).getAlias());
+        ServiceAccountDTO account = buildAccount(fileStep.getExecuteAccount(), cacheAccountMap);
+        if (account == null) {
+            esbStep.setAccount(null);
+            esbStep.setAccountVar(fileStep.getExecuteAccountVar());
+        } else {
+            esbStep.setAccount(account.getAlias());
+            esbStep.setAccountId(account.getId());
+            esbStep.setAccountVar(null);
+        }
         TaskTargetDTO targetServer = fileStep.getDestinationHostList();
         fillStepTargetServerInfo(esbStep, targetServer);
 

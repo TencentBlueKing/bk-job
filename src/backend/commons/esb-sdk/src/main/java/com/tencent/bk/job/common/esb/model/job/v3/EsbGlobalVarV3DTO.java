@@ -51,7 +51,7 @@ public class EsbGlobalVarV3DTO {
     private String name;
 
     /**
-     * 全局变量值，当变量类型为字符、密码、数组时，此变量有效
+     * 全局变量值，当变量类型为字符、密码、数组、命名空间、执行账号时，此变量有效
      */
     @JsonPropertyDescription("Global variable value")
     private String value;

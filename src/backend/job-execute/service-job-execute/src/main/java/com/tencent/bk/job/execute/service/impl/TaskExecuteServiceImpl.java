@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AbortedException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -48,11 +49,13 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.Container;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
+import com.tencent.bk.job.common.util.check.ParamCheckUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
@@ -154,6 +157,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -298,7 +302,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         try {
             watch.start("checkRunningJobQuoteLimit");
             // 检查正在执行的作业配额限制
-            checkRunningJobQuotaLimit(appId, taskInstance.getAppCode());
+            AppResourceScope appResourceScope = checkRunningJobQuotaLimit(appId, taskInstance.getAppCode());
             watch.stop();
 
             // 检查任务是否应当被驱逐
@@ -310,6 +314,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 设置账号信息
             watch.start("checkAndSetAccountInfo");
             checkAndSetAccountInfo(stepInstance, appId);
+            watch.stop();
+
+            // 校验账号归属业务。必须排在 checkAndSetAccountInfo 之后：按别名指定的账号要等它回填出 accountId，
+            // 提前调用会让别名这条路径静默漏检
+            watch.start("checkAccountAppScope");
+            checkAccountAppScope(taskInstance, Collections.singletonList(stepInstance));
             watch.stop();
 
             // 处理执行对象
@@ -338,7 +348,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 鉴权
             watch.start("authFastExecute");
-            authFastExecute(fastTask.getOperator(), appId, stepInstance,
+            authFastExecute(fastTask.getOperator(), appResourceScope, stepInstance,
                 taskInstanceExecuteObjects.getWhiteHostAllowActions(), fileSourceAvailabilities);
             watch.stop();
 
@@ -517,7 +527,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     /*
      * 检查正在执行的作业配额限制，防止单个业务占用所有的执行引擎调度资源
      */
-    private void checkRunningJobQuotaLimit(Long appId, String appCode) {
+    private AppResourceScope checkRunningJobQuotaLimit(Long appId, String appCode) {
         ResourceScope resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
         ResourceQuotaCheckResultEnum checkResult = runningJobResourceQuotaManager.checkResourceQuotaLimit(
             appCode, resourceScope);
@@ -536,6 +546,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     resourceScope.toResourceScopeUniqueId(), appCode);
                 throw new RunningJobQuotaLimitExceedException(ErrorCode.RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT);
         }
+        return new AppResourceScope(appId, resourceScope);
     }
 
     /**
@@ -732,6 +743,66 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    /**
+     * 校验步骤引用的每个账号都归属当前业务，不属于则拒绝执行。
+     * <p>
+     * 补的是一个既有的不一致：按别名解析账号走 {@code getSystemAccountByAlias(alias, appId)}、带业务过滤，
+     * 按 ID 解析走 {@code getAccountPreferCache(id, null, null, null)}、不带。而账号 ID 是 API 调用方
+     * 可以任意指定的，跨业务引用必须在执行前拒掉。
+     * <p>
+     * 与「账号不存在」返回同一错误码，否则调用方能借错误码差异探测其他业务的账号 ID 是否存在。
+     * <p>
+     * 前置条件：调用前账号必须已归一成 ID。别名与账号变量两种形态分别由 {@code checkAndSetOsAccountInfo}
+     * 与 {@code resolveStepAccount} 解析并回填 accountId，本方法只认 ID。
+     */
+    private void checkAccountAppScope(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
+        Long appId = taskInstance.getAppId();
+        Set<Long> pendingAccountIds = collectReferencedAccountIds(stepInstanceList);
+        Set<Long> checkedAccountIds = new HashSet<>();
+        while (!pendingAccountIds.isEmpty()) {
+            Set<Long> nextRound = new HashSet<>(); // DB账号关联的system账号集合
+            for (Long accountId : pendingAccountIds) {
+                if (!checkedAccountIds.add(accountId)) {
+                    continue;
+                }
+                AccountDTO account = accountService.getAccountPreferCache(accountId, null, null, null);
+                if (account == null || !appId.equals(account.getAppId())) {
+                    log.warn("Account is not exist or not in current app, accountId={}, accountAppId={}, appId={}",
+                        accountId, account == null ? null : account.getAppId(), appId);
+                    throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray("ID=" + accountId));
+                }
+                // DB 账号依赖的系统账号同样要在本业务内，否则等于借 DB 账号绕开校验
+                Long dbSystemAccountId = account.getDbSystemAccountId();
+                if (dbSystemAccountId != null && dbSystemAccountId > 0) {
+                    nextRound.add(dbSystemAccountId);
+                }
+            }
+            pendingAccountIds = nextRound;
+        }
+    }
+
+    private Set<Long> collectReferencedAccountIds(List<StepInstanceDTO> stepInstanceList) {
+        Set<Long> accountIds = new HashSet<>();
+        if (CollectionUtils.isEmpty(stepInstanceList)) {
+            return accountIds;
+        }
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            addAccountIdIfPresent(accountIds, stepInstance.getAccountId());
+            addAccountIdIfPresent(accountIds, stepInstance.getDbAccountId());
+            if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
+                stepInstance.getFileSourceList()
+                    .forEach(fileSource -> addAccountIdIfPresent(accountIds, fileSource.getAccountId()));
+            }
+        }
+        return accountIds;
+    }
+
+    private void addAccountIdIfPresent(Set<Long> accountIds, Long accountId) {
+        if (accountId != null && accountId > 0) {
+            accountIds.add(accountId);
+        }
+    }
+
     private void checkAndSetOsAccountInfo(StepInstanceDTO stepInstance, Long appId) {
         //设置系统账号信息
         Long systemAccountId = stepInstance.getAccountId();
@@ -762,11 +833,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 Long fileSourceAccountId = fileSource.getAccountId();
                 String fileSourceAccountAlias = fileSource.getAccountAlias();
                 if (fileSourceAccountId != null && fileSourceAccountId > 0) {
-                    AccountDTO systemAccount = accountService.getAccountPreferCache(systemAccountId, null, null, null);
+                    AccountDTO systemAccount =
+                        accountService.getAccountPreferCache(fileSourceAccountId, null, null, null);
                     if (systemAccount == null) {
-                        log.warn("System account is not exist, accountId={}", systemAccountId);
+                        log.warn("File source account is not exist, accountId={}", fileSourceAccountId);
                         throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST,
-                            ArrayUtil.toArray("ID=" + systemAccountId));
+                            ArrayUtil.toArray("ID=" + fileSourceAccountId));
                     }
                     fileSource.setAccountAlias(systemAccount.getAlias());
                     fileSource.setAccount(systemAccount.getAccount());
@@ -774,9 +846,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     AccountDTO systemAccount = accountService.getAccountPreferCache(null,
                         AccountCategoryEnum.SYSTEM, fileSourceAccountAlias, appId);
                     if (systemAccount == null) {
-                        log.warn("System account is not exist, accountId={}", systemAccountId);
+                        log.warn("File source account is not exist, appId={}, accountAlias={}",
+                            appId, fileSourceAccountAlias);
                         throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST,
-                            ArrayUtil.toArray("ID=" + systemAccountId));
+                            ArrayUtil.toArray(fileSourceAccountAlias));
                     }
                     fileSource.setAccountId(systemAccount.getId());
                     fileSource.setAccount(systemAccount.getAccount());
@@ -934,17 +1007,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * @param appId    本次执行所属业务
      */
     private void authFastExecute(User operator,
-                                 long appId,
+                                 AppResourceScope appResourceScope,
                                  StepInstanceDTO stepInstance,
                                  Map<Long, List<String>> whiteHostAllowActions,
                                  List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
         AuthResult authResult;
         if (stepInstance.isScriptStep()) {
             // 鉴权脚本任务
-            authResult = authExecuteScript(operator, appId, stepInstance, whiteHostAllowActions);
+            authResult = authExecuteScript(operator, appResourceScope, stepInstance, whiteHostAllowActions);
         } else {
             // 鉴权文件任务
-            authResult = authFileTransfer(operator, appId, stepInstance, whiteHostAllowActions,
+            authResult = authFileTransfer(operator, appResourceScope, stepInstance, whiteHostAllowActions,
                 fileSourceAvailabilities);
         }
 
@@ -954,7 +1027,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private AuthResult authExecuteScript(User user,
-                                         long appId,
+                                         AppResourceScope appResourceScope,
                                          StepInstanceDTO stepInstance,
                                          Map<Long, List<String>> whiteHostAllowActions) {
         Long accountId = null;
@@ -968,7 +1041,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         AuthResult accountAuthResult = executeAuthService.authAccountExecutable(user,
-            new AppResourceScope(appId), accountId);
+            appResourceScope, accountId);
 
         AuthResult serverAuthResult;
         ExecuteTargetDTO executeObjects = stepInstance.getTargetExecuteObjects().clone();
@@ -981,14 +1054,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (scriptSource == ScriptSourceEnum.CUSTOM) {
             // 快速执行脚本鉴权
             serverAuthResult = executeAuthService.authFastExecuteScript(
-                user, new AppResourceScope(appId), executeObjects);
+                user, appResourceScope, executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_APP) {
             serverAuthResult = executeAuthService.authExecuteAppScript(
-                user, new AppResourceScope(appId), stepInstance.getScriptId(),
+                user, appResourceScope, stepInstance.getScriptId(),
                 stepInstance.getScriptName(), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_PUBLIC) {
             serverAuthResult = executeAuthService.authExecutePublicScript(
-                user, new AppResourceScope(appId), stepInstance.getScriptId(),
+                user, appResourceScope, stepInstance.getScriptId(),
                 stepInstance.getScriptName(), executeObjects);
         } else {
             serverAuthResult = AuthResult.fail(user);
@@ -1070,7 +1143,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     AuthResult authFileTransfer(User operator,
-                                long appId,
+                                AppResourceScope appResourceScope,
                                 StepInstanceDTO stepInstance,
                                 Map<Long, List<String>> whiteHostAllowActions,
                                 List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
@@ -1111,11 +1184,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         AuthResult accountAuthResult = accountsNeedAuth.isEmpty()
             ? AuthResult.pass(operator)
             : executeAuthService.batchAuthAccountExecutable(
-                operator, new AppResourceScope(appId), accountsNeedAuth);
+                operator, appResourceScope, accountsNeedAuth);
 
         // 文件源鉴权必须在下面主机为空的提前返回之前合并进来，否则目标主机全部命中白名单时会静默跳过
         AuthResult preHostAuthResult = accountAuthResult.mergeAuthResult(
-            authViewFileSource(operator, appId, fileSourceAvailabilities));
+            authViewFileSource(operator, appResourceScope, fileSourceAvailabilities));
 
         ExecuteTargetDTO executeTarget = targetExecuteObjects.clone();
         stepInstance.getFileSourceList().stream()
@@ -1130,7 +1203,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         AuthResult serverAuthResult = executeAuthService.authFastPushFile(
-            operator, new AppResourceScope(appId), executeTarget);
+            operator, appResourceScope, executeTarget);
 
         return preHostAuthResult.mergeAuthResult(serverAuthResult);
     }
@@ -1142,14 +1215,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * 共享关系本身即视为归属业务管理员做出的一次显式授权。
      */
     private AuthResult authViewFileSource(User operator,
-                                          Long appId,
+                                          AppResourceScope appResourceScope,
                                           List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
         if (CollectionUtils.isEmpty(fileSourceAvailabilities)) {
             return AuthResult.pass(operator);
         }
         Map<Integer, String> ownFileSourceIdToName = new HashMap<>();
         for (ServiceFileSourceAvailabilityDTO availability : fileSourceAvailabilities) {
-            if (appId.equals(availability.getOwnerAppId())) {
+            if (appResourceScope.getAppId().equals(availability.getOwnerAppId())) {
                 ownFileSourceIdToName.put(availability.getId(), availability.getAlias());
             }
         }
@@ -1157,7 +1230,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             return AuthResult.pass(operator);
         }
         return executeAuthService.batchAuthViewFileSource(
-            operator, new AppResourceScope(appId), ownFileSourceIdToName);
+            operator, appResourceScope, ownFileSourceIdToName);
     }
 
     private void checkStepInstanceExecuteTargetNonEmpty(StepInstanceDTO stepInstance) {
@@ -1328,7 +1401,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 检查正在执行的作业配额限制
             TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
             watch.start("checkRunningJobQuoteLimit");
-            checkRunningJobQuotaLimit(taskInstance.getAppId(), taskInstance.getAppCode());
+            AppResourceScope appResourceScope =
+                checkRunningJobQuotaLimit(taskInstance.getAppId(), taskInstance.getAppCode());
             watch.stop();
 
             ServiceTaskPlanDTO jobPlan = taskInfo.getJobPlan();
@@ -1340,6 +1414,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 调整超时时间
             stepInstanceList.forEach(this::adjustStepTimeout);
+
+            // 校验账号归属业务。方案执行不走 checkAndSetAccountInfo，账号是 job-manage 组装方案详情时填好的，
+            // 执行侧 resolveStepAccount 见 id > 0 直接原样返回，因此这条入口必须单独校验
+            watch.start("checkAccountAppScope");
+            checkAccountAppScope(taskInstance, stepInstanceList);
+            watch.stop();
 
             // 检查高危脚本
             watch.start("checkDangerousScript");
@@ -1372,7 +1452,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             if (!executeParam.isSkipAuth()) {
                 watch.start("auth-execute-job");
-                authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), jobPlan, stepInstanceList,
+                authExecuteJobPlan(executeParam.getOperator(), appResourceScope, jobPlan, stepInstanceList,
                     taskInstanceExecuteObjects.getWhiteHostAllowActions());
                 watch.stop();
             }
@@ -1504,8 +1584,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskInstanceDTO taskInstance = buildTaskInstanceForTask(executeParam, taskPlan);
 
         List<TaskVariableDTO> planDefaultVariables = convertToCommonVariables(taskPlan.getVariableList());
-        Map<String, TaskVariableDTO> finalVariableValueMap = buildFinalTaskVariableValues(planDefaultVariables
-            , executeParam.getExecuteVariableValues());
+        Map<String, TaskVariableDTO> finalVariableValueMap = buildFinalTaskVariableValues(appId, planDefaultVariables,
+            executeParam.getExecuteVariableValues());
         standardizeTaskVarDynamicGroupId(finalVariableValueMap.values());
         log.info("Final variable={}", JsonUtils.toJson(finalVariableValueMap));
 
@@ -1540,7 +1620,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void authExecuteJobPlan(User user,
-                                    long appId,
+                                    AppResourceScope appResourceScope,
                                     ServiceTaskPlanDTO plan,
                                     List<StepInstanceDTO> stepInstanceList,
                                     Map<Long, List<String>> whiteHostAllowActions) throws PermissionDeniedException {
@@ -1565,7 +1645,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 账号使用鉴权
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
-            user, new AppResourceScope(appId), accountIds);
+            user, appResourceScope, accountIds);
 
         AuthResult authResult;
         if (authServers.isEmpty()) {
@@ -1577,11 +1657,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (isDebugTask) {
                 // 鉴权模板调试
                 serverAuthResult = executeAuthService.authDebugTemplate(
-                    user, new AppResourceScope(appId), plan.getTaskTemplateId(), authServers);
+                    user, appResourceScope, plan.getTaskTemplateId(), authServers);
             } else {
                 // 鉴权执行方案的执行
                 serverAuthResult = executeAuthService.authExecutePlan(
-                    user, new AppResourceScope(appId), plan.getTaskTemplateId(),
+                    user, appResourceScope, plan.getTaskTemplateId(),
                     plan.getId(), plan.getName(), authServers);
             }
             authResult = accountAuthResult.mergeAuthResult(serverAuthResult);
@@ -1650,7 +1730,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     taskInstance.getPlanId());
                 throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
             }
-            authExecuteJobPlan(user, appId, serviceTaskPlanDTO, taskInstance.getStepInstances(),
+            authExecuteJobPlan(user, new AppResourceScope(appId), serviceTaskPlanDTO, taskInstance.getStepInstances(),
                 whiteHostAllowActions);
         } else if (taskType.equals(TaskTypeEnum.SCRIPT.getValue())) {
             // 快速执行脚本鉴权
@@ -1662,13 +1742,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     scriptStepInstance.setScriptName(script.getName());
                 }
             }
-            authFastExecute(user, appId, scriptStepInstance, whiteHostAllowActions,
+            authFastExecute(user, new AppResourceScope(appId), scriptStepInstance, whiteHostAllowActions,
                 Collections.emptyList());
         } else if (taskType.equals(TaskTypeEnum.FILE.getValue())) {
             // 快速分发文件鉴权
             StepInstanceDTO fileStepInstance = taskInstance.getStepInstances().get(0);
             // 重做走的是已落库的执行实例，不对其引用的文件源追加可用性校验与鉴权，避免存量作业无法重做
-            authFastExecute(user, appId, fileStepInstance, whiteHostAllowActions,
+            authFastExecute(user, new AppResourceScope(appId), fileStepInstance, whiteHostAllowActions,
                 Collections.emptyList());
         } else {
             log.warn("Auth fail because of invalid task type!");
@@ -1751,7 +1831,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, appId,
             operator.getUsername());
 
-        Map<String, TaskVariableDTO> finalVariableValueMap = buildFinalTaskVariableValues(
+        Map<String, TaskVariableDTO> finalVariableValueMap = buildFinalTaskVariableValues(appId,
             originTaskInstance.getVariables(), executeVariableValues);
         log.info("Final variable={}", finalVariableValueMap);
 
@@ -1780,6 +1860,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstanceList.add(stepInstance);
         }
 
+        // 校验账号归属业务。重做直接沿用历史实例里的 accountId、不重新查库，存量的跨业务引用会被原样重放，
+        // 因此这条入口同样要校验
+        checkAccountAppScope(taskInstance, stepInstanceList);
+
         // 检查高危脚本（重做作业是真实执行，命中照常落 dangerous_record）
         batchCheckScriptMatchDangerousRule(operator.getTenantId(), taskInstance, stepInstanceList, false);
 
@@ -1794,7 +1878,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 原实例执行时文件源可能还在共享范围内，重做时要按当前范围重新校验
         validateReferencedFileSources(operator.getTenantId(), appId, stepInstanceList);
 
-        authRedoJob(operator, appId, originTaskInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
+        // 鉴权用本次重新解析出的步骤实例，而非原实例的步骤：执行账号全局变量的取值在此次解析中才确定，
+        // 拿原步骤鉴权会漏掉本次实际要用的账号
+        taskInstance.setStepInstances(stepInstanceList);
+        authRedoJob(operator, appId, taskInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
 
         saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
 
@@ -1895,6 +1982,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * 计算作业引用的全局变量的值
      */
     private Map<String, TaskVariableDTO> buildFinalTaskVariableValues(
+        Long appId,
         List<TaskVariableDTO> defaultVariableValues,
         List<TaskVariableDTO> executeVariableValues
     ) throws ServiceException {
@@ -1935,10 +2023,36 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     // 否则，使用变量的默认值
                     grantValueForVariable(finalTaskVariable, defaultTaskVariable);
                 }
+                validateExecuteAccountVariableValue(appId, finalTaskVariable);
                 finalVariableValueMap.put(finalTaskVariable.getName(), finalTaskVariable);
             }
         }
         return finalVariableValueMap;
+    }
+
+    private void validateExecuteAccountVariableValue(Long appId, TaskVariableDTO taskVariable) {
+        if (taskVariable.getType() != TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType()) {
+            return;
+        }
+        if (StringUtils.isBlank(taskVariable.getValue())) {
+            return;
+        }
+        Long accountId = parseAccountId(taskVariable.getValue(), 0L, taskVariable.getName());
+        AccountDTO account = accountService.getAccountById(accountId);
+        if (account == null) {
+            log.warn("Execute account variable account is not exist, variableName={}, accountId={}",
+                taskVariable.getName(), accountId);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray("ID=" + accountId));
+        }
+        if (!Objects.equals(account.getAppId(), appId)) {
+            log.warn("Execute account variable account does not belong to current app, appId={}, variableName={}, "
+                + "accountId={}, accountAppId={}", appId, taskVariable.getName(), accountId, account.getAppId());
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{"variables", String.format("variable[%s] uses an account from another app",
+                    taskVariable.getName())}
+            );
+        }
     }
 
     private void grantValueForVariable(TaskVariableDTO to, TaskVariableDTO from) {
@@ -1946,6 +2060,142 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             to.setExecuteTarget(from.getExecuteTarget());
         } else {
             to.setValue(from.getValue());
+        }
+    }
+
+    private ServiceAccountDTO resolveStepAccount(ServiceAccountDTO accountInfo,
+                                                 Map<String, TaskVariableDTO> variableValueMap,
+                                                 AccountCategoryEnum expectedCategory,
+                                                 ServiceTaskStepDTO step) {
+        if (accountInfo == null) {
+            return null;
+        }
+        if (accountInfo.getId() != null && accountInfo.getId() > 0) {
+            return accountInfo;
+        }
+        if (StringUtils.isBlank(accountInfo.getAccountVar())) {
+            return null;
+        }
+
+        return resolveAccountVar(accountInfo.getAccountVar(), variableValueMap, expectedCategory, step.getId());
+    }
+
+    private ServiceAccountDTO resolveAccountVar(
+        String accountVar,
+        Map<String, TaskVariableDTO> variableValueMap,
+        AccountCategoryEnum expectedCategory,
+        long stepId
+    ) {
+        accountVar = accountVar.trim();
+        TaskVariableDTO accountVariable = variableValueMap.get(accountVar);
+        if (accountVariable == null) {
+            log.warn("Execute account variable not found, stepId={}, accountVar={}", stepId, accountVar);
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{"variables", String.format("variable[%s] not found", accountVar)}
+            );
+        }
+        if (!Objects.equals(accountVariable.getType(), TaskVariableTypeEnum.EXECUTE_ACCOUNT.getType())) {
+            log.warn("Invalid execute account variable, stepId={}, accountVar={}", stepId, accountVar);
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{"variables", String.format("variable[%s] is not an execute account variable", accountVar)}
+            );
+        }
+        Long accountId = parseAccountId(accountVariable.getValue(), stepId, accountVar);
+        AccountDTO account = accountService.getAccountById(accountId);
+        if (account == null) {
+            log.warn("Resolved account is not exist, stepId={}, accountVar={}, accountId={}",
+                stepId, accountVar, accountId);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray("ID=" + accountId));
+        }
+        if (account.getCategory() != expectedCategory) {
+            log.warn("Resolved account category mismatch, stepId={}, accountVar={}, accountId={}, expected={}, " +
+                    "actual={}", stepId, accountVar, accountId, expectedCategory, account.getCategory());
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{"variables", String.format("variable[%s] must use a %s account", accountVar,
+                    expectedCategory.getName())}
+            );
+        }
+        return buildServiceAccount(account);
+    }
+
+    private Long parseAccountId(String accountValue, long stepId, String accountVar) {
+        try {
+            return ParamCheckUtil.parseExecuteAccountId(accountValue, accountVar);
+        } catch (InvalidParamException e) {
+            log.warn("Execute account variable value is invalid, stepId={}, accountVar={}, value={}",
+                stepId, accountVar, accountValue);
+            throw e;
+        }
+    }
+
+    private ServiceAccountDTO buildServiceAccount(AccountDTO account) {
+        ServiceAccountDTO serviceAccount = new ServiceAccountDTO();
+        serviceAccount.setId(account.getId());
+        serviceAccount.setAccount(account.getAccount());
+        serviceAccount.setAlias(account.getAlias());
+        serviceAccount.setAppId(account.getAppId());
+        serviceAccount.setPassword(account.getPassword());
+        serviceAccount.setType(account.getType() == null ? null : account.getType().getType());
+        serviceAccount.setCategory(account.getCategory() == null ? null : account.getCategory().getValue());
+        serviceAccount.setGrantees(account.getGrantees());
+        if (account.getCategory() == AccountCategoryEnum.DB) {
+            serviceAccount.setDbPort(account.getDbPort());
+            serviceAccount.setDbPassword(account.getDbPassword());
+            serviceAccount.setDbSystemAccount(buildDbSystemAccount(account));
+        }
+        return serviceAccount;
+    }
+
+    private ServiceAccountDTO buildDbSystemAccount(AccountDTO dbAccount) {
+        if (dbAccount.getDbSystemAccountId() == null || dbAccount.getDbSystemAccountId() <= 0) {
+            log.warn("DB account depended system account is empty, dbAccountId={}", dbAccount.getId());
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
+        }
+        AccountDTO systemAccount = accountService.getAccountById(dbAccount.getDbSystemAccountId());
+        if (systemAccount == null) {
+            log.warn("DB account depended system account is not exist, dbAccountId={}, systemAccountId={}",
+                dbAccount.getId(), dbAccount.getDbSystemAccountId());
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST,
+                ArrayUtil.toArray("ID=" + dbAccount.getDbSystemAccountId()));
+        }
+        if (!Objects.equals(systemAccount.getAppId(), dbAccount.getAppId())
+            || systemAccount.getCategory() != AccountCategoryEnum.SYSTEM) {
+            log.warn("DB account depended system account is invalid, dbAccountId={}, systemAccountId={}, "
+                    + "dbAccountAppId={}, systemAccountAppId={}, systemAccountCategory={}",
+                dbAccount.getId(), dbAccount.getDbSystemAccountId(), dbAccount.getAppId(), systemAccount.getAppId(),
+                systemAccount.getCategory());
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{"account", "database account uses an invalid system account"}
+            );
+        }
+        return buildServiceAccount(systemAccount);
+    }
+
+    private String getAccountVar(ServiceAccountDTO accountInfo) {
+        if (accountInfo == null || StringUtils.isBlank(accountInfo.getAccountVar())) {
+            return null;
+        }
+        return accountInfo.getAccountVar().trim();
+    }
+
+    private void setScriptStepAccount(StepInstanceDTO stepInstance,
+                                      ServiceAccountDTO accountInfo,
+                                      ScriptTypeEnum scriptType) {
+        if (scriptType == ScriptTypeEnum.SQL) {
+            stepInstance.setAccountId(accountInfo.getDbSystemAccount().getId());
+            stepInstance.setAccount(accountInfo.getDbSystemAccount().getAccount());
+            stepInstance.setDbAccountId(accountInfo.getId());
+            stepInstance.setDbAccount(accountInfo.getAccount());
+            stepInstance.setDbType(accountInfo.getType());
+            stepInstance.setDbPort(accountInfo.getDbPort());
+            stepInstance.setDbPass(accountInfo.getDbPassword());
+        } else {
+            stepInstance.setAccountId(accountInfo.getId());
+            stepInstance.setAccount(accountInfo.getAccount());
         }
     }
 
@@ -1974,25 +2224,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setScriptType(ScriptTypeEnum.valOf(scriptStepInfo.getType()));
         stepInstance.setScriptSource(scriptStepInfo.getScriptSource());
 
-        ServiceAccountDTO accountInfo = scriptStepInfo.getAccount();
+        ScriptTypeEnum scriptType = ScriptTypeEnum.valOf(scriptStepInfo.getType());
+        ServiceAccountDTO accountInfo = resolveStepAccount(scriptStepInfo.getAccount(), variableValueMap,
+            scriptType == ScriptTypeEnum.SQL ? AccountCategoryEnum.DB : AccountCategoryEnum.SYSTEM, step);
         if (accountInfo == null) {
             log.warn("Account is null! step_id:{}", step.getId());
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
+        stepInstance.setAccountVar(getAccountVar(scriptStepInfo.getAccount()));
 
-        ScriptTypeEnum scriptType = ScriptTypeEnum.valOf(scriptStepInfo.getType());
-        stepInstance.setAccountId(accountInfo.getId());
-        if (scriptType == ScriptTypeEnum.SQL) {
-            stepInstance.setAccountId(accountInfo.getDbSystemAccount().getId());
-            stepInstance.setAccount(accountInfo.getDbSystemAccount().getAccount());
-            stepInstance.setDbAccountId(accountInfo.getId());
-            stepInstance.setDbAccount(accountInfo.getAccount());
-            stepInstance.setDbType(accountInfo.getType());
-            stepInstance.setDbPort(accountInfo.getDbPort());
-            stepInstance.setDbPass(accountInfo.getDbPassword());
-        } else {
-            stepInstance.setAccountId(accountInfo.getId());
-            stepInstance.setAccount(accountInfo.getAccount());
+        setScriptStepAccount(stepInstance, accountInfo, scriptType);
+        if (scriptType != ScriptTypeEnum.SQL) {
             stepInstance.setWindowsInterpreter(scriptStepInfo.getWindowsInterpreter());
         }
 
@@ -2007,13 +2249,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                                    Map<String, TaskVariableDTO> variableValueMap) {
         ServiceTaskFileStepDTO fileStepInfo = step.getFileStepInfo();
 
-        ServiceAccountDTO accountInfo = step.getFileStepInfo().getAccount();
+        ServiceAccountDTO accountInfo = resolveStepAccount(step.getFileStepInfo().getAccount(), variableValueMap,
+            AccountCategoryEnum.SYSTEM, step);
         if (accountInfo == null) {
             log.warn("Account is null! step_id:{}", step.getId());
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
-        stepInstance.setAccountId(fileStepInfo.getAccount().getId());
-        stepInstance.setAccount(fileStepInfo.getAccount().getAccount());
+        stepInstance.setAccountId(accountInfo.getId());
+        stepInstance.setAccount(accountInfo.getAccount());
+        stepInstance.setAccountVar(getAccountVar(step.getFileStepInfo().getAccount()));
         stepInstance.setFileTargetPath(fileStepInfo.getDestinationFileLocation());
 
         List<ServiceTaskFileInfoDTO> originFileList = fileStepInfo.getOriginFileList();
@@ -2035,10 +2279,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 }
             } else if (originFile.getFileType() == TaskFileTypeEnum.SERVER.getType()) {
                 fileSource.setLocalUpload(false);
-                ServiceAccountDTO accountDTO = originFile.getAccount();
+                ServiceAccountDTO accountDTO = resolveStepAccount(originFile.getAccount(), variableValueMap,
+                    AccountCategoryEnum.SYSTEM, step);
                 if (accountDTO != null) {
                     fileSource.setAccount(accountDTO.getAccount());
                     fileSource.setAccountId(accountDTO.getId());
+                    fileSource.setAccountVar(getAccountVar(originFile.getAccount()));
                 }
                 ServiceTaskTargetDTO target = originFile.getExecuteTarget();
                 ExecuteTargetDTO targetServers = buildFinalTargetServers(target, variableValueMap);
@@ -2095,18 +2341,23 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setScriptSource(originStepInstance.getScriptSource());
 
         ScriptTypeEnum scriptType = originStepInstance.getScriptType();
-        stepInstance.setAccountId(originStepInstance.getAccountId());
-        if (scriptType == ScriptTypeEnum.SQL) {
-            stepInstance.setAccountId(originStepInstance.getAccountId());
-            stepInstance.setAccount(originStepInstance.getAccount());
-            stepInstance.setDbAccountId(originStepInstance.getDbAccountId());
-            stepInstance.setDbAccount(originStepInstance.getDbAccount());
-            stepInstance.setDbType(originStepInstance.getDbType());
-            stepInstance.setDbPort(originStepInstance.getDbPort());
-            stepInstance.setDbPass(originStepInstance.getDbPass());
+        stepInstance.setAccountVar(originStepInstance.getAccountVar());
+        if (StringUtils.isNotBlank(originStepInstance.getAccountVar())) {
+            AccountCategoryEnum accountCategory = scriptType == ScriptTypeEnum.SQL ? AccountCategoryEnum.DB :
+                AccountCategoryEnum.SYSTEM;
+            ServiceAccountDTO accountInfo = resolveAccountVar(originStepInstance.getAccountVar(),
+                variableValueMap, accountCategory, originStepInstance.getStepId());
+            setScriptStepAccount(stepInstance, accountInfo, scriptType);
         } else {
             stepInstance.setAccountId(originStepInstance.getAccountId());
             stepInstance.setAccount(originStepInstance.getAccount());
+            if (scriptType == ScriptTypeEnum.SQL) {
+                stepInstance.setDbAccountId(originStepInstance.getDbAccountId());
+                stepInstance.setDbAccount(originStepInstance.getDbAccount());
+                stepInstance.setDbType(originStepInstance.getDbType());
+                stepInstance.setDbPort(originStepInstance.getDbPort());
+                stepInstance.setDbPass(originStepInstance.getDbPass());
+            }
         }
 
         ExecuteTargetDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetExecuteObjects(),
@@ -2117,8 +2368,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void parseFileStepInstanceFromStepInstance(StepInstanceDTO stepInstance,
                                                        StepInstanceDTO originStepInstance,
                                                        Map<String, TaskVariableDTO> variableValueMap) {
-        stepInstance.setAccountId(originStepInstance.getAccountId());
-        stepInstance.setAccount(originStepInstance.getAccount());
+        stepInstance.setAccountVar(originStepInstance.getAccountVar());
+        if (StringUtils.isNotBlank(originStepInstance.getAccountVar())) {
+            ServiceAccountDTO accountInfo = resolveAccountVar(originStepInstance.getAccountVar(),
+                variableValueMap, AccountCategoryEnum.SYSTEM, originStepInstance.getStepId());
+            stepInstance.setAccountId(accountInfo.getId());
+            stepInstance.setAccount(accountInfo.getAccount());
+        } else {
+            stepInstance.setAccountId(originStepInstance.getAccountId());
+            stepInstance.setAccount(originStepInstance.getAccount());
+        }
         stepInstance.setFileTargetPath(originStepInstance.getFileTargetPath());
         stepInstance.setIgnoreError(originStepInstance.isIgnoreError());
         stepInstance.setTimeout(originStepInstance.getTimeout());
@@ -2129,6 +2388,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             List<FileSourceDTO> fileSourceList = new ArrayList<>();
             originStepInstance.getFileSourceList().forEach(fileSourceDTO -> {
                 FileSourceDTO newFileSource = fileSourceDTO.clone();
+                if (StringUtils.isNotBlank(newFileSource.getAccountVar())) {
+                    ServiceAccountDTO accountInfo = resolveAccountVar(newFileSource.getAccountVar(),
+                        variableValueMap, AccountCategoryEnum.SYSTEM, originStepInstance.getStepId());
+                    newFileSource.setAccountId(accountInfo.getId());
+                    newFileSource.setAccount(accountInfo.getAccount());
+                }
                 // 重新解析源文件服务器信息
                 ExecuteTargetDTO targetServers = buildFinalTargetServers(newFileSource.getServers(), variableValueMap);
                 newFileSource.setServers(targetServers);
@@ -2241,6 +2506,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 containerList.add(container);
             }
             executeTarget.setStaticContainerList(containerList);
+        }
+
+        // 透传动态条件过滤器：覆盖「步骤直接目标」与「EXECUTE_OBJECT_LIST 变量默认值」两条入口；
+        // 调用时传入覆盖值由 Web/OpenAPI 入参直接给 ExecuteTargetDTO，不走本方法，无需在此处理。
+        // clone 防止后续执行链路 mutate（如 runtime 解析后写回 containers）反向污染上游 ServiceTaskTargetDTO。
+        List<KubeContainerFilter> serviceContainerFilters = taskTarget.getContainerFilters();
+        if (CollectionUtils.isNotEmpty(serviceContainerFilters)) {
+            List<KubeContainerFilter> cloned = new ArrayList<>(serviceContainerFilters.size());
+            for (KubeContainerFilter filter : serviceContainerFilters) {
+                cloned.add(filter.clone());
+            }
+            executeTarget.setContainerFilters(cloned);
         }
         return executeTarget;
     }
@@ -2687,7 +2964,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 taskInfo.getVariables().values());
 
         watch.start("auth-execute-job");
-        authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), taskInfo.getJobPlan(),
+        authExecuteJobPlan(executeParam.getOperator(), new AppResourceScope(executeParam.getAppId()),
+            taskInfo.getJobPlan(),
             taskInfo.getStepInstances(), taskInstanceExecuteObjects.getWhiteHostAllowActions());
         watch.stop();
 

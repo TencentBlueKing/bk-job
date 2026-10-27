@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.metrics;
 
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 
@@ -37,4 +38,15 @@ public interface ExecuteObjectSampler {
      */
     void tryToRecordExecuteObjectMetrics(TaskInstanceDTO taskInstance,
                                          TaskInstanceExecuteObjects executeObjects);
+
+    /**
+     * 尝试记录单个容器过滤条件渲染出的容器数量指标，异常不抛出，内部做日志记录
+     *
+     * @param taskInstance         任务实例对象
+     * @param filter               容器过滤条件（用于提取筛选深度等标签）
+     * @param resolvedContainerNum 该过滤条件渲染出的容器数量
+     */
+    void tryToRecordContainerFilterResolvedNum(TaskInstanceDTO taskInstance,
+                                               KubeContainerFilter filter,
+                                               int resolvedContainerNum);
 }

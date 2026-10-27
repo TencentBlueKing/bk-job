@@ -46,6 +46,7 @@ export default class TaskScriptStep {
     this.content = payload.content;
     this.scriptLanguage = payload.scriptLanguage || 1;
     this.account = payload.account;
+    this.accountVar = payload.accountVar;
     this.status = payload.status;
     this.executeTarget = new ExecuteTargetModel(payload.executeTarget || {});
     this.windowsInterpreter = payload.windowsInterpreter;

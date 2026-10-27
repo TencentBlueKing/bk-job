@@ -7,3 +7,9 @@ apigw_base_url: https://bkapi.example.com/api/bk-job/prod
 
 # 作业平台 Web 根 URL；plan-execute 成功后拼接 {job_base_url}/api_execute/{job_instance_id}
 job_base_url: https://job.example.com
+
+# 【可选】当前环境的默认租户 ID，会作为 HTTP 请求头 X-Bk-Tenant-Id 传给 APIGW。
+# 优先级：--bk-tenant-id CLI 入参 > 本配置项 > "default"
+# - 同一环境跨租户操作：用 CLI 参数 --bk-tenant-id <ID> 按次覆盖，无需改本配置项。
+# - 非多租户环境：可省略本配置项，脚本按 "default" 传值。
+bk_tenant_id: default

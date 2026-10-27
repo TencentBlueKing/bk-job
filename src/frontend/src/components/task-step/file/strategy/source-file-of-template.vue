@@ -30,6 +30,7 @@
     :data="fileSources"
     :field="field"
     from="template"
+    :script-variables="scriptVariables"
     :variable="variable"
     @on-change="handleSourceFileChange" />
 </template>
@@ -54,6 +55,10 @@
         default: () => ({}),
       },
       variable: {
+        type: Array,
+        default: () => [],
+      },
+      scriptVariables: {
         type: Array,
         default: () => [],
       },
@@ -85,7 +90,8 @@
           fileType: fileItem.fileType,
           fileSize: `${fileItem.fileSize}`,
           host: fileItem.host,
-          account: fileItem.account,
+          account: fileItem.account || '',
+          accountVar: fileItem.accountVar || '',
           id: fileItem.id,
           fileSourceId: fileItem.fileSourceId,
         }));

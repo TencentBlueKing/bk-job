@@ -77,6 +77,14 @@ public interface ScriptManager {
     ScriptDTO getScriptVersion(Long scriptVersionId);
 
     /**
+     * 根据ID批量查询脚本版本，不存在的版本不会出现在结果中
+     *
+     * @param scriptVersionIds 脚本版本ID集合
+     * @return 脚本版本ID到脚本版本的映射
+     */
+    Map<Long, ScriptDTO> batchGetScriptVersionsByIds(Collection<Long> scriptVersionIds);
+
+    /**
      * 根据scriptId查询脚本
      *
      * @param appId    业务ID

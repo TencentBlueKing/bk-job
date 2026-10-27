@@ -43,6 +43,7 @@
   </div>
 </template>
 <script>
+  import TypeAccount from './account';
   import TypeHost from './host';
   import TypeText from './text';
 
@@ -80,6 +81,7 @@
           4: TypeText,
           5: TypeText,
           6: TypeText,
+          7: TypeAccount,
         };
         if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
           return 'div';

@@ -27,6 +27,7 @@ package com.tencent.bk.job.file_gateway.api.inner;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.file_gateway.dao.filesource.NoTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.SpecifiedTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ServiceFileSourceAvailabilityDTO;
@@ -61,6 +62,9 @@ class ServiceFileSourceResourceImplTest {
 
     private static final String TENANT_ID = "tenant-1";
     private static final long APP_ID = 100L;
+
+    @Mock
+    private NoTenantFileSourceDAO noTenantFileSourceDAO;
 
     @Mock
     private SpecifiedTenantFileSourceDAO specifiedTenantFileSourceDAO;

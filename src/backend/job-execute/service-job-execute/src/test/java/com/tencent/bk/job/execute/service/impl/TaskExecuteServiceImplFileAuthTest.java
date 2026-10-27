@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
@@ -43,7 +44,6 @@ import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.KubeContainerFilter;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
@@ -328,7 +328,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             Map<Long, List<String>> whitelist = allowMap(
                 TARGET_HOST_1, TARGET_HOST_2, SOURCE_HOST_1);
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
+            AuthResult result = service.authFileTransfer(
+                operator, new AppResourceScope(APP_ID), step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             verify(executeAuthService, never())
@@ -346,7 +347,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             stubAccountAuthPass();
             stubFastPushFilePass();
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
+            AuthResult result = service.authFileTransfer(
+                operator, new AppResourceScope(APP_ID), step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -370,7 +372,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             stubAccountAuthPass();
             stubFastPushFilePass();
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
+            AuthResult result = service.authFileTransfer(
+                operator, new AppResourceScope(APP_ID), step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -396,7 +399,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             stubAccountAuthPass();
             stubFastPushFilePass();
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
+            AuthResult result = service.authFileTransfer(
+                operator, new AppResourceScope(APP_ID), step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -419,7 +423,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             stubAccountAuthPass();
             stubFastPushFilePass();
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
+            AuthResult result = service.authFileTransfer(
+                operator, new AppResourceScope(APP_ID), step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -438,7 +443,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1), localSource);
             Map<Long, List<String>> whitelist = allowMap(TARGET_HOST_1);
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
+            AuthResult result = service.authFileTransfer(
+                operator, new AppResourceScope(APP_ID), step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             // 目标账号豁免，本地上传 FileSource 不参与，账号 set 为空
@@ -463,7 +469,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1), base64);
             Map<Long, List<String>> whitelist = allowMap(TARGET_HOST_1);
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist, Collections.emptyList());
+            AuthResult result = service.authFileTransfer(
+                operator, new AppResourceScope(APP_ID), step, whitelist, Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             // 目标账号被白名单豁免；BASE64 源因 accountId=null 直接被跳过
@@ -484,7 +491,7 @@ public class TaskExecuteServiceImplFileAuthTest {
             stubFastPushFilePass();
 
             AuthResult result = service.authFileTransfer(
-                operator, APP_ID, step, Collections.emptyMap(), Collections.emptyList());
+                operator, new AppResourceScope(APP_ID), step, Collections.emptyMap(), Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
@@ -514,7 +521,7 @@ public class TaskExecuteServiceImplFileAuthTest {
             stubAccountAuthPass();
 
             AuthResult result = service.authFileTransfer(
-                operator, APP_ID, step, Collections.emptyMap(), Collections.emptyList());
+                operator, new AppResourceScope(APP_ID), step, Collections.emptyMap(), Collections.emptyList());
 
             assertThat(result.isPass()).isTrue();
             // 目标账号未被白名单豁免（whitelist 为空 → areAllHostsWhitelistedFor 直接返回 false）
@@ -546,7 +553,7 @@ public class TaskExecuteServiceImplFileAuthTest {
             when(executeAuthService.batchAuthViewFileSource(any(), any(), anyMap()))
                 .thenReturn(AuthResult.pass(operator));
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist,
+            AuthResult result = service.authFileTransfer(operator, new AppResourceScope(APP_ID), step, whitelist,
                 Collections.singletonList(ownFileSource(OWN_FILE_SOURCE_ID, "own-alias")));
 
             assertThat(result.isPass()).isTrue();
@@ -565,7 +572,7 @@ public class TaskExecuteServiceImplFileAuthTest {
                 thirdPartyFileSource(SHARED_FILE_SOURCE_ID));
             Map<Long, List<String>> whitelist = allowMap(TARGET_HOST_1);
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, whitelist,
+            AuthResult result = service.authFileTransfer(operator, new AppResourceScope(APP_ID), step, whitelist,
                 Collections.singletonList(sharedFileSource(SHARED_FILE_SOURCE_ID, "shared-alias")));
 
             assertThat(result.isPass()).isTrue();
@@ -585,7 +592,8 @@ public class TaskExecuteServiceImplFileAuthTest {
             when(executeAuthService.batchAuthViewFileSource(any(), any(), anyMap()))
                 .thenReturn(failWith(ActionId.VIEW_FILE_SOURCE));
 
-            AuthResult result = service.authFileTransfer(operator, APP_ID, step, Collections.emptyMap(),
+            AuthResult result = service.authFileTransfer(operator, new AppResourceScope(APP_ID), step,
+                Collections.emptyMap(),
                 Collections.singletonList(ownFileSource(OWN_FILE_SOURCE_ID, "own-alias")));
 
             assertThat(result.isPass()).isFalse();

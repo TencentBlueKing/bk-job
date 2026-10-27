@@ -87,6 +87,10 @@ public class ScriptStepInstanceDTO {
      */
     private String account;
     /**
+     * 执行账号全局变量名
+     */
+    private String accountVar;
+    /**
      * 步骤实例增加db SQL执行的账号,密码,端口,SQL内容,参数
      */
     private String dbAccount;

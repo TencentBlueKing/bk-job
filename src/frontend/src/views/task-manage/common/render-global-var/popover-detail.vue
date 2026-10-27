@@ -45,7 +45,7 @@
           {{ data.typeText }}
         </detail-item>
         <detail-item :label="`${defaultField}：`">
-          {{ data.valueText }}
+          {{ data.isAccount ? accName(data.valueText) : data.valueText }}
         </detail-item>
         <detail-item :label="$t('template.变量描述：')">
           {{ data.description || '--' }}
@@ -89,6 +89,11 @@
         type: String,
         default: I18n.t('template.初始值'),
       },
+      // 账号列表
+      accountList: {
+        type: Array,
+        default: () => [],
+      },
     },
     data() {
       return {
@@ -123,6 +128,14 @@
       }
     },
     methods: {
+      /**
+       * @desc 将账号ID转为账号别名
+       * @param { String } val 账号ID
+       */
+      accName(val) {
+        const filters = this.accountList.filter(item => item.id === Number(val));
+        return filters?.[0]?.alias || val;
+      },
       init() {
         const windowWidth = window.innerWidth;
         const $target = document.querySelector(`#globalVariableWithName_${this.data.name}`);

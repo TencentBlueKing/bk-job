@@ -129,7 +129,7 @@ mariadb:
       flush privileges;
   ## JDBC Connection properties
   connection:
-    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
 
 ## External MariaDB configuration
 ##
@@ -157,7 +157,7 @@ externalMariaDB:
   rootPassword: ""
   ## JDBC Connection properties
   connection:
-    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
   ## TLS相关配置
   tls:
     ## 是否开启tls认证
@@ -1474,6 +1474,12 @@ executeConfig:
   #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
   #   - name: MALLOC_ARENA_MAX
   #     value: 8
+  # 最大执行目标数量限制
+  limit:
+    fileTask:
+      maxTasks: 100000
+    scriptTask:
+      maxTargetServer: 50000
   # 权限中心相关配置
   iam:
     # 按主机拓扑路径鉴权相关配置
@@ -1643,7 +1649,7 @@ crontabConfig:
     host: ""
     port: 3306
     connection:
-      properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
     username: "job"
     password: ""
     maxPoolSize: 100
@@ -1758,7 +1764,7 @@ backupConfig:
       username: "job"
       password: ""
       connection:
-        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
       ## TLS相关配置
       tls :
         ## 是否开启tls认证
@@ -1788,7 +1794,7 @@ backupConfig:
       # 被归档 DB 的配置
       mariadb:
         connection:
-          properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+          properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
         dataSourceMode: standalone
         # 垂直分片配置, 需要与 executeConfig 中保持一致
         # verticalSharding:
@@ -1817,6 +1823,9 @@ backupConfig:
       batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
       deleteRowLimit: 1000
+      # 写入归档库时要忽略的字段，key 为表名，value 为字段名列表；为空则不忽略任何字段
+      # 示例：{ step_instance_script: [account_var], step_instance_file: [account_var] }
+      ignoredColumns: {}
       # 定时检查归档的结果，是否有已经归档完的任务，但实际上数据未完全删除
       check:
         # 默认开启检查
@@ -2429,7 +2438,7 @@ waitForDependServices:
     # 返回值格式：
     # 已准备就绪：{"ready": true}
     # 未准备就绪：{"ready": false}
-    url: "http://example.com/checkServiceDependency"
+    url: "http://example.com/public/checkServiceDependency"
   # 资源要求与限制
   resources:
     limits:

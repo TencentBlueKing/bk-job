@@ -68,6 +68,10 @@ public enum FileTransferModeEnum {
         return null;
     }
 
+    public static boolean isValid(Integer mode) {
+        return getFileTransferModeEnum(mode) != null;
+    }
+
     public Integer getValue() {
         return value;
     }

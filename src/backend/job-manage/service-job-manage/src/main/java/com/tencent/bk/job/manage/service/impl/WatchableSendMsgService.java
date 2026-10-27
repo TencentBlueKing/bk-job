@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
+import com.tencent.bk.job.common.paas.exception.CmsiInvalidReceiverException;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaCheckResultEnum;
@@ -80,6 +81,7 @@ public class WatchableSendMsgService {
         String content
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
+        String receiverStatus = MetricsConstants.TAG_VALUE_RECEIVER_STATUS_UNKNOWN;
         try {
             checkSendNotifyQuotaLimit(
                 appId,
@@ -93,13 +95,18 @@ public class WatchableSendMsgService {
                 tenantService.getTenantIdByAppId(appId)
             );
             sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+            receiverStatus = MetricsConstants.TAG_VALUE_RECEIVER_STATUS_VALID;
+        } catch (CmsiInvalidReceiverException e) {
+            receiverStatus = MetricsConstants.TAG_VALUE_RECEIVER_STATUS_INVALID;
+            sendNotifyLimitRollback(appId, sender);
+            throw e;
         } catch (PaasException e) {
             sendNotifyLimitRollback(appId, sender);
             throw e;
         } catch (Exception e) {
             throw e;
         } finally {
-            recordMetrics(createTimeMillis, msgType, sendStatus, appId);
+            recordMetrics(createTimeMillis, msgType, sendStatus, receiverStatus, appId);
         }
     }
 
@@ -113,6 +120,7 @@ public class WatchableSendMsgService {
         String content
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
+        String receiverStatus = MetricsConstants.TAG_VALUE_RECEIVER_STATUS_UNKNOWN;
         try {
             checkSendNotifyQuotaLimit(
                 null,
@@ -126,13 +134,18 @@ public class WatchableSendMsgService {
                 tenantId
             );
             sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+            receiverStatus = MetricsConstants.TAG_VALUE_RECEIVER_STATUS_VALID;
+        } catch (CmsiInvalidReceiverException e) {
+            receiverStatus = MetricsConstants.TAG_VALUE_RECEIVER_STATUS_INVALID;
+            sendNotifyLimitRollback(null, sender);
+            throw e;
         } catch (PaasException e) {
             sendNotifyLimitRollback(null, sender);
             throw e;
         } catch (Exception e) {
             throw e;
         } finally {
-            recordMetrics(createTimeMillis, msgType, sendStatus, null);
+            recordMetrics(createTimeMillis, msgType, sendStatus, receiverStatus, null);
         }
 
     }
@@ -161,12 +174,31 @@ public class WatchableSendMsgService {
         return appId == null ? MetricsConstants.TAG_VALUE_APP_ID_NULL : appId.toString();
     }
 
-    private void recordMetrics(Long createTimeMillis, String msgType, String sendStatus, Long appId) {
+    private void recordMetrics(Long createTimeMillis,
+                               String msgType,
+                               String sendStatus,
+                               String receiverStatus,
+                               Long appId) {
         long delayMillis = System.currentTimeMillis() - createTimeMillis;
         Tags tags = Tags.of(MetricsConstants.TAG_KEY_MSG_TYPE, msgType);
         tags = tags.and(MetricsConstants.TAG_KEY_SEND_STATUS, sendStatus);
         tags = tags.and(MetricsConstants.TAG_KEY_APP_ID, buildAppIdStr(appId));
         recordSendMsgDelay(delayMillis, tags);
+        recordSendMsgCount(msgType, sendStatus, receiverStatus);
+    }
+
+    /**
+     * 记录发送次数，不带 appId 以控制指标维度，需要按业务下钻时用 job.notify.delay
+     */
+    private void recordSendMsgCount(String msgType, String sendStatus, String receiverStatus) {
+        meterRegistry.counter(
+            MetricsConstants.NAME_NOTIFY_SEND_TOTAL,
+            Tags.of(
+                MetricsConstants.TAG_KEY_MSG_TYPE, msgType,
+                MetricsConstants.TAG_KEY_SEND_STATUS, sendStatus,
+                MetricsConstants.TAG_KEY_RECEIVER_STATUS, receiverStatus
+            )
+        ).increment();
     }
 
     private void recordSendMsgDelay(long delayMillis, Iterable<Tag> tags) {

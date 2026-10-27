@@ -131,7 +131,7 @@ public class CredentialServiceImpl implements CredentialService {
         if (!registerResult) {
             log.warn("Fail to register ticket to iam:({},{})", id, createUpdateReq.getName());
         }
-        return getCredentialById(id);
+        return getCredentialById(appId, id);
     }
 
     public void authCreateTicket(User user, long appId) {
@@ -157,15 +157,16 @@ public class CredentialServiceImpl implements CredentialService {
                                           Long appId,
                                           CredentialCreateUpdateReq createUpdateReq) {
         String id = createUpdateReq.getId();
-        authManageTicket(user, appId, id);
-        checkCredentialExists(appId, id, createUpdateReq.getName());
-        decryptCredentialSecretIfNeeded(createUpdateReq);
-
-        CredentialDTO credentialDTO = buildCredentialDTO(user.getUsername(), appId, createUpdateReq);
-        CredentialDTO originCredentialDTO = credentialDAO.getCredentialById(id);
+        CredentialDTO originCredentialDTO = getCredentialById(appId, id);
         if (originCredentialDTO == null) {
             throw new NotFoundException(ErrorCode.CREDENTIAL_NOT_EXIST);
         }
+        Long realAppId = originCredentialDTO.getAppId();
+        authManageTicket(user, realAppId, id);
+        checkCredentialExists(realAppId, id, createUpdateReq.getName());
+        decryptCredentialSecretIfNeeded(createUpdateReq);
+
+        CredentialDTO credentialDTO = buildCredentialDTO(user.getUsername(), realAppId, createUpdateReq);
 
         String value1 = createUpdateReq.getValue1();
         if (JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(value1)) {
@@ -181,7 +182,7 @@ public class CredentialServiceImpl implements CredentialService {
         }
         credentialDAO.updateCredentialById(credentialDTO);
 
-        CredentialDTO updateCredential = getCredentialById(id);
+        CredentialDTO updateCredential = getCredentialById(realAppId, id);
 
         // 审计
         ActionAuditContext.current()
@@ -201,38 +202,36 @@ public class CredentialServiceImpl implements CredentialService {
         content = EventContentConstants.DELETE_TICKET
     )
     public Integer deleteCredentialById(User user, Long appId, String id) {
-        authManageTicket(user, appId, id);
-
-        CredentialDTO credential = getCredentialById(id);
+        CredentialDTO credential = getCredentialById(appId, id);
         if (credential == null) {
             throw new NotFoundException(ErrorCode.CREDENTIAL_NOT_EXIST);
         }
+        Long realAppId = credential.getAppId();
+        authManageTicket(user, realAppId, id);
 
         // 审计
         ActionAuditContext.current().setInstanceName(credential.getName());
 
         // 检查是否被引用
-        Boolean isCredentialReferenced = fileSourceService.existsFileSourceUsingCredential(appId, id).getData();
+        Boolean isCredentialReferenced = fileSourceService.existsFileSourceUsingCredential(realAppId, id).getData();
         if (isCredentialReferenced) {
             String msg = MessageFormatter.format(
                 "Credential ({},{}) is referenced, cannot delete",
-                appId,
+                realAppId,
                 id
             ).getMessage();
             throw new FailedPreconditionException(msg, ErrorCode.DELETE_REF_CREDENTIAL_FAIL);
         }
 
-        return credentialDAO.deleteCredentialById(id);
+        return credentialDAO.deleteCredentialById(realAppId, id);
     }
 
     @Override
     public CredentialDTO getCredentialById(Long appId, String id) {
-        CredentialDTO credentialDTO = getCredentialById(id);
-        if (credentialDTO == null || !credentialDTO.getAppId().equals(appId)) {
+        if (appId == null || StringUtils.isBlank(id)) {
             return null;
-        } else {
-            return credentialDTO;
         }
+        return credentialDAO.getCredentialById(appId, id);
     }
 
     @Override

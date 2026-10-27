@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+npm-debug.log*
+.eslintcache
+package-lock.json
+.npmrc

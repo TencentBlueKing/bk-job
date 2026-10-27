@@ -30,12 +30,16 @@ import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.model.vo.WebContainerConditionFilter;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.converter.WebContainerConditionFilterConverter;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
@@ -81,6 +85,13 @@ public class TaskTargetDTO {
     @JsonProperty("containerList")
     private List<TaskTargetContainerDTO> containerList;
 
+    /**
+     * 动态条件过滤器列表（保存模板/方案时按 JSON 格式写入 LONGTEXT 列；
+     * 旧数据无此字段时反序列化为 null，行为与现状一致）
+     */
+    @JsonProperty("containerFilters")
+    private List<KubeContainerFilter> containerFilters;
+
     public static TaskTargetVO toVO(TaskTargetDTO executeTarget) {
         if (executeTarget == null) {
             return null;
@@ -112,6 +123,16 @@ public class TaskTargetDTO {
             }
         }
 
+        // 动态条件过滤器
+        if (CollectionUtils.isNotEmpty(executeTarget.getContainerFilters())) {
+            List<WebContainerConditionFilter> webFilters =
+                WebContainerConditionFilterConverter.fromKubeContainerFilters(executeTarget.getContainerFilters());
+            if (taskTargetVO.getExecuteObjectsInfo() == null) {
+                taskTargetVO.setExecuteObjectsInfo(new TaskExecuteObjectsInfoVO());
+            }
+            taskTargetVO.getExecuteObjectsInfo().setContainerFilterList(webFilters);
+        }
+
         return taskTargetVO;
     }
 
@@ -135,53 +156,113 @@ public class TaskTargetDTO {
                     .collect(Collectors.toList())
             );
         }
+        // 动态条件过滤器：Web 入参经校验后转为内部统一 KubeContainerFilter 落盘
+        if (taskTargetVO.getExecuteObjectsInfo() != null
+            && CollectionUtils.isNotEmpty(taskTargetVO.getExecuteObjectsInfo().getContainerFilterList())) {
+            taskTargetDTO.setContainerFilters(
+                WebContainerConditionFilterConverter.toKubeContainerFilters(
+                    taskTargetVO.getExecuteObjectsInfo().getContainerFilterList())
+            );
+        }
         fillHostDetail(taskTargetDTO);
         return taskTargetDTO;
     }
 
-    private static void fillHostDetail(TaskTargetDTO target) {
+    /**
+     * 按 hostId 或 cloudId+ip 补全主机明细。直接构造 TaskTargetDTO（不经 VO）的调用方需自行调用。
+     */
+    public static void fillHostDetail(TaskTargetDTO target) {
+        if (target.getHostNodeList() == null || CollectionUtils.isEmpty(target.getHostNodeList().getHostList())) {
+            return;
+        }
+        List<ApplicationHostDTO> hostList = target.getHostNodeList().getHostList();
+        Set<Long> hostIds = collectHostIds(hostList);
+        Set<String> hostCloudIps = collectCloudIps(hostList);
+
+        if (hostIds.isEmpty() && hostCloudIps.isEmpty()) {
+            // 没有任何可用查询键时不必查询，但仍要走匹配流程，保持“匹配不到置 -1”的既有行为
+            fillHostDetail(hostList, Collections.emptyMap(), Collections.emptyMap());
+            return;
+        }
+
         CurrentTenantHostService currentTenantHostService =
             ApplicationContextRegister.getBean(CurrentTenantHostService.class);
-        if (target.getHostNodeList() != null && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())) {
-            List<ApplicationHostDTO> hostList = target.getHostNodeList().getHostList();
-            Set<Long> hostIds = new HashSet<>();
-            Set<String> hostCloudIps = new HashSet<>();
-            for (ApplicationHostDTO host : hostList) {
-                if (host.getHostId() != null) {
-                    hostIds.add(host.getHostId());
-                }
-                if (StringUtils.isNotBlank(host.getCloudIp())) {
-                    hostCloudIps.add(host.getCloudIp());
+        fillHostDetail(hostList,
+            currentTenantHostService.listHostsByHostIds(hostIds),
+            currentTenantHostService.listHostsByIps(hostCloudIps));
+    }
+
+    static Set<Long> collectHostIds(List<ApplicationHostDTO> hostList) {
+        Set<Long> hostIds = new HashSet<>();
+        for (ApplicationHostDTO host : hostList) {
+            if (isValidHostId(host.getHostId())) {
+                hostIds.add(host.getHostId());
+            }
+        }
+        return hostIds;
+    }
+
+    /**
+     * 历史脏数据中 hostId 可能为 -1（匹配不到时的占位值），这类值不是有效的主机标识，不应作为查询与匹配的键
+     */
+    private static boolean isValidHostId(Long hostId) {
+        return hostId != null && hostId > 0;
+    }
+
+    static Set<String> collectCloudIps(List<ApplicationHostDTO> hostList) {
+        Set<String> cloudIps = new HashSet<>();
+        for (ApplicationHostDTO host : hostList) {
+            String cloudIp = buildValidCloudIp(host);
+            if (cloudIp != null) {
+                cloudIps.add(cloudIp);
+            }
+        }
+        return cloudIps;
+    }
+
+    /**
+     * 构造可用于精确匹配的 cloudIp；cloudAreaId 或 IPv4 缺失时返回 null。
+     * <p>
+     * 判据只能基于 cloudAreaId/ip 字段本身，不能用 ApplicationHostDTO.getCloudIp()：
+     * 后者在 cloudIp 字段为空时会拼接出 "0:null"、"null:null" 这类在多台主机间完全相同的退化键，
+     * 永远不为 blank，用它判空会让守卫失效。
+     */
+    private static String buildValidCloudIp(ApplicationHostDTO host) {
+        if (host.getCloudAreaId() == null || StringUtils.isBlank(host.getIp())) {
+            return null;
+        }
+        return IpUtils.buildCloudIp(host.getCloudAreaId(), host.getIp());
+    }
+
+    static void fillHostDetail(List<ApplicationHostDTO> hostList,
+                               Map<Long, ApplicationHostDTO> hostIdHostMapping,
+                               Map<String, ApplicationHostDTO> cloudIpHostMapping) {
+        for (ApplicationHostDTO hostNode : hostList) {
+            // hostId 是主机唯一标识，优先按 hostId 匹配
+            ApplicationHostDTO hostDTO = isValidHostId(hostNode.getHostId())
+                ? hostIdHostMapping.get(hostNode.getHostId()) : null;
+            if (hostDTO == null) {
+                // hostId 缺失或查不到（备份恢复导入、历史脏数据）时回退到 cloudIp 匹配
+                String cloudIp = buildValidCloudIp(hostNode);
+                if (cloudIp != null) {
+                    hostDTO = cloudIpHostMapping.get(cloudIp);
                 }
             }
-
-            if (hostIds.isEmpty() && hostCloudIps.isEmpty()) {
-                return;
+            if (hostDTO == null) {
+                log.warn("Cannot find host by hostId={} or by cloudIp={}",
+                    hostNode.getHostId(), hostNode.getCloudIp());
+                hostNode.setHostId(-1L);
+                continue;
             }
-            Map<Long, ApplicationHostDTO> hostIdHostMapping = currentTenantHostService.listHostsByHostIds(hostIds);
-            Map<String, ApplicationHostDTO> cloudIpHostMapping = currentTenantHostService.listHostsByIps(hostCloudIps);
-
-            hostList.forEach(hostNode -> {
-                ApplicationHostDTO hostDTO = cloudIpHostMapping.get(hostNode.getCloudIp());
-                if (hostDTO == null && StringUtils.isBlank(hostNode.getIp())) {
-                    hostDTO = hostIdHostMapping.get(hostNode.getHostId());
-                }
-                if (hostDTO != null) {
-                    hostNode.setHostId(hostDTO.getHostId());
-                    hostNode.setAgentId(hostDTO.getAgentId());
-                    hostNode.setCloudAreaId(hostDTO.getCloudAreaId());
-                    hostNode.setIp(hostDTO.getIp());
-                    hostNode.setIpv6(hostDTO.getIpv6());
-                    hostNode.setDisplayIp(hostDTO.getDisplayIp());
-                    hostNode.setOsName(hostDTO.getOsName());
-                    hostNode.setOsType(hostDTO.getOsType());
-                    hostNode.setGseAgentStatus(hostDTO.getGseAgentStatus());
-                } else {
-                    log.warn("Cannot find host by hostId={} or by cloudIp={}",
-                        hostNode.getHostId(), hostNode.getCloudIp());
-                    hostNode.setHostId(-1L);
-                }
-            });
+            hostNode.setHostId(hostDTO.getHostId());
+            hostNode.setAgentId(hostDTO.getAgentId());
+            hostNode.setCloudAreaId(hostDTO.getCloudAreaId());
+            hostNode.setIp(hostDTO.getIp());
+            hostNode.setIpv6(hostDTO.getIpv6());
+            hostNode.setDisplayIp(hostDTO.getDisplayIp());
+            hostNode.setOsName(hostDTO.getOsName());
+            hostNode.setOsType(hostDTO.getOsType());
+            hostNode.setGseAgentStatus(hostDTO.getGseAgentStatus());
         }
     }
 
@@ -273,6 +354,11 @@ public class TaskTargetDTO {
             targetDTO.setContainerList(containerList.stream().map(TaskTargetContainerDTO::toServiceTargetContainerDTO)
                 .collect(Collectors.toList()));
         }
+        // 动态条件过滤器透传给下游服务（job-execute）
+        if (CollectionUtils.isNotEmpty(containerFilters)) {
+            targetDTO.setContainerFilters(
+                containerFilters.stream().map(KubeContainerFilter::clone).collect(Collectors.toList()));
+        }
         return targetDTO;
     }
 
@@ -281,7 +367,14 @@ public class TaskTargetDTO {
             this.hostNodeList = null;
         } else {
             this.variable = null;
-            if (hostNodeList == null) {
+            // 三类执行目标全空时才视为空 target 兜底返回字面量 "null"，保留与历史一致的语义；
+            // 注意：历史路径下 containerList-only 之所以能正确落盘，是因为 fromVO 构造了一个空的
+            // hostNodeList 对象（虽内部 lists 全空，但 != null），NON_EMPTY 序列化会整体省略该字段；
+            // 直接 new TaskTargetDTO() 后只 set containerList/containerFilters 的场景在历史代码会被
+            // 此分支错误吞为 "null"，本次扩大判定避免数据丢失。
+            if (hostNodeList == null
+                && CollectionUtils.isEmpty(containerList)
+                && CollectionUtils.isEmpty(containerFilters)) {
                 return "null";
             }
         }

@@ -40,7 +40,6 @@
           </div>
           <render-global-var
             :list="variableList"
-            mode="editOfPlan"
             :select-value="selectedVariable" />
         </detail-item>
         <detail-item
@@ -72,6 +71,7 @@
             :list="taskStepList"
             mode="select"
             :select-value="formData.enableSteps"
+            :variable="variableList"
             @on-select="handleSelectStep" />
         </detail-item>
       </detail-layout>
