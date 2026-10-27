@@ -77,6 +77,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
     }
 
     private void checkParamSecurity(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+        fileSourceValidateService.checkFilePrefix(fileSourceCreateUpdateReq.getFilePrefix());
         if(fileSourceCreateUpdateReq.isBlueKingArtifactoryType()){
             // 制品库类型的文件源需要校验根地址
             fileSourceValidateService.checkBkArtifactoryBaseUrl(fileSourceCreateUpdateReq.getBkArtifactoryBaseUrl());

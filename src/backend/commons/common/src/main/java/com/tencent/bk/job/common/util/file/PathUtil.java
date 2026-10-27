@@ -26,6 +26,8 @@ package com.tencent.bk.job.common.util.file;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.LogUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -34,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@Slf4j
 public class PathUtil {
 
     /**
@@ -46,34 +49,80 @@ public class PathUtil {
      * @return 位于 baseDir 之内的目标文件
      */
     public static File resolveSafely(String baseDirPath, String... relativePaths) {
-        if (StringUtils.isBlank(baseDirPath) || relativePaths == null) {
+        if (StringUtils.isBlank(baseDirPath) || baseDirPath.indexOf('\0') >= 0 || relativePaths == null) {
+            log.warn("PathUtil.resolveSafely rejected: reason=blank or invalid baseDirPath/relativePaths, "
+                + "baseDirPath={}", LogUtil.sanitizeForLog(baseDirPath, 256));
             throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
         }
 
-        Path basePath = Paths.get(baseDirPath).toAbsolutePath().normalize();
+        String normalizedBaseDirPath = baseDirPath
+            .replace('/', File.separatorChar)
+            .replace('\\', File.separatorChar);
+        Path basePath;
+        try {
+            basePath = Paths.get(normalizedBaseDirPath).toAbsolutePath().normalize();
+        } catch (Exception e) {
+            log.warn("PathUtil.resolveSafely rejected: reason=invalid baseDirPath syntax, baseDirPath={}",
+                LogUtil.sanitizeForLog(baseDirPath, 256), e);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+        }
         if (Files.exists(basePath)) {
             try {
                 // 目录已存在时解析符号链接；目录不存在时允许上层后续创建。
                 basePath = basePath.toRealPath();
             } catch (IOException e) {
+                log.warn("PathUtil.resolveSafely rejected: reason=failed to resolve real path of baseDirPath, "
+                    + "baseDirPath={}", LogUtil.sanitizeForLog(baseDirPath, 256), e);
                 throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
             }
         }
 
         Path targetPath = basePath;
         for (String relativePath : relativePaths) {
-            String pathWithoutLeadingSeparator = trimLeadingSeparator(relativePath);
-            if (StringUtils.isBlank(pathWithoutLeadingSeparator)) {
+            if (relativePath != null && relativePath.indexOf('\0') >= 0) {
+                log.warn("PathUtil.resolveSafely rejected: reason=relativePath contains null byte, "
+                        + "baseDirPath={}, relativePath={}",
+                    LogUtil.sanitizeForLog(baseDirPath, 256),
+                    LogUtil.sanitizeForLog(relativePath, 256));
                 throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
             }
+            String pathWithoutLeadingSeparator = trimLeadingSeparator(relativePath);
+            if (StringUtils.isBlank(pathWithoutLeadingSeparator)) {
+                log.warn("PathUtil.resolveSafely rejected: reason=relativePath is blank, "
+                        + "baseDirPath={}, relativePath={}",
+                    LogUtil.sanitizeForLog(baseDirPath, 256),
+                    LogUtil.sanitizeForLog(relativePath, 256));
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+            }
+            String normalizedRelativePath = pathWithoutLeadingSeparator
+                .replace('/', File.separatorChar)
+                .replace('\\', File.separatorChar);
 
-            Path relative = Paths.get(pathWithoutLeadingSeparator);
+            final Path relative;
+            try {
+                relative = Paths.get(normalizedRelativePath);
+            } catch (Exception e) {
+                log.warn("PathUtil.resolveSafely rejected: reason=invalid relativePath syntax, "
+                        + "baseDirPath={}, relativePath={}",
+                    LogUtil.sanitizeForLog(baseDirPath, 256),
+                    LogUtil.sanitizeForLog(relativePath, 256), e);
+                throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+            }
             if (relative.isAbsolute() || containsParentDirName(relative)) {
+                log.warn("PathUtil.resolveSafely rejected: reason=relativePath is absolute or contains '..', "
+                        + "baseDirPath={}, relativePath={}",
+                    LogUtil.sanitizeForLog(baseDirPath, 256),
+                    LogUtil.sanitizeForLog(relativePath, 256));
                 throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
             }
 
             targetPath = targetPath.resolve(relative).normalize();
             if (!targetPath.startsWith(basePath)) {
+                log.warn("PathUtil.resolveSafely rejected: reason=resolved path escapes baseDirPath, "
+                        + "baseDirPath={}, relativePath={}, resolvedPath={}",
+                    LogUtil.sanitizeForLog(baseDirPath, 256),
+                    LogUtil.sanitizeForLog(relativePath, 256),
+                    targetPath);
                 throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
             }
         }

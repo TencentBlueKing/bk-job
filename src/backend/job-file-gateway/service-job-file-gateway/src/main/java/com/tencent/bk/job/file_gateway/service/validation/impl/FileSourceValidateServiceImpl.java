@@ -26,14 +26,18 @@ package com.tencent.bk.job.file_gateway.service.validation.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.file_gateway.config.ArtifactoryConfig;
 import com.tencent.bk.job.file_gateway.consts.FileSourceWhiteInfoTypeConsts;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceWhiteInfoDAO;
 import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
+import com.tencent.bk.job.file_gateway.util.FilePrefixValidator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class FileSourceValidateServiceImpl implements FileSourceValidateService {
 
@@ -45,6 +49,16 @@ public class FileSourceValidateServiceImpl implements FileSourceValidateService 
                                          FileSourceWhiteInfoDAO fileSourceWhiteInfoDAO) {
         this.artifactoryConfig = artifactoryConfig;
         this.fileSourceWhiteInfoDAO = fileSourceWhiteInfoDAO;
+    }
+
+    @Override
+    public void checkFilePrefix(String filePrefix) {
+        String invalidReason = FilePrefixValidator.getInvalidReason(filePrefix);
+        if (invalidReason != null) {
+            log.warn("FileSource filePrefix rejected: reason={}, filePrefix={}",
+                invalidReason, LogUtil.sanitizeForLog(filePrefix, 64));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"filePrefix"});
+        }
     }
 
     @Override

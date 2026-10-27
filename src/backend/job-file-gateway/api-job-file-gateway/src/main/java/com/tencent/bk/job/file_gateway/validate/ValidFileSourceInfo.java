@@ -24,8 +24,13 @@
 
 package com.tencent.bk.job.file_gateway.validate;
 
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
+import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
+import com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq;
+import com.tencent.bk.job.file_gateway.util.FilePrefixValidator;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import jakarta.validation.Constraint;
@@ -41,13 +46,14 @@ import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * spring validation java 文件源信息合法校验
  */
-@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
+@Target({TYPE, FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
 @Constraint(validatedBy = ValidFileSourceInfo.Validator.class)
 @Documented
 @Retention(RUNTIME)
@@ -59,10 +65,55 @@ public @interface ValidFileSourceInfo {
 
     Class<? extends Payload>[] payload() default {};
 
-    class Validator implements ConstraintValidator<ValidFileSourceInfo, Map<String, Object>> {
+    @Slf4j
+    class Validator implements ConstraintValidator<ValidFileSourceInfo, Object> {
+
+        private static final String FILE_PREFIX_INVALID_MESSAGE_TEMPLATE =
+            "{validation.constraints.FileSourceFilePrefixInvalid.message}";
 
         @Override
-        public boolean isValid(Map<String, Object> value, ConstraintValidatorContext constraintValidatorContext) {
+        @SuppressWarnings("unchecked")
+        public boolean isValid(Object value, ConstraintValidatorContext constraintValidatorContext) {
+            if (value == null) {
+                return true;
+            }
+            if (value instanceof FileSourceCreateUpdateReq) {
+                FileSourceCreateUpdateReq req = (FileSourceCreateUpdateReq) value;
+                return checkFilePrefix(req.getCode(), req.getFilePrefix(), "filePrefix", constraintValidatorContext);
+            }
+            if (value instanceof EsbCreateOrUpdateFileSourceV3Req) {
+                EsbCreateOrUpdateFileSourceV3Req req = (EsbCreateOrUpdateFileSourceV3Req) value;
+                return checkFilePrefix(req.getCode(), req.getFilePrefix(), "file_prefix", constraintValidatorContext);
+            }
+            if (value instanceof Map) {
+                return isValidInfoMap((Map<String, Object>) value);
+            }
+            return true;
+        }
+
+        private boolean checkFilePrefix(String fileSourceCode,
+                                        String filePrefix,
+                                        String fieldName,
+                                        ConstraintValidatorContext constraintValidatorContext) {
+            String invalidReason = FilePrefixValidator.getInvalidReason(filePrefix);
+            if (invalidReason == null) {
+                return true;
+            }
+            log.warn("ValidFileSourceInfo rejected illegal {}: code={}, reason={}, value={}",
+                fieldName,
+                LogUtil.sanitizeForLog(fileSourceCode, 64),
+                invalidReason,
+                LogUtil.sanitizeForLog(filePrefix, 64));
+            if (constraintValidatorContext != null) {
+                constraintValidatorContext.disableDefaultConstraintViolation();
+                constraintValidatorContext.buildConstraintViolationWithTemplate(FILE_PREFIX_INVALID_MESSAGE_TEMPLATE)
+                    .addPropertyNode(fieldName)
+                    .addConstraintViolation();
+            }
+            return false;
+        }
+
+        private boolean isValidInfoMap(Map<String, Object> value) {
             if (value == null || value.isEmpty()) {
                 return true;
             }
