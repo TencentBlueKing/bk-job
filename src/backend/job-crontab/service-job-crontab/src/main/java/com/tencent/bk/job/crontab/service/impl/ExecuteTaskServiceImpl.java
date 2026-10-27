@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.PropagatableInvalidParamException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
+import com.tencent.bk.job.common.util.json.JsonParseException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
@@ -34,6 +37,7 @@ import com.tencent.bk.job.execute.api.inner.ServiceExecuteTaskResource;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTaskExecuteRequest;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +126,16 @@ public class ExecuteTaskServiceImpl implements ExecuteTaskService {
             log.debug("Sending auth execute request to executor|{}", request);
         }
 
-        InternalResponse<AuthResultDTO> authExecuteResult = executeTaskResource.authExecuteTask(request);
+        InternalResponse<AuthResultDTO> authExecuteResult;
+        try {
+            authExecuteResult = executeTaskResource.authExecuteTask(request);
+        } catch (InternalException e) {
+            InternalResponse<?> errorResponse = parseErrorResponse(e);
+            if (errorResponse != null && Boolean.TRUE.equals(errorResponse.getAllowPropagation())) {
+                throw new PropagatableInvalidParamException(e, errorResponse.getCode(), errorResponse.getErrorParams());
+            }
+            throw e;
+        }
         log.info("Auth execute result|appId|{}|taskId|{}|cronTaskId|{}|{}|operator|{}|result|{}", appId,
             taskId, cronTaskId, cronName, operator, JsonUtils.toJson(authExecuteResult));
         if (authExecuteResult != null) {
@@ -131,5 +144,17 @@ public class ExecuteTaskServiceImpl implements ExecuteTaskService {
                 throw new TaskExecuteAuthFailedException(AuthResult.fromAuthResultDTO(authResult), null);
             }
         }
+    }
+
+    private InternalResponse<?> parseErrorResponse(InternalException exception) {
+        if (exception.getCause() instanceof FeignException) {
+            FeignException cause = (FeignException) exception.getCause();
+            try {
+                return JsonUtils.fromJson(cause.contentUTF8(), InternalResponse.class);
+            } catch (JsonParseException ignored) {
+                // 无法解析时，由调用处继续抛出原异常。
+            }
+        }
+        return null;
     }
 }
