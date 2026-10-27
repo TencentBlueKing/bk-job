@@ -26,6 +26,13 @@ package com.tencent.bk.job.file_gateway.service.validation;
 
 public interface FileSourceValidateService {
     /**
+     * 检查文件源前缀名是否合法
+     *
+     * @param filePrefix 文件前缀
+     */
+    void checkFilePrefix(String filePrefix);
+
+    /**
      * 检查对接的蓝鲸制品库根地址是否合法
      *
      * @param baseUrl 根地址

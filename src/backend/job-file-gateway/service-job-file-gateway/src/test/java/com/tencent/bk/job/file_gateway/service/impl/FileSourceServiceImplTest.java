@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -197,6 +198,24 @@ class FileSourceServiceImplTest {
 
         assertThatThrownBy(() -> service.updateFileSourceById(USERNAME, APP_ID, buildFileSource(CREDENTIAL_ID, true)))
             .isInstanceOf(PermissionDeniedException.class);
+        verify(fileSourceDAO, never()).updateFileSource(any(FileSourceDTO.class));
+    }
+
+    @Test
+    @DisplayName("save/update：filePrefix 含路径穿越或非法字符时抛 InvalidParamException 且不写库")
+    void saveAndUpdate_illegalFilePrefixRejected() {
+        FileSourceDTO toSave = buildFileSource(null, false);
+        toSave.setFilePrefix("../../etc/cron.d/x");
+
+        assertThatThrownBy(() -> service.saveFileSource(USERNAME, APP_ID, toSave))
+            .isInstanceOf(InvalidParamException.class);
+        verify(fileSourceDAO, never()).insertFileSource(any(FileSourceDTO.class));
+
+        FileSourceDTO toUpdate = buildFileSource(null, true);
+        toUpdate.setFilePrefix("../../etc/cron.d/x");
+
+        assertThatThrownBy(() -> service.updateFileSourceById(USERNAME, APP_ID, toUpdate))
+            .isInstanceOf(InvalidParamException.class);
         verify(fileSourceDAO, never()).updateFileSource(any(FileSourceDTO.class));
     }
 }
