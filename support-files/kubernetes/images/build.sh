@@ -468,7 +468,7 @@ build_migration_image(){
 
     local context_dir
     context_dir=$(prepare_build_context_dir "job-migration")
-    cp $BACKEND_DIR/release/upgrader-$VERSION.jar "$context_dir/upgrader.jar"
+    cp $BACKEND_DIR/release/upgrader-$VERSION-all.jar "$context_dir/upgrader.jar"
     cp migration/startup.sh "$context_dir/"
     cp migration/runUpgrader.sh "$context_dir/"
     cp $SUPPORT_FILES_DIR/templates/#etc#job#upgrader#upgrader.properties "$context_dir/upgrader.properties.tpl"
