@@ -223,6 +223,11 @@
                 message: I18n.t('account.端口必填'),
                 trigger: 'blur',
               },
+              {
+                validator: value => /^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= 65535,
+                message: I18n.t('account.端口必须为1到65535之间的正整数'),
+                trigger: 'blur',
+              },
             ],
             dbSystemAccountId: [
               {

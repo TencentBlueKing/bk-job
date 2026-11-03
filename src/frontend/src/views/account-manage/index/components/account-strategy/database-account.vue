@@ -92,8 +92,10 @@
       property="dbPort"
       required>
       <bk-input
+        :max="65535"
         :min="1"
         :placeholder="parent.$t('account.输入确认端口')"
+        :precision="0"
         type="number"
         :value="props.formData.dbPort"
         @change="value => props.change('dbPort', value)" />
