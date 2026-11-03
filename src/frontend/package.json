@@ -19,7 +19,7 @@
     "@blueking/bk-user-display-name": "1.0.1",
     "@blueking/bk-user-selector": "0.0.29-beta.8",
     "@blueking/crypto-js-sdk": "0.0.5",
-    "@blueking/date-picker": "3.0.4",
+    "@blueking/date-picker": "4.0.1",
     "@blueking/ip-selector": "1.0.6",
     "@blueking/login-modal": "1.0.6",
     "@blueking/login-userinfo": "0.0.11",
@@ -135,7 +135,10 @@
     "webpack-merge": "6.0.1"
   },
   "overrides": {
-    "@vue/runtime-core": "3.5.26"
+    "@vue/runtime-core": "3.5.42",
+    "@vue/runtime-dom": "3.5.42",
+    "@vue/reactivity": "3.5.42",
+    "@vue/shared": "3.5.42"
   },
   "engines": {
     "node": ">= 16.6.0",
