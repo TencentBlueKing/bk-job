@@ -40,8 +40,8 @@ Agent 只引用 MCP，不创建 MCP。MCP Server 由 API 网关侧同步产生�
   由 `bkApiGatewayConfig.syncMcpServers` 开关控制，且必须排在网关资源发布之后；
 - 引用位置：`agents/bk_job_ai.yaml` 的 `spec.mcps[].code`，取值与 `mcp_servers[].name` 一一对应。
 
-两个同步任务均配置为 `post-install,post-upgrade` Hook，通过 `helm.sh/hook-weight` 控制先后顺序（网关同步为 `-5`，
-AIDEV 同步为 `0`），此外 `bin/sync-bkaidev.sh` 也保留了有限次重试以应对异步延迟。
+开启网关同步（`bkApiGatewayConfig.sync=true`）时，`job-sync-bk-aidev` 会通过 `initContainer`（`wait-sync-api-gateway`）
+等待网关同步 Job 执行完成后再启动，此外 `bin/sync-bkaidev.sh` 也保留了有限次重试以应对异步延迟。
 
 ## 占位符渲染
 
@@ -98,7 +98,7 @@ bkai-init sync     -f /bk-job/bkai.yaml --tenant-id "$TENANT_ID" --space "$SPACE
 资源被用户在平台上手工改动、不希望再次覆盖时，可通过 `bkai.excludeResources` 传入 `kind/code`
 （kind 小写，取值 `agent` / `collection` / `skill` / `knowledgebase`，如 `["agent/ai-bkjob-web"]`）跳过该资源。
 同步中途失败时已写入的资源不会自动回滚，重跑是按 code 覆盖式重入；若耗尽重试仍失败，默认（`bkai.ignoreSyncError=false`）
-脚本以非 0 退出码终止容器，K8S Job（配置为 `post-install,post-upgrade` Hook、`backoffLimit: 0`）随之进入 `Failed` 状态，
+脚本以非 0 退出码终止容器，K8S Job（`backoffLimit: 0`）随之进入 `Failed` 状态，在开启 `waitForJobs` 时
 Helm 部署也会直接判定为失败；若将 `bkai.ignoreSyncError` 设为 `true`，则脚本打印告警并以 0 退出，忽略错误让 Helm 部署成功。
 
 ## 初始化用户与管理员

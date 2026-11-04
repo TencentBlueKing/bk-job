@@ -10,16 +10,10 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
+  {{- if .Values.commonAnnotations }}
   annotations:
-    # 作为 post-install/post-upgrade Hook 运行，hook-weight 设为 -5，确保在 sync-bk-aidev（权重 0）之前执行完成，
-    # 保证网关资源发布与 MCP Server 注册先于 AIDEV 智能体同步；
-    # 仅配置 before-hook-creation，失败时保留 Job 与 Pod 便于排查日志。
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": before-hook-creation
-    {{- if .Values.commonAnnotations }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
-    {{- end }}
+  {{- end }}
 spec:
   backoffLimit: 2
   parallelism: 1

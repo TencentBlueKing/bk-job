@@ -10,17 +10,10 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
+  {{- if .Values.commonAnnotations }}
   annotations:
-    # 作为 post-install/post-upgrade Hook 运行，hook-weight 设为 0（排在权重 -5 的 sync-api-gateway 之后执行）：
-    # Helm 会先等 sync-api-gateway 完成网关发布与 MCP 注册，再启动并等待该 Job 执行完成；
-    # 若同步最终失败（Job Failed），Helm 部署状态也会随之判定为失败（failed）；
-    # 仅配置 before-hook-creation，失败时保留 Job 与 Pod 便于排查日志。
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "0"
-    "helm.sh/hook-delete-policy": before-hook-creation
-    {{- if .Values.commonAnnotations }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
-    {{- end }}
+  {{- end }}
 spec:
   # 重试由脚本内部 BK_AIDEV_SYNC_MAX_RETRY 控制，脚本最终 exit 1 后 K8S Job 立即标记为 Failed
   backoffLimit: 0
@@ -31,6 +24,13 @@ spec:
         app.kubernetes.io/component : "job-sync-bk-aidev"
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "job.serviceAccountName" . | quote }}
+      {{- if .Values.bkApiGatewayConfig.sync }}
+      # 开启网关同步时，先通过 initContainer 等待网关同步 Job 完成（导入 resources.yaml、发布网关并注册 MCP Server），
+      # 再启动 AIDEV 资源同步；作为普通 Job 纳入 Helm Release 管理，升级时由 Helm 自动清理旧版本 Job。
+      initContainers:
+      {{- include "job.initContainer.waitForSyncApiGateway" . | nindent 6 }}
+      {{- end }}
       containers:
       - command:
         - bash

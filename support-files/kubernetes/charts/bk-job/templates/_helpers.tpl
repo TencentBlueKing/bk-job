@@ -722,6 +722,22 @@ Return the Job InitContainer WaitForMigration Content
 {{- end -}}
 
 {{/*
+Return the Job InitContainer WaitForSyncApiGateway Content
+*/}}
+{{- define "job.initContainer.waitForSyncApiGateway" -}}
+{{- if .Values.bkApiGatewayConfig.sync }}
+- name: "wait-sync-api-gateway"
+  image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForMigration.image "global" .Values.global) }}
+  imagePullPolicy: {{ .Values.waitForMigration.image.pullPolicy }}
+  resources:
+    {{- toYaml .Values.waitForMigration.resources | nindent 4 }}
+  args:
+  - "job-wr"
+  - {{ printf "%s-sync-api-gateway-%s" (include "common.names.fullname" .) .Chart.Version | quote }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the Job InitContainer WaitForDependServices Content
 {{ include "job.initContainer.waitForDependServices" ( dict "appName" "${appName}" "context" $) }}
 */}}
