@@ -26,7 +26,8 @@ metadata: {"version":"0.4.0","bk_skill_code":"bk-job-security-guide"}
 - **流量入口与认证**：Web / OpenAPI / 内部服务 / OP / 升级迁移 / 租户迁移等入口的认证方式不同，详见 `references/security-architecture.md`。
 - **鉴权（IAM）**：认证之后还要对业务访问与资源实例做鉴权；内部服务、OP、升级迁移不做用户级 IAM。详见 `references/authorization.md`。
 - **资源归属**：资源挂在 `AppResourceScope`（biz / biz_set / tenant_set）与租户下；越权的本质是访问了不属于自己业务/租户的资源。
-- **产品功能不是漏洞**：在目标主机上执行脚本、分发文件是产品功能，审计重点是「谁可以对哪些主机做这件事」。
+- **产品功能不是漏洞**：在目标主机上执行脚本、分发文件，以及将已受认证与 IAM 鉴权保护的 OpenAPI 封装为 APIGW MCP Server 对外公开（含写操作接口、开启 `is_public` / `oauth2_public_client_enabled` / `oauth2_personal_client_enabled`）均属于正常产品功能；审计重点是「底层认证与资源级 IAM 鉴权是否完备」。
+- **无法被实际利用的不算漏洞**：只有存在真实可利用路径（如认证绕过、IAM 鉴权缺失/绕过、越权访问他人业务/租户资源、注入等）才可计入 `findings`。若底层认证与 IAM 鉴权完备，攻击者必须先合法拥有目标资源的 IAM 权限才能完成操作，则不属于漏洞，**严禁以“扩大攻击面”“纵深防御（defense-in-depth）建议”为由上报为 Finding**。
 
 ## 检查流程
 
@@ -84,9 +85,11 @@ git diff --name-status {lastCommitId}...{headCommitId}
 
 ### 4. 自检
 
-1. 证据是否充分、是否为本 PR 引入、攻击者是否可控该输入？证据不足则降低置信度，勿堆砌推测。
-2. **去重检查**：同一条调用链（如 `Resource.createXxx` → `Service.createXxx`）缺失鉴权，**只合并报告为 1 条 Finding（定位于入口 Resource 方法）**，并在描述中说明“Resource 层与 Service 层均未调用鉴权”，不得拆成两条 Finding。
-3. **行号与修复建议检查**：确认 `start_line` / `end_line` 与 `evidence` 中的行号来自 `{headCommitId}` 下的完整源码真实行号（而非 diff 片段的相对行号）；确认修复建议引用的是项目中真实存在的 `*AuthService` 类与方法（可对照 `authorization.md`「模块鉴权服务」表）。
+1. **可利用性门禁（剔除误报，最高优先级）**：逐条复核候选 Finding——**“在攻击者不具备目标业务/资源合法 IAM 权限的前提下，能否实际完成越权或攻击？”**
+   - 若攻击路径的前提是“攻击者已获得目标资源的合法 IAM 权限”，或底层认证与 IAM 资源级鉴权并未被绕过/削弱（例如：仅将已受 IAM 鉴权保护的 OpenAPI 接口通过 `definition.yaml` 的 `mcp_servers` 公开到 MCP 市场），或你自己判断“这是纵深防御（defense-in-depth）建议，非已确认可利用漏洞”，**必须直接丢弃该候选，严禁写入 `findings`**（可在 `notes` 中作为已核对无风险的说明简要记录）。
+2. 证据是否充分、是否为本 PR 引入、攻击者是否可控该输入？若无法构造出实际可利用的攻击路径，直接丢弃，勿堆砌推测。
+3. **去重检查**：同一条调用链（如 `Resource.createXxx` → `Service.createXxx`）缺失鉴权，**只合并报告为 1 条 Finding（定位于入口 Resource 方法）**，并在描述中说明“Resource 层与 Service 层均未调用鉴权”，不得拆成两条 Finding。
+4. **行号与修复建议检查**：确认 `start_line` / `end_line` 与 `evidence` 中的行号来自 `{headCommitId}` 下的完整源码真实行号（而非 diff 片段的相对行号）；确认修复建议引用的是项目中真实存在的 `*AuthService` 类与方法（可对照 `authorization.md`「模块鉴权服务」表）。
 
 ### 5. 输出报告
 
@@ -106,6 +109,7 @@ git diff --name-status {lastCommitId}...{headCommitId}
 3. 判断「是否可控」时，确认数据来自外部请求，而不是来自已鉴权的内部数据；网关注入的 username 仍须做资源级鉴权。
 4. references 描述的是目标分支设计；若 PR 修改了其中的机制本身（网关过滤器、鉴权拦截器、入口类型等），以「机制被修改」为重点，并在结论中明确体现。
 5. 认证机制被削弱、删除或失效时，无论是否已有可利用链路，都必须在报告中体现（可结合 severity/confidence 分级）。
+6. **无法被实际利用的不算漏洞，严禁检出**：`findings` 只允许报告存在实际可利用路径的安全漏洞。只要底层认证与 IAM 鉴权未被绕过或削弱，任何“纵深防御（defense-in-depth）不足”“公开 MCP Server / OpenAPI 扩大了已受 IAM 保护的写操作接口攻击面”等无法被越权利用的事项，**一律不得作为 Finding 检出**。
 
 ## 维护
 

@@ -32,12 +32,13 @@
 
 ### OpenAPI
 
-- **路径**：外部 `/api/job/v{2,3,4}/...`，网关改写为 `/esb/api/...`；对外暴露的接口列表与认证策略定义在 `support-files/bk-api-gateway/v3/resources.yaml`
-- **调用方**：蓝鲸 APIGW / ESB
+- **路径**：外部 `/api/job/v{2,3,4}/...`，网关改写为 `/esb/api/...`；对外暴露的接口列表与认证策略定义在 `support-files/bk-api-gateway/v3/resources.yaml`，MCP Server 封装定义在 `support-files/bk-api-gateway/v3/definition.yaml` 的 `mcp_servers`
+- **调用方**：蓝鲸 APIGW / ESB / APIGW MCP Proxy
 - **认证方式**：
   - APIGW 侧（`resources.yaml`）：`authConfig` 控制是否校验用户登录态（`userVerifiedRequired`）与蓝鲸应用身份（`appVerifiedRequired`）；`bk-header-rewrite` 插件写入 `X-Bk-Job-Api-Type`（`user` 用户态：用户身份必须来自 APIGW JWT，不可被请求头覆盖；`app` 应用态：`CheckOpenApiJwtGatewayFilterFactory` 允许调用方通过请求头 `X-Bk-Username` 指定操作用户）
+  - APIGW MCP Server（`definition.yaml`）：只是对 `resources.yaml` 中既有 OpenAPI 资源的协议封装。即便配置了 `is_public: true`、`oauth2_public_client_enabled: true`、`oauth2_personal_client_enabled: true` 或包含写操作接口（如 `execute_job_plan`），调用时依然完整执行底层 OpenAPI 资源的 `authConfig` 认证、`job-gateway` JWT 校验以及后端代码的 IAM 资源级鉴权。**只要被引用 OpenAPI 资源自身的认证配置与后端 IAM 鉴权完备，公开暴露 MCP Server 属于正常产品功能，不构成漏洞或越权风险**
   - job-gateway 侧：`CheckTenant` + `CheckOpenApiJwt`（校验 APIGW JWT，提取 `app_code` 与 `username` 写入请求头）
-  - 服务端：有业务上下文时由 `AuthAppInterceptor` 做业务级鉴权
+  - 服务端：有业务上下文时由 `AuthAppInterceptor` 做业务级鉴权，并在 Resource/Service 中由 `*AuthService` 做资源级 IAM 鉴权
 - **接口特征**：`api/esb/` 包下的 `Esb*Resource`、`OpenApi*V4Resource`，`@RequestMapping("/esb/api/v{n}")`，标注 `@EsbAPI` / `@EsbV4API`，从请求头 `JobCommonHeaders.USERNAME` / `APP_CODE` 取调用者
 - **主要实现类**：
   - `CheckTenantGatewayFilterFactory`：网关租户校验
