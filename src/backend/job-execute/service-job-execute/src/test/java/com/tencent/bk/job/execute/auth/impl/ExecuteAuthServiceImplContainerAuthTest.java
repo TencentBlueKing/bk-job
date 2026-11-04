@@ -98,8 +98,12 @@ class ExecuteAuthServiceImplContainerAuthTest {
 
         bizScope = new AppResourceScope(ResourceScopeTypeEnum.BIZ, "2", 2L);
 
-        convertHostsToResourceMethod = ExecuteAuthServiceImpl.class
-            .getDeclaredMethod("convertHostsToPermissionResourceList", AppResourceScope.class, ExecuteTargetDTO.class);
+        // 这些用例断言的是 v3 按业务维度组装容器资源，useV4 传 false
+        convertHostsToResourceMethod = ExecuteAuthServiceImpl.class.getDeclaredMethod(
+            "convertHostsToPermissionResourceList",
+            AppResourceScope.class,
+            ExecuteTargetDTO.class,
+            boolean.class);
         convertHostsToResourceMethod.setAccessible(true);
     }
 
@@ -112,7 +116,7 @@ class ExecuteAuthServiceImplContainerAuthTest {
         List<InstanceDTO> hostInstances = executeTargetInstanceBuilder.buildHostInstances(bizScope, target);
         @SuppressWarnings("unchecked")
         List<PermissionResource> resources = (List<PermissionResource>) convertHostsToResourceMethod.invoke(
-            authServiceImpl, bizScope, target);
+            authServiceImpl, bizScope, target, false);
 
         assertThat(hostInstances).hasSize(1);
         assertThat(hostInstances.get(0).getType()).isEqualTo(ResourceTypeEnum.HOST.getId());
@@ -132,7 +136,7 @@ class ExecuteAuthServiceImplContainerAuthTest {
         List<InstanceDTO> hostInstances = executeTargetInstanceBuilder.buildHostInstances(bizScope, target);
         @SuppressWarnings("unchecked")
         List<PermissionResource> resources = (List<PermissionResource>) convertHostsToResourceMethod.invoke(
-            authServiceImpl, bizScope, target);
+            authServiceImpl, bizScope, target, false);
 
         assertThat(hostInstances).hasSize(1);
         assertThat(resources).hasSize(1);
@@ -149,7 +153,7 @@ class ExecuteAuthServiceImplContainerAuthTest {
         List<InstanceDTO> hostInstances = executeTargetInstanceBuilder.buildHostInstances(bizScope, target);
         @SuppressWarnings("unchecked")
         List<PermissionResource> resources = (List<PermissionResource>) convertHostsToResourceMethod.invoke(
-            authServiceImpl, bizScope, target);
+            authServiceImpl, bizScope, target, false);
 
         assertThat(hostInstances).hasSize(1);
         assertThat(resources).hasSize(1);
@@ -164,7 +168,7 @@ class ExecuteAuthServiceImplContainerAuthTest {
         List<InstanceDTO> hostInstances = executeTargetInstanceBuilder.buildHostInstances(bizScope, target);
         @SuppressWarnings("unchecked")
         List<PermissionResource> resources = (List<PermissionResource>) convertHostsToResourceMethod.invoke(
-            authServiceImpl, bizScope, target);
+            authServiceImpl, bizScope, target, false);
 
         // 主机静态 IP 仍按现状生成 1 条；容器维度无新增
         assertThat(hostInstances).hasSize(1);
