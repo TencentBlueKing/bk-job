@@ -83,7 +83,7 @@
   };
 </script>
 <style lang="postcss">
-  .bk-date-picker-popover{
+  .__bk-date-picker-popper__{
     .time-zone-panel{
       display: none;
     }

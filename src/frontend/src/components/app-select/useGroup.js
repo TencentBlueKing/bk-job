@@ -12,6 +12,7 @@ export default (scrollEle, expandScopeGroupMap, list, isShowSelectPanel) => {
         groupEl.style.position = 'sticky';
         groupEl.style.top = `${32 * index}px`;
         groupEl.style.bottom = '';
+        groupEl.style.zIndex = '9';
         stickyIndexMap[index] = true;
       }
     });
@@ -21,6 +22,7 @@ export default (scrollEle, expandScopeGroupMap, list, isShowSelectPanel) => {
         groupEl.style.position = 'sticky';
         groupEl.style.top = '';
         groupEl.style.bottom = `${32 * index}px`;
+        groupEl.style.zIndex = '9';
         stickyIndexMap[groupElList.length - 1 - index] = true;
       }
     });
