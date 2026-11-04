@@ -85,7 +85,7 @@ public class IamV4AccountCallbackService extends BaseIamV4CallbackService {
         V4CallbackFilterDTO filter = request.getFilter();
 
         AccountDTO accountQuery = new AccountDTO();
-        accountQuery.setAppId(filter == null ? null : getAppIdByParent(filter.getParent()));
+        accountQuery.setAppId(requireAppIdByParent(filter == null ? null : filter.getParent()));
         if (filter != null && StringUtils.isNotBlank(filter.getKeyword())) {
             accountQuery.setAlias(filter.getKeyword());
         }

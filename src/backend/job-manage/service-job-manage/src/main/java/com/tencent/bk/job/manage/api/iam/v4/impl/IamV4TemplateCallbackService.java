@@ -84,7 +84,7 @@ public class IamV4TemplateCallbackService extends BaseIamV4CallbackService {
     @Override
     protected V4ListInstanceDataDTO listInstance(V4CallbackRequestDTO request) {
         V4CallbackFilterDTO filter = request.getFilter();
-        Long appId = filter == null ? null : getAppIdByParent(filter.getParent());
+        long appId = requireAppIdByParent(filter == null ? null : filter.getParent());
 
         TaskTemplateQuery query = TaskTemplateQuery.builder()
             .appId(appId)

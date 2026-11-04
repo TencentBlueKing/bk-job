@@ -86,7 +86,7 @@ public class IamV4TicketCallbackService extends BaseIamV4CallbackService {
         V4CallbackFilterDTO filter = request.getFilter();
 
         CredentialDTO credentialQuery = new CredentialDTO();
-        credentialQuery.setAppId(filter == null ? null : getAppIdByParent(filter.getParent()));
+        credentialQuery.setAppId(requireAppIdByParent(filter == null ? null : filter.getParent()));
         if (filter != null && StringUtils.isNotBlank(filter.getKeyword())) {
             credentialQuery.setName(filter.getKeyword());
         }

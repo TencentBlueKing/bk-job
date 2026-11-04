@@ -108,6 +108,14 @@ class BaseIamV4CallbackAncestorTest {
     }
 
     @Test
+    @DisplayName("list_instance 缺少上级业务时拒绝，避免查整个租户")
+    void missingParentRejectsListScope() {
+        assertThatThrownBy(() -> service.requireAppIdByParent(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Parent biz is required");
+    }
+
+    @Test
     @DisplayName("fetch_instance_info 从 root_resource_id 解析 bizId")
     void parseBizFromRootResourceId() {
         V4CallbackFilterDTO filter = new V4CallbackFilterDTO();
@@ -172,6 +180,11 @@ class BaseIamV4CallbackAncestorTest {
         @Override
         public long parseAncestorBizId(V4CallbackFilterDTO filter) {
             return super.parseAncestorBizId(filter);
+        }
+
+        @Override
+        public long requireAppIdByParent(V4CallbackParentDTO parent) {
+            return super.requireAppIdByParent(parent);
         }
 
         @Override

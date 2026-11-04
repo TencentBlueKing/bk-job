@@ -26,7 +26,10 @@ package com.tencent.bk.job.execute.auth.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.execute.auth.ExecuteAuthDecision;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -40,6 +43,7 @@ import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.service.TopoService;
 import com.tencent.bk.sdk.iam.constants.AttributeKey;
 import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceDTO;
+import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceKey;
 import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +51,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -63,14 +69,17 @@ import static org.mockito.Mockito.when;
 @DisplayName("V4ExecuteAuthExecutor：执行目标的 v4 路径构造")
 class V4ExecuteAuthExecutorPathTest {
 
+    private static final User USER = new User("system", "tester", "tester");
+
     private V4ExecuteAuthExecutor executor;
+    private IamV4AuthService iamV4AuthService;
     private AppResourceScope bizScope;
     private TopoService topoService;
 
     @BeforeEach
     void setUp() {
         topoService = mock(TopoService.class);
-        IamV4AuthService iamV4AuthService = mock(IamV4AuthService.class);
+        iamV4AuthService = mock(IamV4AuthService.class);
         executor = new V4ExecuteAuthExecutor(
             iamV4AuthService, new ExecuteTargetInstanceBuilder(topoService));
         bizScope = new AppResourceScope(ResourceScopeTypeEnum.BIZ, "2", 2L);
@@ -300,5 +309,45 @@ class V4ExecuteAuthExecutorPathTest {
             .containsExactly(
                 tuple("biz_container", "1"),
                 tuple("cluster", "1"));
+    }
+
+    @Test
+    @DisplayName("重复静态主机：唯一资源已允许时整单通过")
+    void duplicateStaticHostPassesWhenUniqueResourceIsAllowed() {
+        ExecuteTargetDTO target = new ExecuteTargetDTO();
+        target.setStaticIpList(Arrays.asList(new HostDTO(100L), new HostDTO(100L)));
+        when(iamV4AuthService.authByResources(eq("system"), eq("tester"),
+            eq(ActionId.QUICK_EXECUTE_SCRIPT), anyList()))
+            .thenAnswer(invocation -> {
+                List<V4AuthResourceDTO> resources = invocation.getArgument(3);
+                Map<V4AuthResourceKey, Boolean> result = new HashMap<>();
+                result.put(V4AuthResourceKey.from(resources.get(0)), true);
+                return result;
+            });
+
+        ExecuteAuthDecision decision = executor.authExecute(
+            USER, ActionId.QUICK_EXECUTE_SCRIPT, bizScope, null, target);
+
+        assertThat(decision.isPass()).isTrue();
+    }
+
+    @Test
+    @DisplayName("重复静态主机：唯一资源被拒绝时整单拒绝")
+    void duplicateStaticHostDeniesWhenUniqueResourceIsDenied() {
+        ExecuteTargetDTO target = new ExecuteTargetDTO();
+        target.setStaticIpList(Arrays.asList(new HostDTO(100L), new HostDTO(100L)));
+        when(iamV4AuthService.authByResources(eq("system"), eq("tester"),
+            eq(ActionId.QUICK_EXECUTE_SCRIPT), anyList()))
+            .thenAnswer(invocation -> {
+                List<V4AuthResourceDTO> resources = invocation.getArgument(3);
+                Map<V4AuthResourceKey, Boolean> result = new HashMap<>();
+                result.put(V4AuthResourceKey.from(resources.get(0)), false);
+                return result;
+            });
+
+        ExecuteAuthDecision decision = executor.authExecute(
+            USER, ActionId.QUICK_EXECUTE_SCRIPT, bizScope, null, target);
+
+        assertThat(decision.isPass()).isFalse();
     }
 }

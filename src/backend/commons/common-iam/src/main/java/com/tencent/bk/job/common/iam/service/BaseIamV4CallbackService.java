@@ -211,6 +211,17 @@ public abstract class BaseIamV4CallbackService {
     }
 
     /**
+     * list_instance 必须带上级业务。缺 parent 时不能把查询放大到整个租户。
+     */
+    protected long requireAppIdByParent(V4CallbackParentDTO parent) {
+        Long appId = getAppIdByParent(parent);
+        if (appId == null) {
+            throw new IllegalArgumentException("Parent biz is required for listing instances");
+        }
+        return appId;
+    }
+
+    /**
      * 把 v4 回调的上级实例转换为 Job 的资源范围。
      */
     protected ResourceScope toResourceScope(V4CallbackParentDTO parent) {

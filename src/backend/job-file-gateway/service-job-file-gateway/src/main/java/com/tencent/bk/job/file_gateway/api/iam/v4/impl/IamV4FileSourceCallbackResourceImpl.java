@@ -92,7 +92,7 @@ public class IamV4FileSourceCallbackResourceImpl extends BaseIamV4CallbackServic
     @Override
     protected V4ListInstanceDataDTO listInstance(V4CallbackRequestDTO request) {
         V4CallbackFilterDTO filter = request.getFilter();
-        Long appId = filter == null ? null : getAppIdByParent(filter.getParent());
+        long appId = requireAppIdByParent(filter == null ? null : filter.getParent());
         String alias = filter == null ? null : filter.getKeyword();
         BaseSearchCondition condition = buildSearchCondition(request.getPage());
 

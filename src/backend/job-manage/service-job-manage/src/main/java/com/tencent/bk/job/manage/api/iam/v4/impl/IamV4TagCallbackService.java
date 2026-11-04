@@ -85,7 +85,7 @@ public class IamV4TagCallbackService extends BaseIamV4CallbackService {
         V4CallbackFilterDTO filter = request.getFilter();
 
         TagDTO tagQuery = new TagDTO();
-        tagQuery.setAppId(filter == null ? null : getAppIdByParent(filter.getParent()));
+        tagQuery.setAppId(requireAppIdByParent(filter == null ? null : filter.getParent()));
         if (filter != null && StringUtils.isNotBlank(filter.getKeyword())) {
             tagQuery.setName(filter.getKeyword());
         }

@@ -92,7 +92,7 @@ public class IamV4CronCallbackResourceImpl extends BaseIamV4CallbackService
         V4CallbackFilterDTO filter = request.getFilter();
 
         CronJobInfoDTO cronJobQuery = new CronJobInfoDTO();
-        cronJobQuery.setAppId(filter == null ? null : getAppIdByParent(filter.getParent()));
+        cronJobQuery.setAppId(requireAppIdByParent(filter == null ? null : filter.getParent()));
         if (filter != null && StringUtils.isNotBlank(filter.getKeyword())) {
             cronJobQuery.setName(filter.getKeyword());
         }

@@ -86,7 +86,7 @@ public class IamV4ScriptCallbackService extends BaseIamV4CallbackService {
     @Override
     protected V4ListInstanceDataDTO listInstance(V4CallbackRequestDTO request) {
         V4CallbackFilterDTO filter = request.getFilter();
-        Long appId = filter == null ? null : getAppIdByParent(filter.getParent());
+        long appId = requireAppIdByParent(filter == null ? null : filter.getParent());
 
         ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setPublicScript(false);

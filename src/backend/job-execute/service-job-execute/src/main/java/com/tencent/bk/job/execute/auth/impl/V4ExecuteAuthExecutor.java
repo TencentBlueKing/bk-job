@@ -121,11 +121,12 @@ public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements Exe
             log.debug("Auth execute target by iam v4, username:{}, actionId:{}, result:{}",
                 user.getUsername(), actionId, resultMap);
         }
-        if (resultMap == null || resultMap.size() != hostResources.size()) {
-            log.warn("Incomplete v4 batch auth result, treat as denied|actionId={}|expect={}|actual={}",
-                actionId, hostResources.size(), resultMap == null ? 0 : resultMap.size());
+        if (resultMap == null) {
+            log.warn("Incomplete v4 batch auth result, treat as denied|actionId={}|expect={}",
+                actionId, hostResources.size());
             return false;
         }
+        // 批量结果按 (type, id, path) 去重，重复目标会折叠成一条。按唯一 key 判断，不用 list 长度和 map 长度比较。
         for (V4AuthResourceDTO resource : hostResources) {
             if (!Boolean.TRUE.equals(resultMap.get(V4AuthResourceKey.from(resource)))) {
                 return false;
