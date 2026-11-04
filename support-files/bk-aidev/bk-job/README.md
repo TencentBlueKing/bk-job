@@ -40,7 +40,8 @@ Agent 只引用 MCP，不创建 MCP。MCP Server 由 API 网关侧同步产生�
   由 `bkApiGatewayConfig.syncMcpServers` 开关控制，且必须排在网关资源发布之后；
 - 引用位置：`agents/bk_job_ai.yaml` 的 `spec.mcps[].code`，取值与 `mcp_servers[].name` 一一对应。
 
-两个同步任务之间没有强制先后关系，`bin/sync-bkaidev.sh` 通过有限次重试等待 MCP 就绪。
+两个同步任务均配置为 `post-install,post-upgrade` Hook，通过 `helm.sh/hook-weight` 控制先后顺序（网关同步为 `-5`，
+AIDEV 同步为 `0`），此外 `bin/sync-bkaidev.sh` 也保留了有限次重试以应对异步延迟。
 
 ## 占位符渲染
 

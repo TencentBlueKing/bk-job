@@ -2340,12 +2340,12 @@ migrationInit:
 ## 蓝鲸网关配置，接入方式：chart + 自定义镜像
 bkApiGatewayConfig:
   # 是否自动把API注册到蓝鲸网关
-  sync: false
+  sync: true
   # 是否自动发布资源，true：生成版本且发布资源，false：只生成版本不发布资源
   autoPublish: true
   # 是否同步MCP Server（供AI组件调用作业平台API），依赖网关侧支持MCP能力且环境已有生效的资源版本；
   # 同步失败只告警不中断网关同步流程，MCP Server定义见support-files/bk-api-gateway/v3/definition.yaml
-  syncMcpServers: false
+  syncMcpServers: true
   # 是否开启apigw jwt认证
   enabled: true
   jwtPublicKey:

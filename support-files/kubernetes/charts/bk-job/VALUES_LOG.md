@@ -50,7 +50,7 @@ job:
 ```yaml
 bkApiGatewayConfig:
   # 是否同步MCP Server（供AI组件调用作业平台API），依赖网关侧支持MCP能力且环境已有生效的资源版本
-  syncMcpServers: false
+  syncMcpServers: true
 ```
 
 4. 新增 AIDEV 配置，开启后把 AI 相关资源（Agent/Skill/知识库）自动注入到 AIDEV 平台，资源文件见 `support-files/bk-aidev/bk-job`

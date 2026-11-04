@@ -4,14 +4,14 @@ set -e
 # 加载 apigw-manager 原始镜像中的通用函数
 source /apigw-manager/bin/functions.sh
 
-# 待同步网关名，需修改为实际网关名；
+# 同步网关名，需修改为实际网关名；
 # - 如在下面指令的参数中，指定了参数 --gateway-name=${gateway_name}，则使用该参数指定的网关名
 # - 如在下面指令的参数中，未指定参数 --gateway-name，则使用 Django settings BK_APIGW_NAME
 gateway_name=$BK_APIGW_NAME
 # 自动发布资源，create_version_and_release_apigw命令中指定参数 --no-pub只生成版本不发布资源，不指定生成版本且发布资源
 gateway_auto_publish=$BK_APIGW_AUTO_PUBLISH
 # 是否同步MCP Server（供AI组件调用作业平台API），旧版本网关不支持MCP时可关闭
-sync_mcp_servers=${BK_APIGW_SYNC_MCP_SERVERS:-false}
+sync_mcp_servers=${BK_APIGW_SYNC_MCP_SERVERS:-true}
 
 title "do something before migrate"
 # 网关维护人员解析成array格式

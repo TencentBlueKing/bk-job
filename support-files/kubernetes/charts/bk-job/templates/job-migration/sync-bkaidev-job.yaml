@@ -11,10 +11,12 @@ metadata:
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
   annotations:
-    # 作为 post-install/post-upgrade Hook 运行：Helm 会等待该 Job 执行完成，
+    # 作为 post-install/post-upgrade Hook 运行，hook-weight 设为 0（排在权重 -5 的 sync-api-gateway 之后执行）：
+    # Helm 会先等 sync-api-gateway 完成网关发布与 MCP 注册，再启动并等待该 Job 执行完成；
     # 若同步最终失败（Job Failed），Helm 部署状态也会随之判定为失败（failed）；
     # 仅配置 before-hook-creation，失败时保留 Job 与 Pod 便于排查日志。
     "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
     "helm.sh/hook-delete-policy": before-hook-creation
     {{- if .Values.commonAnnotations }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
