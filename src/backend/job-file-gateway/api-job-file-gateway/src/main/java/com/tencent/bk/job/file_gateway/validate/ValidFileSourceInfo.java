@@ -24,7 +24,13 @@
 
 package com.tencent.bk.job.file_gateway.validate;
 
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
+import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
+import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
+import com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq;
+import com.tencent.bk.job.file_gateway.util.FilePrefixValidator;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import jakarta.validation.Constraint;
@@ -37,16 +43,13 @@ import java.lang.annotation.Target;
 import java.util.Map;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE_USE;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * spring validation java 文件源信息合法校验
+ * 文件源接入参数格式校验：校验 filePrefix 安全白名单以及蓝鲸制品库类型的 base_url 必须为 http(s)
  */
-@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
+@Target({TYPE, ANNOTATION_TYPE})
 @Constraint(validatedBy = ValidFileSourceInfo.Validator.class)
 @Documented
 @Retention(RUNTIME)
@@ -58,14 +61,61 @@ public @interface ValidFileSourceInfo {
 
     Class<? extends Payload>[] payload() default {};
 
-    class Validator implements ConstraintValidator<ValidFileSourceInfo, Map<String, Object>> {
+    @Slf4j
+    class Validator implements ConstraintValidator<ValidFileSourceInfo, Object> {
+
+        private static final String FILE_PREFIX_INVALID_MESSAGE_TEMPLATE =
+            "{validation.constraints.FileSourceFilePrefixInvalid.message}";
 
         @Override
-        public boolean isValid(Map<String, Object> value, ConstraintValidatorContext constraintValidatorContext) {
-            if (value == null || value.isEmpty()) {
+        public boolean isValid(Object value, ConstraintValidatorContext constraintValidatorContext) {
+            if (value instanceof FileSourceCreateUpdateReq) {
+                FileSourceCreateUpdateReq req = (FileSourceCreateUpdateReq) value;
+                if (!checkFilePrefix(req.getCode(), req.getFilePrefix(), "filePrefix", constraintValidatorContext)) {
+                    return false;
+                }
+                return isValid(req.getFileSourceTypeCode(), req.getFileSourceInfoMap());
+            }
+            if (value instanceof EsbCreateOrUpdateFileSourceV3Req) {
+                EsbCreateOrUpdateFileSourceV3Req req = (EsbCreateOrUpdateFileSourceV3Req) value;
+                if (!checkFilePrefix(req.getCode(), req.getFilePrefix(), "file_prefix", constraintValidatorContext)) {
+                    return false;
+                }
+                return isValid(req.getType(), req.getAccessParams());
+            }
+            return true;
+        }
+
+        private boolean checkFilePrefix(String fileSourceCode,
+                                        String filePrefix,
+                                        String fieldName,
+                                        ConstraintValidatorContext constraintValidatorContext) {
+            String invalidReason = FilePrefixValidator.getInvalidReason(filePrefix);
+            if (invalidReason == null) {
                 return true;
             }
-            Object baseUrlObj = value.get(FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL);
+            log.warn("ValidFileSourceInfo rejected illegal {}: code={}, reason={}, value={}",
+                fieldName,
+                LogUtil.sanitizeForLog(fileSourceCode, 64),
+                invalidReason,
+                LogUtil.sanitizeForLog(filePrefix, 64));
+            if (constraintValidatorContext != null) {
+                constraintValidatorContext.disableDefaultConstraintViolation();
+                constraintValidatorContext.buildConstraintViolationWithTemplate(FILE_PREFIX_INVALID_MESSAGE_TEMPLATE)
+                    .addPropertyNode(fieldName)
+                    .addConstraintViolation();
+            }
+            return false;
+        }
+
+        private boolean isValid(String fileSourceTypeCode, Map<String, Object> fileSourceInfoMap) {
+            if (!FileSourceTypeEnum.isBlueKingArtifactory(fileSourceTypeCode)) {
+                return true;
+            }
+            if (fileSourceInfoMap == null || fileSourceInfoMap.isEmpty()) {
+                return true;
+            }
+            Object baseUrlObj = fileSourceInfoMap.get(FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL);
             if (!(baseUrlObj instanceof String)) {
                 return false;
             }
@@ -73,13 +123,7 @@ public @interface ValidFileSourceInfo {
             if (StringUtils.isBlank(baseUrl)) {
                 return false;
             }
-            // 限制文件源根地址只能是 http(s)://xxx 形式
-            return isHttpOrHttpsUrl(baseUrl);
+            return baseUrl.startsWith("http://") || baseUrl.startsWith("https://");
         }
-
-        private boolean isHttpOrHttpsUrl(String url) {
-            return url.startsWith("http://") || url.startsWith("https://");
-        }
-
     }
 }

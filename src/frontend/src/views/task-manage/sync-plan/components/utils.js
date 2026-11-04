@@ -87,9 +87,22 @@ const patchStep = (pre, next) => {
     case 1:
       step = compare(pre.scriptStepInfo, next.scriptStepInfo);
       break;
-    case 2:
-      step = compare(pre.fileStepInfo, next.fileStepInfo);
+    case 2: {
+      // 步骤信息缺失时 TaskStep 会退化成空对象，取不到 fileDestination
+      const preDestination = pre.fileStepInfo.fileDestination || {};
+      const nextDestination = next.fileStepInfo.fileDestination || {};
+      // fileDestination 是对象，需要拆分成路径、账号、目标服务器细粒度对比
+      const destination = compare(preDestination, nextDestination, [
+        'path', 'account', 'accountVar', 'server',
+      ]);
+      step = {
+        ...compare(pre.fileStepInfo, next.fileStepInfo),
+        destinationPath: destination.path,
+        destinationAccount: destination.account || destination.accountVar,
+        destinationServer: destination.server,
+      };
       break;
+    }
     case 3:
       step = compare(pre.approvalStepInfo, next.approvalStepInfo);
       break;

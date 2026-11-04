@@ -27,22 +27,54 @@ package com.tencent.bk.job.manage.model.esb.v4.resp;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteTargetDTO;
-import lombok.EqualsAndHashCode;
+import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateContainerDTO;
+import com.tencent.bk.job.manage.model.esb.v4.req.V4JobTemplateContainerFilterDTO;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * OpenAPI V4 执行目标（作业模板详情响应）。
- * 在 {@link V4ExecuteTargetDTO} 基础上增加模板详情特有的变量引用字段。
+ * 与写接口的 V4JobTemplateExecuteTargetReq 逐字段对应，响应可原样回传给写接口。
  */
 @Getter
 @Setter
-@EqualsAndHashCode(callSuper = true)
-public class V4JobTemplateExecuteTargetDTO extends V4ExecuteTargetDTO {
+public class V4JobTemplateExecuteTargetDTO {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("variable")
     @JsonPropertyDescription("Referenced global variable name in template")
     private String variable;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("host_list")
+    @JsonPropertyDescription("Host list")
+    private List<OpenApiV4HostDTO> hostList;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("dynamic_group_list")
+    @JsonPropertyDescription("Dynamic group list")
+    private List<EsbDynamicGroupDTO> dynamicGroups;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("topo_node_list")
+    @JsonPropertyDescription("CMDB topo node list")
+    private List<EsbCmdbTopoNodeDTO> topoNodes;
+
+    /**
+     * 静态容器列表。除 container_id 外的字段来自落库快照，容器已从 CMDB 删除时仍会原样返回。
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("container_list")
+    @JsonPropertyDescription("Static container list")
+    private List<V4JobTemplateContainerDTO> containerList;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("container_filter_list")
+    @JsonPropertyDescription("Container filter list")
+    private List<V4JobTemplateContainerFilterDTO> containerFilters;
 }

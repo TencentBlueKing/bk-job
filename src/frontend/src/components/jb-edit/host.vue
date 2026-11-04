@@ -125,9 +125,11 @@
           return '--';
         }
         const {
-          dynamicGroupList,
-          hostList,
-          nodeList,
+          hostList = [],
+          nodeList = [],
+          dynamicGroupList = [],
+          containerList = [],
+          containerFilterList = [],
         } = this.localValue.executeObjectsInfo || {};
         const strs = [];
         if (hostList.length > 0) {
@@ -138,6 +140,12 @@
         }
         if (dynamicGroupList.length > 0) {
           strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组_result')}`);
+        }
+        if (containerList.length > 0) {
+          strs.push(`<span class="number strong">${containerList.length}</span>${I18n.t('个容器_result')}`);
+        }
+        if (containerFilterList.length > 0) {
+          strs.push(`<span class="number strong">${containerFilterList.length}</span>${I18n.t('个动态分组_result')}`);
         }
         return strs.length > 0 ? strs.join('\n') : '--';
       },

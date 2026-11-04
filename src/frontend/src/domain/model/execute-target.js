@@ -92,7 +92,7 @@ export default class ExecuteObjectsInfo {
       strs.push(`${containerList.length} ${I18n.t('个容器_result')}`);
     }
     if (containerFilterList.length > 0) {
-      strs.push(`${containerFilterList.length} ${I18n.t('个容器过滤条件_result')}`);
+      strs.push(`${containerFilterList.length} ${I18n.t('个动态分组_result')}`);
     }
     return strs.length > 0 ? strs.join('，') : '--';
   }

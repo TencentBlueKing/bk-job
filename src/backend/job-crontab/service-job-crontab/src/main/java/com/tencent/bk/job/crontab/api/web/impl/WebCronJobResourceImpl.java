@@ -48,6 +48,7 @@ import com.tencent.bk.job.common.util.check.XssChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.crontab.api.web.WebCronJobResource;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
+import com.tencent.bk.job.crontab.common.constants.CronJobLastExecuteStatusEnum;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
@@ -244,6 +245,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         List<Long> lastFailTimeList = new ArrayList<>();
         resultCronJob.setTotalCount(0);
         resultCronJob.setFailCount(0);
+        CronJobLastExecuteStatusEnum lastExecuteStatus = CronJobLastExecuteStatusEnum.NOT_STARTED;
 
         if (cronTaskExecuteResult != null) {
             List<CronTaskExecuteResult> lastExecuteRecords = cronTaskExecuteResult.getLast24HourExecuteRecords();
@@ -256,6 +258,9 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                 int fail = 0;
                 for (CronTaskExecuteResult executeRecord : lastExecuteRecords) {
                     RunStatusEnum taskStatus = RunStatusEnum.valueOf(executeRecord.getStatus());
+                    if (lastExecuteStatus == CronJobLastExecuteStatusEnum.NOT_STARTED) {
+                        lastExecuteStatus = CronJobLastExecuteStatusEnum.fromRunStatus(taskStatus);
+                    }
                     switch (taskStatus) {
                         // 跳过
                         case SKIPPED:
@@ -268,18 +273,12 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                             // 执行成功
                         case SUCCESS:
                             total += 1;
-                            if (resultCronJob.getLastExecuteStatus() == 0) {
-                                resultCronJob.setLastExecuteStatus(1);
-                            }
                             break;
                         // 执行失败
                         case FAIL:
                             total += 1;
                             fail += 1;
                             lastFailTimeList.add(executeRecord.getExecuteTime());
-                            if (resultCronJob.getLastExecuteStatus() == 0) {
-                                resultCronJob.setLastExecuteStatus(2);
-                            }
                             break;
                         // 状态异常
                         case ABNORMAL_STATE:
@@ -299,6 +298,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                 resultCronJob.setFailCount(fail);
             }
         }
+        resultCronJob.setLastExecuteStatus(lastExecuteStatus.getValue());
         fillStatisticInfoWithLaunchHistory(resultCronJob, lastFailTimeList, launchHistory);
     }
 
@@ -319,7 +319,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                     }
                 }
                 if (ExecuteStatusEnum.FAIL.equals(lastLaunchRecords.get(0).getStatus())) {
-                    resultCronJob.setLastExecuteStatus(2);
+                    resultCronJob.setLastExecuteStatus(CronJobLastExecuteStatusEnum.FAIL.getValue());
                 }
             }
         }

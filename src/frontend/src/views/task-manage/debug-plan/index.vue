@@ -40,7 +40,6 @@
           </div>
           <render-global-var
             :list="variableList"
-            mode="editOfPlan"
             :select-value="selectedVariable" />
         </detail-item>
         <detail-item

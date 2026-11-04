@@ -22,6 +22,33 @@
  * IN THE SOFTWARE.
  */
 
+pluginManagement {
+    repositories {
+        mavenLocal()
+
+        // 用户通过命令行方式指定的 maven repo，用于 Gradle plugins DSL 解析插件及其依赖
+        def mavenRepoUrls = System.getProperty("mavenRepoUrl")
+        if (mavenRepoUrls == null || mavenRepoUrls.trim().length() == 0) {
+            // gradle.properties 中的 maven repo。优先级从高到低:
+            // 1. command line, as set using -D.
+            // 2. gradle.properties in GRADLE_USER_HOME directory (<home directory of the current user>/.gradle by default)
+            // 3. gradle.properties in the project’s directory, then its parent project’s directory up to the build’s root directory.
+            // 4. gradle.properties in Gradle installation directory.
+            mavenRepoUrls = providers.gradleProperty("MAVEN_REPO_URL").orNull
+        }
+        if (mavenRepoUrls != null && mavenRepoUrls.trim().length() > 0) {
+            String[] repoUrls = mavenRepoUrls.trim().replace(" ", "").split(",")
+            for (String repoUrl : repoUrls) {
+                println("Add plugin maven repo:" + repoUrl)
+                maven { url repoUrl }
+            }
+        }
+
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
 rootProject.name = 'bk-job-backend'
 include 'commons'
 include 'commons:artifactory-sdk'

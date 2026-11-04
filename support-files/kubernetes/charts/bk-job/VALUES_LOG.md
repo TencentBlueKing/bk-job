@@ -45,6 +45,13 @@ job:
           # 蓝鲸 AI 开发平台 BK-AIDev
           bkAiDev: true
 ```
+3. 任务回调地址（callback_url）白名单校验默认开启。关闭后仍做 scheme/host 基础校验，不校验 userinfo 与环回地址。当前环境域名匹配时仅拒绝环回 IP，不再拒绝局域网 IP。
+```yaml
+executeConfig:
+  checkCallbackUrl:
+    # 是否开启 callback_url 白名单校验，默认开启。关闭后仍做 scheme/host 基础校验，不校验 userinfo 与环回地址
+    enabled: true
+```
 
 3. 网关同步新增 MCP Server 开关，MCP Server 定义见 `support-files/bk-api-gateway/v3/definition.yaml`
 ```yaml

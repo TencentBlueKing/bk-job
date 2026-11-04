@@ -38,6 +38,7 @@ import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
+import com.tencent.bk.job.file_gateway.util.FilePrefixValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,7 +65,7 @@ public class FileSourceTaskReqGenServiceImpl
         req.setTaskId(fileSourceTaskDTO.getId());
         // 前缀生成
         String filePrefix = fileSourceDTO.getFilePrefix();
-        if ("${UUID}".equals(filePrefix)) {
+        if (FilePrefixValidator.FILE_PREFIX_UUID.equals(filePrefix)) {
             filePrefix = JobUUID.getUUID();
         }
         req.setFilePrefix(filePrefix);

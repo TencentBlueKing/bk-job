@@ -36,7 +36,9 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
+import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.tools.StringUtils;
@@ -60,6 +62,8 @@ public class LocalFilePrepareService {
     private final LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner;
     private final StepInstanceService stepInstanceService;
     private final ArtifactoryClient artifactoryClient;
+    private final LogService logService;
+    private final TaskInstanceService taskInstanceService;
     private final Map<String, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
     private final ExecutorService localFileDownloadExecutor;
     private final ExecutorService localFileWatchExecutor;
@@ -72,7 +76,9 @@ public class LocalFilePrepareService {
                                    StepInstanceService stepInstanceService,
                                    @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                    @Qualifier("localFileDownloadExecutor") ExecutorService localFileDownloadExecutor,
-                                   @Qualifier("localFileWatchExecutor") ExecutorService localFileWatchExecutor) {
+                                   @Qualifier("localFileWatchExecutor") ExecutorService localFileWatchExecutor,
+                                   LogService logService,
+                                   TaskInstanceService taskInstanceService) {
         this.fileDistributeConfig = fileDistributeConfig;
         this.artifactoryHelper = artifactoryHelper;
         this.localFileConfigForExecute = localFileConfigForExecute;
@@ -81,6 +87,8 @@ public class LocalFilePrepareService {
         this.artifactoryClient = artifactoryClient;
         this.localFileDownloadExecutor = localFileDownloadExecutor;
         this.localFileWatchExecutor = localFileWatchExecutor;
+        this.logService = logService;
+        this.taskInstanceService = taskInstanceService;
     }
 
     public void stopPrepareLocalFilesAsync(
@@ -116,7 +124,9 @@ public class LocalFilePrepareService {
             localFileConfigForExecute.getLocalUploadRepo(),
             fileDistributeConfig.getJobDistributeRootPath(),
             localFileDownloadExecutor,
-            localFileWatchExecutor
+            localFileWatchExecutor,
+            logService,
+            taskInstanceService
         );
         taskMap.put(stepInstance.getUniqueKey(), task);
         task.execute();

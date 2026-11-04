@@ -45,10 +45,12 @@
           field="defaultTargetValue"
           :value="data.defaultTargetValue"
           @on-change="handleChange" />
-        <account-select
+        <jb-edit-account
           v-else-if="data.isAccount"
+          field="defaultValue"
+          mode="block"
           :value="data.defaultValue"
-          @change="value => handleChange({ field: 'defaultValue', value })" />
+          @on-change="handleChange" />
         <jb-edit-input
           v-else
           field="defaultValue"
@@ -96,7 +98,7 @@
 
   import { globalVariableNameRule } from '@utils/validator';
 
-  import AccountSelect from '@components/account-select';
+  import JbEditAccount from '@components/jb-edit/account';
   import JbEditHost from '@components/jb-edit/host';
   import JbEditInput from '@components/jb-edit/input';
   import JbEditTextarea from '@components/jb-edit/textarea';
@@ -106,7 +108,7 @@
   export default {
     name: '',
     components: {
-      AccountSelect,
+      JbEditAccount,
       JbEditInput,
       JbEditTextarea,
       JbEditHost,
@@ -119,6 +121,9 @@
       variableNameList: {
         type: Array,
       },
+    },
+    data() {
+      return {};
     },
     computed: {
       /**
@@ -195,3 +200,4 @@
     },
   };
 </script>
+

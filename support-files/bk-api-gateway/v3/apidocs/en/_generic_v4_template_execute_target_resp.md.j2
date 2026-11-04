@@ -1,0 +1,73 @@
+| Field                 | Type   | Always Present | Description |
+|-----------------------|--------|----------------|-------------|
+| variable              | string | No             | Name of the referenced global variable of type "execute target list". Only appears on a step's execute target; never returned inside a global variable default |
+| host_list             | array  | No             | Static host list |
+| dynamic_group_list    | array  | No             | Dynamic group list |
+| topo_node_list        | array  | No             | CMDB topology node list |
+| container_list        | array  | No             | Static container list |
+| container_filter_list | array  | No             | Container filter list |
+
+##### host_list[] element
+
+| Field       | Type   | Always Present | Description |
+|-------------|--------|----------------|-------------|
+| bk_host_id  | long   | No             | Host ID in CMDB |
+| bk_cloud_id | long   | No             | Cloud area ID |
+| ip          | string | No             | Host IP address |
+
+##### dynamic_group_list[] element
+
+| Field | Type   | Always Present | Description |
+|-------|--------|----------------|-------------|
+| id    | string | Yes            | Dynamic group ID |
+
+##### topo_node_list[] element
+
+| Field      | Type   | Always Present | Description |
+|------------|--------|----------------|-------------|
+| id         | long   | Yes            | Topology node ID |
+| node_type  | string | Yes            | Topology node type. Allowed values: `module`, `set` |
+
+##### container_list[] element
+
+| Field         | Type   | Always Present | Description |
+|---------------|--------|----------------|-------------|
+| container_id  | long   | Yes            | Container ID (CMDB internal ID) |
+| container_uid | string | No             | Container runtime UID |
+| name          | string | No             | Container name |
+| pod_name      | string | No             | Pod name |
+| namespace     | string | No             | Namespace name |
+| cluster_uid   | string | No             | Cluster UID |
+| node_ip       | string | No             | IP of the node hosting the container |
+
+Fields other than `container_id` come from the snapshot taken at save time and are meant for display. Containers
+saved through other entries (such as the OpenAPI write APIs) may carry only `container_id`. Once a container is
+deleted from CMDB, what was saved is still returned here.
+
+##### container_filter_list[] element
+
+| Field           | Type   | Always Present | Description |
+|-----------------|--------|----------------|-------------|
+| name            | string | No             | Filter name |
+| kube_topo_list  | array  | Yes            | Topology path list |
+| prop_conditions | array  | No             | Container property conditions |
+
+###### kube_topo_list[] element
+
+| Field         | Type   | Always Present | Description |
+|---------------|--------|----------------|-------------|
+| cluster       | object | Yes            | Cluster topology object, e.g. `{"id": 105}` |
+| namespace     | object | No             | Namespace topology object, e.g. `{"id": 207}` |
+| workload_list | array  | No             | Workload topology objects, e.g. `{"kind": "deployment", "id": 309}` |
+
+Topology objects carry CMDB internal IDs only, without readable information such as cluster UID or namespace name.
+
+###### prop_conditions[] element
+
+| Field | Type   | Always Present | Description |
+|-------|--------|----------------|-------------|
+| field | string | Yes            | Field to filter on. Allowed values: `container_name`, `container_container_uid`, `pod_name`, `pod_labels` |
+| value | string | Yes            | Value. A Kubernetes label selector expression when `field` is `pod_labels` |
+
+No operator is returned: the match type is determined solely by the field. The values match what the web console
+uses, so the response can be written back to the write APIs as is.

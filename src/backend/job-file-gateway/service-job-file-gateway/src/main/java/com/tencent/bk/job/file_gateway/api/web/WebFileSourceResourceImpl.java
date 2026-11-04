@@ -45,7 +45,6 @@ import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceVO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
-import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,25 +63,15 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
     private final FileSourceService fileSourceService;
     private final FileSourceAuthService fileSourceAuthService;
     private final AppScopeMappingService appScopeMappingService;
-    private final FileSourceValidateService fileSourceValidateService;
 
     @Autowired
     public WebFileSourceResourceImpl(
         FileSourceService fileSourceService,
         FileSourceAuthService fileSourceAuthService,
-        AppScopeMappingService appScopeMappingService,
-        FileSourceValidateService fileSourceValidateService) {
+        AppScopeMappingService appScopeMappingService) {
         this.fileSourceService = fileSourceService;
         this.fileSourceAuthService = fileSourceAuthService;
         this.appScopeMappingService = appScopeMappingService;
-        this.fileSourceValidateService = fileSourceValidateService;
-    }
-
-    private void checkParamSecurity(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
-        if(fileSourceCreateUpdateReq.isBlueKingArtifactoryType()){
-            // 制品库类型的文件源需要校验根地址
-            fileSourceValidateService.checkBkArtifactoryBaseUrl(fileSourceCreateUpdateReq.getBkArtifactoryBaseUrl());
-        }
     }
 
     @Override
@@ -106,7 +95,6 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         @AuditRequestBody FileSourceCreateUpdateReq req) {
         try {
             Long appId = appResourceScope.getAppId();
-            checkParamSecurity(req);
             FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, null, req);
             FileSourceDTO createdFileSource = fileSourceService.saveFileSource(JobContextUtil.getUser(), appId, fileSourceDTO);
             return Response.buildSuccessResp(FileSourceDTO.toVO(createdFileSource));
@@ -127,7 +115,6 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         Long appId = appResourceScope.getAppId();
         log.info("Input=({},{},{})", username, appId, req);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, id, req);
-        checkParamSecurity(req);
 
         FileSourceDTO updateFileSource = fileSourceService.updateFileSourceById(
             JobContextUtil.getUser(), appId, fileSourceDTO);

@@ -69,7 +69,7 @@ public class ServiceDependModelParserTest {
             "--expect-pod-labels-common", "bk.job.image/tag=3.6.0-latest",
             "--expect-pod-labels-service", "(job-manage:label1=value1,label2=value2),(job-execute:label3=value3)",
             "--external-dependency-check-enabled", "true",
-            "--external-dependency-check-url", "https://example.com/checkServiceDependency"
+            "--external-dependency-check-url", "https://example.com/public/checkServiceDependency"
         };
         serviceDependModel = dependModelParser.parseDependModelFromArgsOrEnv(args);
         assertNotNull(serviceDependModel);
@@ -83,7 +83,7 @@ public class ServiceDependModelParserTest {
         );
         Assertions.assertTrue(serviceDependModel.getExternalDependencyCheckEnabled());
         assertEquals(
-            "https://example.com/checkServiceDependency",
+            "https://example.com/public/checkServiceDependency",
             serviceDependModel.getExternalDependencyCheckUrl()
         );
         args = new String[]{

@@ -168,7 +168,7 @@
 
 ##### execute_target
 
-{% include '_generic_v4_execute_target_without_container_resp.md.j2' %}
+{% include '_generic_v4_template_execute_target_resp.md.j2' %}
 
 ##### step_list[] 元素
 
@@ -216,7 +216,8 @@
 |------------------|--------|--------|-------------------------------------------------------------|
 | file_list        | array  | 是      | 文件路径列表                                                      |
 | file_type        | int    | 是      | 文件源类型。可选值：`1`（服务器文件）、`2`（本地文件）、`3`（文件源文件）、`4`（Base64 编码的文件） |
-| file_source_code | string | 否      | 文件源标识                                                       |
+| file_source_id   | int    | 否      | 文件源 ID；仅文件源文件返回                                            |
+| file_source_code | string | 否      | 文件源标识，仅业务内唯一；仅文件源文件返回，文件源已被删除时不返回                           |
 | account          | object | 否      | 执行账号；仅服务器文件源返回                                              |
 | execute_target   | object | 否      | 源文件执行目标                                                     |
 

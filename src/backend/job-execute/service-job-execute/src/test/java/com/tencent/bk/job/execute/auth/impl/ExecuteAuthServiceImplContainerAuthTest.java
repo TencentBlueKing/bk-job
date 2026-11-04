@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
 import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.service.TopoService;
@@ -82,11 +83,13 @@ class ExecuteAuthServiceImplContainerAuthTest {
         AuthHelper authHelper = mock(AuthHelper.class);
         AuthService authService = mock(AuthService.class);
         AppAuthService appAuthService = mock(AppAuthService.class);
+        AppScopeMappingService appScopeMappingService = mock(AppScopeMappingService.class);
         JobExecuteConfig jobExecuteConfig = mock(JobExecuteConfig.class);
         TopoService topoService = mock(TopoService.class);
 
         authServiceImpl = new ExecuteAuthServiceImpl(
-            authHelper, resourceNameQueryService, authService, appAuthService, jobExecuteConfig, topoService);
+            authHelper, resourceNameQueryService, authService, appAuthService, appScopeMappingService,
+            jobExecuteConfig, topoService);
 
         bizScope = new AppResourceScope(ResourceScopeTypeEnum.BIZ, "2", 2L);
 

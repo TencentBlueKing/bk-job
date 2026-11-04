@@ -120,10 +120,6 @@ public class TaskReporterImpl implements TaskReporter {
         reportTaskStatus(req);
     }
 
-    public void reportFileDownloadFailure(String taskId, String filePath, String downloadPath) {
-        reportFileDownloadFailure(taskId, filePath, downloadPath, "Pulling failed");
-    }
-
     @Override
     public void reportFileDownloadStopped(String taskId,
                                           String filePath,

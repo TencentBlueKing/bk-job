@@ -49,6 +49,8 @@ import java.util.Set;
  *   <li>{@link QueryableContainerField#POD_LABELS}：equal（value 形态为 K8s label selector 表达式字符串）</li>
  * </ul>
  * 未暴露的字段或运算符即使底层 bk-cmdb 支持，也不允许用户提交。
+ * <p>
+ * 另见 {@link #getCanonicalOperator}：暴露集合是「允许提交什么」，规范运算符是「页面实际用哪个」，两者用途不同。
  */
 public final class OperatorDispatcher {
 
@@ -56,6 +58,16 @@ public final class OperatorDispatcher {
      * 字段维度的对外暴露运算符表。Map.keySet() 即对外暴露的字段集合。
      */
     private static final Map<QueryableContainerField, Set<KubeContainerOperator>> FIELD_ALLOWED_OPERATORS;
+
+    /**
+     * 字段维度的规范运算符，即页面为该字段固定下发的那一个。
+     * <p>
+     * 页面虽然会拉取 {@link #FIELD_ALLOWED_OPERATORS} 作为元数据，但每个字段的交互形态是固定的
+     * （容器名称、Pod 名称是关键字搜索，容器 UID 是精确匹配，Pod 标签是选择器表达式），
+     * 只会下发这里的取值。不接收运算符的入口（如 OpenAPI 作业模板写接口）按此表补齐，
+     * 保证接口写入的条件与页面写入的完全同形。
+     */
+    private static final Map<QueryableContainerField, KubeContainerOperator> FIELD_CANONICAL_OPERATOR;
 
     static {
         EnumMap<QueryableContainerField, Set<KubeContainerOperator>> map =
@@ -80,6 +92,19 @@ public final class OperatorDispatcher {
             KubeContainerOperator.EQUAL));
 
         FIELD_ALLOWED_OPERATORS = Collections.unmodifiableMap(map);
+
+        EnumMap<QueryableContainerField, KubeContainerOperator> canonicalMap =
+            new EnumMap<>(QueryableContainerField.class);
+        canonicalMap.put(QueryableContainerField.CONTAINER_NAME, KubeContainerOperator.CONTAINS);
+        canonicalMap.put(QueryableContainerField.CONTAINER_CONTAINER_UID, KubeContainerOperator.EQUAL);
+        canonicalMap.put(QueryableContainerField.POD_NAME, KubeContainerOperator.CONTAINS);
+        canonicalMap.put(QueryableContainerField.POD_LABELS, KubeContainerOperator.EQUAL);
+        for (Map.Entry<QueryableContainerField, KubeContainerOperator> entry : canonicalMap.entrySet()) {
+            if (!FIELD_ALLOWED_OPERATORS.get(entry.getKey()).contains(entry.getValue())) {
+                throw new IllegalStateException("Canonical operator is not in the allowed set: " + entry.getKey());
+            }
+        }
+        FIELD_CANONICAL_OPERATOR = Collections.unmodifiableMap(canonicalMap);
     }
 
     private static Set<KubeContainerOperator> immutableOperatorSet(KubeContainerOperator... ops) {
@@ -113,6 +138,16 @@ public final class OperatorDispatcher {
             return Collections.emptySet();
         }
         return FIELD_ALLOWED_OPERATORS.getOrDefault(field, Collections.emptySet());
+    }
+
+    /**
+     * 指定字段的规范运算符，供不接收运算符的入口补齐；字段未暴露返回 null。
+     */
+    public static KubeContainerOperator getCanonicalOperator(QueryableContainerField field) {
+        if (field == null) {
+            return null;
+        }
+        return FIELD_CANONICAL_OPERATOR.get(field);
     }
 
     /**

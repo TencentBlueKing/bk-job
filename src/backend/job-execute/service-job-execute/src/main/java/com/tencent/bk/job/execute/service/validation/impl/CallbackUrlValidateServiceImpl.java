@@ -29,6 +29,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.http.HttpUrlSafetyUtils;
 import com.tencent.bk.job.execute.config.CheckCallbackUrlConfig;
 import com.tencent.bk.job.execute.dao.CallbackUrlWhiteInfoDAO;
 import com.tencent.bk.job.execute.service.validation.CallbackUrlValidateService;
@@ -53,6 +54,7 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
     private final CheckCallbackUrlConfig config;
     private final BkConfig bkConfig;
     private final CallbackUrlWhiteInfoDAO callbackUrlWhiteInfoDAO;
+    private HttpUrlSafetyUtils.HostResolver hostResolver = HttpUrlSafetyUtils.DEFAULT_HOST_RESOLVER;
 
     /**
      * DB 白名单缓存：全量 baseUrl 列表，TTL 由 config.dbCacheTtlSeconds 决定（默认 60s）
@@ -96,54 +98,53 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
         // 1. 基本合法性校验
         URI uri = parseUri(callbackUrl);
         if (uri == null) {
-            return false;
+            return reject(callbackUrl, "malformed URL");
         }
         String scheme = uri.getScheme();
         String host = uri.getHost();
         if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
             || StringUtils.isBlank(host)) {
-            return false;
+            return reject(callbackUrl, "scheme must be http/https and host must be present");
         }
-        // 全局拒绝包含 userinfo 的 URL：阻断 https://trusted.com@evil.com/x 类 SSRF 绕过。
-        // 合法回调不应携带 userinfo，统一在此拦截
-        if (uri.getRawUserInfo() != null) {
-            return false;
-        }
-        // 2. 关闭白名单校验时，仅做合法性校验
+        // 开关关闭时仅做基础合法性校验（scheme/host），环回或通配地址也不再拦截
         if (!config.isEnabled()) {
             return true;
         }
-        // 3. 命中配置白名单 baseUrl
+        // 开关开启时拒绝 userinfo：阻断 https://trusted.com@evil.com/x 类 SSRF 绕过。
+        // 关闭开关可给必须携带 userinfo 的存量回调留口子
+        if (uri.getRawUserInfo() != null) {
+            return reject(callbackUrl, "userinfo is not allowed");
+        }
+        // 2. 命中配置白名单 baseUrl（显式白名单可覆盖环回或通配地址）
         if (matchAnyBaseUrl(uri, config.getAllowedBaseUrls())) {
             return true;
         }
-        // 4. 命中当前环境 bkDomain 子域
-        if (isHostOfCurrentEnv(host)) {
+        // 3. 命中 DB 白名单 baseUrl（带缓存）
+        if (matchAnyBaseUrl(uri, dbBaseUrlCache.get(CACHE_KEY))) {
             return true;
         }
-        // 5. 命中 DB 白名单 baseUrl（带缓存）
-        List<String> dbBaseUrls = dbBaseUrlCache.get(CACHE_KEY);
-        return matchAnyBaseUrl(uri, dbBaseUrls);
+        // 4. 命中当前环境 bkDomain 子域时只拦环回与通配地址，局域网 IP 放行
+        if (isHostOfCurrentEnv(host)) {
+            if (HttpUrlSafetyUtils.isResolvedToLocalHostAddress(host, hostResolver)) {
+                return reject(callbackUrl,
+                    "host matches current env domain but resolved to loopback/any-local address "
+                        + "or failed to resolve");
+            }
+            return true;
+        }
+        return reject(callbackUrl,
+            "not in config/DB whitelist and host is not current env domain or its subdomain");
+    }
+
+    private boolean reject(String callbackUrl, String reason) {
+        log.warn("Callback url rejected: reason={}, callbackUrl={}",
+            reason, HttpUrlSafetyUtils.toLogSafeUrl(callbackUrl, 512));
+        return false;
     }
 
     @Override
     public void validateWhitelistBaseUrl(String baseUrl) {
-        if (StringUtils.isBlank(baseUrl)
-            || !(baseUrl.startsWith("http://") || baseUrl.startsWith("https://"))) {
-            throw new InvalidParamException(
-                ErrorCode.CALLBACK_URL_WHITELIST_INVALID_BASE_URL, baseUrl);
-        }
-        // 还要保证后续的字符不是空：至少要有 host
-        URI uri = parseUri(baseUrl);
-        if (uri == null || StringUtils.isBlank(uri.getHost())) {
-            throw new InvalidParamException(
-                ErrorCode.CALLBACK_URL_WHITELIST_INVALID_BASE_URL, baseUrl);
-        }
-        // baseUrl 不允许带 userinfo / query / fragment：这些片段会让匹配语义模糊，
-        // 也提供了 https://trusted.com@evil.com 这类构造空间
-        if (uri.getRawUserInfo() != null
-            || StringUtils.isNotEmpty(uri.getRawQuery())
-            || StringUtils.isNotEmpty(uri.getRawFragment())) {
+        if (!HttpUrlSafetyUtils.isValidWhitelistHttpBaseUrl(baseUrl)) {
             throw new InvalidParamException(
                 ErrorCode.CALLBACK_URL_WHITELIST_INVALID_BASE_URL, baseUrl);
         }
@@ -161,12 +162,14 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
      */
     private boolean isHostOfCurrentEnv(String host) {
         String bkDomain = bkConfig == null ? null : bkConfig.getBkDomain();
-        if (StringUtils.isBlank(bkDomain) || StringUtils.isBlank(host)) {
+        if (StringUtils.isBlank(bkDomain)) {
             return false;
         }
-        String trimmedDomain = bkDomain.trim();
-        return host.equalsIgnoreCase(trimmedDomain)
-            || host.toLowerCase().endsWith("." + trimmedDomain.toLowerCase());
+        return HttpUrlSafetyUtils.isHostOrChildHost(host, bkDomain.trim());
+    }
+
+    void setHostResolver(HttpUrlSafetyUtils.HostResolver hostResolver) {
+        this.hostResolver = hostResolver;
     }
 
     /**

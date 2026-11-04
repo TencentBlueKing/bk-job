@@ -133,7 +133,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
             // 使申请权限跳转链接中能够展示完整的资源拓扑（如业务信息）
             if (pathInfo != null) {
                 List<PermissionResource> parentResources =
-                    buildParentHierarchicalResources(pathInfo, resourceType, resourceId);
+                    buildParentHierarchicalResources(pathInfo, permissionResource);
                 if (!parentResources.isEmpty()) {
                     permissionResource.setParentHierarchicalResources(parentResources);
                 }
@@ -151,22 +151,23 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
      * 为避免与被鉴权资源重复，需要跳过 type+id 与被鉴权资源匹配的节点，
      * 仅保留真正的祖先节点作为 parentHierarchicalResources。
      *
-     * @param pathInfo     资源路径信息
-     * @param resourceType 被鉴权资源的类型
-     * @param resourceId   被鉴权资源的 ID
+     * @param pathInfo           资源路径信息
+     * @param permissionResource 被鉴权资源
      * @return 父级层级资源列表
      */
     private List<PermissionResource> buildParentHierarchicalResources(PathInfoDTO pathInfo,
-                                                                      ResourceTypeEnum resourceType,
-                                                                      String resourceId) {
+                                                                      PermissionResource permissionResource) {
         List<PermissionResource> parentResources = new ArrayList<>();
+        String resourceType = StringUtils.isNotEmpty(permissionResource.getType())
+            ? permissionResource.getType() : permissionResource.getResourceType().getId();
+        String resourceId = permissionResource.getResourceId();
         PathInfoDTO node = pathInfo;
         while (node != null) {
             ResourceTypeEnum nodeType = ResourceTypeEnum.getByResourceTypeId(node.getType());
             String nodeId = node.getId();
             // 跳过与被鉴权资源 type+id 匹配的节点，避免在 buildApplyActions 中出现重复
             if (nodeType != null && StringUtils.isNotEmpty(nodeId)
-                && !(nodeType == resourceType && nodeId.equals(resourceId))) {
+                && !(node.getType().equals(resourceType) && nodeId.equals(resourceId))) {
                 String parentName = resourceNameQueryService.getResourceName(nodeType, nodeId);
                 PermissionResource parentResource = new PermissionResource(nodeType, nodeId, parentName);
                 parentResources.add(parentResource);
@@ -189,19 +190,14 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     public AuthResult batchAuthResources(User user,
                                          String actionId,
                                          List<PermissionResource> resources) {
-        ResourceTypeEnum resourceType = resources.get(0).getResourceType();
         List<String> allowResourceIds = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
             actionId, buildInstanceList(resources));
-        List<String> notAllowResourceIds =
-            resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
-                .map(PermissionResource::getResourceId).collect(Collectors.toList());
-        AuthResult authResult = new AuthResult();
-        if (!notAllowResourceIds.isEmpty()) {
-            authResult = buildFailAuthResult(user, actionId, resourceType, notAllowResourceIds);
-        } else {
-            authResult.setPass(true);
-        }
-        return authResult;
+        List<PermissionResource> deniedResources = resources.stream()
+            .filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
+            .collect(Collectors.toList());
+        return deniedResources.isEmpty()
+            ? AuthResult.pass(user)
+            : buildFailAuthResultFromResources(user, actionId, deniedResources);
     }
 
     private List<InstanceDTO> buildInstanceList(ResourceTypeEnum resourceType,
@@ -266,9 +262,17 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                 List<List<InstanceDTO>> instanceList = new ArrayList<>();
                 for (PermissionResource relatedResource : relatedResources) {
                     InstanceDTO instance = convertPermissionResourceToInstance(relatedResource);
-                    if (!CustomCollectionUtils.isEmptyCollection(relatedResource.getParentHierarchicalResources())) {
+                    List<PermissionResource> parentResources =
+                        relatedResource.getParentHierarchicalResources();
+                    if (CollectionUtils.isEmpty(parentResources) && relatedResource.getPathInfo() != null) {
+                        parentResources = buildParentHierarchicalResources(
+                            relatedResource.getPathInfo(),
+                            relatedResource
+                        );
+                    }
+                    if (!CustomCollectionUtils.isEmptyCollection(parentResources)) {
                         List<InstanceDTO> hierarchicalInstance = new ArrayList<>();
-                        relatedResource.getParentHierarchicalResources().forEach(
+                        parentResources.forEach(
                             resource -> hierarchicalInstance.add(convertPermissionResourceToInstance(resource)));
                         hierarchicalInstance.add(instance);
                         instanceList.add(hierarchicalInstance);

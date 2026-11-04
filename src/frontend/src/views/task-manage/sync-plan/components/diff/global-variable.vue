@@ -45,35 +45,37 @@
         <span class="label">{{ $t('template.变量名称：') }}</span>
         <span class="value">{{ data.name }}</span>
       </div>
-      <template v-if="data.isHost">
-        <div :class="diffValue.defaultTargetValue">
-          <span class="label">{{ $t('template.变量值：') }}</span>
-          <span class="value">{{ data.valueText }}</span>
-          <host-detail
-            class="host-value-detail"
-            :data="data.defaultTargetValue"
-            :diff-enable="diffValue.defaultTargetValue === 'changed'"
-            :name="data.name" />
-        </div>
-      </template>
-      <template v-else-if="data.isPassword">
-        <div :class="diffValue.defaultValueHash">
-          <span class="label">{{ $t('template.变量值：') }}</span>
-          <span class="value">{{ data.valueText }}</span>
-        </div>
-      </template>
-      <template v-else-if="data.isAccount">
-        <div :class="diffValue.defaultValue">
-          <span class="label">{{ $t('template.变量值：') }}</span>
-          <span class="value">{{ accName(data.valueText) }}</span>
-        </div>
-      </template>
-      <template v-else>
-        <div :class="diffValue.defaultValue">
-          <span class="label">{{ $t('template.变量值：') }}</span>
-          <span class="value">{{ data.valueText }}</span>
-        </div>
-      </template>
+      <div :class="valueDiffClass">
+        <span class="label">{{ $t('template.变量值：') }}</span>
+        <span class="value">{{ valueText }}</span>
+        <host-detail
+          v-if="data.isHost"
+          class="host-value-detail"
+          :data="data.defaultTargetValue"
+          :diff-enable="diffValue.defaultTargetValue === 'changed'"
+          :name="data.name" />
+        <bk-popover
+          v-if="isFollowTemplate"
+          class="follow-template-popover"
+          placement="top"
+          :tippy-options="{
+            theme: 'light'
+          }">
+          <icon
+            class="follow-template-flag"
+            type="global-var-line" />
+          <div slot="content">
+            <div class="follow-template-tips">
+              <div class="follow-template-title">
+                {{ $t('template.跟随作业') }}
+              </div>
+              <div class="follow-template-desc">
+                {{ $t('template.跟随作业描述') }}
+              </div>
+            </div>
+          </div>
+        </bk-popover>
+      </div>
       <div :class="diffValue.description">
         <span class="label">{{ $t('template.变量描述：') }}</span>
         <span class="value">{{ data.description || '-' }}</span>
@@ -135,7 +137,23 @@
           const filters = this.account.filter((item) => item.id === Number(val))
           return filters?.[0]?.alias || val
         }
-      }
+      },
+      // 变量值跟随作业（仅执行方案侧有该属性）
+      isFollowTemplate() {
+        return this.data.followTemplate === 1 && this.type !== 'sync-after';
+      },
+      valueDiffClass() {
+        if (this.data.isHost) {
+          return this.diffValue.defaultTargetValue;
+        }
+        if (this.data.isPassword) {
+          return this.diffValue.defaultValueHash;
+        }
+        return this.diffValue.defaultValue;
+      },
+      valueText() {
+        return this.data.isAccount ? this.accName(this.data.valueText) : this.data.valueText;
+      },
     },
   };
 </script>
@@ -236,6 +254,32 @@
         color: #3a84ff;
         cursor: pointer;
       }
+
+      .follow-template-popover {
+        display: flex;
+        margin-left: 4px;
+        align-items: center;
+
+        .follow-template-flag {
+          font-size: 16px;
+          color: #3a84ff;
+          display: block;
+        }
+      }
+    }
+  }
+
+  .follow-template-tips {
+    .follow-template-title {
+      font-size: 12px;
+      color: #313238;
+    }
+
+    .follow-template-desc {
+      margin-top: 4px;
+      font-size: 12px;
+      line-height: 18px;
+      color: #63656e;
     }
   }
 </style>

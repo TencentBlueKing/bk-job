@@ -78,7 +78,7 @@
             </div>
             <auth-component
               v-else
-              :key="index"
+              :key="`${app.id}-${app.groupId}`"
               auth="biz/access_business"
               class="app-item is-scope"
               :class="{
