@@ -55,9 +55,12 @@
   "notes": []
 }
 ```
+输出要求：
+必须严格按照上述Json格式输出report.json，并且value取值中不可含有单引号'或双引号"，这会导致使用jq解析report.json内容失败。
 
 字段说明：
 
+- `summary.finding_count`：检查出的风险总数，该字段不可缺少，输出后必须再次在文件中校验其存在性
 - `base_sha` / `head_sha`：分别对应检查所用的 `lastCommitId`（合并前）与 `headCommitId`（预合并后）
 - `type`：漏洞类型，取值见同目录 `checklist.md` 的章节名（如 `missing-authorization`、`sql-injection`）
 - `sensitive_paths_changed`：PR 中被修改的敏感路径（`ai_agent/pr_check/`、`.github/workflows/`、构建脚本等）
