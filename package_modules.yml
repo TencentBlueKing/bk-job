@@ -94,6 +94,12 @@ modules:
       - k8s
     description: "Job APIGW resources syncer"
 
+  - name: job-sync-bk-aidev
+    module: job
+    package:
+      - k8s
+    description: "Job AIDEV resources syncer"
+
   - name: job-assemble
     module: job
     package: 
