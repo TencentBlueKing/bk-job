@@ -180,3 +180,27 @@ python generate_gateway_tls_cert.py --pretty
 # 指定实际访问的域名与 IP
 python generate_gateway_tls_cert.py --san bk-job-gateway --san 127.0.0.1 --days 3650
 ```
+
+### 9.处理 3.11.x 作业导出包的时间字段
+
+#### 代码位置
+handle_job_export
+
+#### 功能简介
+
+3.11.x 导出的作业包里，模板、执行方案、标签的 `createTime` / `lastModifyTime` 是 `yyyy-MM-dd HH:mm:ss` 字符串。3.12.x 导入时期望这两个字段是毫秒时间戳，直接导入会解析失败。本工具解开导出包（内容是 zip，下载文件名通常是 `.jobexport`），只改这些时间字段，再压回 zip。产物名是 `<原名>-handled<原扩展名>`，`.jobexport` 可直接再导入。
+
+不处理加密导出包。脚本内容、变量值里碰巧出现的时间字符串不会被改。
+
+> python 环境: python3.6+，仅标准库
+
+#### 执行
+
+```shell
+cd handle_job_export
+python3 handle_job_export.py /path/to/backup.jobexport
+# 生成 /path/to/backup-handled.jobexport
+```
+
+详细说明见 [handle_job_export/README.md](handle_job_export/README.md)。
+
