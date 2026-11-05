@@ -268,6 +268,10 @@
           name: 'ID',
           id: 'id',
           description: I18n.t('account.将覆盖其它条件'),
+          validate(values) {
+            const validate = (values || []).every(_ => /^\d+$/.test(_.name));
+            return !validate ? I18n.t('account.ID只支持数字') : true;
+          },
         },
         {
           name: I18n.t('account.账号别名_colHead'),
