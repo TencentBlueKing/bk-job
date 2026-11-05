@@ -78,6 +78,107 @@ stages:
     #         max_age: 86400
     #         allow_credential: false
 
+    # MCP Server 配置，用于命令 `sync_apigw_stage_mcp_servers`
+    # 前提条件（详见 apigw-manager 文档 sync_apigateway.md 的「MCP Server 配置说明」）：
+    #   1. 仅支持 spec_version: 2；
+    #   2. 该环境需已有生效的资源版本，即 MCP 同步必须排在 create_version_and_release_apigw 之后；
+    #   3. resource_names 中的资源必须存在于生效版本中，对应 resources.yaml 中资源的 operationId；
+    #   4. 若资源没有任何请求参数(body/path/header/query)，需在 resources.yaml 中显式声明 noneSchema: true，
+    #      当前引用的资源均带请求参数，无需额外声明。
+    # 注意：这里的 name 只是短名，网关侧实际的 MCP Server 名为 {网关名}-{环境名}-{name}，
+    #      例如 name: mcp-query 在 prod 环境下最终为 bk-job-prod-mcp-query。
+    # 可选字段（按需取消注释后填写）：
+    #   tool_names: 资源重命名后的工具名，长度须与 resource_names 一致且不重复
+    #   target_app_codes: 主动授权的应用列表
+    #   category_names: MCP 市场分类，可选值见上述文档，不传则不更新分类
+    #   oauth2_public_client_enabled / oauth2_personal_client_enabled / raw_response_enabled
+    mcp_servers:
+      # 任务查询：查询作业执行状态与执行对象日志
+      - name: "mcp-query"
+        title: "作业平台任务查询"
+        description: "查询作业平台任务的执行状态与执行对象日志"
+        # 是否公开：公开后其他应用可在 MCP 市场中发现并申请权限，权限仍需网关侧审批
+        is_public: true
+        # 状态：1-启用，0-停用
+        status: 1
+        # 协议类型：sse（默认）、streamable_http
+        protocol_type: "streamable_http"
+        labels: []
+        resource_names:
+          - v4_batch_get_job_instance_execute_object_log
+          - v4_get_job_instance_status
+        # 是否开启 OAuth2 公开客户端模式，开启后将对 bk_app_code=public 的应用授权，默认不开启
+        oauth2_public_client_enabled : true
+        # 是否开启 OAuth2 个人客户端模式(个人 token)，开启后将对 bk_app_code=personal 的应用授权，默认不开启
+        oauth2_personal_client_enabled: true
+        # 是否返回原始响应，开启后 mcp-proxy 将直接返回 API 响应结果，不添加 request_id 等额外信息，默认不开启
+        raw_response_enabled: false
+        # MCP Server 分类名称列表，不传则不更新分类
+        category_names:
+          - "Automation"
+      # 资源查询：查询执行方案与定时任务等作业资源
+      - name: "mcp-resources"
+        title: "作业平台资源查询"
+        description: "查询作业平台的执行方案、定时任务等资源"
+        is_public: true
+        status: 1
+        protocol_type: "streamable_http"
+        labels: []
+        resource_names:
+          - get_cron_list
+          - get_job_plan_detail
+          - get_job_plan_list
+        # 是否开启 OAuth2 公开客户端模式，开启后将对 bk_app_code=public 的应用授权，默认不开启
+        oauth2_public_client_enabled : true
+        # 是否开启 OAuth2 个人客户端模式(个人 token)，开启后将对 bk_app_code=personal 的应用授权，默认不开启
+        oauth2_personal_client_enabled: true
+        # 是否返回原始响应，开启后 mcp-proxy 将直接返回 API 响应结果，不添加 request_id 等额外信息，默认不开启
+        raw_response_enabled: false
+        # MCP Server 分类名称列表，不传则不更新分类
+        category_names:
+          - "Automation"
+      # 任务启动：启动执行方案，属于写操作
+      - name: "mcp-start"
+        title: "作业平台任务启动"
+        description: "启动作业平台的执行方案"
+        is_public: true
+        status: 1
+        protocol_type: "streamable_http"
+        labels: []
+        resource_names:
+          - execute_job_plan
+        # 是否开启 OAuth2 公开客户端模式，开启后将对 bk_app_code=public 的应用授权，默认不开启
+        oauth2_public_client_enabled : true
+        # 是否开启 OAuth2 个人客户端模式(个人 token)，开启后将对 bk_app_code=personal 的应用授权，默认不开启
+        oauth2_personal_client_enabled: true
+        # 是否返回原始响应，开启后 mcp-proxy 将直接返回 API 响应结果，不添加 request_id 等额外信息，默认不开启
+        raw_response_enabled: false
+        # MCP Server 分类名称列表，不传则不更新分类
+        category_names:
+          - "Automation"
+      # 任务上下文：获取脚本/文件任务的上下文，供 AI 分析失败原因
+      - name: "mcp-task-context"
+        title: "作业平台任务上下文"
+        description: "获取作业平台脚本任务与文件分发任务的执行上下文"
+        is_public: true
+        status: 1
+        protocol_type: "streamable_http"
+        labels: []
+        resource_names:
+          - v4_get_script_task_context
+          - v4_get_file_task_context
+        # 授权的应用
+        target_app_codes:
+          - "ai-bkjob-web"
+        # 是否开启 OAuth2 公开客户端模式，开启后将对 bk_app_code=public 的应用授权，默认不开启
+        oauth2_public_client_enabled : true
+        # 是否开启 OAuth2 个人客户端模式(个人 token)，开启后将对 bk_app_code=personal 的应用授权，默认不开启
+        oauth2_personal_client_enabled: true
+        # 是否返回原始响应，开启后 mcp-proxy 将直接返回 API 响应结果，不添加 request_id 等额外信息，默认不开启
+        raw_response_enabled: false
+        # MCP Server 分类名称列表，不传则不更新分类
+        category_names:
+          - "Automation"
 # 主动授权，网关主动给应用，添加访问网关所有资源或者具体某个资源的权限；
 # 用于命令 `grant_apigw_permissions`
 grant_permissions:

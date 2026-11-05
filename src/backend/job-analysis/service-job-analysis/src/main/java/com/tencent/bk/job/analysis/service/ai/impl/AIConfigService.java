@@ -53,7 +53,7 @@ public class AIConfigService {
         Long logMaxLengthBytes = aiProperties.getAnalyzeErrorLog().getLogMaxLengthBytes();
         map.put("enabled", aiProperties.getEnabled());
         map.put("analyzeErrorLogMaxLength", logMaxLengthBytes);
-        map.put("agentRootUrl", aiProperties.getAgentRootUrl());
+        map.put("agentRootUrl", aiProperties.getValidAgentRootUrl());
         return map;
     }
 

@@ -53,6 +53,47 @@ executeConfig:
     enabled: true
 ```
 
+3. 网关同步新增 MCP Server 开关，MCP Server 定义见 `support-files/bk-api-gateway/v3/definition.yaml`
+```yaml
+bkApiGatewayConfig:
+  # 是否同步MCP Server（供AI组件调用作业平台API），依赖网关侧支持MCP能力且环境已有生效的资源版本
+  syncMcpServers: true
+```
+
+4. 新增 AIDEV 配置，开启后把 AI 相关资源（Agent/Skill/知识库）自动注入到 AIDEV 平台，资源文件见 `support-files/bk-aidev/bk-job`
+```yaml
+bkai:
+  # 是否开启bkaidev功能，开启后把AI相关资源（Agent/Skill/知识库）注入到AIDEV平台
+  enabled: false
+  # 蓝鲸网关地址模板，注入给bkai-init的BK_API_URL_TMPL，{api_name}取bk-aidev；
+  # 多租户且未配置username时还会取bk-user，查询默认bk_admin对应的bk_username
+  apiUrlTmpl: "http://bkapi.example.com/api/{api_name}/{stage}"
+  # 同步到的目标空间完整ID；留空时开启多租户为system-bkaidev，未开启为bkaidev
+  space: ""
+  # bkai-init使用的租户ID，须为作业平台应用实际所在的租户；留空时开启多租户为system，未开启为default
+  tenantId: ""
+  # 镜像中Agent Package清单的路径
+  packagePath: "/bk-job/bkai.yaml"
+  # 是否发布智能体：false时同步结果只是草稿，页面上的智能体不会更新
+  publish: true
+  # 发布时是否只发布配置（--publish_config_only）：false走平台常规发布流程，true只发布配置
+  publishConfigOnly: false
+  # 初始化资源使用的用户身份，accessToken优先级高于username，都留空时镜像默认使用bk_admin
+  accessToken: ""
+  # 初始化用户，须填bk_username（多租户下与login_name不同），bkai-init原样透传不做转换
+  username: ""
+  # 额外的智能体管理员，同样须填bk_username，如:["user_a","user_b"]；通过bkai-init的--admins参数传入，
+  # 应用于所有同步的主子智能体，只追加不删除，空列表不处理；追加失败不中断同步
+  admins: []
+  # 需要跳过同步的资源，格式为kind/code（kind小写），如:["agent/ai-bkjob-web"]
+  excludeResources: []
+  # 同步重试次数与间隔（秒），用于等待网关侧MCP Server就绪
+  syncMaxRetry: 3
+  syncRetryInterval: 30
+  # 同步最终失败时是否忽略错误：false时K8S Job失败退出、Helm部署判定为失败；true时忽略错误，让Helm部署成功
+  ignoreSyncError: false
+```
+
 ## 0.9.5
 1. 新增审批相关配置（审批任务 TTL、记录保留期、默认渠道、IMate 渠道地址与 appCode、回查 IMate 使用的开放接口凭证、Mock 渠道开关与通过 ID 列表）
 ```yaml

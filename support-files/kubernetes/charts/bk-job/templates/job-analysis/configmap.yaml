@@ -108,6 +108,8 @@ data:
       port: {{ .Values.analysisConfig.containerPort }}
     ai:
       {{- toYaml .Values.analysisConfig.ai | nindent 6 }}
+      # 默认AI智能体根地址，指向自动注册到AIDev平台的智能体，agentRootUrl未配置时生效
+      defaultAgentRootUrl: {{ include "job.ai.default.agent.root.url" . | quote }}
     mysql:
       {{- toYaml .Values.analysisConfig.mysql | nindent 6 }}
     job:
