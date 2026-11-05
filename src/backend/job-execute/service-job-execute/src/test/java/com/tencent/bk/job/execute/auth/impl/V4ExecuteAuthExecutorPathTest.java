@@ -43,7 +43,6 @@ import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.service.TopoService;
 import com.tencent.bk.sdk.iam.constants.AttributeKey;
 import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceDTO;
-import com.tencent.bk.sdk.iamv4.dto.V4AuthResourceKey;
 import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,15 +50,16 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -312,38 +312,27 @@ class V4ExecuteAuthExecutorPathTest {
     }
 
     @Test
-    @DisplayName("重复静态主机：唯一资源已允许时整单通过")
+    @DisplayName("重复静态主机：收成一条后再鉴权，唯一资源已允许时整单通过")
     void duplicateStaticHostPassesWhenUniqueResourceIsAllowed() {
         ExecuteTargetDTO target = new ExecuteTargetDTO();
         target.setStaticIpList(Arrays.asList(new HostDTO(100L), new HostDTO(100L)));
-        when(iamV4AuthService.authByResources(eq("system"), eq("tester"),
-            eq(ActionId.QUICK_EXECUTE_SCRIPT), anyList()))
-            .thenAnswer(invocation -> {
-                List<V4AuthResourceDTO> resources = invocation.getArgument(3);
-                Map<V4AuthResourceKey, Boolean> result = new HashMap<>();
-                result.put(V4AuthResourceKey.from(resources.get(0)), true);
-                return result;
-            });
+        when(iamV4AuthService.auth(eq("system"), eq("tester"), eq(ActionId.QUICK_EXECUTE_SCRIPT), any()))
+            .thenReturn(true);
 
         ExecuteAuthDecision decision = executor.authExecute(
             USER, ActionId.QUICK_EXECUTE_SCRIPT, bizScope, null, target);
 
         assertThat(decision.isPass()).isTrue();
+        verify(iamV4AuthService, never()).authByResources(any(), any(), any(), anyList());
     }
 
     @Test
-    @DisplayName("重复静态主机：唯一资源被拒绝时整单拒绝")
+    @DisplayName("重复静态主机：收成一条后唯一资源被拒绝时整单拒绝")
     void duplicateStaticHostDeniesWhenUniqueResourceIsDenied() {
         ExecuteTargetDTO target = new ExecuteTargetDTO();
         target.setStaticIpList(Arrays.asList(new HostDTO(100L), new HostDTO(100L)));
-        when(iamV4AuthService.authByResources(eq("system"), eq("tester"),
-            eq(ActionId.QUICK_EXECUTE_SCRIPT), anyList()))
-            .thenAnswer(invocation -> {
-                List<V4AuthResourceDTO> resources = invocation.getArgument(3);
-                Map<V4AuthResourceKey, Boolean> result = new HashMap<>();
-                result.put(V4AuthResourceKey.from(resources.get(0)), false);
-                return result;
-            });
+        when(iamV4AuthService.auth(eq("system"), eq("tester"), eq(ActionId.QUICK_EXECUTE_SCRIPT), any()))
+            .thenReturn(false);
 
         ExecuteAuthDecision decision = executor.authExecute(
             USER, ActionId.QUICK_EXECUTE_SCRIPT, bizScope, null, target);

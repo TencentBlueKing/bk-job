@@ -49,6 +49,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +107,8 @@ public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements Exe
                                            String actionId,
                                            AppResourceScope appResourceScope,
                                            ExecuteTargetDTO executeTarget) {
-        List<V4AuthResourceDTO> hostResources = buildHostAuthResources(appResourceScope, executeTarget);
+        List<V4AuthResourceDTO> hostResources = distinctByAuthKey(
+            buildHostAuthResources(appResourceScope, executeTarget));
         if (CollectionUtils.isEmpty(hostResources)) {
             // 没有执行目标时退化为无资源鉴权，与 v3 传空主机列表的语义一致
             return iamV4AuthService.auth(user.getTenantId(), user.getUsername(), actionId);
@@ -133,6 +135,17 @@ public class V4ExecuteAuthExecutor extends AbstractV4AuthExecutor implements Exe
             }
         }
         return true;
+    }
+
+    /**
+     * 同一 (type, id, path) 只鉴一次。SDK 按 resource_id 对齐时，重复 id 会整条丢弃并写成拒绝。
+     */
+    private List<V4AuthResourceDTO> distinctByAuthKey(List<V4AuthResourceDTO> resources) {
+        Map<V4AuthResourceKey, V4AuthResourceDTO> unique = new LinkedHashMap<>();
+        for (V4AuthResourceDTO resource : resources) {
+            unique.putIfAbsent(V4AuthResourceKey.from(resource), resource);
+        }
+        return new ArrayList<>(unique.values());
     }
 
     /**
