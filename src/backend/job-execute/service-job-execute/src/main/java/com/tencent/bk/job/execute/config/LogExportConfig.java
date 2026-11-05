@@ -41,4 +41,10 @@ public class LogExportConfig {
     @Value("${job.execute.log-export.artifactory.file-expire-days:7}")
     private Integer artifactoryFileExpireDays;
 
+    /**
+     * 导出日志时单批次向 job-logsvr 批量查询日志的最大执行对象数量，默认 50，避免单批过大导致 job-logsvr OOM
+     */
+    @Value("${job.execute.log-export.log-query-batch-size:50}")
+    private int logQueryBatchSize = 50;
+
 }

@@ -374,19 +374,26 @@ public class LogExportServiceImpl implements LogExportService {
 
     private Collection<LogBatchQuery> buildLogBatchQuery(long stepInstanceId,
                                                          List<ExecuteObjectTask> executeObjectTasks) {
+        int batchSize = logExportConfig.getLogQueryBatchSize();
+        if (batchSize <= 0) {
+            log.warn("Invalid logQueryBatchSize: {}, fallback to default {}",
+                batchSize, LogBatchQuery.DEFAULT_BATCH_SIZE);
+            batchSize = LogBatchQuery.DEFAULT_BATCH_SIZE;
+        }
+        final int finalBatchSize = batchSize;
         Map<Integer, LogBatchQuery> batchQueryGroups = new HashMap<>();
         executeObjectTasks.forEach(executeObjectTask -> {
             LogBatchQuery query = batchQueryGroups.computeIfAbsent(executeObjectTask.getExecuteCount(),
                 (executeCount) -> new LogBatchQuery(stepInstanceId, executeCount));
             query.addExecuteObject(executeObjectTask.getExecuteObject());
         });
-        batchQueryGroups.values().forEach(LogBatchQuery::batchHosts);
+        batchQueryGroups.values().forEach(query -> query.batchHosts(finalBatchSize));
         return batchQueryGroups.values();
     }
 
     @Data
     private static class LogBatchQuery {
-        private static final int MAX_BATCH_SIZE = 1000;
+        private static final int DEFAULT_BATCH_SIZE = 50;
         private long stepInstanceId;
         private int executeCount;
         private List<ExecuteObject> executeObjects = new ArrayList<>();
@@ -404,8 +411,8 @@ public class LogExportServiceImpl implements LogExportService {
             executeObjects.add(executeObject);
         }
 
-        void batchHosts() {
-            executeObjectBatches = CollectionUtil.partitionList(executeObjects, MAX_BATCH_SIZE);
+        void batchHosts(int batchSize) {
+            executeObjectBatches = CollectionUtil.partitionList(executeObjects, batchSize);
         }
     }
 }
