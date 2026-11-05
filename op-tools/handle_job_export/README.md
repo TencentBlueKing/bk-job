@@ -37,6 +37,21 @@ python3 handle_job_export.py /path/to/backup.jobexport --force
 
 勾选了密码的导出包文件头是作业平台魔数，内容是密文，本工具会直接拒绝。请用不带密码重新导出后再处理。
 
+## 大小上限
+
+本工具给操作员在本机处理导出包用。读取前会检查体积，超过上限直接失败，不会把内容解压进内存：
+
+- 导出包文件本身不超过 512MB
+- 单个条目解压后不超过 100MB
+- 全部条目解压后合计不超过 512MB
+- 条目数不超过 10000
+
+正常的作业导出远小于这些值。确实更大时再调高，例如：
+
+```shell
+python3 handle_job_export.py /path/to/backup.jobexport --max-entry-mb 200 --max-total-mb 1024
+```
+
 ## 环境
 
 Python 3.6 及以上，只用标准库，不需要安装依赖。

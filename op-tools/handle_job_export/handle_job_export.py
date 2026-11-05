@@ -9,6 +9,7 @@
 只改这两个字段，再压回 zip。
 
 不依赖第三方库。加密导出包（文件头为作业平台魔数）无法在无密码时处理。
+读取前会限制导出包大小、条目数量、单个条目以及全部条目的解压后大小，避免畸形 zip 撑满内存。
 """
 
 from __future__ import print_function
@@ -31,10 +32,36 @@ TIME_FIELD_NAMES = frozenset(["createTime", "lastModifyTime"])
 # Constant.JOB_FILE_MAGIC，加密导出包的文件头
 JOB_FILE_MAGIC = b"\x18\x01\x19\x24\x09\x18\x13\x10"
 IMPORTABLE_SUFFIXES = (".jobexport", ".zip")
+# 正常导出包远小于这些值。上限用来挡住高压缩比 zip，处理超大的真实导出包时可用命令行调高。
+DEFAULT_MAX_PACKAGE_BYTES = 512 * 1024 * 1024
+DEFAULT_MAX_ENTRY_BYTES = 100 * 1024 * 1024
+DEFAULT_MAX_TOTAL_BYTES = 512 * 1024 * 1024
+DEFAULT_MAX_ENTRY_COUNT = 10000
 
 
 class ExportHandleError(Exception):
     """导出包无法处理时抛出，信息可直接给用户看。"""
+
+
+class ZipLimits(object):
+    """读取导出包时的大小上限。比较的是 zip 中央目录里声明的解压后大小，读之前就拒绝。"""
+
+    def __init__(self, max_package_bytes=DEFAULT_MAX_PACKAGE_BYTES,
+                 max_entry_bytes=DEFAULT_MAX_ENTRY_BYTES,
+                 max_total_bytes=DEFAULT_MAX_TOTAL_BYTES,
+                 max_entry_count=DEFAULT_MAX_ENTRY_COUNT):
+        self.max_package_bytes = max_package_bytes
+        self.max_entry_bytes = max_entry_bytes
+        self.max_total_bytes = max_total_bytes
+        self.max_entry_count = max_entry_count
+
+
+def _format_size(num_bytes):
+    if num_bytes >= 1024 * 1024 and num_bytes % (1024 * 1024) == 0:
+        return "%dMB" % (num_bytes // (1024 * 1024))
+    if num_bytes >= 1024 and num_bytes % 1024 == 0:
+        return "%dKB" % (num_bytes // 1024)
+    return "%d 字节" % num_bytes
 
 
 def tz_from_offset_hours(hours):
@@ -121,6 +148,102 @@ def _is_encrypted_export(header):
     return header.startswith(JOB_FILE_MAGIC)
 
 
+def _is_dir_entry(info):
+    name = info.filename
+    if name.endswith("/") or name.endswith("\\"):
+        return True
+    is_dir = getattr(info, "is_dir", None)
+    return bool(is_dir and is_dir())
+
+
+def _reject_entry_count(count, limits):
+    if count > limits.max_entry_count:
+        raise ExportHandleError(
+            "压缩包内有 %d 个条目，超过上限 %d" % (count, limits.max_entry_count)
+        )
+
+
+def _find_eocd(tail):
+    """在文件尾里定位中央目录结束记录，并用注释长度确认没有找错签名。"""
+    signature = b"PK\x05\x06"
+    start = len(tail)
+    while start >= 22:
+        pos = tail.rfind(signature, 0, start)
+        if pos < 0:
+            return None
+        if pos + 22 > len(tail):
+            start = pos
+            continue
+        comment_len = int.from_bytes(tail[pos + 20:pos + 22], "little")
+        if pos + 22 + comment_len == len(tail):
+            return pos
+        start = pos
+    return None
+
+
+def _declared_entry_count(file_size, read_range):
+    """
+    从中央目录结束记录读出条目数。
+    在 ZipFile 解析全部条目之前调用，避免海量条目先变成对象。
+    解析不了时返回 None，交给后面的 ZipFile 再判断。
+    """
+    if file_size < 22:
+        return None
+    tail_len = min(file_size, 22 + 65535)
+    tail = read_range(file_size - tail_len, tail_len)
+    pos = _find_eocd(tail)
+    if pos is None:
+        return None
+    total_entries = int.from_bytes(tail[pos + 10:pos + 12], "little")
+    if total_entries != 0xFFFF:
+        return total_entries
+    locator_sig = b"PK\x06\x07"
+    loc = tail.rfind(locator_sig, 0, pos)
+    if loc < 0 or loc + 20 > pos:
+        return None
+    zip64_offset = int.from_bytes(tail[loc + 8:loc + 16], "little")
+    if zip64_offset < 0 or zip64_offset >= file_size:
+        return None
+    header = read_range(zip64_offset, 44)
+    if len(header) < 44 or not header.startswith(b"PK\x06\x06"):
+        return None
+    return int.from_bytes(header[32:40], "little")
+
+
+def _reject_oversized_archive(infos, limits):
+    """按中央目录里的解压后大小拒绝，不先把条目读进内存。"""
+    _reject_entry_count(len(infos), limits)
+    total = 0
+    for info in infos:
+        if _is_dir_entry(info):
+            continue
+        size = info.file_size
+        if size < 0:
+            raise ExportHandleError("条目 %s 的大小非法" % info.filename)
+        if size > limits.max_entry_bytes:
+            raise ExportHandleError(
+                "条目 %s 解压后大小为 %s，超过单文件上限 %s"
+                % (info.filename, _format_size(size), _format_size(limits.max_entry_bytes))
+            )
+        total += size
+        if total > limits.max_total_bytes:
+            raise ExportHandleError(
+                "解压后总大小超过上限 %s" % _format_size(limits.max_total_bytes)
+            )
+
+
+def _read_entry_limited(source, info, limits):
+    """最多读到单文件上限，避免声明大小不可信时仍把超大内容解压出来。"""
+    with source.open(info, "r") as entry:
+        raw = entry.read(limits.max_entry_bytes + 1)
+    if len(raw) > limits.max_entry_bytes:
+        raise ExportHandleError(
+            "条目 %s 实际解压超过单文件上限 %s"
+            % (info.filename, _format_size(limits.max_entry_bytes))
+        )
+    return raw
+
+
 def _clone_zip_info(src_info):
     date_time = src_info.date_time
     # ZipInfo 不接受 1980 年之前的时间
@@ -137,51 +260,78 @@ def _clone_zip_info(src_info):
     return info
 
 
-def convert_zip_bytes(data, tz):
-    """
-    处理一个导出 zip 的字节。
-    返回 (新 zip 字节, 统计 dict)。
-    """
-    if _is_encrypted_export(data[:len(JOB_FILE_MAGIC)]):
-        raise ExportHandleError(
-            "这是加密后的导出包，时间字段在密文里，本工具不能直接改。"
-            "请用不带密码重新导出，或先在 3.11 解密后再处理。"
-        )
-    if not zipfile.is_zipfile(io.BytesIO(data)):
-        raise ExportHandleError("文件不是 zip。3.11 导出包内容应是 zip（下载名通常为 .jobexport）。")
-
+def _rewrite_zip(source, target, tz, limits):
+    """把 source 里的条目写入 target。超限时直接失败，不继续解压。"""
+    infos = source.infolist()
+    _reject_oversized_archive(infos, limits)
     stats = {
         "json_entries": 0,
         "converted_entries": [],
         "time_fields": 0,
         "skipped_non_json": 0,
     }
+    read_total = 0
+    for info in infos:
+        new_info = _clone_zip_info(info)
+        if _is_dir_entry(info):
+            target.writestr(new_info, b"")
+            continue
+        raw = _read_entry_limited(source, info, limits)
+        read_total += len(raw)
+        if read_total > limits.max_total_bytes:
+            raise ExportHandleError(
+                "解压后总大小超过上限 %s" % _format_size(limits.max_total_bytes)
+            )
+        name = info.filename.replace("\\", "/")
+        base_name = name.rsplit("/", 1)[-1]
+        if base_name.lower().endswith(".json"):
+            stats["json_entries"] += 1
+            converted, count = convert_json_bytes(raw, tz)
+            if converted is None:
+                target.writestr(new_info, raw)
+            else:
+                target.writestr(new_info, converted)
+                stats["converted_entries"].append(name)
+                stats["time_fields"] += count
+        else:
+            stats["skipped_non_json"] += 1
+            target.writestr(new_info, raw)
+    if stats["json_entries"] == 0:
+        raise ExportHandleError("压缩包里没有 .json 文件，不像是作业导出包。")
+    return stats
+
+
+def _encrypted_export_message():
+    return (
+        "这是加密后的导出包，时间字段在密文里，本工具不能直接改。"
+        "请用不带密码重新导出，或先在 3.11 解密后再处理。"
+    )
+
+
+def convert_zip_bytes(data, tz, limits=None):
+    """
+    处理一个导出 zip 的字节。
+    返回 (新 zip 字节, 统计 dict)。
+    """
+    if limits is None:
+        limits = ZipLimits()
+    if len(data) > limits.max_package_bytes:
+        raise ExportHandleError(
+            "导出包大小为 %s，超过上限 %s" % (_format_size(len(data)), _format_size(limits.max_package_bytes))
+        )
+    if _is_encrypted_export(data[:len(JOB_FILE_MAGIC)]):
+        raise ExportHandleError(_encrypted_export_message())
+    if not zipfile.is_zipfile(io.BytesIO(data)):
+        raise ExportHandleError("文件不是 zip。3.11 导出包内容应是 zip（下载名通常为 .jobexport）。")
+    declared_count = _declared_entry_count(len(data), lambda offset, length: data[offset:offset + length])
+    if declared_count is not None:
+        _reject_entry_count(declared_count, limits)
+
     output = io.BytesIO()
     with zipfile.ZipFile(io.BytesIO(data), "r") as source, zipfile.ZipFile(
         output, "w", compression=zipfile.ZIP_DEFLATED, allowZip64=True
     ) as target:
-        for info in source.infolist():
-            raw = source.read(info.filename)
-            new_info = _clone_zip_info(info)
-            if info.is_dir() or info.filename.endswith("/"):
-                target.writestr(new_info, raw)
-                continue
-            name = info.filename.replace("\\", "/")
-            base_name = name.rsplit("/", 1)[-1]
-            if base_name.lower().endswith(".json"):
-                stats["json_entries"] += 1
-                converted, count = convert_json_bytes(raw, tz)
-                if converted is None:
-                    target.writestr(new_info, raw)
-                else:
-                    target.writestr(new_info, converted)
-                    stats["converted_entries"].append(name)
-                    stats["time_fields"] += count
-            else:
-                stats["skipped_non_json"] += 1
-                target.writestr(new_info, raw)
-    if stats["json_entries"] == 0:
-        raise ExportHandleError("压缩包里没有 .json 文件，不像是作业导出包。")
+        stats = _rewrite_zip(source, target, tz, limits)
     return output.getvalue(), stats
 
 
@@ -196,15 +346,53 @@ def default_output_path(src_path):
     return os.path.join(directory, new_name)
 
 
-def convert_file(src_path, dst_path, tz):
+def _check_package_file(src_path, limits):
+    size = os.path.getsize(src_path)
+    if size > limits.max_package_bytes:
+        raise ExportHandleError(
+            "导出包大小为 %s，超过上限 %s" % (_format_size(size), _format_size(limits.max_package_bytes))
+        )
     with open(src_path, "rb") as src_file:
-        data = src_file.read()
-    new_bytes, stats = convert_zip_bytes(data, tz)
+        header = src_file.read(len(JOB_FILE_MAGIC))
+    if _is_encrypted_export(header):
+        raise ExportHandleError(_encrypted_export_message())
+    if not zipfile.is_zipfile(src_path):
+        raise ExportHandleError("文件不是 zip。3.11 导出包内容应是 zip（下载名通常为 .jobexport）。")
+    declared_count = _declared_entry_count(
+        size, lambda offset, length: _read_file_range(src_path, offset, length)
+    )
+    if declared_count is not None:
+        _reject_entry_count(declared_count, limits)
+
+
+def _read_file_range(path, offset, length):
+    with open(path, "rb") as src_file:
+        src_file.seek(offset)
+        return src_file.read(length)
+
+
+def convert_file(src_path, dst_path, tz, limits=None):
+    """从磁盘读 zip、把结果直接写到目标文件，不把整个包放进内存。"""
+    if limits is None:
+        limits = ZipLimits()
+    _check_package_file(src_path, limits)
     parent = os.path.dirname(os.path.abspath(dst_path))
     if parent and not os.path.isdir(parent):
         os.makedirs(parent)
-    with open(dst_path, "wb") as dst_file:
-        dst_file.write(new_bytes)
+    tmp_path = dst_path + ".tmp"
+    try:
+        with zipfile.ZipFile(src_path, "r") as source, zipfile.ZipFile(
+            tmp_path, "w", compression=zipfile.ZIP_DEFLATED, allowZip64=True
+        ) as target:
+            stats = _rewrite_zip(source, target, tz, limits)
+        os.replace(tmp_path, dst_path)
+    except BaseException:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+        raise
     return stats
 
 
@@ -229,7 +417,40 @@ def build_parser():
         action="store_true",
         help="输出文件已存在时覆盖",
     )
+    parser.add_argument(
+        "--max-package-mb",
+        type=int,
+        default=DEFAULT_MAX_PACKAGE_BYTES // (1024 * 1024),
+        help="导出包文件本身的上限（MB），默认 512。超过则不读取",
+    )
+    parser.add_argument(
+        "--max-entry-mb",
+        type=int,
+        default=DEFAULT_MAX_ENTRY_BYTES // (1024 * 1024),
+        help="单个条目解压后的上限（MB），默认 100。超过则不读取该条目",
+    )
+    parser.add_argument(
+        "--max-total-mb",
+        type=int,
+        default=DEFAULT_MAX_TOTAL_BYTES // (1024 * 1024),
+        help="全部条目解压后的总上限（MB），默认 512",
+    )
     return parser
+
+
+def _limits_from_args(args):
+    for name, value in (
+        ("--max-package-mb", args.max_package_mb),
+        ("--max-entry-mb", args.max_entry_mb),
+        ("--max-total-mb", args.max_total_mb),
+    ):
+        if value <= 0:
+            raise ExportHandleError("%s 必须是正整数" % name)
+    return ZipLimits(
+        max_package_bytes=args.max_package_mb * 1024 * 1024,
+        max_entry_bytes=args.max_entry_mb * 1024 * 1024,
+        max_total_bytes=args.max_total_mb * 1024 * 1024,
+    )
 
 
 def main(argv=None):
@@ -247,7 +468,8 @@ def main(argv=None):
         print("输出文件已存在：%s （加 --force 覆盖）" % dst_path, file=sys.stderr)
         return 1
     try:
-        stats = convert_file(src_path, dst_path, tz_from_offset_hours(args.tz_offset))
+        limits = _limits_from_args(args)
+        stats = convert_file(src_path, dst_path, tz_from_offset_hours(args.tz_offset), limits)
     except ExportHandleError as exc:
         print(str(exc), file=sys.stderr)
         return 1
