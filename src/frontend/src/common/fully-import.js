@@ -81,6 +81,7 @@ const IpSelector = createIpSelector({
   version: '8',
   panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput', 'containerStaticTopo', 'containerFilterList', 'containerManualInput'],
   unqiuePanelValue: false,
+  unqiueHostAndContainerTips: i18n.t('主机和容器不支持混合选择'),
   nameStyle: 'camelCase',
   hostTableDefaultSelectAllMode: true,
   hostSearchSelect: true,
