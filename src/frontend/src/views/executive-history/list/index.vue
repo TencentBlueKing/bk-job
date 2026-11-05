@@ -123,7 +123,7 @@
         v-if="allRenderColumnMap.createTime"
         key="createTimeText"
         align="left"
-        :label="$t('history.开始时间_colHead')"
+        :label="$t('history.创建时间_colHead')"
         prop="createTimeText"
         width="180">
         <template slot-scope="{ row }">
@@ -452,7 +452,7 @@
         },
         {
           id: 'createTime',
-          label: I18n.t('history.开始时间_colHead'),
+          label: I18n.t('history.创建时间_colHead'),
         },
         {
           id: 'totalTimeText',
