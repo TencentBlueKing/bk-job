@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 服务不可用
  */
 @Getter
-@ToString
 public class UnavailableException extends ServiceException {
 
     public UnavailableException(Integer errorCode) {

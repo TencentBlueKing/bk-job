@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.exception;
 
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 三区分页查询异常。
@@ -34,7 +33,6 @@ import lombok.ToString;
  * 方便上层调用方通过 catch 该异常进行针对性处理。
  */
 @Getter
-@ToString
 public class TieredPageQueryException extends InternalException {
 
     public TieredPageQueryException(String message, Throwable cause, Integer errorCode) {

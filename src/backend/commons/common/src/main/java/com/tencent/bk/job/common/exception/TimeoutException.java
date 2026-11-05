@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 请求超时
  */
 @Getter
-@ToString
 public class TimeoutException extends ServiceException {
 
     public TimeoutException(Integer errorCode) {

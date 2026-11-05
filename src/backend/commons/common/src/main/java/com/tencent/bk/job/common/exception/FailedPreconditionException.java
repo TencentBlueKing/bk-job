@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 请求无法在当前系统状态下执行
  */
 @Getter
-@ToString
 public class FailedPreconditionException extends ServiceException {
 
     public FailedPreconditionException(Integer errorCode) {

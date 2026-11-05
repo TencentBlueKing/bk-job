@@ -25,13 +25,11 @@
 package com.tencent.bk.job.common.exception;
 
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 子线程抛出的异常
  */
 @Getter
-@ToString
 public class SubThreadException extends RuntimeException {
 
     private final String message;

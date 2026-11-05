@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 并发冲突，例如读取/修改/写入冲突
  */
 @Getter
-@ToString
 public class AbortedException extends ServiceException {
 
     public AbortedException(Integer errorCode) {

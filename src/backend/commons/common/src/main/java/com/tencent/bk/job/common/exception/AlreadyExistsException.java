@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 创建的资源已存在
  */
 @Getter
-@ToString
 public class AlreadyExistsException extends ServiceException {
     public AlreadyExistsException(Integer errorCode) {
         super(ErrorType.ALREADY_EXISTS, errorCode);

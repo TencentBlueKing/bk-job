@@ -26,13 +26,11 @@ package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 资源不存在
  */
 @Getter
-@ToString
 public class NotFoundException extends ServiceException {
     public NotFoundException(Integer errorCode) {
         super(ErrorType.NOT_FOUND, errorCode);

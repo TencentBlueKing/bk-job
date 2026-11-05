@@ -25,13 +25,11 @@
 package com.tencent.bk.job.common.exception;
 
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 服务异常
  */
 @Getter
-@ToString
 public class HttpStatusException extends RuntimeException {
     private final String uri;
     private final int httpStatus;

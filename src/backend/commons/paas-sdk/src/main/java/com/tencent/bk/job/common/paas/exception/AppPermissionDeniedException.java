@@ -28,13 +28,11 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 应用权限不足异常
  */
 @Getter
-@ToString
 public class AppPermissionDeniedException extends ServiceException {
 
     // 源于用户管理接口：进一步的操作提示
