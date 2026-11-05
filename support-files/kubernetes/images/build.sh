@@ -480,6 +480,7 @@ build_migration_image(){
     cp migration/runUpgrader.sh "$context_dir/"
     cp $SUPPORT_FILES_DIR/templates/#etc#job#upgrader#upgrader.properties "$context_dir/upgrader.properties.tpl"
     cp -r $SUPPORT_FILES_DIR/bkiam "$context_dir/"
+    cp -r $SUPPORT_FILES_DIR/bkiamv4 "$context_dir/"
     cp -r $SUPPORT_FILES_DIR/sql "$context_dir/"
     cp migration/migration.Dockerfile "$context_dir/Dockerfile"
     register_build_task "job-migration" "$REGISTRY/job-migration:$VERSION" "$context_dir"

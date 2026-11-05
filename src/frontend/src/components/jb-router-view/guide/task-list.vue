@@ -37,15 +37,18 @@
           <p>{{ $t('使用“模板->执行方案”的模式来管理作业的好处，一是可以有效地减少重复的作业步骤，提高步骤复用率；二是可以将场景固化下来，提升操作场景的辨识度和可维护性。') }}</p>
         </div>
         <div class="page-action">
-          <bk-button
+          <auth-button
+            auth="job_template/create"
             class="mr10"
             theme="primary"
             @click="handleGoTemplateCreate">
             {{ $t('新建作业') }}
-          </bk-button>
-          <bk-button @click="handleGoImportTemplate">
+          </auth-button>
+          <auth-button
+            auth="job_template/create"
+            @click="handleGoImportTemplate">
             {{ $t('导入作业_guide') }}
-          </bk-button>
+          </auth-button>
         </div>
       </div>
     </div>
@@ -63,9 +66,12 @@
             </div>
             <div>
               <span>{{ $t('点击') }}</span>
-              <router-link :to="{ name: 'templateCreate' }">
-                {{ $t('新建') }}
-              </router-link>
+              <auth-component auth="job_template/create">
+                <router-link :to="{ name: 'templateCreate' }">
+                  {{ $t('新建') }}
+                </router-link>
+                <span slot="forbid">{{ $t('新建') }}</span>
+              </auth-component>
               <span>{{ $t('将操作流程所需的步骤，以及一些需要在步骤间传递、或执行时可能需要根据不同需求传入不同值的参数抽离设置为“全局变量”, 编辑保存为一个全新的作业模板。') }}</span>
             </div>
           </div>

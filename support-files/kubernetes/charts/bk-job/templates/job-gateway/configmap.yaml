@@ -293,6 +293,19 @@ data:
                     - RecordIamAccessLog
                     - CheckTenant
                     - AddEsbLangHeader
+
+                # IAM v4 资源实例回调。v4 全系统只注册一个回调地址，资源类型在请求体的 type 字段里
+                # （v3 是每个资源类型注册各自的回调路径），故网关无法按 URI 分派，统一打到 job-manage，
+                # 由其中的 dispatcher 按 type 分派：20 个资源类型里 18 个在本地处理，
+                # cron / file_source 经内部接口转发到 job-crontab / job-file-gateway。详见 design.md D14。
+                - id: job-iamv4-callback
+                  uri: lb://job-manage
+                  predicates:
+                    - Path=/iamv4/api/v1/callback
+                  filters:
+                    - RecordIamAccessLog
+                    - CheckTenant
+                    - AddEsbLangHeader
                 {{- if eq (include "job.profileIsDev" .) "true" }}
                 - id: job-execute-swagger
                   uri: lb://job-execute
@@ -446,6 +459,17 @@ data:
                   uri: lb://job-assemble
                   predicates:
                     - Path=/iam/api/v1/resources/**
+                  filters:
+                    - RecordIamAccessLog
+                    - CheckTenant
+                    - AddEsbLangHeader
+
+                # IAM v4 资源实例回调。轻量模式下全部资源都在 job-assemble 同一进程，
+                # dispatcher 的本地分支即可覆盖全部资源类型，无需跨服务转发。详见 design.md D14。
+                - id: job-iamv4-callback
+                  uri: lb://job-assemble
+                  predicates:
+                    - Path=/iamv4/api/v1/callback
                   filters:
                     - RecordIamAccessLog
                     - CheckTenant

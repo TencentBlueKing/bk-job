@@ -13,11 +13,14 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.config.JobIamProperties;
+import com.tencent.bk.job.common.iam.config.JobIamV4Properties;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.service.ActionAuthExecutor;
+import com.tencent.bk.job.common.iam.service.AppAuthExecutor;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.model.User;
@@ -59,12 +62,13 @@ class AppAuthServiceImplTest {
         authHelper = mock(AuthHelper.class);
         iamClient = mock(IIamClient.class);
         resourceNameQueryService = mock(ResourceNameQueryService.class);
+        AppAuthExecutor v3Executor = new V3AppAuthExecutor(
+            authHelper, mock(BusinessAuthHelper.class), mock(PolicyService.class), iamClient);
         appAuthService = new AppAuthServiceImpl(
-            authHelper,
-            mock(BusinessAuthHelper.class),
-            mock(PolicyService.class),
+            v3Executor,
+            mock(AppAuthExecutor.class),
             mock(JobIamProperties.class),
-            iamClient
+            mock(JobIamV4Properties.class)
         );
         appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
@@ -169,9 +173,7 @@ class AppAuthServiceImplTest {
             new AppResourceScope(1L),
             Arrays.asList(bizAccount, bizSetAccount)
         );
-        AuthServiceImpl authService = new AuthServiceImpl(
-            authHelper, mock(MessageI18nService.class), iamClient);
-        authService.setResourceNameQueryService(resourceNameQueryService);
+        AuthServiceImpl authService = newAuthService();
         authService.getApplyUrl(USER.getTenantId(), result.getRequiredActionResources());
 
         ArgumentCaptor<List<ActionDTO>> captor = ArgumentCaptor.forClass(List.class);
@@ -201,7 +203,8 @@ class AppAuthServiceImplTest {
 
     @Test
     void buildFailAuthResultFromResources_invalidResource_shouldFailClosed() {
-        BasicAuthService basicAuthService = new BasicAuthService();
+        AbstractAuthResultBuilder basicAuthService = new AbstractAuthResultBuilder() {
+        };
         basicAuthService.setResourceNameQueryService(resourceNameQueryService);
         PermissionResource missingType = new PermissionResource();
         missingType.setResourceId("5");
@@ -214,6 +217,14 @@ class AppAuthServiceImplTest {
                 USER, ActionId.USE_ACCOUNT, Collections.singletonList(invalidResource)))
                 .isInstanceOf(InternalException.class);
         }
+    }
+
+    private AuthServiceImpl newAuthService() {
+        ActionAuthExecutor v3Executor = new V3ActionAuthExecutor(authHelper, iamClient);
+        AuthServiceImpl authService = new AuthServiceImpl(
+            v3Executor, mock(ActionAuthExecutor.class), mock(MessageI18nService.class));
+        authService.setResourceNameQueryService(resourceNameQueryService);
+        return authService;
     }
 
     private PermissionResource accountResource(String accountId, String scopeType, String scopeId) {
@@ -238,9 +249,7 @@ class AppAuthServiceImplTest {
             ActionId.ACCESS_BUSINESS,
             new AppResourceScope(scopeType, scopeId, 1L)
         );
-        AuthServiceImpl authService = new AuthServiceImpl(
-            authHelper, mock(MessageI18nService.class), iamClient);
-        authService.setResourceNameQueryService(resourceNameQueryService);
+        AuthServiceImpl authService = newAuthService();
         authService.getApplyUrl(USER.getTenantId(), result.getRequiredActionResources());
 
         ArgumentCaptor<List<ActionDTO>> captor = ArgumentCaptor.forClass(List.class);

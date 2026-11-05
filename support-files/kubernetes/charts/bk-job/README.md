@@ -70,6 +70,9 @@ bitnami/rabbitmq
 | `bkLoginUrl`    | 统一登录根地址   | `http://paas.example.com/login/`        |
 | `bkCmdbUrl`       | CMDB首页地址  | `http://cmdb.example.com`      |
 | `bkIamApiUrl`   | 权限中心后台API根地址  | `http://bkiam-api.example.com`      |
+| `bkIamUrl`   | 权限中心 v3 页面地址  | `http://bkiam.example.com`      |
+| `bkIamV4Url`   | 权限中心 v4 页面地址（申请页为 `{bkIamV4Url}/permission/apply`）  | `http://bkiam-v4.example.com`      |
+| `iamv4.systemId`   | 作业平台注册到 IAM v4 的系统 ID  | `bk_job`      |
 | `bkRepoUrl`     | 制品库根地址  | `http://bkrepo.example.com`      |
 | `bkNodemanUrl`  | 节点管理首页地址  | `http://nodeman.example.com`      |
 
@@ -121,6 +124,11 @@ bitnami/rabbitmq
 | `job.http.ssl.verify.systems.bkCmsi`    | 调用蓝鲸消息管理 CMSI 时是否校验证书，留空则继承全局配置    | `true`       |
 | `job.http.ssl.verify.systems.bkAiDev`    | 调用蓝鲸 AI 开发平台时是否校验证书，留空则继承全局配置    | `true`       |
 | `job.migration.iamModel.enabled`    | 是否开启权限模型migration    | `true`       |
+| `job.migration.iamV4.enabled`    | 是否同步 IAM v4 权限模型（幂等，与运行时鉴权灰度分开）    | `false`       |
+| `job.migration.iamV4.ignoreFail`    | 写接口失败是否跳过并继续，避免残留数据导致 Job 失败    | `true`       |
+| `job.migration.iamV4.dryRun`    | 只对比并打印增删改日志，不调用 IAM 写接口    | `false`       |
+| `job.migration.iamV4.deleteCascade`    | 删除角色 action 时强制级联删除授权记录（`cascade=rbac_authorization`），请谨慎使用    | `false`       |
+| `job.migration.iamV4.managers`    | IAM v4 系统管理员，逗号分隔    | ``       |
 | `job.migration.mysqlSchema.enabled`    | 是否开启Mysql数据库结构migration    | `true`       |
 | `job.web.domain` | 主站域名（前端与Web API使用）    | `job.example.com`       |
 | `job.web.apiDomain` | 暴露给其他上层系统（ESB、ApiGW）的API地址    | `api.job.example.com`       |

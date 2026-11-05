@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.iam.service.ActionAuthExecutor;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
@@ -82,7 +83,9 @@ class AuthServiceImplTest {
         MessageI18nService i18nService = mock(MessageI18nService.class);
         resourceNameQueryService = mock(ResourceNameQueryService.class);
 
-        authService = new AuthServiceImpl(authHelper, i18nService, iamClient);
+        ActionAuthExecutor v3Executor = new V3ActionAuthExecutor(authHelper, iamClient);
+        ActionAuthExecutor v4Executor = mock(ActionAuthExecutor.class);
+        authService = new AuthServiceImpl(v3Executor, v4Executor, i18nService);
         authService.setResourceNameQueryService(resourceNameQueryService);
 
         // 默认所有鉴权返回 false，触发失败路径

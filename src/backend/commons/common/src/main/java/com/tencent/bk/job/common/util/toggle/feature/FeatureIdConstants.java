@@ -61,4 +61,8 @@ public interface FeatureIdConstants {
      * 特性: 作业执行增加db 所有表增加 task_instance_id 字段作为分库分表 shard_key
      */
     String DAO_ADD_TASK_INSTANCE_ID = "daoAddTaskInstanceId";
+    /**
+     * 特性: 对接蓝鲸权限中心 IAM v4（配合按用户名灰度策略，判定鉴权走 v3 还是 v4）
+     */
+    String FEATURE_IAM_V4 = "iamV4";
 }

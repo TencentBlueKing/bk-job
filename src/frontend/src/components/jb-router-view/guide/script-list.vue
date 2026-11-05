@@ -36,11 +36,12 @@
           {{ $t('脚本模块提供标准规范的版本管理功能，帮助用户有效的管理脚本各版本的状态和被作业引用的情况，提高脚本使用的安全性和可复用率。') }}
         </div>
         <div class="page-action">
-          <bk-button
+          <auth-button
+            auth="script/create"
             theme="primary"
             @click="handleGoCreateScript">
             {{ $t('新建脚本') }}
-          </bk-button>
+          </auth-button>
         </div>
       </div>
     </div>
