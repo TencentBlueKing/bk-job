@@ -1,4 +1,4 @@
-﻿USE job_crontab;
+USE job_crontab;
 
 SET NAMES utf8mb4;
 
