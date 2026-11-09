@@ -111,6 +111,7 @@ public class IamAutoConfiguration {
                                              JobIamV4Properties jobIamV4Properties,
                                              BkApiGatewayProperties bkApiGatewayProperties,
                                              IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                             JobHttpSslVerifyProperties sslVerifyProperties,
                                              ObjectProvider<RetryExecutor> iamRetryExecutorProvider) {
         String v4Url = bkApiGatewayProperties.getBkIamV4().getUrl();
         IamV4Configuration iamV4Configuration = new IamV4Configuration(
@@ -119,8 +120,11 @@ public class IamAutoConfiguration {
             appProperties.getSecret(),
             v4Url
         );
-        HttpClientService v4HttpClientService =
-            new IamV4HttpClientServiceImpl(iamV4Configuration, virtualAdminAccountProvider);
+        HttpClientService v4HttpClientService = new IamV4HttpClientServiceImpl(
+            iamV4Configuration,
+            virtualAdminAccountProvider,
+            sslVerifyProperties.isVerifyEnabled(ExternalSystemEnum.IAM_V4)
+        );
         RetryExecutor iamRetryExecutor = iamRetryExecutorProvider.getIfAvailable();
         if (iamRetryExecutor != null) {
             v4HttpClientService = new RetryableIamV4HttpClientService(v4HttpClientService, iamRetryExecutor);

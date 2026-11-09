@@ -117,6 +117,7 @@ bitnami/rabbitmq
 | `job.http.ssl.verify.systems.gse`    | 调用 GSE 时是否校验证书，留空则继承全局配置    | `true`       |
 | `job.http.ssl.verify.systems.cmdb`    | 调用 CMDB 时是否校验证书，留空则继承全局配置    | `true`       |
 | `job.http.ssl.verify.systems.iam`    | 调用 IAM 时是否校验证书，留空则继承全局配置    | `true`       |
+| `job.http.ssl.verify.systems.iamV4`    | 调用 IAM v4 时是否校验证书，与 IAM 分开配置，留空则继承全局配置    | `true`       |
 | `job.http.ssl.verify.systems.bkLogin`    | 调用 BK-Login 时是否校验证书，留空则继承全局配置    | `true`       |
 | `job.http.ssl.verify.systems.bkUser`    | 调用 BK-User 时是否校验证书，留空则继承全局配置    | `true`       |
 | `job.http.ssl.verify.systems.bkRepo`    | 调用制品库 BK-Repo 时是否校验证书，留空则继承全局配置    | `true`       |

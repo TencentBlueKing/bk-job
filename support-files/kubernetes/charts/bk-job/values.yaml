@@ -1,4 +1,4 @@
- # Default values for bk-job.
+﻿ # Default values for bk-job.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -842,6 +842,8 @@ job:
           cmdb: true
           # 权限中心 IAM
           iam: true
+          # 权限中心 IAM v4
+          iamV4: true
           # 统一登录 BK-Login
           bkLogin: true
           # 用户管理 BK-User
@@ -1001,7 +1003,7 @@ job:
     # IAM v4 权限模型同步。对比后增删改，幂等可重复执行。与运行时鉴权灰度 job.features.iamV4.enabled 分开
     iamV4:
       # 是否同步 v4 权限模型
-      enabled: false
+      enabled: true
       # 写接口失败是否跳过并继续，避免残留数据导致 K8s Job 失败
       ignoreFail: true
       # 只对比并打印增删改日志，不调用 IAM 写接口

@@ -42,6 +42,10 @@ public enum ExternalSystemEnum {
      */
     IAM,
     /**
+     * 权限中心 IAM v4。与 {@link #IAM} 不是同一服务，证书校验开关分开配置。
+     */
+    IAM_V4,
+    /**
      * 统一登录 BK-Login
      */
     BK_LOGIN,
