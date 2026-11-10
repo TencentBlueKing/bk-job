@@ -14,7 +14,7 @@ title() { echo "====== $1 ======"; }
 # 本脚本所在目录，用于定位同目录下的 Python 辅助脚本
 script_dir=$(cd "$(dirname "$0")" && pwd)
 # 开启 KMS 时，appCode/appSecret 与可选的 access token 不在环境变量里，从 migration 信封解密。
-# 解密结果只进当前 shell，不打印、不落盘；读完即丢掉私钥。
+# 解密结果不打印、不落盘；读完即丢掉私钥。bkai-init 是子进程，只认环境变量，所以必须 export。
 if [ "${ENABLE_KMS}" = "true" ]; then
   kms_python=""
   for candidate in python3 python; do
@@ -37,8 +37,11 @@ if [ "${ENABLE_KMS}" = "true" ]; then
   if [ "${kms_rc}" -ne 0 ]; then
     exit 1
   fi
+  export BKAI_APP_CODE BKAI_APP_SECRET
   if [ -z "${BKAI_ACCESS_TOKEN}" ]; then
     unset BKAI_ACCESS_TOKEN
+  else
+    export BKAI_ACCESS_TOKEN
   fi
 fi
 # 待同步的 Agent Package 清单，路径与镜像中的资源目录一致
