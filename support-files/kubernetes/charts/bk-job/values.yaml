@@ -73,9 +73,12 @@ serviceAccount:
 ## 轻量模式不另建 assemble 凭证，job-assemble 按用到的短名挂载。
 ## Redis / MongoDB 的 TLS 口令仅在开启 KMS 时写入各自中间件信封（redis-truststore-password 等），ConfigMap 改为占位符；关闭 KMS 时 ConfigMap 仍写 values 明文，明文 Secret 不新增 TLS 口令 key。
 ## RabbitMQ TLS 口令现网明文 Secret 里本来就有。开启 KMS 后 ConfigMap 改用 ${rabbitmq-truststore-password} / ${rabbitmq-keystore-password}；关闭时 ConfigMap 仍写 values 明文。
-## migration 凭证给 job-migration 与 sync-api-gateway 共用，migration.enabled 或 bkApiGatewayConfig.sync 打开即接管。
-## 信封 JSON：{"admin-username": "...", "admin-password": "...", "bkapp_id_secret": {"default": {"app_code": "...", "app_secret": "..."}}}，
+## migration 凭证给 job-migration、sync-api-gateway、sync-bk-aidev 共用。
+## migration.enabled、bkApiGatewayConfig.sync 或 bkai.enabled 打开即接管。
+## 信封 JSON：{"admin-username": "...", "admin-password": "...", "bkapp_id_secret": {"default": {"app_code": "...", "app_secret": "..."}}}。
+## 开启 bkai 且 values 里写了 accessToken 时，同一信封再加 "bkai-access-token"。
 ## bkapp_id_secret 是 apigw-manager 要求的结构。接管后不再渲染 migration-db 明文 Secret。
+## config-watcher 的 RabbitMQ 明文 Secret 仅在 k8sConfigWatcherConfig.enabled 且 RabbitMQ 走 KMS 时渲染。
 ## role 与 remoteKey 由运维在 KMS 创建凭证后填入。未接管的凭证留空即可。
 kms:
   enabled: false
@@ -2520,7 +2523,8 @@ bkai:
   publish: true
   # 发布时是否只发布配置（--publish_config_only）：false走平台常规发布流程，true只发布配置
   publishConfigOnly: false
-  # 初始化资源使用的用户身份，accessToken优先级高于username，都留空时镜像默认使用bk_admin
+  # 初始化资源使用的用户身份，accessToken优先级高于username，都留空时镜像默认使用bk_admin。
+  # 开启 KMS 后这里的值不再注入 Pod；需要令牌时写入 migration 信封的 bkai-access-token。
   accessToken: ""
   # 初始化用户，须填bk_username（多租户下与login_name不同），bkai-init原样透传不做转换
   username: ""
