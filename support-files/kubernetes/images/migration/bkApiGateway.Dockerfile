@@ -1,4 +1,4 @@
-FROM mirrors.tencent.com/bk-apigateway/apigw-manager:5.0.3
+FROM hub.bktencent.com/blueking/apigw-manager:5.0.3
 
 COPY bin /data/bin
 COPY apidocs /data/apidocs
