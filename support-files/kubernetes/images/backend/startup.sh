@@ -43,8 +43,10 @@ ls $BK_JOB_LOG_BASE_DIR
 # 创建file-worker工作空间
 if [[ "$BK_JOB_FILE_WORKER_WORKSPACE_DIR" != "" ]];then
     echo "BK_JOB_FILE_WORKER_WORKSPACE_DIR=$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
-    mkdir -p "$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
-    chmod 666 "$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
+    if ! mkdir -p "$BK_JOB_FILE_WORKER_WORKSPACE_DIR" ||
+        ! chmod 755 "$BK_JOB_FILE_WORKER_WORKSPACE_DIR"; then
+        echo "Warning: Failed to initialize file worker workspace: $BK_JOB_FILE_WORKER_WORKSPACE_DIR" >&2
+    fi
 fi
 
 # 创建JVM相关文件存储空间
