@@ -2,6 +2,10 @@
 # 另需基础镜像中带有 python3，用于同步前渲染资源文件中的占位符（bin/render_placeholders.py）
 FROM hub.bktencent.com/blueking/bk-aidev-init:0.1.5
 
+# 开启 KMS 时 sync-bkaidev.sh 用 bk-kms-sdk 解密 migration 信封。构建阶段用 root 安装，运行仍是 10001。
+USER root
+RUN pip3 install --no-cache-dir bk-kms-sdk
+
 # 资源目录放在 /{系统标识} 下，清单路径与 values 中 bkai.packagePath 的默认值一致
 WORKDIR /bk-job
 
@@ -13,4 +17,6 @@ COPY --chown=10001:10001 agents /bk-job/agents
 COPY --chown=10001:10001 skills /bk-job/skills
 COPY --chown=10001:10001 knowledgebases /bk-job/knowledgebases
 
-RUN chmod +x /bk-job/bin/sync-bkaidev.sh
+RUN chmod +x /bk-job/bin/sync-bkaidev.sh /bk-job/bin/kms_load_bkaidev_credential.py
+
+USER 10001

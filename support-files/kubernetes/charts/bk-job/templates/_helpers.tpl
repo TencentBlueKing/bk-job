@@ -266,7 +266,8 @@ Return the migrate mysqlSchema admin password
 {{- else if eq $name "common" -}}
 true
 {{- else if eq $name "migration" -}}
-{{- if or $ctx.Values.migration.enabled $ctx.Values.bkApiGatewayConfig.sync }}true{{- end -}}
+{{- $bkai := $ctx.Values.bkai | default dict -}}
+{{- if or $ctx.Values.migration.enabled $ctx.Values.bkApiGatewayConfig.sync $bkai.enabled }}true{{- end -}}
 {{- else if eq $name "manage" -}}
 {{- if or (eq $ctx.Values.deploy.mode "lite") $ctx.Values.manageConfig.enabled }}true{{- end -}}
 {{- else if eq $name "analysis" -}}

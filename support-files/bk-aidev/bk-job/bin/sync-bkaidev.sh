@@ -13,6 +13,34 @@ title() { echo "====== $1 ======"; }
 
 # 本脚本所在目录，用于定位同目录下的 Python 辅助脚本
 script_dir=$(cd "$(dirname "$0")" && pwd)
+# 开启 KMS 时，appCode/appSecret 与可选的 access token 不在环境变量里，从 migration 信封解密。
+# 解密结果只进当前 shell，不打印、不落盘；读完即丢掉私钥。
+if [ "${ENABLE_KMS}" = "true" ]; then
+  kms_python=""
+  for candidate in python3 python; do
+    if command -v "${candidate}" >/dev/null 2>&1; then
+      kms_python="${candidate}"
+      break
+    fi
+  done
+  if [ -z "${kms_python}" ]; then
+    echo "python3 is required to decrypt the KMS envelope" >&2
+    exit 1
+  fi
+  exec 3< <("${kms_python}" "${script_dir}/kms_load_bkaidev_credential.py")
+  IFS= read -r -d '' BKAI_APP_CODE <&3 &&
+    IFS= read -r -d '' BKAI_APP_SECRET <&3 &&
+    IFS= read -r -d '' BKAI_ACCESS_TOKEN <&3
+  kms_rc=$?
+  exec 3<&-
+  unset BK_JOB_KMS_PRIVATE_KEY_MIGRATION
+  if [ "${kms_rc}" -ne 0 ]; then
+    exit 1
+  fi
+  if [ -z "${BKAI_ACCESS_TOKEN}" ]; then
+    unset BKAI_ACCESS_TOKEN
+  fi
+fi
 # 待同步的 Agent Package 清单，路径与镜像中的资源目录一致
 package_path="${BK_AIDEV_PACKAGE_PATH:-/bk-job/bkai.yaml}"
 # 目标空间完整 ID，由 Chart 按是否多租户给出默认值；资源文件不再声明 space，全部以该参数为准
