@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.analysis.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -47,9 +49,14 @@ public class AIProperties {
     private String model = "hunyuan";
 
     /**
-     * AI智能体的根地址
+     * 用户特别指定的AI智能体的根地址，优先级最高
      */
     private String agentRootUrl;
+
+    /**
+     * 默认的AI智能体根地址，agentRootUrl未配置时使用该地址
+     */
+    private String defaultAgentRootUrl;
 
     /**
      * 错误日志分析相关配置
@@ -60,6 +67,14 @@ public class AIProperties {
      * 对话记录相关配置
      */
     private ChatHistoryConfig chatHistory = new ChatHistoryConfig();
+
+    @JsonIgnore
+    public String getValidAgentRootUrl(){
+        if(StringUtils.isNotBlank(agentRootUrl)){
+            return agentRootUrl;
+        }
+        return defaultAgentRootUrl;
+    }
 
     @Getter
     @Setter

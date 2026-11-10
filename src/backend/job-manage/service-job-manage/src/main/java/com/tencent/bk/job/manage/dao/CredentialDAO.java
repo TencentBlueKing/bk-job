@@ -37,7 +37,9 @@ public interface CredentialDAO {
 
     String updateCredentialById(CredentialDTO credentialDTO);
 
-    int deleteCredentialById(String id);
+    int deleteCredentialById(Long appId, String id);
+
+    CredentialDTO getCredentialById(Long appId, String id);
 
     CredentialDTO getCredentialById(String id);
 

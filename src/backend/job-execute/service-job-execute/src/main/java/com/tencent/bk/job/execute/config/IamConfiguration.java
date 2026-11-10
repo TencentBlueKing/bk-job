@@ -24,11 +24,18 @@
 
 package com.tencent.bk.job.execute.config;
 
+import com.tencent.bk.job.execute.auth.ExecuteAuthExecutor;
 import com.tencent.bk.job.execute.auth.impl.CachedTopoPathServiceImpl;
 import com.tencent.bk.job.execute.auth.impl.CompositeTopoPathService;
+import com.tencent.bk.job.execute.auth.impl.ExecuteTargetInstanceBuilder;
 import com.tencent.bk.job.execute.auth.impl.HostTopoPathCache;
 import com.tencent.bk.job.execute.auth.impl.SwitchableTopoPathService;
+import com.tencent.bk.job.execute.auth.impl.V3ExecuteAuthExecutor;
+import com.tencent.bk.job.execute.auth.impl.V4ExecuteAuthExecutor;
+import com.tencent.bk.job.execute.service.TopoService;
+import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
+import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +50,26 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Configuration(value = "jobExecuteIamConfiguration")
 @EnableConfigurationProperties(IamHostTopoPathProperties.class)
 public class IamConfiguration {
+
+    /**
+     * 执行目标到带拓扑路径主机实例的构造，由 v3 执行器与路由层共用。
+     */
+    @Bean
+    public ExecuteTargetInstanceBuilder executeTargetInstanceBuilder(TopoService topoService) {
+        return new ExecuteTargetInstanceBuilder(topoService);
+    }
+
+    @Bean("v3ExecuteAuthExecutor")
+    public ExecuteAuthExecutor v3ExecuteAuthExecutor(AuthHelper authHelper,
+                                                     ExecuteTargetInstanceBuilder executeTargetInstanceBuilder) {
+        return new V3ExecuteAuthExecutor(authHelper, executeTargetInstanceBuilder);
+    }
+
+    @Bean("v4ExecuteAuthExecutor")
+    public ExecuteAuthExecutor v4ExecuteAuthExecutor(IamV4AuthService iamV4AuthService,
+                                                     ExecuteTargetInstanceBuilder executeTargetInstanceBuilder) {
+        return new V4ExecuteAuthExecutor(iamV4AuthService, executeTargetInstanceBuilder);
+    }
 
     @Bean
     public TopoPathService topoPathService(@Qualifier("cmdbTopoPathService")

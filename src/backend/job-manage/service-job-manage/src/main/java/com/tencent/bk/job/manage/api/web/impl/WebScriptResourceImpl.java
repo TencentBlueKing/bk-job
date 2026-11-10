@@ -320,7 +320,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                       String scopeId,
                                                       String scriptId) {
         long appId = appResourceScope.getAppId();
-        ScriptDTO script = scriptService.getScriptByScriptId(scriptId);
+        ScriptDTO script = scriptService.getScript(appId, scriptId);
         if (script == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
@@ -328,6 +328,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
         // 鉴权
         User user = JobContextUtil.getUser();
         AuthResult viewAuthResult = scriptAuthService.authViewScript(user, appResourceScope, scriptId, null);
+        viewAuthResult.denyIfNoPermission();
         AuthResult manageAuthResult = scriptAuthService.authManageScript(user, appResourceScope, scriptId, null);
 
         List<ScriptDTO> scripts = scriptService.listScriptVersion(appId, scriptId);
@@ -664,6 +665,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                         String scopeId,
                                                         String scriptId,
                                                         Long scriptVersionId) {
+        scriptService.getScript(appResourceScope.getAppId(), scriptId);
         ScriptCiteInfoVO scriptCiteInfoVO = getScriptCiteInfoOfAllScript(scriptId, scriptVersionId);
         return Response.buildSuccessResp(scriptCiteInfoVO);
     }
@@ -675,6 +677,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                           String scopeId,
                                                           String scriptId,
                                                           Long scriptVersionId) {
+        scriptService.getScript(appResourceScope.getAppId(), scriptId);
         ScriptCiteCountVO scriptCiteCountVO = getScriptCiteCountOfAllScript(scriptId, scriptVersionId);
         return Response.buildSuccessResp(scriptCiteCountVO);
     }

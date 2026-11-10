@@ -11,6 +11,10 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations:
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
 spec:
   backoffLimit: 2
   parallelism: 1
@@ -67,6 +71,8 @@ spec:
           value: {{ .Values.bkApiGatewayConfig.maintainers }}
         - name: BK_APIGW_AUTO_PUBLISH
           value: {{.Values.bkApiGatewayConfig.autoPublish | quote }}
+        - name: BK_APIGW_SYNC_MCP_SERVERS
+          value: {{ .Values.bkApiGatewayConfig.syncMcpServers | quote }}
         - name: BK_SOPS_APP_CODE
           value: {{ .Values.bkSopsAppCode }}
         - name: BK_NODEMAN_APP_CODE

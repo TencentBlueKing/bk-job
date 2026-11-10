@@ -208,10 +208,10 @@ public class ImportJobExecutor {
                     importJob.getFileName()
                 );
                 InputStream ins = pair.getLeft();
-                String localPath = PathUtil.joinFilePath(
+                String localPath = PathUtil.resolveSafely(
                     storageService.getStoragePath(),
                     importJob.getFileName()
-                );
+                ).getPath();
                 try {
                     FileUtil.writeInsToFile(ins, localPath);
                     log.debug("end to download from artifactory:{}", importJob.getFileName());

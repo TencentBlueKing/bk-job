@@ -1,4 +1,4 @@
- # Default values for bk-job.
+﻿ # Default values for bk-job.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -613,6 +613,8 @@ bkBcsAppCode: "bk_bcs"
 bkDomainScheme: "http"
 ## 蓝鲸 ESB url
 bkComponentApiUrl: "http://bkapi.paas.example.com"
+## 蓝鲸 APIGateway上各网关的API根地址
+bkApiGatewayApiUrl: "http://bkapi.example.com/api"
 ## 蓝鲸 PaaS url
 bkPaasUrl: "http://paas.example.com"
 ## 蓝鲸 Login url
@@ -621,8 +623,10 @@ bkLoginUrl: "http://paas.example.com/login/"
 bkCmdbUrl: "http://cmdb.example.com"
 # 用户管理页面 url
 bkUserUrl: "http://bk-user.example.com"
-# 蓝鲸 IAM url
+# 蓝鲸 IAM url（v3 页面）
 bkIamUrl: "http://bkiam.example.com"
+# 蓝鲸 IAM v4 页面 url
+bkIamV4Url: "http://bkiamv4.example.com"
 # 蓝鲸制品库 url
 bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
@@ -643,6 +647,8 @@ bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user/prod"
 bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web/prod"
 # 蓝鲸权限中心 API Gateway url
 bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam/prod"
+# 蓝鲸权限中心 v4(RBAC) API Gateway url，走独立地址，不复用 bkIamApiGatewayUrl
+bkIamV4ApiGatewayUrl: "http://bkapi.example.com/api/bk-iam-v4/prod"
 # 消息通知 API Gateway url
 bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi/prod"
 # 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
@@ -816,6 +822,11 @@ iam:
   # 作业平台注册到IAM的系统ID
   systemId: bk_job
 
+## 权限中心 v4 配置
+iamv4:
+  # 作业平台注册到 IAM v4 的系统 ID
+  systemId: bk_job
+
 ## 操作审计配置
 audit:
   # 是否开启操作审计
@@ -908,6 +919,8 @@ job:
           cmdb: true
           # 权限中心 IAM
           iam: true
+          # 权限中心 IAM v4
+          iamV4: true
           # 统一登录 BK-Login
           bkLogin: true
           # 用户管理 BK-User
@@ -1006,6 +1019,16 @@ job:
     # 分库分表迁移使用，控制是否在mysql 查询条件中加入 task_instance_id 字段作为查询条件
     daoAddTaskInstanceId:
       enabled: true
+    # 是否将鉴权切换到蓝鲸权限中心 v4(RBAC)。默认关闭(走 v3)，可通过热更新逐步灰度到 v4
+    iamV4:
+      enabled: false
+      # 灰度策略(enabled=true 时生效)：
+      #   AlwaysMatchToggleStrategy    —— 全量放开，所有用户始终走 v4
+      #   UsernameWhiteListToggleStrategy —— 按用户名灰度，仅 params.usernameList 中的用户走 v4
+      # strategy:
+      #   id: UsernameWhiteListToggleStrategy
+      #   params:
+      #     usernameList: "admin"
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
@@ -1054,6 +1077,19 @@ job:
     iamModel:
       # 是否开启权限模型migration
       enabled: true
+    # IAM v4 权限模型同步。对比后增删改，幂等可重复执行。与运行时鉴权灰度 job.features.iamV4.enabled 分开
+    iamV4:
+      # 是否同步 v4 权限模型
+      enabled: true
+      # 写接口失败是否跳过并继续，避免残留数据导致 K8s Job 失败
+      ignoreFail: true
+      # 只对比并打印增删改日志，不调用 IAM 写接口
+      dryRun: false
+      # 删除角色中的 action 时是否带 cascade=rbac_authorization。
+      # 开启后会强制删掉该角色上这条 action 的授权记录，请谨慎使用。默认关闭
+      deleteCascade: false
+      # 系统管理员，逗号分隔；空则 managers 传空数组
+      managers: ""
     mysqlSchema:
       # 是否开启Mysql数据库结构migration
       enabled: true
@@ -1427,6 +1463,8 @@ executeConfig:
     artifactory:
       # 存储后端使用制品库时使用的仓库代码
       repo: backup
+    # 导出日志时单批次向 job-logsvr 批量查询日志的最大执行对象数量，默认 50，避免单批过大导致 job-logsvr OOM
+    logQueryBatchSize: 50
   scriptTask:
     query:
       # 脚本任务执行，从 GSE 查询结果的 API 单次返回的脚本执行输出内容最大长度。该参数需要合理设置，避免因为输出日志太多导致拉取 GSE 执行结果 API 超时。该参数支持使用不同的单位(KB/MB/GB)
@@ -1898,6 +1936,9 @@ backupConfig:
       batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
       deleteRowLimit: 1000
+      # 写入归档库时要忽略的字段，key 为表名，value 为字段名列表；为空则不忽略任何字段
+      # 示例：{ step_instance_script: [account_var], step_instance_file: [account_var] }
+      ignoredColumns: {}
       # 定时检查归档的结果，是否有已经归档完的任务，但实际上数据未完全删除
       check:
         # 默认开启检查
@@ -2415,9 +2456,12 @@ migrationInit:
 ## 蓝鲸网关配置，接入方式：chart + 自定义镜像
 bkApiGatewayConfig:
   # 是否自动把API注册到蓝鲸网关
-  sync: false
+  sync: true
   # 是否自动发布资源，true：生成版本且发布资源，false：只生成版本不发布资源
   autoPublish: true
+  # 是否同步MCP Server（供AI组件调用作业平台API），依赖网关侧支持MCP能力且环境已有生效的资源版本；
+  # 同步失败只告警不中断网关同步流程，MCP Server定义见support-files/bk-api-gateway/v3/definition.yaml
+  syncMcpServers: true
   # 是否开启apigw jwt认证
   enabled: true
   jwtPublicKey:
@@ -2440,6 +2484,63 @@ bkApiGatewayConfig:
     registry: hub.bktencent.com
     # 镜像拉取仓库组织与镜像名称
     repository: blueking/job-sync-bk-api-gateway
+    # 镜像标签
+    tag: "{{APP_VERSION}}"
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  # 任务资源限制
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
+
+## AIDEV配置，用于把AI相关资源（Agent/Skill/知识库）自动初始化到AIDEV平台，接入方式：chart + 自定义镜像
+## 资源文件位于support-files/bk-aidev/bk-job，Agent引用的MCP Server由网关同步任务创建，
+## 需同时开启bkApiGatewayConfig.syncMcpServers
+bkai:
+  # 是否开启bkaidev功能，开启后把AI相关资源（Agent/Skill/知识库）注入到AIDEV平台
+  enabled: false
+  # 蓝鲸网关地址模板，注入给bkai-init的BK_API_URL_TMPL；两个占位符必须保留，
+  # bkai-init用它生成AIDEV（{api_name}=bk-aidev）的地址；多租户且未配置username时，
+  # 还会用它生成用户管理（{api_name}=bk-user）的地址，查询默认bk_admin对应的bk_username
+  apiUrlTmpl: "http://bkapi.example.com/api/{api_name}/{stage}"
+  # 同步到的目标空间完整ID，资源文件不再声明space，一律以该值为准；
+  # 留空时按是否开启多租户取值：开启为system-bkaidev，未开启为bkaidev
+  space: ""
+  # bkai-init调用AIDEV时使用的租户ID，须为作业平台应用实际所在的租户；
+  # 留空时按是否开启多租户取值：开启为system，未开启为default
+  tenantId: ""
+  # 镜像中Agent Package清单的路径
+  packagePath: "/bk-job/bkai.yaml"
+  # 是否发布智能体：false时同步结果只是草稿，页面上的智能体不会更新
+  publish: true
+  # 发布时是否只发布配置（--publish_config_only）：false走平台常规发布流程，true只发布配置
+  publishConfigOnly: false
+  # 初始化资源使用的用户身份，accessToken优先级高于username，都留空时镜像默认使用bk_admin
+  accessToken: ""
+  # 初始化用户，须填bk_username（多租户下与login_name不同），bkai-init原样透传不做转换
+  username: ""
+  # 额外的智能体管理员，同样须填bk_username，如:["user_a","user_b"]；通过bkai-init的--admins参数传入，
+  # 应用于所有同步的主子智能体，只追加不删除，空列表不处理；追加失败不中断同步
+  admins: []
+  # 需要跳过同步的资源，格式为kind/code（kind小写，取值agent/collection/skill/knowledgebase），
+  # 如:["agent/ai-bkjob-web"]；用于资源已被用户在平台上手工改动、不希望被再次覆盖的场景
+  excludeResources: []
+  # 同步重试次数与间隔（秒）：Agent引用的MCP Server由网关同步任务异步注册，
+  # 两个任务之间没有强制先后关系，通过有限重试等待MCP就绪
+  syncMaxRetry: 3
+  syncRetryInterval: 30
+  # 同步最终失败时是否忽略错误：false时K8S Job失败退出、Helm部署判定为失败；true时忽略错误，让Helm部署成功
+  ignoreSyncError: false
+  image:
+    # 镜像拉取仓库根地址
+    registry: hub.bktencent.com
+    # 镜像拉取仓库组织与镜像名称
+    repository: blueking/job-sync-bk-aidev
     # 镜像标签
     tag: "{{APP_VERSION}}"
     # 镜像拉取策略
@@ -2510,7 +2611,7 @@ waitForDependServices:
     # 返回值格式：
     # 已准备就绪：{"ready": true}
     # 未准备就绪：{"ready": false}
-    url: "http://example.com/checkServiceDependency"
+    url: "http://example.com/public/checkServiceDependency"
   # 资源要求与限制
   resources:
     limits:

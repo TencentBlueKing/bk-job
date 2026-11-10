@@ -275,6 +275,7 @@ data:
           storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
           artifactory:
             repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
+          log-query-batch-size: {{ .Values.executeConfig.logExport.logQueryBatchSize | default 50 }}
         file:
           distribute:
             root-path: {{ .Values.fileDistribute.hostPath }}/local

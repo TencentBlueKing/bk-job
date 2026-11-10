@@ -86,6 +86,12 @@ class PathUtilTest {
             .isInstanceOf(InvalidParamException.class);
         assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, File.separator + ".." + File.separator
             + "outside.txt")).isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, "../outside.txt"))
+            .isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, "..\\outside.txt"))
+            .isInstanceOf(InvalidParamException.class);
+        assertThatThrownBy(() -> PathUtil.resolveSafely(baseDir, "a\0b.txt"))
+            .isInstanceOf(InvalidParamException.class);
     }
 
     @Test
@@ -115,5 +121,20 @@ class PathUtilTest {
         File target = PathUtil.resolveSafely(missingBaseDir.toString(), "subdir", "a.txt");
 
         assertThat(target.toPath()).isEqualTo(missingBaseDir.resolve("subdir").resolve("a.txt"));
+    }
+
+    @Test
+    void resolveSafelyNormalizesMixedSeparatorsWithoutMixing(@TempDir Path tempDir) {
+        Path realBaseDir = realPath(tempDir);
+
+        File targetFromMixed = PathUtil.resolveSafely(
+            tempDir.toString(),
+            "dirA\\dirB/dirC\\file.txt"
+        );
+
+        assertThat(targetFromMixed.toPath())
+            .isEqualTo(realBaseDir.resolve("dirA").resolve("dirB").resolve("dirC").resolve("file.txt"));
+        char oppositeSeparator = File.separatorChar == '/' ? '\\' : '/';
+        assertThat(targetFromMixed.getPath()).doesNotContain(String.valueOf(oppositeSeparator));
     }
 }

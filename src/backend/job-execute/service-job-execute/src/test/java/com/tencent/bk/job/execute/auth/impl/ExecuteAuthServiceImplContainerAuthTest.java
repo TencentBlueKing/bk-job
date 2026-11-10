@@ -37,12 +37,14 @@ import com.tencent.bk.job.common.model.dto.KubeClusterObjectDTO;
 import com.tencent.bk.job.common.model.dto.KubeContainerFilter;
 import com.tencent.bk.job.common.model.dto.KubePropCondition;
 import com.tencent.bk.job.common.model.dto.KubeTopoDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.service.TopoService;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
+import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,8 +72,8 @@ import static org.mockito.Mockito.mock;
 class ExecuteAuthServiceImplContainerAuthTest {
 
     private ExecuteAuthServiceImpl authServiceImpl;
+    private ExecuteTargetInstanceBuilder executeTargetInstanceBuilder;
     private AppResourceScope bizScope;
-    private Method buildHostInstancesMethod;
     private Method convertHostsToResourceMethod;
 
     @BeforeEach
@@ -82,19 +84,26 @@ class ExecuteAuthServiceImplContainerAuthTest {
         AuthHelper authHelper = mock(AuthHelper.class);
         AuthService authService = mock(AuthService.class);
         AppAuthService appAuthService = mock(AppAuthService.class);
+        AppScopeMappingService appScopeMappingService = mock(AppScopeMappingService.class);
         JobExecuteConfig jobExecuteConfig = mock(JobExecuteConfig.class);
         TopoService topoService = mock(TopoService.class);
+        IamV4AuthService iamV4AuthService = mock(IamV4AuthService.class);
 
+        executeTargetInstanceBuilder = new ExecuteTargetInstanceBuilder(topoService);
         authServiceImpl = new ExecuteAuthServiceImpl(
-            authHelper, resourceNameQueryService, authService, appAuthService, jobExecuteConfig, topoService);
+            new V3ExecuteAuthExecutor(authHelper, executeTargetInstanceBuilder),
+            new V4ExecuteAuthExecutor(iamV4AuthService, executeTargetInstanceBuilder),
+            executeTargetInstanceBuilder,
+            resourceNameQueryService, authService, appAuthService, appScopeMappingService, jobExecuteConfig);
 
         bizScope = new AppResourceScope(ResourceScopeTypeEnum.BIZ, "2", 2L);
 
-        buildHostInstancesMethod = ExecuteAuthServiceImpl.class
-            .getDeclaredMethod("buildHostInstances", AppResourceScope.class, ExecuteTargetDTO.class);
-        buildHostInstancesMethod.setAccessible(true);
-        convertHostsToResourceMethod = ExecuteAuthServiceImpl.class
-            .getDeclaredMethod("convertHostsToPermissionResourceList", AppResourceScope.class, ExecuteTargetDTO.class);
+        // 这些用例断言的是 v3 按业务维度组装容器资源，useV4 传 false
+        convertHostsToResourceMethod = ExecuteAuthServiceImpl.class.getDeclaredMethod(
+            "convertHostsToPermissionResourceList",
+            AppResourceScope.class,
+            ExecuteTargetDTO.class,
+            boolean.class);
         convertHostsToResourceMethod.setAccessible(true);
     }
 
@@ -104,12 +113,10 @@ class ExecuteAuthServiceImplContainerAuthTest {
         ExecuteTargetDTO target = new ExecuteTargetDTO();
         target.setContainerFilters(Collections.singletonList(buildContainerFilter()));
 
-        @SuppressWarnings("unchecked")
-        List<InstanceDTO> hostInstances = (List<InstanceDTO>) buildHostInstancesMethod.invoke(
-            authServiceImpl, bizScope, target);
+        List<InstanceDTO> hostInstances = executeTargetInstanceBuilder.buildHostInstances(bizScope, target);
         @SuppressWarnings("unchecked")
         List<PermissionResource> resources = (List<PermissionResource>) convertHostsToResourceMethod.invoke(
-            authServiceImpl, bizScope, target);
+            authServiceImpl, bizScope, target, false);
 
         assertThat(hostInstances).hasSize(1);
         assertThat(hostInstances.get(0).getType()).isEqualTo(ResourceTypeEnum.HOST.getId());
@@ -126,12 +133,10 @@ class ExecuteAuthServiceImplContainerAuthTest {
         ExecuteTargetDTO target = new ExecuteTargetDTO();
         target.setStaticContainerList(Collections.singletonList(buildContainer(101L)));
 
-        @SuppressWarnings("unchecked")
-        List<InstanceDTO> hostInstances = (List<InstanceDTO>) buildHostInstancesMethod.invoke(
-            authServiceImpl, bizScope, target);
+        List<InstanceDTO> hostInstances = executeTargetInstanceBuilder.buildHostInstances(bizScope, target);
         @SuppressWarnings("unchecked")
         List<PermissionResource> resources = (List<PermissionResource>) convertHostsToResourceMethod.invoke(
-            authServiceImpl, bizScope, target);
+            authServiceImpl, bizScope, target, false);
 
         assertThat(hostInstances).hasSize(1);
         assertThat(resources).hasSize(1);
@@ -145,12 +150,10 @@ class ExecuteAuthServiceImplContainerAuthTest {
         target.setContainerFilters(Collections.singletonList(buildContainerFilter()));
         target.setStaticContainerList(Collections.singletonList(buildContainer(101L)));
 
-        @SuppressWarnings("unchecked")
-        List<InstanceDTO> hostInstances = (List<InstanceDTO>) buildHostInstancesMethod.invoke(
-            authServiceImpl, bizScope, target);
+        List<InstanceDTO> hostInstances = executeTargetInstanceBuilder.buildHostInstances(bizScope, target);
         @SuppressWarnings("unchecked")
         List<PermissionResource> resources = (List<PermissionResource>) convertHostsToResourceMethod.invoke(
-            authServiceImpl, bizScope, target);
+            authServiceImpl, bizScope, target, false);
 
         assertThat(hostInstances).hasSize(1);
         assertThat(resources).hasSize(1);
@@ -162,12 +165,10 @@ class ExecuteAuthServiceImplContainerAuthTest {
         ExecuteTargetDTO target = new ExecuteTargetDTO();
         target.setStaticIpList(Collections.singletonList(new HostDTO(100L)));
 
-        @SuppressWarnings("unchecked")
-        List<InstanceDTO> hostInstances = (List<InstanceDTO>) buildHostInstancesMethod.invoke(
-            authServiceImpl, bizScope, target);
+        List<InstanceDTO> hostInstances = executeTargetInstanceBuilder.buildHostInstances(bizScope, target);
         @SuppressWarnings("unchecked")
         List<PermissionResource> resources = (List<PermissionResource>) convertHostsToResourceMethod.invoke(
-            authServiceImpl, bizScope, target);
+            authServiceImpl, bizScope, target, false);
 
         // 主机静态 IP 仍按现状生成 1 条；容器维度无新增
         assertThat(hostInstances).hasSize(1);

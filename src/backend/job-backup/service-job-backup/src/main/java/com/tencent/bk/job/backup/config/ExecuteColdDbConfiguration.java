@@ -88,9 +88,10 @@ public class ExecuteColdDbConfiguration {
 
     @Bean(name = "execute-archive-dao")
     public JobInstanceColdDAOImpl jobInstanceColdDAO(
-        @Qualifier("job-execute-archive-cold-dsl-context") DSLContext context) {
+        @Qualifier("job-execute-archive-cold-dsl-context") DSLContext context,
+        ArchiveProperties archiveProperties) {
         log.info("Init JobInstanceColdDAO");
-        return new JobInstanceColdDAOImpl(context);
+        return new JobInstanceColdDAOImpl(context, archiveProperties.getIgnoredColumns());
     }
 
     static class JobExecuteColdDbInitCondition extends AllNestedConditions {

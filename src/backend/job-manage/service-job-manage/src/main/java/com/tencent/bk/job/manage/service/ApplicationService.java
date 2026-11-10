@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 
@@ -136,6 +137,29 @@ public interface ApplicationService {
      * @return 业务列表
      */
     List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
+
+    /**
+     * 按资源范围类型分页查询业务，可按名称模糊过滤。供 IAM v4 回调的 list_instance 使用。
+     *
+     * @param tenantId    租户 ID，为空则不限租户
+     * @param scopeType   资源范围类型
+     * @param nameKeyword 名称关键字，为空则不过滤
+     * @param start       起始位置
+     * @param length      每页数量
+     * @return 分页业务列表
+     */
+    PageData<ApplicationDTO> listPageAppsByScopeType(String tenantId,
+                                                     ResourceScopeTypeEnum scopeType,
+                                                     String nameKeyword,
+                                                     int start,
+                                                     int length);
+
+    /**
+     * 按租户 + 资源范围类型 + 一批 scope ID（CMDB 侧 ID）批量查询业务。供 IAM v4 回调的 fetch_instance_info 使用。
+     */
+    List<ApplicationDTO> listAppsByScopeIds(String tenantId,
+                                            ResourceScopeTypeEnum scopeType,
+                                            Collection<String> scopeIds);
 
     /**
      * 获取作业平台所有业务

@@ -37,6 +37,7 @@ import com.tencent.bk.job.manage.model.tables.Application;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -44,6 +45,7 @@ import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
+import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.slf4j.helpers.MessageFormatter;
@@ -229,6 +231,68 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.BK_SCOPE_TYPE.eq(scopeType.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listPageAppsByScopeType(String tenantId,
+                                                        ResourceScopeTypeEnum scopeType,
+                                                        String nameKeyword,
+                                                        int start,
+                                                        int length) {
+        List<Condition> conditions = buildScopeTypeConditions(tenantId, scopeType, nameKeyword);
+        Result<Record> result = dslContext
+            .select(ALL_FIELDS)
+            .from(T_APP)
+            .where(conditions)
+            .orderBy(T_APP.APP_ID.asc())
+            .limit(start, length)
+            .fetch();
+        List<ApplicationDTO> applicationList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(result)) {
+            result.map(record -> applicationList.add(extract(record)));
+        }
+        return applicationList;
+    }
+
+    @Override
+    public long countAppsByScopeType(String tenantId, ResourceScopeTypeEnum scopeType, String nameKeyword) {
+        List<Condition> conditions = buildScopeTypeConditions(tenantId, scopeType, nameKeyword);
+        Long count = dslContext
+            .select(DSL.count())
+            .from(T_APP)
+            .where(conditions)
+            .fetchOne(0, Long.class);
+        return count == null ? 0L : count;
+    }
+
+    private List<Condition> buildScopeTypeConditions(String tenantId,
+                                                     ResourceScopeTypeEnum scopeType,
+                                                     String nameKeyword) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.eq(scopeType.getValue()));
+        if (StringUtils.isNotBlank(tenantId)) {
+            conditions.add(T_APP.TENANT_ID.eq(tenantId));
+        }
+        if (StringUtils.isNotBlank(nameKeyword)) {
+            conditions.add(T_APP.APP_NAME.like("%" + nameKeyword + "%"));
+        }
+        return conditions;
+    }
+
+    @Override
+    public List<ApplicationDTO> listAppsByScopeIds(String tenantId,
+                                                   ResourceScopeTypeEnum scopeType,
+                                                   Collection<String> scopeIds) {
+        if (CollectionUtils.isEmpty(scopeIds)) {
+            return new ArrayList<>();
+        }
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.eq(scopeType.getValue()));
+        conditions.add(T_APP.BK_SCOPE_ID.in(scopeIds));
+        if (StringUtils.isNotBlank(tenantId)) {
+            conditions.add(T_APP.TENANT_ID.eq(tenantId));
+        }
         return listAppsByConditions(conditions);
     }
 

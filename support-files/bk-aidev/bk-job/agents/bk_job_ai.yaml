@@ -1,0 +1,296 @@
+# AIDEV Agent CLI Manifest v1
+# 说明：本文件只做「引用」，不创建被引用的资源实体；MCP 需先由网关同步创建，
+#      Skill 与知识库需先各自同步到 AIDEV 平台，Agent 才能引用成功。
+apiVersion: bkai.tencent.com/aidev-agent/v1
+kind: Agent
+
+# 资源文件不指定 space，目标空间统一由 bkai-init 的 --space 参数传入；
+# Agent 也不能配置 version（含 null），发布版本由平台分配。
+metadata:
+  code: ai-bkjob-web
+  name: 蓝鲸作业平台页面小鲸
+  description: 蓝鲸作业平台Web页面AI小鲸的智能体。
+
+spec:
+  # 多租户下为 global（全租户，仅 system-bkaidev 可配置，创建后不可切回 space/public），
+  # 非多租户下为 public（所有空间可见，供其他智能体调用）；取值由同步前渲染占位符注入。
+  generate_type: ${JOB_AI_GENERATE_TYPE}
+  # 所有人可使用；custom 为指定人，省略则不修改使用范围
+  user_scope: public
+  # 开发者中心管理员不在此配置：bkai-init 禁止 spec.admins（含 null 与空列表），
+  # 由 bkai.admins 经 --admins 参数传入
+  prompt:
+    type: inline
+    content: |
+      请首先理解以下作业平台领域知识：
+      作业平台是一个支持脚本批量执行与文件批量传输的Web平台，底层依赖BK-GSE系统完成脚本执行与文件分发。
+      作业平台的依赖系统介绍：
+      BK-GSE：由GSE Agent与GSE Server构成，其中GSE Agent分布在被管控的对象机器上（也就是用户的执行对象），GSE Server属于平台自己的服务节点，由平台自己部署和维护；GSE Server对所有的GSE Agent进行管理与控制，可以向Agent下发脚本任务、获取脚本执行日志与结果信息等，还可以调度多个Agent利用组建的BT网络在多个Agent之间传输文件，当出现BK-GSE相关的问题时，通过【BK助手】这个企业微信服务号来响应用户的咨询。
+      
+      以下介绍作业平台脚本执行与文件分发功能的原理：
+      【功能：脚本批量执行】
+      用户在Web页面填写任务名称、脚本来源、脚本内容、脚本参数、超时时长、执行账号、目标服务器等信息，作业平台将这些信息组装为原子任务信息后，调用BK-GSE提供的接口将任务信息提交给BK-GSE系统，并得到生成的任务ID，随后作业平台每间隔一定时间调用BK-GSE的任务状态查询接口查询任务状态、拉取任务产生的日志并存储到自身系统的DB中，直到任务完成或者超时。用户可以在任务执行结果页面查看任务执行结果信息、报错信息与日志。
+      
+      【功能：文件批量传输】
+      用户在Web页面填写任务名称、超时时长、上传限速、下载限速、源文件、目标路径、传输模式、执行账号、目标服务器等信息，作业平台将这些信息组装为原子任务信息后，调用BK-GSE提供的接口将任务信息提交给BK-GSE系统，并得到生成的任务ID，随后作业平台每间隔一定时间调用BK-GSE的任务状态查询接口查询任务状态、拉取任务状态与传输进度日志并存储到自身系统的DB中，直到任务完成或者超时。用户可以在任务执行结果页面查看任务执行结果信息、报错信息与进度日志。如果用户的文件分发任务报错的原因是目标目录不存在的话，除了正常的处理建议以外，还可以提示用户可以把任务的传输模式改为“强制模式”，“强制模式”的用途是如果目标服务器上不存在用户指定的路径，平台将自动创建。
+      
+      你是作业平台的AI助手，需要结合报错信息分析用户的提问并给出回答，回答中可以使用作业平台领域知识中的概念，也可以搜索知识库寻找相关的文档融入回答。
+
+  # llm_code 取 AIDEV 平台上可用的模型编码，context_window 为会话轮数（1-30 的整数）
+  model:
+    llm_code: aidev-chat-auto
+    fallback_model: null
+    temperature: 0.7
+    context_window: 16         # 上下文轮数
+    llm_token_limit: 28000
+    max_tokens: 4096
+    tool_output_compress_thrd: 4096
+
+  # 平台当前暂不支持自定义 Tools，保持空数组
+  tools: []
+
+  conversation_settings:
+    opening_remark: 欢迎使用作业平台！我是负责协助你的AI助手（小鲸），请问有什么可以帮助你的吗？
+    predefined_questions: []
+    enable_chat_session: true
+    enable_word_selection_popup: false
+    commands:
+      - id: checkScript
+        name: 检查脚本
+        icon: null
+        alias: null
+        content: |
+          已知脚本内容如下：
+          ```{{script_type}}
+          {{script_content}}
+          ```
+          请帮忙检查一下脚本是否有语法或逻辑问题！
+        components:
+          - type: text
+            key: script_type
+            name: 脚本类型
+            placeholder: 请输入脚本类型（shell/bat/perl/python/powershell/sql）
+            default: "shell"
+            required: true
+            hide: false
+          - type: text
+            key: script_content
+            name: 脚本内容
+            placeholder: 请输入脚本内容
+            default: ""
+            required: true
+            hide: false
+        enable_fill_back: false
+        fill_back_component_key: null
+        fill_regx: null
+        support_upload:
+          vision: false
+          file: false
+
+      - id: analyzeScriptTaskError
+        name: 分析脚本任务报错信息
+        icon: null
+        alias: null
+        content: |
+          已知任务相关参数如下：
+          scope_type: {{scope_type}}
+          scope_id: {{scope_id}}
+          task_instance_id: {{task_instance_id}}
+          step_instance_id: {{step_instance_id}}
+          execute_count: {{execute_count}}
+          batch: {{batch}}
+          execute_object_type: {{execute_object_type}}
+          execute_object_resource_id: {{execute_object_resource_id}}
+            
+          输出规范：
+          点击[任务链接](${JOB_URL_BASE}/api_execute/{{task_instance_id}}?stepInstanceId={{step_instance_id}}&retryCount={{execute_count}}&batch={{batch}})
+          {分析结果}
+          
+          请你首先使用MCP工具查出对应任务的上下文数据，再结合任务执行的脚本内容，对执行结果的报错信息进行分析；要说明报错的主要含义，如果和脚本内容有关系，则明确指出是哪一段落的问题，并给出修改建议！最后请严格按照输出规范输出结果。注意：如果MCP工具返回报错提示执行目标不存在，直接将错误信息告知用户即可，不要尝试用遍历参数取值的方式多次调用MCP，不要猜测参数取值。
+        components:
+          - type: text
+            key: scope_type
+            name: 资源范围类型
+            placeholder: 资源范围类型，取值：biz-业务，biz_set-业务集
+            default: "biz"
+            required: true
+            hide: false
+          - type: text
+            key: scope_id
+            name: 资源范围ID
+            placeholder: 资源范围ID
+            default: ""
+            required: true
+            hide: false
+          - type: text
+            key: task_instance_id
+            name: 任务实例ID
+            placeholder: 任务实例ID
+            default: ""
+            required: true
+            hide: false
+          - type: text
+            key: step_instance_id
+            name: 步骤实例ID
+            placeholder: 步骤实例ID
+            default: ""
+            required: true
+            hide: false
+          - type: text
+            key: execute_count
+            name: 执行次数
+            placeholder: 执行次数
+            default: "0"
+            required: true
+            hide: false
+          - type: text
+            key: batch
+            name: 滚动批次
+            placeholder: 滚动批次（非滚动任务不传）
+            default: ""
+            required: false
+            hide: false
+          - type: text
+            key: execute_object_type
+            name: 执行对象类型
+            placeholder: 执行对象类型，取值：1-主机，2-容器
+            default: "1"
+            required: true
+            hide: false
+          - type: text
+            key: execute_object_resource_id
+            name: 执行对象资源ID
+            placeholder: 执行对象资源ID
+            default: ""
+            required: true
+            hide: false
+        enable_fill_back: false
+        fill_back_component_key: null
+        fill_regx: null
+        support_upload:
+          vision: false
+          file: false
+
+      - id: analyzeFileTaskError
+        name: 分析文件任务报错信息
+        icon: null
+        alias: null
+        content: |
+          已知任务相关参数如下：
+          scope_type: {{scope_type}}
+          scope_id: {{scope_id}}
+          task_instance_id: {{task_instance_id}}
+          step_instance_id: {{step_instance_id}}
+          execute_count: {{execute_count}}
+          batch: {{batch}}
+          execute_object_type: {{execute_object_type}}
+          execute_object_resource_id: {{execute_object_resource_id}}
+          mode: {{mode}}
+
+          输出规范：
+          点击[任务链接](${JOB_URL_BASE}/api_execute/{{task_instance_id}}?stepInstanceId={{step_instance_id}}&retryCount={{execute_count}}&batch={{batch}})
+          {分析结果}
+
+          请你首先使用MCP工具查出对应任务的上下文数据，再结合预分析结果数据，对任务报错内容进一步分析，并给出总结性的原因与处理建议。最后请严格按照输出规范输出结果。注意：如果MCP工具返回报错提示执行目标不存在，直接将错误信息告知用户即可，不要尝试用遍历参数取值的方式多次调用MCP，不要猜测参数取值。
+        components:
+          - type: text
+            key: scope_type
+            name: 资源范围类型
+            placeholder: 资源范围类型，取值：biz-业务，biz_set-业务集
+            default: "biz"
+            required: true
+            hide: false
+          - type: text
+            key: scope_id
+            name: 资源范围ID
+            placeholder: 资源范围ID
+            default: ""
+            required: true
+            hide: false
+          - type: text
+            key: task_instance_id
+            name: 任务实例ID
+            placeholder: 任务实例ID
+            default: ""
+            required: true
+            hide: false
+          - type: text
+            key: step_instance_id
+            name: 步骤实例ID
+            placeholder: 步骤实例ID
+            default: ""
+            required: true
+            hide: false
+          - type: text
+            key: execute_count
+            name: 执行次数
+            placeholder: 执行次数
+            default: "0"
+            required: true
+            hide: false
+          - type: text
+            key: batch
+            name: 滚动批次
+            placeholder: 滚动批次（非滚动任务不传）
+            default: ""
+            required: false
+            hide: false
+          - type: text
+            key: execute_object_type
+            name: 执行对象类型
+            placeholder: 执行对象类型，取值：1-主机，2-容器
+            default: "1"
+            required: true
+            hide: false
+          - type: text
+            key: execute_object_resource_id
+            name: 执行对象资源ID
+            placeholder: 执行对象资源ID
+            default: ""
+            required: true
+            hide: false
+          - type: text
+            key: mode
+            name: 文件任务上传下载标识
+            placeholder: 文件任务上传下载标识，取值：0-上传，1-下载
+            default: ""
+            required: true
+            hide: false
+
+        enable_fill_back: false
+        fill_back_component_key: null
+        fill_regx: null
+        support_upload:
+          vision: false
+          file: false
+
+  subagents: []
+  #   - code: ai-job-exec
+
+  # MCP Server 引用，type 固定为 apigw。
+  # code 与 support-files/bk-api-gateway/v3/definition.yaml 中 mcp_servers[].name 一一对应；
+  # 网关侧实际的 MCP Server 全名为 {网关名}-{环境名}-{name}，如需按环境区分需在此改为完整名称。
+  # 无论 MCP 是否公开，都需事先在网关侧对同步应用与本智能体授权，bkai-init 不会自动申请。
+  mcps:
+    - type: apigw
+      code: bk-job-prod-mcp-task-context
+      # 显式声明全选，避免不同版本对「省略即全选」的推断差异；全选会包含 MCP 后续新增的工具
+      is_selected_all: true
+
+  skills: []
+
+  # 知识库
+  knowledgebases:
+    items:
+      - code: bk_job_user_guide
+    retriever_code: ""
+    query_function: mixed
+    recall_channels: [dense, sparse]
+    rrf_weights:
+      dense: 0.7
+      sparse: 0.3
+    document_fragment_count: 20
+    polish: true
+    origin: false
+    is_response_when_no_knowledgebase_match: true
+    rejection_message: 未找到相关作业文档，请补充问题信息。

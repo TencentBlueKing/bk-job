@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.file.worker.service;
 
-import com.tencent.bk.job.common.util.file.PathUtil;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +36,7 @@ class FileProgressWatchingTask extends Thread {
     private final String taskId;
     private final String filePath;
     private final String downloadFileDir;
+    private final String filePrefix;
     private final AtomicLong fileSize;
     private final AtomicInteger speed;
     private final AtomicInteger process;
@@ -48,6 +48,7 @@ class FileProgressWatchingTask extends Thread {
     public FileProgressWatchingTask(String taskId,
                                     String filePath,
                                     String downloadFileDir,
+                                    String filePrefix,
                                     AtomicLong fileSize,
                                     AtomicInteger speed,
                                     AtomicInteger process,
@@ -56,6 +57,7 @@ class FileProgressWatchingTask extends Thread {
         this.taskId = taskId;
         this.filePath = filePath;
         this.downloadFileDir = downloadFileDir;
+        this.filePrefix = filePrefix;
         this.fileSize = fileSize;
         this.speed = speed;
         this.process = process;
@@ -73,7 +75,9 @@ class FileProgressWatchingTask extends Thread {
     public void run() {
         String fileTaskKey = taskId + "_" + filePath;
         try {
-            String downloadPath = PathUtil.joinFilePath(downloadFileDir, taskId + "/" + filePath);
+            String downloadPath = DownloadFileTask.resolveDownloadPathSafely(
+                downloadFileDir, taskId, filePath, filePrefix
+            );
             while (runFlag) {
                 try {
                     taskReporter.reportFileDownloadProgress(taskId, filePath, downloadPath, fileSize.get(),
@@ -86,6 +90,8 @@ class FileProgressWatchingTask extends Thread {
                 }
             }
         } catch (InterruptedException ignore) {
+        } catch (Throwable t) {
+            log.warn("Stop watching because of illegal download path: taskId={}, filePath={}", taskId, filePath, t);
         } finally {
             if (watchingTaskEventListener != null) {
                 watchingTaskEventListener.onWatchingTaskFinally(fileTaskKey);

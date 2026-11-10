@@ -38,7 +38,7 @@ import java.util.List;
 @Getter
 @ToString
 public class TaskVariablesAnalyzeResult {
-    private List<TaskVariableDTO> taskVars;
+    private List<TaskVariableDTO> taskVars = new ArrayList<>();
     private boolean existAnyVar = false; //作业中是否存在变量
     private boolean existOnlyConstVar = true;  //作业中是否仅存在常量
     private boolean existNamespaceVar = false; //是否存在命名空间变量

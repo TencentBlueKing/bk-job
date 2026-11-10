@@ -1,0 +1,19 @@
+# AIDEV Agent Package 清单
+# 作用：声明本次需要同步到 AIDEV 平台的资源，每一项对应目录下的一个文件或目录。
+# 同步方式：由 job-sync-bk-aidev 镜像在部署阶段执行 bkai-init validate / sync（见 bin/sync-bkaidev.sh）。
+apiVersion: bkai.tencent.com/v1
+kind: AgentPackage
+
+metadata:
+  name: bk-job
+  version: "1.0.0"
+
+# 注意：
+# 1. resources 中列出的路径必须真实存在，否则 bkai-init validate 会失败，
+#    因此 Skill 暂不在此声明，待对应目录准备好内容后再取消注释；
+# 2. 被引用的依赖（Skill、知识库、子智能体）要排在引用它们的 Agent 之前，
+#    否则 Agent 同步时依赖尚未创建，引用会失败。
+resources:
+  - knowledgebases/bk_job_user_guide
+  # - skills/job_skill
+  - agents/bk_job_ai.yaml

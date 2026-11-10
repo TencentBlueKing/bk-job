@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.util.IamAuthVersionHelper;
 import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
 import com.tencent.bk.job.common.paas.config.LoginProperties;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
@@ -662,7 +663,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return jobManageConfig.getBkUserWebUrl();
     }
 
-    private String getBkIamWebUrl() {
+    private String getBkIamWebUrl(String username) {
+        if (IamAuthVersionHelper.useV4(username) && StringUtils.isNotBlank(jobManageConfig.getBkIamV4WebUrl())) {
+            return jobManageConfig.getBkIamV4WebUrl();
+        }
         return jobManageConfig.getBkIamWebUrl();
     }
 
@@ -692,7 +696,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         urlMap.put(RelatedUrlKeys.KEY_BK_USER_WEB_API_ROOT_URL, getBkUserWebApiRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_LOGIN_URL, getBkLoginUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_USER_WEB_ROOT_URL, getBkUserWebRootUrl());
-        urlMap.put(RelatedUrlKeys.KEY_BK_IAM_WEB_URL, getBkIamWebUrl());
+        urlMap.put(RelatedUrlKeys.KEY_BK_IAM_WEB_URL, getBkIamWebUrl(username));
         return urlMap;
     }
 

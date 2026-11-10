@@ -69,7 +69,14 @@ class JobHttpSslVerifyConfigTest {
         assertFalse(properties.isVerifyEnabled(ExternalSystemEnum.CMDB));
         assertFalse(properties.isVerifyEnabled(ExternalSystemEnum.BK_REPO));
         assertTrue(properties.isVerifyEnabled(ExternalSystemEnum.IAM));
+        assertTrue(properties.isVerifyEnabled(ExternalSystemEnum.IAM_V4));
         assertTrue(properties.isVerifyEnabled(ExternalSystemEnum.BK_NOTICE));
+
+        properties.getSystems().setIam(false);
+        assertFalse(properties.isVerifyEnabled(ExternalSystemEnum.IAM));
+        assertTrue(properties.isVerifyEnabled(ExternalSystemEnum.IAM_V4));
+        properties.getSystems().setIamV4(false);
+        assertFalse(properties.isVerifyEnabled(ExternalSystemEnum.IAM_V4));
 
         properties.setEnabled(false);
         properties.getSystems().setGse(true);

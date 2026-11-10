@@ -1,0 +1,37 @@
+{
+  "name": "bk-job-op-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BK-JOB OP system web page",
+  "scripts": {
+    "dev": "webpack serve --mode development",
+    "build": "webpack --mode production"
+  },
+  "engines": {
+    "node": ">= 16.6.0",
+    "npm": ">= 6.0.0"
+  },
+  "dependencies": {
+    "axios": "1.16.0",
+    "bk-magic-vue": "2.5.9-beta.35",
+    "core-js": "3.41.0",
+    "path-browserify": "1.0.1",
+    "vue": "2.7.8",
+    "vue-router": "3.5.2"
+  },
+  "devDependencies": {
+    "@babel/core": "7.27.1",
+    "@babel/preset-env": "7.27.2",
+    "babel-loader": "9.2.1",
+    "babel-plugin-import-bk-magic-vue": "2.1.11",
+    "css-loader": "6.11.0",
+    "html-webpack-plugin": "5.6.3",
+    "mini-css-extract-plugin": "2.9.2",
+    "style-loader": "3.3.4",
+    "vue-loader": "15.10.0",
+    "vue-template-compiler": "2.7.8",
+    "webpack": "5.99.8",
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "4.15.2"
+  }
+}

@@ -78,6 +78,18 @@ spec:
               value : {{ .Values.job.migration.mysqlSchema.incrementalEnabled | quote }}
             - name: BK_JOB_MIGRATION_IAM_MODEL_ENABLED
               value: {{ .Values.job.migration.iamModel.enabled | quote }}
+            - name: BK_IAM_V4_APIGATEWAY_URL
+              value: {{ .Values.bkIamV4ApiGatewayUrl | quote }}
+            - name: BK_JOB_MIGRATION_IAM_V4_ENABLED
+              value: {{ .Values.job.migration.iamV4.enabled | quote }}
+            - name: BK_JOB_MIGRATION_IAM_V4_IGNORE_FAIL
+              value: {{ .Values.job.migration.iamV4.ignoreFail | quote }}
+            - name: BK_JOB_MIGRATION_IAM_V4_DRY_RUN
+              value: {{ .Values.job.migration.iamV4.dryRun | quote }}
+            - name: BK_JOB_MIGRATION_IAM_V4_DELETE_CASCADE
+              value: {{ .Values.job.migration.iamV4.deleteCascade | quote }}
+            - name: BK_IAM_V4_MANAGERS
+              value: {{ .Values.job.migration.iamV4.managers | quote }}
             {{- if .Values.job.migration.mysqlSchema.extraOptions }}
             - name: BK_JOB_MYSQL_EXTRA_OPTIONS
               value: {{ .Values.job.migration.mysqlSchema.extraOptions | quote }}

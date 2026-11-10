@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.PropagatableInvalidParamException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -302,7 +303,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         try {
             watch.start("checkRunningJobQuoteLimit");
             // 检查正在执行的作业配额限制
-            checkRunningJobQuotaLimit(appId, taskInstance.getAppCode());
+            AppResourceScope appResourceScope = checkRunningJobQuotaLimit(appId, taskInstance.getAppCode());
             watch.stop();
 
             // 检查任务是否应当被驱逐
@@ -348,7 +349,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 鉴权
             watch.start("authFastExecute");
-            authFastExecute(fastTask.getOperator(), appId, stepInstance,
+            authFastExecute(fastTask.getOperator(), appResourceScope, stepInstance,
                 taskInstanceExecuteObjects.getWhiteHostAllowActions(), fileSourceAvailabilities);
             watch.stop();
 
@@ -527,7 +528,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     /*
      * 检查正在执行的作业配额限制，防止单个业务占用所有的执行引擎调度资源
      */
-    private void checkRunningJobQuotaLimit(Long appId, String appCode) {
+    private AppResourceScope checkRunningJobQuotaLimit(Long appId, String appCode) {
         ResourceScope resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
         ResourceQuotaCheckResultEnum checkResult = runningJobResourceQuotaManager.checkResourceQuotaLimit(
             appCode, resourceScope);
@@ -546,6 +547,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     resourceScope.toResourceScopeUniqueId(), appCode);
                 throw new RunningJobQuotaLimitExceedException(ErrorCode.RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT);
         }
+        return new AppResourceScope(appId, resourceScope);
     }
 
     /**
@@ -1006,17 +1008,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * @param appId    本次执行所属业务
      */
     private void authFastExecute(User operator,
-                                 long appId,
+                                 AppResourceScope appResourceScope,
                                  StepInstanceDTO stepInstance,
                                  Map<Long, List<String>> whiteHostAllowActions,
                                  List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
         AuthResult authResult;
         if (stepInstance.isScriptStep()) {
             // 鉴权脚本任务
-            authResult = authExecuteScript(operator, appId, stepInstance, whiteHostAllowActions);
+            authResult = authExecuteScript(operator, appResourceScope, stepInstance, whiteHostAllowActions);
         } else {
             // 鉴权文件任务
-            authResult = authFileTransfer(operator, appId, stepInstance, whiteHostAllowActions,
+            authResult = authFileTransfer(operator, appResourceScope, stepInstance, whiteHostAllowActions,
                 fileSourceAvailabilities);
         }
 
@@ -1026,7 +1028,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private AuthResult authExecuteScript(User user,
-                                         long appId,
+                                         AppResourceScope appResourceScope,
                                          StepInstanceDTO stepInstance,
                                          Map<Long, List<String>> whiteHostAllowActions) {
         Long accountId = null;
@@ -1040,7 +1042,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         AuthResult accountAuthResult = executeAuthService.authAccountExecutable(user,
-            new AppResourceScope(appId), accountId);
+            appResourceScope, accountId);
 
         AuthResult serverAuthResult;
         ExecuteTargetDTO executeObjects = stepInstance.getTargetExecuteObjects().clone();
@@ -1053,14 +1055,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (scriptSource == ScriptSourceEnum.CUSTOM) {
             // 快速执行脚本鉴权
             serverAuthResult = executeAuthService.authFastExecuteScript(
-                user, new AppResourceScope(appId), executeObjects);
+                user, appResourceScope, executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_APP) {
             serverAuthResult = executeAuthService.authExecuteAppScript(
-                user, new AppResourceScope(appId), stepInstance.getScriptId(),
+                user, appResourceScope, stepInstance.getScriptId(),
                 stepInstance.getScriptName(), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_PUBLIC) {
             serverAuthResult = executeAuthService.authExecutePublicScript(
-                user, new AppResourceScope(appId), stepInstance.getScriptId(),
+                user, appResourceScope, stepInstance.getScriptId(),
                 stepInstance.getScriptName(), executeObjects);
         } else {
             serverAuthResult = AuthResult.fail(user);
@@ -1142,7 +1144,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     AuthResult authFileTransfer(User operator,
-                                long appId,
+                                AppResourceScope appResourceScope,
                                 StepInstanceDTO stepInstance,
                                 Map<Long, List<String>> whiteHostAllowActions,
                                 List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
@@ -1183,11 +1185,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         AuthResult accountAuthResult = accountsNeedAuth.isEmpty()
             ? AuthResult.pass(operator)
             : executeAuthService.batchAuthAccountExecutable(
-                operator, new AppResourceScope(appId), accountsNeedAuth);
+                operator, appResourceScope, accountsNeedAuth);
 
         // 文件源鉴权必须在下面主机为空的提前返回之前合并进来，否则目标主机全部命中白名单时会静默跳过
         AuthResult preHostAuthResult = accountAuthResult.mergeAuthResult(
-            authViewFileSource(operator, appId, fileSourceAvailabilities));
+            authViewFileSource(operator, appResourceScope, fileSourceAvailabilities));
 
         ExecuteTargetDTO executeTarget = targetExecuteObjects.clone();
         stepInstance.getFileSourceList().stream()
@@ -1197,12 +1199,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .forEach(fileSource -> executeTarget.merge(fileSource.getServers()));
         filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, executeTarget, whiteHostAllowActions);
         if (executeTarget.isEmpty()) {
-            // 如果主机为空，无需对主机进行权限
+            // 执行目标为空，无需对执行目标鉴权
             return preHostAuthResult;
         }
 
         AuthResult serverAuthResult = executeAuthService.authFastPushFile(
-            operator, new AppResourceScope(appId), executeTarget);
+            operator, appResourceScope, executeTarget);
 
         return preHostAuthResult.mergeAuthResult(serverAuthResult);
     }
@@ -1214,14 +1216,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * 共享关系本身即视为归属业务管理员做出的一次显式授权。
      */
     private AuthResult authViewFileSource(User operator,
-                                          Long appId,
+                                          AppResourceScope appResourceScope,
                                           List<ServiceFileSourceAvailabilityDTO> fileSourceAvailabilities) {
         if (CollectionUtils.isEmpty(fileSourceAvailabilities)) {
             return AuthResult.pass(operator);
         }
         Map<Integer, String> ownFileSourceIdToName = new HashMap<>();
         for (ServiceFileSourceAvailabilityDTO availability : fileSourceAvailabilities) {
-            if (appId.equals(availability.getOwnerAppId())) {
+            if (appResourceScope.getAppId().equals(availability.getOwnerAppId())) {
                 ownFileSourceIdToName.put(availability.getId(), availability.getAlias());
             }
         }
@@ -1229,7 +1231,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             return AuthResult.pass(operator);
         }
         return executeAuthService.batchAuthViewFileSource(
-            operator, new AppResourceScope(appId), ownFileSourceIdToName);
+            operator, appResourceScope, ownFileSourceIdToName);
     }
 
     private void checkStepInstanceExecuteTargetNonEmpty(StepInstanceDTO stepInstance) {
@@ -1400,7 +1402,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 检查正在执行的作业配额限制
             TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
             watch.start("checkRunningJobQuoteLimit");
-            checkRunningJobQuotaLimit(taskInstance.getAppId(), taskInstance.getAppCode());
+            AppResourceScope appResourceScope =
+                checkRunningJobQuotaLimit(taskInstance.getAppId(), taskInstance.getAppCode());
             watch.stop();
 
             ServiceTaskPlanDTO jobPlan = taskInfo.getJobPlan();
@@ -1450,7 +1453,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             if (!executeParam.isSkipAuth()) {
                 watch.start("auth-execute-job");
-                authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), jobPlan, stepInstanceList,
+                authExecuteJobPlan(executeParam.getOperator(), appResourceScope, jobPlan, stepInstanceList,
                     taskInstanceExecuteObjects.getWhiteHostAllowActions());
                 watch.stop();
             }
@@ -1618,7 +1621,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void authExecuteJobPlan(User user,
-                                    long appId,
+                                    AppResourceScope appResourceScope,
                                     ServiceTaskPlanDTO plan,
                                     List<StepInstanceDTO> stepInstanceList,
                                     Map<Long, List<String>> whiteHostAllowActions) throws PermissionDeniedException {
@@ -1643,23 +1646,23 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 账号使用鉴权
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
-            user, new AppResourceScope(appId), accountIds);
+            user, appResourceScope, accountIds);
 
         AuthResult authResult;
         if (authServers.isEmpty()) {
             log.info("Required auth servers is empty, authServers: {}", authServers);
-            // 主机为空，无需对主机鉴权
+            // 执行目标为空，无需对执行目标鉴权
             authResult = accountAuthResult;
         } else {
             AuthResult serverAuthResult;
             if (isDebugTask) {
                 // 鉴权模板调试
                 serverAuthResult = executeAuthService.authDebugTemplate(
-                    user, new AppResourceScope(appId), plan.getTaskTemplateId(), authServers);
+                    user, appResourceScope, plan.getTaskTemplateId(), authServers);
             } else {
                 // 鉴权执行方案的执行
                 serverAuthResult = executeAuthService.authExecutePlan(
-                    user, new AppResourceScope(appId), plan.getTaskTemplateId(),
+                    user, appResourceScope, plan.getTaskTemplateId(),
                     plan.getId(), plan.getName(), authServers);
             }
             authResult = accountAuthResult.mergeAuthResult(serverAuthResult);
@@ -1728,7 +1731,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     taskInstance.getPlanId());
                 throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
             }
-            authExecuteJobPlan(user, appId, serviceTaskPlanDTO, taskInstance.getStepInstances(),
+            authExecuteJobPlan(user, new AppResourceScope(appId), serviceTaskPlanDTO, taskInstance.getStepInstances(),
                 whiteHostAllowActions);
         } else if (taskType.equals(TaskTypeEnum.SCRIPT.getValue())) {
             // 快速执行脚本鉴权
@@ -1740,13 +1743,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     scriptStepInstance.setScriptName(script.getName());
                 }
             }
-            authFastExecute(user, appId, scriptStepInstance, whiteHostAllowActions,
+            authFastExecute(user, new AppResourceScope(appId), scriptStepInstance, whiteHostAllowActions,
                 Collections.emptyList());
         } else if (taskType.equals(TaskTypeEnum.FILE.getValue())) {
             // 快速分发文件鉴权
             StepInstanceDTO fileStepInstance = taskInstance.getStepInstances().get(0);
             // 重做走的是已落库的执行实例，不对其引用的文件源追加可用性校验与鉴权，避免存量作业无法重做
-            authFastExecute(user, appId, fileStepInstance, whiteHostAllowActions,
+            authFastExecute(user, new AppResourceScope(appId), fileStepInstance, whiteHostAllowActions,
                 Collections.emptyList());
         } else {
             log.warn("Auth fail because of invalid task type!");
@@ -2110,7 +2113,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (account.getCategory() != expectedCategory) {
             log.warn("Resolved account category mismatch, stepId={}, accountVar={}, accountId={}, expected={}, " +
                     "actual={}", stepId, accountVar, accountId, expectedCategory, account.getCategory());
-            throw new InvalidParamException(
+            throw new PropagatableInvalidParamException(
                 ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new Object[]{"variables", String.format("variable[%s] must use a %s account", accountVar,
                     expectedCategory.getName())}
@@ -2962,7 +2965,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 taskInfo.getVariables().values());
 
         watch.start("auth-execute-job");
-        authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), taskInfo.getJobPlan(),
+        authExecuteJobPlan(executeParam.getOperator(), new AppResourceScope(executeParam.getAppId()),
+            taskInfo.getJobPlan(),
             taskInfo.getStepInstances(), taskInstanceExecuteObjects.getWhiteHostAllowActions());
         watch.stop();
 

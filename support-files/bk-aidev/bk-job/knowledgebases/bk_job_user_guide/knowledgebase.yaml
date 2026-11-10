@@ -1,0 +1,13 @@
+apiVersion: bkai.tencent.com/v1
+kind: KnowledgeBase
+
+metadata:
+  code: bk_job_user_guide
+  name: 作业平台知识库
+  description: 作业平台知识库
+
+spec:
+  generate_type: space
+  is_public: false
+  config: {}
+  tag_names: []

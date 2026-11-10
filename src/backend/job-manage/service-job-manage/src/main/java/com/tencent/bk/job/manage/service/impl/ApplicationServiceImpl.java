@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -217,6 +218,25 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType) {
         return applicationDAO.listAppsByScopeType(scopeType);
+    }
+
+    @Override
+    public PageData<ApplicationDTO> listPageAppsByScopeType(String tenantId,
+                                                            ResourceScopeTypeEnum scopeType,
+                                                            String nameKeyword,
+                                                            int start,
+                                                            int length) {
+        List<ApplicationDTO> apps = applicationDAO.listPageAppsByScopeType(
+            tenantId, scopeType, nameKeyword, start, length);
+        long total = applicationDAO.countAppsByScopeType(tenantId, scopeType, nameKeyword);
+        return new PageData<>(start, length, total, apps);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAppsByScopeIds(String tenantId,
+                                                   ResourceScopeTypeEnum scopeType,
+                                                   Collection<String> scopeIds) {
+        return applicationDAO.listAppsByScopeIds(tenantId, scopeType, scopeIds);
     }
 
     @Override

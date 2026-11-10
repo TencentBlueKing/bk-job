@@ -72,6 +72,17 @@ spring:
           filters:
             - RecordIamAccessLog
             - AddEsbLangHeader
+
+        # IAM v4 资源实例回调。v4 全系统只注册一个回调地址，资源类型在请求体的 type 字段里；
+        # 轻量模式下全部资源都在 job-assemble 同一进程，dispatcher 的本地分支即可覆盖全部资源类型，
+        # 无需跨服务转发。详见 design.md D14。
+        - id: job-iamv4-callback
+          uri: lb://job-assemble
+          predicates:
+            - Path=/iamv4/api/v1/callback
+          filters:
+            - RecordIamAccessLog
+            - AddEsbLangHeader
 server:
   port: __BK_JOB_GATEWAY_SERVER_HTTPS_PORT__
   http:
