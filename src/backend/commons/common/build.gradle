@@ -46,7 +46,7 @@ dependencies {
     implementation 'commons-validator:commons-validator'
     implementation 'io.micrometer:micrometer-tracing'
     implementation 'com.tencent.bk.sdk:crypto-java-sdk'
-    implementation 'com.tencent.bk.kms:bk-kms-sdk:1.0.1'
+    implementation 'com.tencent.bk.kms:bk-kms-sdk:1.0.0'
     compileOnly 'org.springframework:spring-web'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
