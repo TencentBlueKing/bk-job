@@ -73,6 +73,7 @@ public class JobHttpSslVerifyProperties {
         private Boolean gse;
         private Boolean cmdb;
         private Boolean iam;
+        private Boolean iamV4;
         private Boolean bkLogin;
         private Boolean bkUser;
         private Boolean bkRepo;
@@ -91,6 +92,8 @@ public class JobHttpSslVerifyProperties {
                     return cmdb;
                 case IAM:
                     return iam;
+                case IAM_V4:
+                    return iamV4;
                 case BK_LOGIN:
                     return bkLogin;
                 case BK_USER:

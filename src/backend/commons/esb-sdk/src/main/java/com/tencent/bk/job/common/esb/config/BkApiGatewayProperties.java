@@ -66,6 +66,11 @@ public class BkApiGatewayProperties {
     private ApiGwConfig bkIam;
 
     /**
+     * 蓝鲸权限中心 v4（RBAC）相关配置。v4 走独立的 APIGW 地址，不复用 bkIam。
+     */
+    private ApiGwConfig bkIamV4;
+
+    /**
      * 消息通知相关配置
      */
     private ApiGwConfig cmsi;

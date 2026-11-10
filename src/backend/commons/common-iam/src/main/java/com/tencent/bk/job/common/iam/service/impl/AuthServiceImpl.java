@@ -24,75 +24,74 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbInstanceDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbRelatedResourceTypeDTO;
 import com.tencent.bk.job.common.esb.model.iam.OpenApiApplyPermissionDTO;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.client.IIamClient;
-import com.tencent.bk.job.common.iam.constant.ActionInfo;
-import com.tencent.bk.job.common.iam.constant.Actions;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
+import com.tencent.bk.job.common.iam.service.ActionAuthExecutor;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.iam.util.IamAuthVersionHelper;
+import com.tencent.bk.job.common.iam.util.IamV3ApplyActionBuilder;
 import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.common.util.CustomCollectionUtils;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
 import com.tencent.bk.sdk.iam.dto.resource.RelatedResourceTypeDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
-import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 通用资源鉴权的统一入口 / 路由层。
+ *
+ * <p>持有 v3 / v4 两个 {@link ActionAuthExecutor}，按热更灰度开关 {@link IamAuthVersionHelper#useV4(String)}
+ * 选择执行器，只做灰度路由 + 结果包装。申请链接 / 注册委派给执行器（版本相关）；ESB 无权限响应为版本无关的
+ * 格式化，保留在本类。本类不直接依赖 v3/v4 的 IAM 客户端。</p>
+ */
 @Slf4j
-public class AuthServiceImpl extends BasicAuthService implements AuthService {
-    private final AuthHelper authHelper;
-    private final IIamClient iamClient;
-    private final MessageI18nService i18nService;
-    private ResourceNameQueryService resourceNameQueryService;
+public class AuthServiceImpl extends AbstractAuthResultBuilder implements AuthService {
 
-    public AuthServiceImpl(AuthHelper authHelper,
-                           MessageI18nService i18nService,
-                           IIamClient iamClient) {
-        this.authHelper = authHelper;
+    private final ActionAuthExecutor v3Executor;
+    private final ActionAuthExecutor v4Executor;
+    private final MessageI18nService i18nService;
+
+    public AuthServiceImpl(ActionAuthExecutor v3Executor,
+                           ActionAuthExecutor v4Executor,
+                           MessageI18nService i18nService) {
+        this.v3Executor = v3Executor;
+        this.v4Executor = v4Executor;
         this.i18nService = i18nService;
-        this.iamClient = iamClient;
     }
 
-    @Override
-    public void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService) {
-        this.resourceNameQueryService = resourceNameQueryService;
-        super.setResourceNameQueryService(resourceNameQueryService);
+    private ActionAuthExecutor pickExecutor(User user) {
+        return IamAuthVersionHelper.useV4(user.getUsername()) ? v4Executor : v3Executor;
+    }
+
+    private ActionAuthExecutor pickExecutorByContext() {
+        return IamAuthVersionHelper.useV4(JobContextUtil.getUsername()) ? v4Executor : v3Executor;
     }
 
     @Override
     public AuthResult auth(User user, String actionId) {
-        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(), actionId);
+        boolean isAllowed = pickExecutor(user).auth(user, actionId);
         if (isAllowed) {
             return AuthResult.pass(user);
-        } else {
-            return buildFailAuthResult(user, actionId, null, (String) null);
         }
+        return buildResourceFailAuthResult(user, actionId, null, null, null);
     }
 
     @Override
@@ -101,27 +100,62 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                            ResourceTypeEnum resourceType,
                            String resourceId,
                            PathInfoDTO pathInfo) {
-        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
-            actionId, buildInstance(resourceType, resourceId, pathInfo));
+        boolean isAllowed = pickExecutor(user).auth(user, actionId, resourceType, resourceId, pathInfo);
         if (isAllowed) {
             return AuthResult.pass(user);
-        } else {
-            return buildFailAuthResult(user, actionId, resourceType, resourceId, pathInfo);
         }
+        return buildResourceFailAuthResult(user, actionId, resourceType, resourceId, pathInfo);
     }
 
-    private AuthResult buildFailAuthResult(User user,
-                                           String actionId,
-                                           ResourceTypeEnum resourceType,
-                                           String resourceId) {
-        return buildFailAuthResult(user, actionId, resourceType, resourceId, null);
+    @Override
+    public List<String> batchAuth(User user,
+                                  String actionId,
+                                  ResourceTypeEnum resourceType,
+                                  List<String> resourceIdList) {
+        return pickExecutor(user).batchAuth(user, actionId, resourceType, resourceIdList);
     }
 
-    private AuthResult buildFailAuthResult(User user,
-                                           String actionId,
-                                           ResourceTypeEnum resourceType,
-                                           String resourceId,
-                                           PathInfoDTO pathInfo) {
+    @Override
+    public AuthResult batchAuthResources(User user,
+                                         String actionId,
+                                         List<PermissionResource> resources) {
+        List<String> allowResourceIds = pickExecutor(user).listAllowedResourceIds(user, actionId, resources);
+        List<PermissionResource> deniedResources = resources.stream()
+            .filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
+            .collect(Collectors.toList());
+        return deniedResources.isEmpty()
+            ? AuthResult.pass(user)
+            : buildFailAuthResultFromResources(user, actionId, deniedResources);
+    }
+
+    @Override
+    public String getApplyUrl(String actionId, ResourceTypeEnum resourceType) {
+        return pickExecutorByContext().getApplyUrl(actionId, resourceType);
+    }
+
+    @Override
+    public String getApplyUrl(String tenantId, List<PermissionActionResource> permissionActionResources) {
+        if (permissionActionResources == null || permissionActionResources.isEmpty()) {
+            log.warn("Get apply url, action resource is empty!");
+            return "";
+        }
+        return pickExecutorByContext().getApplyUrl(tenantId, permissionActionResources);
+    }
+
+    @Override
+    public boolean registerResource(User creator,
+                                    String id,
+                                    String name,
+                                    String type,
+                                    List<ResourceDTO> ancestors) {
+        return pickExecutor(creator).registerResource(creator, id, name, type, ancestors);
+    }
+
+    private AuthResult buildResourceFailAuthResult(User user,
+                                                   String actionId,
+                                                   ResourceTypeEnum resourceType,
+                                                   String resourceId,
+                                                   PathInfoDTO pathInfo) {
         AuthResult authResult = AuthResult.fail(user);
         if (resourceType == null || StringUtils.isEmpty(resourceId)) {
             authResult.addRequiredPermission(actionId, null);
@@ -129,8 +163,6 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
             String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
             PermissionResource permissionResource =
                 new PermissionResource(resourceType, resourceId, resourceName);
-            // 将 pathInfo 中的父级资源信息转换为 parentHierarchicalResources，
-            // 使申请权限跳转链接中能够展示完整的资源拓扑（如业务信息）
             if (pathInfo != null) {
                 List<PermissionResource> parentResources =
                     buildParentHierarchicalResources(pathInfo, permissionResource);
@@ -144,12 +176,10 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     /**
-     * 将 pathInfo 链表解析为父级层级资源列表
+     * 将 pathInfo 链表解析为父级层级资源列表。
      * <p>
-     * pathInfo 描述的是资源在 IAM 中的路径，可能仅包含祖先节点（如 biz/{bizId}），
-     * 也可能包含资源自身（如 biz/{bizId} → account/{accountId}）。
-     * 为避免与被鉴权资源重复，需要跳过 type+id 与被鉴权资源匹配的节点，
-     * 仅保留真正的祖先节点作为 parentHierarchicalResources。
+     * pathInfo 可能只含祖先（如 biz/{bizId}），也可能带上资源自身（如 biz/{bizId} → account/{accountId}）。
+     * 跳过 type+id 与被鉴权资源匹配的节点，只保留祖先。
      *
      * @param pathInfo           资源路径信息
      * @param permissionResource 被鉴权资源
@@ -165,7 +195,6 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
         while (node != null) {
             ResourceTypeEnum nodeType = ResourceTypeEnum.getByResourceTypeId(node.getType());
             String nodeId = node.getId();
-            // 跳过与被鉴权资源 type+id 匹配的节点，避免在 buildApplyActions 中出现重复
             if (nodeType != null && StringUtils.isNotEmpty(nodeId)
                 && !(node.getType().equals(resourceType) && nodeId.equals(resourceId))) {
                 String parentName = resourceNameQueryService.getResourceName(nodeType, nodeId);
@@ -178,150 +207,21 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public List<String> batchAuth(User user,
-                                  String actionId,
-                                  ResourceTypeEnum resourceType,
-                                  List<String> resourceIdList) {
-        return authHelper.isAllowed(user.getTenantId(), user.getUsername(),
-            actionId, buildInstanceList(resourceType, resourceIdList));
-    }
-
-    @Override
-    public AuthResult batchAuthResources(User user,
-                                         String actionId,
-                                         List<PermissionResource> resources) {
-        List<String> allowResourceIds = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
-            actionId, buildInstanceList(resources));
-        List<PermissionResource> deniedResources = resources.stream()
-            .filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
-            .collect(Collectors.toList());
-        return deniedResources.isEmpty()
-            ? AuthResult.pass(user)
-            : buildFailAuthResultFromResources(user, actionId, deniedResources);
-    }
-
-    private List<InstanceDTO> buildInstanceList(ResourceTypeEnum resourceType,
-                                                List<String> resourceIds) {
-        List<InstanceDTO> instances = new LinkedList<>();
-        resourceIds.forEach(resourceId -> instances.add(buildInstance(resourceType, resourceId, null)));
-        return instances;
-    }
-
-    @Override
-    public String getApplyUrl(String tenantId, List<PermissionActionResource> permissionActionResources) {
-        if (permissionActionResources == null || permissionActionResources.isEmpty()) {
-            log.warn("Get apply url, action resource is empty!");
-            return "";
-        }
-        List<ActionDTO> actions = buildApplyActions(permissionActionResources);
-        log.info("Get apply url, actions: {}", actions);
-        return iamClient.getApplyUrl(actions);
-    }
-
-    private List<ActionDTO> buildApplyActions(List<PermissionActionResource> permissionActionResources) {
-        Map<String, Map<String, List<PermissionResource>>> resourcesGroupByActionAndType =
-            groupResourcesByActionAndResourceType(permissionActionResources);
-
-        List<ActionDTO> actions = new ArrayList<>();
-        for (Map.Entry<String, Map<String, List<PermissionResource>>> entry :
-            resourcesGroupByActionAndType.entrySet()) {
-            String actionId = entry.getKey();
-            Map<String, List<PermissionResource>> resourceGroups = entry.getValue();
-            ActionDTO action = new ActionDTO();
-            action.setId(actionId);
-            actions.add(action);
-
-            if (resourceGroups == null || resourceGroups.isEmpty()) {
-                continue;
-            }
-
-            ActionInfo actionInfo = Actions.getActionInfo(actionId);
-            if (actionInfo == null) {
-                log.error("Invalid Action, actionId: {}", actionId);
-                throw new InternalException(ErrorCode.INTERNAL_ERROR);
-            }
-
-            List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
-            List<ResourceTypeEnum> actionRelatedResourceTypes = actionInfo.getRelatedResourceTypes();
-            // 无关联资源的Action处理
-            if (CollectionUtils.isEmpty(actionRelatedResourceTypes)) {
-                action.setRelatedResourceTypes(relatedResourceTypes);
-                continue;
-            }
-            // IAM 鉴权API对于依赖资源类型的顺序有要求，需要按照注册资源时候的顺序
-            for (ResourceTypeEnum resourceType : actionRelatedResourceTypes) {
-                List<PermissionResource> relatedResources = resourceGroups.get(resourceType.getId());
-                if (CollectionUtils.isEmpty(relatedResources)) {
-                    log.error("Action related resources is empty");
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
-                }
-                RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
-                String systemId = relatedResources.get(0).getSystemId();
-                relatedResourceType.setSystemId(systemId);
-                relatedResourceType.setType(resourceType.getId());
-                List<List<InstanceDTO>> instanceList = new ArrayList<>();
-                for (PermissionResource relatedResource : relatedResources) {
-                    InstanceDTO instance = convertPermissionResourceToInstance(relatedResource);
-                    List<PermissionResource> parentResources =
-                        relatedResource.getParentHierarchicalResources();
-                    if (CollectionUtils.isEmpty(parentResources) && relatedResource.getPathInfo() != null) {
-                        parentResources = buildParentHierarchicalResources(
-                            relatedResource.getPathInfo(),
-                            relatedResource
-                        );
-                    }
-                    if (!CustomCollectionUtils.isEmptyCollection(parentResources)) {
-                        List<InstanceDTO> hierarchicalInstance = new ArrayList<>();
-                        parentResources.forEach(
-                            resource -> hierarchicalInstance.add(convertPermissionResourceToInstance(resource)));
-                        hierarchicalInstance.add(instance);
-                        instanceList.add(hierarchicalInstance);
-                    } else {
-                        instanceList.add(Collections.singletonList(instance));
-                    }
-                }
-                relatedResourceType.setInstance(instanceList);
-
-                relatedResourceTypes.add(relatedResourceType);
-            }
-            action.setRelatedResourceTypes(relatedResourceTypes);
-        }
-        return actions;
-    }
-
-    private Map<String, Map<String, List<PermissionResource>>> groupResourcesByActionAndResourceType(
-        List<PermissionActionResource> permissionActionResources) {
-        // Map<actionId, Map<resourceType, resourceList>>
-        Map<String, Map<String, List<PermissionResource>>> resourcesGroupByActionAndType = new HashMap<>();
-        permissionActionResources.forEach(actionResource ->
-            resourcesGroupByActionAndType.compute(actionResource.getActionId(), (actionId, resourcesGroupByType) -> {
-                if (resourcesGroupByType == null) {
-                    resourcesGroupByType = new HashMap<>();
-                }
-                for (PermissionResourceGroup resourceGroup : actionResource.getResourceGroups()) {
-                    resourcesGroupByType.compute(resourceGroup.getResourceType().getId(), (resourceType, resources) -> {
-                        if (resources == null) {
-                            resources = new ArrayList<>();
-                        }
-                        resources.addAll(resourceGroup.getPermissionResources());
-                        return resources;
-                    });
-                }
-                return resourcesGroupByType;
-            }));
-        return resourcesGroupByActionAndType;
-    }
-
-    @Override
     public <T> EsbResp<T> buildEsbAuthFailResp(List<PermissionActionResource> permissionActionResources) {
-        List<ActionDTO> actions = buildApplyActions(permissionActionResources);
+        List<ActionDTO> actions = IamV3ApplyActionBuilder.buildApplyActions(permissionActionResources);
         OpenApiApplyPermissionDTO applyPermission = buildPermissionApplyDTO(actions);
         return EsbResp.buildAuthFailResult(applyPermission);
     }
 
     @Override
+    public <T> EsbResp<T> buildEsbAuthFailResp(PermissionDeniedException exception) {
+        return buildEsbAuthFailResp(exception.getAuthResult().getRequiredActionResources());
+    }
+
+    @Override
     public OpenApiApplyPermissionDTO buildPermissionDetailByPermissionApplyDTO(PermissionDeniedException exception) {
-        List<ActionDTO> actions = buildApplyActions(exception.getAuthResult().getRequiredActionResources());
+        List<ActionDTO> actions =
+            IamV3ApplyActionBuilder.buildApplyActions(exception.getAuthResult().getRequiredActionResources());
         return buildPermissionApplyDTO(actions);
     }
 
@@ -368,37 +268,9 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                 esbInstances.add(esbHierarchicalInstance);
             }
             esbRelatedResourceType.setInstance(esbInstances);
-
             esbRelatedResourceTypes.add(esbRelatedResourceType);
         }
         esbAction.setRelatedResourceTypes(esbRelatedResourceTypes);
         return esbAction;
-    }
-
-    @Override
-    public <T> EsbResp<T> buildEsbAuthFailResp(PermissionDeniedException exception) {
-        return buildEsbAuthFailResp(exception.getAuthResult().getRequiredActionResources());
-    }
-
-    @Override
-    public String getApplyUrl(String actionId, ResourceTypeEnum resourceType) {
-        RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
-        relatedResourceType.setSystemId(resourceType.getSystemId());
-        relatedResourceType.setType(resourceType.getId());
-        relatedResourceType.setInstance(Collections.emptyList());
-
-        ActionDTO action = new ActionDTO();
-        action.setId(actionId);
-        action.setRelatedResourceTypes(Collections.singletonList(relatedResourceType));
-        return iamClient.getApplyUrl(Collections.singletonList(action));
-    }
-
-    @Override
-    public boolean registerResource(User user,
-                                    String id,
-                                    String name,
-                                    String type,
-                                    List<ResourceDTO> ancestors) {
-        return iamClient.registerResource(id, name, type, user.getUsername(), ancestors);
     }
 }

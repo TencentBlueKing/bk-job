@@ -203,6 +203,17 @@ public class ExecuteTargetDTO implements Cloneable {
                 });
             }
         }
+        if (executeObjects.getContainerFilters() != null) {
+            if (this.containerFilters == null) {
+                this.containerFilters = new ArrayList<>(executeObjects.getContainerFilters());
+            } else {
+                executeObjects.getContainerFilters().forEach(containerFilter -> {
+                    if (!this.containerFilters.contains(containerFilter)) {
+                        this.containerFilters.add(containerFilter);
+                    }
+                });
+            }
+        }
         return this;
     }
 
@@ -221,7 +232,8 @@ public class ExecuteTargetDTO implements Cloneable {
         return CollectionUtils.isEmpty(this.staticIpList)
             && CollectionUtils.isEmpty(this.topoNodes)
             && CollectionUtils.isEmpty(this.dynamicServerGroups)
-            && CollectionUtils.isEmpty(this.staticContainerList);
+            && CollectionUtils.isEmpty(this.staticContainerList)
+            && CollectionUtils.isEmpty(this.containerFilters);
     }
 
     /**

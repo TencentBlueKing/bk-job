@@ -89,6 +89,8 @@ job:
           cmdb: true
           # 权限中心 IAM
           iam: true
+          # 权限中心 IAM v4，与 IAM 不是同一服务，证书校验开关单独配置
+          iamV4: true
           # 统一登录 BK-Login
           bkLogin: true
           # 用户管理 BK-User

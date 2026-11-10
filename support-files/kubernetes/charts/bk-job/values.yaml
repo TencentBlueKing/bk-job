@@ -548,8 +548,10 @@ bkLoginUrl: "http://paas.example.com/login/"
 bkCmdbUrl: "http://cmdb.example.com"
 # 用户管理页面 url
 bkUserUrl: "http://bk-user.example.com"
-# 蓝鲸 IAM url
+# 蓝鲸 IAM url（v3 页面）
 bkIamUrl: "http://bkiam.example.com"
+# 蓝鲸 IAM v4 页面 url
+bkIamV4Url: "http://bkiamv4.example.com"
 # 蓝鲸制品库 url
 bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
@@ -570,6 +572,8 @@ bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user/prod"
 bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web/prod"
 # 蓝鲸权限中心 API Gateway url
 bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam/prod"
+# 蓝鲸权限中心 v4(RBAC) API Gateway url，走独立地址，不复用 bkIamApiGatewayUrl
+bkIamV4ApiGatewayUrl: "http://bkapi.example.com/api/bk-iam-v4/prod"
 # 消息通知 API Gateway url
 bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi/prod"
 # 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
@@ -743,6 +747,11 @@ iam:
   # 作业平台注册到IAM的系统ID
   systemId: bk_job
 
+## 权限中心 v4 配置
+iamv4:
+  # 作业平台注册到 IAM v4 的系统 ID
+  systemId: bk_job
+
 ## 操作审计配置
 audit:
   # 是否开启操作审计
@@ -835,6 +844,8 @@ job:
           cmdb: true
           # 权限中心 IAM
           iam: true
+          # 权限中心 IAM v4
+          iamV4: true
           # 统一登录 BK-Login
           bkLogin: true
           # 用户管理 BK-User
@@ -933,6 +944,16 @@ job:
     # 分库分表迁移使用，控制是否在mysql 查询条件中加入 task_instance_id 字段作为查询条件
     daoAddTaskInstanceId:
       enabled: true
+    # 是否将鉴权切换到蓝鲸权限中心 v4(RBAC)。默认关闭(走 v3)，可通过热更新逐步灰度到 v4
+    iamV4:
+      enabled: false
+      # 灰度策略(enabled=true 时生效)：
+      #   AlwaysMatchToggleStrategy    —— 全量放开，所有用户始终走 v4
+      #   UsernameWhiteListToggleStrategy —— 按用户名灰度，仅 params.usernameList 中的用户走 v4
+      # strategy:
+      #   id: UsernameWhiteListToggleStrategy
+      #   params:
+      #     usernameList: "admin"
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
@@ -981,6 +1002,19 @@ job:
     iamModel:
       # 是否开启权限模型migration
       enabled: true
+    # IAM v4 权限模型同步。对比后增删改，幂等可重复执行。与运行时鉴权灰度 job.features.iamV4.enabled 分开
+    iamV4:
+      # 是否同步 v4 权限模型
+      enabled: true
+      # 写接口失败是否跳过并继续，避免残留数据导致 K8s Job 失败
+      ignoreFail: true
+      # 只对比并打印增删改日志，不调用 IAM 写接口
+      dryRun: false
+      # 删除角色中的 action 时是否带 cascade=rbac_authorization。
+      # 开启后会强制删掉该角色上这条 action 的授权记录，请谨慎使用。默认关闭
+      deleteCascade: false
+      # 系统管理员，逗号分隔；空则 managers 传空数组
+      managers: ""
     mysqlSchema:
       # 是否开启Mysql数据库结构migration
       enabled: true

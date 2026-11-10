@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.service.TopoService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
+import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -74,14 +75,17 @@ class ExecuteAuthServiceImplTest {
         doCallRealMethod().when(appScopeMappingService).fillAppResourceScope(any());
         jobExecuteConfig = mock(JobExecuteConfig.class);
         TopoService topoService = mock(TopoService.class);
+        ExecuteTargetInstanceBuilder executeTargetInstanceBuilder =
+            new ExecuteTargetInstanceBuilder(topoService);
         service = new ExecuteAuthServiceImpl(
-            authHelper,
+            new V3ExecuteAuthExecutor(authHelper, executeTargetInstanceBuilder),
+            new V4ExecuteAuthExecutor(mock(IamV4AuthService.class), executeTargetInstanceBuilder),
+            executeTargetInstanceBuilder,
             resourceNameQueryService,
             authService,
             appAuthService,
             appScopeMappingService,
-            jobExecuteConfig,
-            topoService
+            jobExecuteConfig
         );
     }
 

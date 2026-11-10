@@ -259,11 +259,24 @@ public class WebBackupResourceImpl implements WebBackupResource {
                 exportInfo.setStatus(BackupJobStatusEnum.FINISHED);
                 exportInfo.setFileName(null);
                 return Response.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
-            } else {
-                throw new InternalException("Wrong job status", ErrorCode.INTERNAL_ERROR);
             }
+            // 失败、取消、部分失败或已完成的任务已不在进行中列表，结束时不再报错
+            if (isExportAlreadyEnded(exportInfo.getStatus())) {
+                return Response.buildSuccessResp(true);
+            }
+            throw new InternalException("Wrong job status", ErrorCode.INTERNAL_ERROR);
         }
         throw new InternalException("Not found", ErrorCode.INTERNAL_ERROR);
+    }
+
+    /**
+     * 导出是否已经结束，无需再从全部成功收成已完成。
+     */
+    private boolean isExportAlreadyEnded(BackupJobStatusEnum status) {
+        return BackupJobStatusEnum.ALL_FAILED.equals(status)
+            || BackupJobStatusEnum.CANCEL.equals(status)
+            || BackupJobStatusEnum.PARTIAL_FAILED.equals(status)
+            || BackupJobStatusEnum.FINISHED.equals(status);
     }
 
     @Override

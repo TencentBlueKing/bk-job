@@ -60,6 +60,33 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
 
+    /**
+     * 按资源范围类型分页查询业务，可按名称模糊过滤。
+     *
+     * @param tenantId  租户 ID，为空则不限租户
+     * @param scopeType 资源范围类型
+     * @param nameKeyword 名称关键字，为空则不过滤
+     * @param start     起始位置
+     * @param length    每页数量
+     */
+    List<ApplicationDTO> listPageAppsByScopeType(String tenantId,
+                                                 ResourceScopeTypeEnum scopeType,
+                                                 String nameKeyword,
+                                                 int start,
+                                                 int length);
+
+    /**
+     * 与 {@link #listPageAppsByScopeType} 使用同一组过滤条件的计数，用于分页总数。
+     */
+    long countAppsByScopeType(String tenantId, ResourceScopeTypeEnum scopeType, String nameKeyword);
+
+    /**
+     * 按租户 + 资源范围类型 + 一批 scope ID（CMDB 侧 ID）批量查询业务。
+     */
+    List<ApplicationDTO> listAppsByScopeIds(String tenantId,
+                                            ResourceScopeTypeEnum scopeType,
+                                            Collection<String> scopeIds);
+
     Long insertApp(ApplicationDTO applicationDTO);
 
     int updateApp(ApplicationDTO applicationDTO);

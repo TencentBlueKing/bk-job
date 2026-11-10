@@ -1198,7 +1198,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .forEach(fileSource -> executeTarget.merge(fileSource.getServers()));
         filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, executeTarget, whiteHostAllowActions);
         if (executeTarget.isEmpty()) {
-            // 如果主机为空，无需对主机进行权限
+            // 执行目标为空，无需对执行目标鉴权
             return preHostAuthResult;
         }
 
@@ -1650,7 +1650,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         AuthResult authResult;
         if (authServers.isEmpty()) {
             log.info("Required auth servers is empty, authServers: {}", authServers);
-            // 主机为空，无需对主机鉴权
+            // 执行目标为空，无需对执行目标鉴权
             authResult = accountAuthResult;
         } else {
             AuthResult serverAuthResult;
