@@ -101,7 +101,7 @@ bkai:
   ignoreSyncError: false
 ```
 
-5. 新增蓝鲸 KMS。默认关闭，关闭时渲染结果与现网一致。开启后由运维在 BK-KMS 录入凭证，Chart 按短名渲染 SecretStore 与 ExternalSecret，Pod 只挂私钥引用和信封。信封 JSON 的 key 见 `openspec/changes/add-bk-kms-eso-integration/proposal.md` 的「信封 JSON 模板」。某短名未接管时，对应 `role` / `remoteKey` 留空。
+5. 新增蓝鲸 KMS。默认关闭，关闭时渲染结果与现网一致。开启后由运维在 BK-KMS 录入凭证，Chart 按短名渲染 SecretStore 与 ExternalSecret，Pod 只挂私钥引用和信封。
 ```yaml
 kms:
   # 是否启用。false 时不渲染 SecretStore / ExternalSecret，敏感项仍走现网明文
