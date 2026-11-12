@@ -8,7 +8,7 @@ kind: Agent
 # Agent 也不能配置 version（含 null），发布版本由平台分配。
 metadata:
   code: ai-bkjob-web
-  name: 蓝鲸作业平台页面小鲸
+  name: 作业平台-小鲸助手
   description: 蓝鲸作业平台Web页面AI小鲸的智能体。
 
 spec:
@@ -265,7 +265,7 @@ spec:
           file: false
 
   subagents: []
-  #   - code: ai-job-exec
+  #   - code: ai-bkjob-exec
 
   # MCP Server 引用，type 固定为 apigw。
   # code 与 support-files/bk-api-gateway/v3/definition.yaml 中 mcp_servers[].name 一一对应；

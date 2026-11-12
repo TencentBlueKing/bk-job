@@ -18,16 +18,25 @@ support-files/bk-aidev/bk-job/
     └── render_placeholders.py # 占位符渲染脚本
 ```
 
-## 资源 code 命名规则
+## 资源命名规则
 
-code 是平台定位资源的稳定标识，**一律小写**，与展示名称无关；不符合规则会被 `bkai-init` 直接拒绝，
-且平台不做大小写转换或迁移。
+作业平台的产品代号为 `bkjob`，中文产品名称为“作业平台”。Agent 与 Skill 的 `metadata.code`、
+`metadata.name` 分别遵循以下规范：
 
-| 资源 | 规则 | 本仓库取值 |
-| --- | --- | --- |
-| 智能体 / 子智能体 | `^ai-[a-z][a-z0-9-]{1,12}$`，总长 5–16 位，不支持下划线 | `ai-bkjob-web` |
-| 角色 / MCP / Skill | `^[a-z][a-z0-9_-]{0,63}$` | `bk-job-prod-mcp-task-context` |
-| 知识库 | `^[a-z][a-z0-9_]{0,63}$`，**不支持中划线** | `bk_job_user_guide` |
+| 资源              | code 命名规范          | 中文名称规范            | 示例（code / 中文名称）                  |
+| ----------------- | ---------------------- | ----------------------- | ---------------------------------------- |
+| 智能体 / 子智能体 | `ai-bkjob-{Agent名字}` | `作业平台-{智能体名称}` | `ai-bkjob-web` / 作业平台-小鲸助手       |
+| Skill             | `bkjob-{skill名字}`    | `作业平台-{资源名称}`   | `bkjob-script-check` / 作业平台-脚本检查 |
+
+code 是平台定位资源的稳定标识，**一律小写**；除上述命名规范外，还需满足以下平台格式限制，
+否则会被 `bkai-init` 直接拒绝，且平台不做大小写转换或迁移。
+
+| 资源              | 平台格式限制                                            | 取值示例                       |
+| ----------------- | ------------------------------------------------------- | ------------------------------ |
+| 智能体 / 子智能体 | `^ai-[a-z][a-z0-9-]{1,12}$`，总长 5–16 位，不支持下划线 | `ai-bkjob-web`                 |
+| Skill             | `^[a-z][a-z0-9_-]{0,63}$`                               | `bkjob-script-check`           |
+| 角色 / MCP        | `^[a-z][a-z0-9_-]{0,63}$`                               | `bk-job-prod-mcp-task-context` |
+| 知识库            | `^[a-z][a-z0-9_]{0,63}$`，**不支持中划线**              | `bk_job_user_guide`            |
 
 知识库 code 直接用作 Milvus 集合名，Milvus 不接受中划线，故只能用下划线。
 
@@ -48,10 +57,10 @@ Agent 只引用 MCP，不创建 MCP。MCP Server 由 API 网关侧同步产生�
 资源文件中与部署环境相关的地址不写死，而是用 `${占位符}` 表示，同步前由 `bin/render_placeholders.py`
 替换为真实值。占位符取值来自同名环境变量，环境变量在 Helm 的同步 Job 中注入。
 
-| 占位符 | 含义 | 取值来源 |
-| --- | --- | --- |
-| `${JOB_URL_BASE}` | 作业平台访问地址，如 `http://job.example.com` | Chart helper `job.url.base` |
-| `${JOB_AI_GENERATE_TYPE}` | Agent 的 `spec.generate_type`，多租户为 `global`、非多租户为 `public` | Chart `tenant.enabled` |
+| 占位符                    | 含义                                                                  | 取值来源                    |
+| ------------------------- | --------------------------------------------------------------------- | --------------------------- |
+| `${JOB_URL_BASE}`         | 作业平台访问地址，如 `http://job.example.com`                         | Chart helper `job.url.base` |
+| `${JOB_AI_GENERATE_TYPE}` | Agent 的 `spec.generate_type`，多租户为 `global`、非多租户为 `public` | Chart `tenant.enabled`      |
 
 新增占位符时需要同时改两处：`render_placeholders.py` 中的 `PLACEHOLDER_NAMES` 名单，以及
 `support-files/kubernetes/charts/bk-job/templates/job-migration/sync-bkaidev-job.yaml` 中对应的环境变量。
@@ -114,7 +123,7 @@ Helm 部署也会直接判定为失败；若将 `bkai.ignoreSyncError` 设为 `t
 
 ```yaml
 bkai:
-  admins: ["user_a", "user_b"]
+    admins: ["user_a", "user_b"]
 ```
 
 **Agent YAML 中禁止配置 `spec.admins`**（包括 `null` 与空列表），否则 `bkai-init validate` 会失败。
