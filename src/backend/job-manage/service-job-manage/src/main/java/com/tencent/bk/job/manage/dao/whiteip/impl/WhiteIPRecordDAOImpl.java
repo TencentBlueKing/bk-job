@@ -79,6 +79,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -197,7 +198,13 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int deleteWhiteIPRecordById(Long id) {
-        //TODO:判断租户下该id是否存在，避免越权删除其他租户数据
+        // 先按租户删除主记录；未命中时不得修改关联表，后续失败由事务统一回滚。
+        int deletedRecordNum = dslContext.deleteFrom(T_WHITE_IP_RECORD)
+            .where(buildIdContions(id))
+            .execute();
+        if (deletedRecordNum == 0) {
+            return 0;
+        }
         //删关联表
         int deletedAppRelNum = whiteIPAppRelDAO.deleteWhiteIPAppRelByRecordId(id);
         //删IP
@@ -210,10 +217,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             deletedIpNum,
             deletedActionScopeNum
         );
-        //删Record
-        return dslContext.deleteFrom(T_WHITE_IP_RECORD)
-            .where(buildIdContions(id))
-            .execute();
+        return deletedRecordNum;
     }
 
     private List<Condition> buildIdContions(Long id) {
@@ -361,7 +365,8 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
                 .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
                 .join(tWhiteIPAppRel).on(tWhiteIPRecord.ID.eq(tWhiteIPAppRel.RECORD_ID))
-                .leftJoin(tApplication).on(tWhiteIPAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
+                .leftJoin(tApplication).on(tWhiteIPAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class))
+                    .and(tApplication.TENANT_ID.eq(JobContextUtil.getTenantId())))
                 .where(conditions)
                 .groupBy(tWhiteIPRecord.ID)
                 .orderBy(orderFields)
@@ -403,13 +408,15 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                     ScopeVO scopeVO = new ScopeVO();
                     if (applicationDTO == null) {
                         scopeVO.setName("[Deleted:" + appId + "]");
+                    } else if (!StringUtils.equals(applicationDTO.getTenantId(), JobContextUtil.getTenantId())) {
+                        return null;
                     } else {
                         scopeVO.setName(applicationDTO.getName());
                         scopeVO.setScopeType(applicationDTO.getScope().getType().getValue());
                         scopeVO.setScopeId(applicationDTO.getScope().getId());
                     }
                     return scopeVO;
-                }).collect(Collectors.toList());
+                }).filter(Objects::nonNull).collect(Collectors.toList());
             }
             val recordId = (Long) record.get(KEY_ID);
             WhiteIPRecordVO whiteIPRecord = new WhiteIPRecordVO();
@@ -463,7 +470,8 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
             .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
             .join(tWhiteIpAppRel).on(tWhiteIPRecord.ID.eq(tWhiteIpAppRel.RECORD_ID))
-            .leftJoin(tApplication).on(tWhiteIpAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
+            .leftJoin(tApplication).on(tWhiteIpAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class))
+                .and(tApplication.TENANT_ID.eq(JobContextUtil.getTenantId())))
             .where(conditions);
         return query.fetchOne(0, Long.class);
     }

@@ -63,7 +63,7 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
     @JobTransactional(transactionManager = "jobManageTransactionManager")
     public int upsertGlobalSetting(GlobalSettingDTO globalSettingDTO) {
         AtomicInteger affectedNum = new AtomicInteger(0);
-        deleteGlobalSetting(globalSettingDTO.getKey());
+        deleteGlobalSetting(globalSettingDTO.getKey(), globalSettingDTO.getTenantId());
         affectedNum.set(insertGlobalSetting(globalSettingDTO));
         return affectedNum.get();
     }
@@ -107,9 +107,9 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
     }
 
     @Override
-    public int deleteGlobalSetting(String key) {
+    public int deleteGlobalSetting(String key, String tenantId) {
         return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.KEY.eq(key)
+            defaultTable.KEY.eq(key).and(defaultTable.TENANT_ID.eq(tenantId))
         ).execute();
     }
 
