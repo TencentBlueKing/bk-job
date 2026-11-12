@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.config.JobIamProperties;
 import com.tencent.bk.job.common.iam.config.JobIamV4Properties;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
@@ -36,8 +39,11 @@ import com.tencent.bk.job.common.iam.service.AppAuthExecutor;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.util.IamAuthVersionHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -59,15 +65,18 @@ public class AppAuthServiceImpl extends AbstractAuthResultBuilder implements App
     private final AppAuthExecutor v4Executor;
     private final JobIamProperties jobIamProperties;
     private final JobIamV4Properties jobIamV4Properties;
+    private final CommonAppService commonAppService;
 
     public AppAuthServiceImpl(AppAuthExecutor v3Executor,
                               AppAuthExecutor v4Executor,
                               JobIamProperties jobIamProperties,
-                              JobIamV4Properties jobIamV4Properties) {
+                              JobIamV4Properties jobIamV4Properties,
+                              CommonAppService commonAppService) {
         this.v3Executor = v3Executor;
         this.v4Executor = v4Executor;
         this.jobIamProperties = jobIamProperties;
         this.jobIamV4Properties = jobIamV4Properties;
+        this.commonAppService = commonAppService;
     }
 
     private AppAuthExecutor pickExecutor(User user) {
@@ -80,8 +89,26 @@ public class AppAuthServiceImpl extends AbstractAuthResultBuilder implements App
 
     @Override
     public AuthResult auth(User user, String actionId, AppResourceScope appResourceScope) {
+        if (ActionId.ACCESS_BUSINESS.equals(actionId)) {
+            appResourceScope = checkAppTenant(user, appResourceScope);
+        }
         boolean isAllowed = pickExecutor(user).auth(user, actionId, appResourceScope);
         return isAllowed ? AuthResult.pass(user) : buildScopeFailAuthResult(user, actionId, appResourceScope);
+    }
+
+    /**
+     * 校验业务所属租户跟当前租户是否一致
+     */
+    private AppResourceScope checkAppTenant(User user, AppResourceScope appResourceScope) {
+        BasicApp app = appResourceScope.getAppId() != null
+            ? commonAppService.getApp(appResourceScope.getAppId())
+            : commonAppService.getApp(new ResourceScope(appResourceScope.getType(), appResourceScope.getId()));
+        if (app == null || !StringUtils.equals(app.getTenantId(), user.getTenantId())) {
+            log.warn("App not found or does not belong to tenant, appResourceScope: {}, userTenantId: {}, username: {}",
+                appResourceScope, user.getTenantId(), user.getUsername());
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+        }
+        return new AppResourceScope(app.getId(), app.getScope());
     }
 
     @Override

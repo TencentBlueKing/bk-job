@@ -52,6 +52,7 @@ import com.tencent.bk.job.common.iam.service.impl.V4AppAuthExecutor;
 import com.tencent.bk.job.common.iam.service.impl.WebAuthServiceImpl;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
@@ -72,6 +73,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 
 @Import({IamAspectConfiguration.class, IamInterceptorConfiguration.class})
 @EnableConfigurationProperties({JobIamProperties.class, JobIamV4Properties.class})
@@ -182,10 +184,12 @@ public class IamAutoConfiguration {
                                          JobIamProperties jobIamProperties,
                                          JobIamV4Properties jobIamV4Properties,
                                          IIamClient iamClient,
-                                         IamV4AuthService iamV4AuthService) {
+                                         IamV4AuthService iamV4AuthService,
+                                         @Lazy CommonAppService commonAppService) {
         AppAuthExecutor v3Executor = new V3AppAuthExecutor(authHelper, businessAuthHelper, policyService, iamClient);
         AppAuthExecutor v4Executor = new V4AppAuthExecutor(iamV4AuthService);
-        return new AppAuthServiceImpl(v3Executor, v4Executor, jobIamProperties, jobIamV4Properties);
+        return new AppAuthServiceImpl(v3Executor, v4Executor, jobIamProperties, jobIamV4Properties,
+            commonAppService);
     }
 
 
