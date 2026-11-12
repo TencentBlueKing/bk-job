@@ -1,4 +1,5 @@
 {{- if and .Values.manageConfig.enabled (eq .Values.deploy.mode "standard") }}
+{{- $kmsManage := eq (include "job.kms.credential.active" (dict "name" "manage" "context" .)) "true" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -127,8 +128,10 @@ data:
             {{- toYaml .Values.manageConfig.defaultAccount.accounts | nindent 12 }}
       public-app:
         enabled: {{ .Values.publicApp.enabled }}
+        {{- if not $kmsManage }}
         code: {{ .Values.publicApp.code | quote }}
         secret: {{ .Values.publicApp.secret | quote }}
+        {{- end }}
     bkAuthApiUrl: {{ .Values.bkAuthApiUrl | quote }}
     bkSsmUrl: {{ .Values.bkSsmUrl | quote }}
     mysql:

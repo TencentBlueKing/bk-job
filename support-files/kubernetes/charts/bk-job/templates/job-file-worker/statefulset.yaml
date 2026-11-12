@@ -69,6 +69,7 @@ spec:
           imagePullPolicy: {{ .Values.fileWorkerConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "common" "file-worker")) | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-file-worker"
             - name: BK_JOB_JVM_OPTION
@@ -103,6 +104,8 @@ spec:
               mountPath: {{ .Values.persistence.localStorage.path }}
             - name: distribute-volume
               mountPath: {{ .Values.fileDistribute.hostPath }}
+            {{- include "job.kms.envelopeVolumeMount" (dict "credential" "common" "context" .) | nindent 12 }}
+            {{- include "job.kms.envelopeVolumeMount" (dict "credential" "file-worker" "context" .) | nindent 12 }}
             {{- include "job.volumeExtension.volumeMounts" (dict "module" .Values.fileWorkerConfig "global" .Values.volumeExtension) | nindent 12 }}
       volumes:
         - name: job-storage
@@ -110,5 +113,7 @@ spec:
             claimName: {{ include "job.storage.pvc.name" . }}
         - name: distribute-volume
           {{- include "job.distribute.volume.name" . |nindent 10 }}
+        {{- include "job.kms.envelopeVolume" (dict "credential" "common" "context" .) | nindent 8 }}
+        {{- include "job.kms.envelopeVolume" (dict "credential" "file-worker" "context" .) | nindent 8 }}
         {{- include "job.volumeExtension.volumes" (dict "module" .Values.fileWorkerConfig "global" .Values.volumeExtension) | nindent 8 }}
 {{- end }}

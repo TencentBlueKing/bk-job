@@ -69,6 +69,7 @@ spec:
           imagePullPolicy: {{ .Values.logsvrConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "mongodb" "rabbitmq" "common")) | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-logsvr"
             - name: BK_JOB_JVM_OPTION
@@ -89,12 +90,9 @@ spec:
           volumeMounts:
             - name: job-storage
               mountPath: {{ .Values.persistence.localStorage.path }}
-            - name: mongodb
-              mountPath: /etc/secrets/mongodb
-              readOnly: true
-            - name: rabbitmq
-              mountPath: /etc/secrets/rabbitmq
-              readOnly: true
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "mongodb" "credential" "mongodb" "mountPath" "/etc/secrets/mongodb" "context" .) | nindent 12 }}
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "rabbitmq" "credential" "rabbitmq" "mountPath" "/etc/secrets/rabbitmq" "context" .) | nindent 12 }}
+            {{- include "job.kms.envelopeVolumeMount" (dict "credential" "common" "context" .) | nindent 12 }}
             {{- include "job.mongodb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
             {{- include "job.volumeExtension.volumeMounts" (dict "module" .Values.logsvrConfig "global" .Values.volumeExtension) | nindent 12 }}
@@ -102,12 +100,9 @@ spec:
         - name: job-storage
           persistentVolumeClaim:
             claimName: {{ include "job.storage.pvc.name" . }}
-        - name: mongodb
-          secret:
-            secretName: {{ include "job.mongodb.secretName" . }}
-        - name: rabbitmq
-          secret:
-            secretName: {{ include "job.rabbitmq.secretName" . }}
+        {{- include "job.kms.secretVolume" (dict "volume" "mongodb" "credential" "mongodb" "secretName" (include "job.mongodb.secretName" .) "context" .) | nindent 8 }}
+        {{- include "job.kms.secretVolume" (dict "volume" "rabbitmq" "credential" "rabbitmq" "secretName" (include "job.rabbitmq.secretName" .) "context" .) | nindent 8 }}
+        {{- include "job.kms.envelopeVolume" (dict "credential" "common" "context" .) | nindent 8 }}
         {{- include "job.mongodb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
         {{- include "job.volumeExtension.volumes" (dict "module" .Values.logsvrConfig "global" .Values.volumeExtension) | nindent 8 }}

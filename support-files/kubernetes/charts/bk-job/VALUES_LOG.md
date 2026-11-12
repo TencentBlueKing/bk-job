@@ -101,6 +101,83 @@ bkai:
   ignoreSyncError: false
 ```
 
+5. 新增蓝鲸 KMS。默认关闭，关闭时渲染结果与现网一致。开启后由运维在 BK-KMS 录入凭证，Chart 按短名渲染 SecretStore 与 ExternalSecret，Pod 只挂私钥引用和信封。
+```yaml
+kms:
+  # 是否启用。false 时不渲染 SecretStore / ExternalSecret，敏感项仍走现网明文
+  enabled: false
+  # KMS / Vault 地址。enabled=true 时必填，HTTPS 由这里的协议决定
+  server: ""
+  # Vault KV v2 挂载路径
+  path: "secret"
+  tls:
+    # 是否使用自定义 CA / mTLS。与 server 是否为 https 无关
+    enabled: false
+    # 与 SecretStore 同 namespace 的证书 Secret。tls.enabled=true 时必填
+    existingSecret: ""
+    certCAFilename: "ca.pem"
+    # 启用 mTLS 时这两个文件名必须成对配置，只填一个会 helm 失败
+    certFilename: ""
+    certKeyFilename: ""
+  # ESO 重新拉取间隔
+  refreshInterval: "1h"
+  credentials:
+    # 每条在用凭证都要填 role 与 remoteKey，缺一 helm 失败。
+    # 接管条件（同时要求 kms.enabled=true）：
+    # mariadb / redis / rabbitmq：对应中间件不是集群内 Chart，且没有 existingPasswordSecret
+    # mongodb：不是集群内 Chart，并且填了 externalMongoDB.uri，或没填 uri 且没有 existingPasswordSecret
+    # crontabdb：配了 crontabConfig.database.host
+    # archiveMariadb：归档执行开启且 mode 为 backupThenDelete 或 backupOnly
+    # common：只要开启 KMS
+    # migration：migration.enabled、bkApiGatewayConfig.sync 或 bkai.enabled
+    # manage / analysis / execute / backup：标准模式看对应 *.enabled，轻量模式一律接管
+    # fileWorker：fileWorkerConfig.enabled
+    # 没开垂直分片时 execute / backup 信封录 {}
+    mariadb:
+      role: ""
+      remoteKey: ""
+    redis:
+      role: ""
+      remoteKey: ""
+    rabbitmq:
+      role: ""
+      remoteKey: ""
+    mongodb:
+      role: ""
+      remoteKey: ""
+    crontabdb:
+      role: ""
+      remoteKey: ""
+    archiveMariadb:
+      role: ""
+      remoteKey: ""
+    common:
+      role: ""
+      remoteKey: ""
+    migration:
+      role: ""
+      remoteKey: ""
+    manage:
+      role: ""
+      remoteKey: ""
+    analysis:
+      role: ""
+      remoteKey: ""
+    fileWorker:
+      role: ""
+      remoteKey: ""
+    execute:
+      role: ""
+      remoteKey: ""
+    backup:
+      role: ""
+      remoteKey: ""
+```
+开启 KMS 后还要注意：
+- `k8sConfigWatcherConfig.enabled=true` 且 RabbitMQ 被接管时，才会渲染只给 config-watcher 的明文 Secret。watcher 关闭时不渲染。
+- `bkai.accessToken` 不再注入 Pod。需要令牌时写进 migration 信封的 `bkai-access-token`；应用身份用同一信封的 `bkapp_id_secret.default`。
+- `job.security.actuator.user.name` / `password` 仍要填写，供 bkmonitor 使用，并与 common 信封一致。
+
 ## 0.9.5
 1. 新增审批相关配置（审批任务 TTL、记录保留期、默认渠道、IMate 渠道地址与 appCode、回查 IMate 使用的开放接口凭证、Mock 渠道开关与通过 ID 列表）
 ```yaml

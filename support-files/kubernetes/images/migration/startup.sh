@@ -4,9 +4,19 @@ pwd
 ls -ahl
 echo "===========SQL========="
 find .
-echo "===========ENV========="
-env
 echo "===========EXEC========"
+# KMS 打开时，从 migration 信封解出管理员账号密码与 bkapp_id_secret.default 的 appCode、appSecret，经管道交给当前 shell，不落盘、不打印。
+if [ "${ENABLE_KMS}" = "true" ]; then
+  exec 3< <(python3 ./kms_load_migration_credential.py)
+  IFS= read -r -d '' BK_JOB_MYSQL_ADMIN_USERNAME <&3 &&
+    IFS= read -r -d '' BK_JOB_MYSQL_ADMIN_PASSWORD <&3 &&
+    IFS= read -r -d '' BK_JOB_APP_CODE <&3 &&
+    IFS= read -r -d '' BK_JOB_APP_SECRET <&3
+  kms_rc=$?
+  exec 3<&-
+  unset BK_JOB_KMS_PRIVATE_KEY_MIGRATION
+  [ "$kms_rc" -eq 0 ] || exit 1
+fi
 MYSQL_CMD_OPTIONS="mysql $BK_JOB_TLS_OPTIONS $BK_JOB_MYSQL_EXTRA_OPTIONS"
 echo "MYSQL_CMD_OPTIONS=$MYSQL_CMD_OPTIONS"
 echo "Whether to enable incremental migration of mysql: $BK_JOB_INCREMENTAL_MIGRATION_ENABLED"

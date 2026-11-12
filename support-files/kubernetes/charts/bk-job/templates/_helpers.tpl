@@ -203,7 +203,9 @@ Return the MariaDB Port
 Return the MariaDB username
 */}}
 {{- define "job.mariadb.username" -}}
-{{- if .Values.mariadb.enabled }}
+{{- if eq (include "job.kms.mariadb.active" .) "true" -}}
+${mariadb-username}
+{{- else if .Values.mariadb.enabled }}
     {{- printf "%s" .Values.mariadb.auth.username -}}
 {{- else -}}
     {{- printf "%s" .Values.externalMariaDB.username -}}
@@ -239,6 +241,172 @@ Return the migrate mysqlSchema admin password
 {{- else -}}
     {{- printf "%s" .Values.mariadb.auth.rootPassword -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+外部 中间件 是否改由 KMS 同步。集群内 中间件(MariaDB、redis等)、或用户自带 existingPasswordSecret 时不接管。
+*/}}
+{{- define "job.kms.credential.active" -}}
+{{- $ctx := .context -}}
+{{- $name := .name -}}
+{{- $kms := $ctx.Values.kms | default dict -}}
+{{- if $kms.enabled -}}
+{{- if eq $name "mariadb" -}}
+{{- if and (not $ctx.Values.mariadb.enabled) (not $ctx.Values.externalMariaDB.existingPasswordSecret) }}true{{- end -}}
+{{- else if eq $name "redis" -}}
+{{- if and (not $ctx.Values.redis.enabled) (not $ctx.Values.externalRedis.existingPasswordSecret) }}true{{- end -}}
+{{- else if eq $name "rabbitmq" -}}
+{{- if and (not $ctx.Values.rabbitmq.enabled) (not $ctx.Values.externalRabbitMQ.existingPasswordSecret) }}true{{- end -}}
+{{- else if eq $name "mongodb" -}}
+{{- if and (not $ctx.Values.mongodb.enabled) (or $ctx.Values.externalMongoDB.uri (not $ctx.Values.externalMongoDB.existingPasswordSecret)) }}true{{- end -}}
+{{- else if eq $name "crontabdb" -}}
+{{- if $ctx.Values.crontabConfig.database.host }}true{{- end -}}
+{{- else if eq $name "archive-mariadb" -}}
+{{- if eq (include "job.archiveMariadb.required" $ctx) "true" }}true{{- end -}}
+{{- else if eq $name "common" -}}
+true
+{{- else if eq $name "migration" -}}
+{{- $bkai := $ctx.Values.bkai | default dict -}}
+{{- if or $ctx.Values.migration.enabled $ctx.Values.bkApiGatewayConfig.sync $bkai.enabled }}true{{- end -}}
+{{- else if eq $name "manage" -}}
+{{- if or (eq $ctx.Values.deploy.mode "lite") $ctx.Values.manageConfig.enabled }}true{{- end -}}
+{{- else if eq $name "analysis" -}}
+{{- if or (eq $ctx.Values.deploy.mode "lite") $ctx.Values.analysisConfig.enabled }}true{{- end -}}
+{{- else if eq $name "file-worker" -}}
+{{- if $ctx.Values.fileWorkerConfig.enabled }}true{{- end -}}
+{{- else if eq $name "execute" -}}
+{{- if or (eq $ctx.Values.deploy.mode "lite") $ctx.Values.executeConfig.enabled }}true{{- end -}}
+{{- else if eq $name "backup" -}}
+{{- if or (eq $ctx.Values.deploy.mode "lite") $ctx.Values.backupConfig.enabled }}true{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "job.kms.mariadb.active" -}}
+{{- include "job.kms.credential.active" (dict "name" "mariadb" "context" .) -}}
+{{- end -}}
+
+{{/*
+当前工作负载实际挂载的、且已切到 KMS 的凭证。多个私钥写在同一组 env 里。
+*/}}
+{{- define "job.kms.env" -}}
+{{- $ctx := .context -}}
+{{- $active := list -}}
+{{- range .names -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" . "context" $ctx)) "true" -}}
+{{- $active = append $active . -}}
+{{- end -}}
+{{- end -}}
+{{- if $active }}
+- name: ENABLE_KMS
+  value: "true"
+- name: BK_JOB_KMS_CREDENTIALS
+  value: {{ join "," $active }}
+{{- range $name := $active }}
+- name: BK_JOB_KMS_PRIVATE_KEY_{{ $name | upper | replace "-" "_" }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "job.kms.targetSecretName" (dict "name" $name "context" $ctx) }}
+      key: privateKey
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{/*
+ESO 写出的 Secret。原名加 -kms，和 Helm 明文 Secret 分开，避免升级时抢同一份对象。
+*/}}
+{{- define "job.kms.targetSecretName" -}}
+{{- $base := "" -}}
+{{- if eq .name "mariadb" -}}
+{{- $base = include "job.mariadb.secretName" .context -}}
+{{- else if eq .name "redis" -}}
+{{- $base = include "job.redis.secretName" .context -}}
+{{- else if eq .name "rabbitmq" -}}
+{{- $base = include "job.rabbitmq.secretName" .context -}}
+{{- else if eq .name "mongodb" -}}
+{{- $base = include "job.mongodb.secretName" .context -}}
+{{- else if eq .name "crontabdb" -}}
+{{- $base = include "job.crontabdb.secretName" .context -}}
+{{- else if eq .name "archive-mariadb" -}}
+{{- $base = include "job.archiveMariadb.secretName" .context -}}
+{{- else if eq .name "common" -}}
+{{- $base = include "job.common.secretName" .context -}}
+{{- else if eq .name "migration" -}}
+{{- $base = printf "%s-migration" (include "job.fullname" .context) -}}
+{{- else if or (eq .name "manage") (eq .name "analysis") (eq .name "file-worker") (eq .name "execute") (eq .name "backup") -}}
+{{- $base = printf "%s-%s" (include "job.fullname" .context) .name -}}
+{{- end -}}
+{{- printf "%s-kms" ($base | trim) -}}
+{{- end -}}
+
+{{- define "job.kms.credential.valuesKey" -}}
+{{- if eq . "archive-mariadb" -}}
+archiveMariadb
+{{- else if eq . "file-worker" -}}
+fileWorker
+{{- else -}}
+{{- . -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "job.kms.credential.field" -}}
+{{- $key := include "job.kms.credential.valuesKey" .name -}}
+{{- index (index .context.Values.kms.credentials $key) .field -}}
+{{- end -}}
+
+{{/*
+KMS 打开时只挂信封；关闭时整卷挂到原来的 /etc/secrets 路径。
+*/}}
+{{- define "job.kms.secretVolumeMount" -}}
+- name: {{ .volume }}
+{{- if eq (include "job.kms.credential.active" (dict "name" .credential "context" .context)) "true" }}
+  mountPath: /etc/kms/{{ .credential }}/envelope
+  subPath: envelope
+  readOnly: true
+{{- else }}
+  mountPath: {{ .mountPath }}
+  readOnly: true
+{{- end }}
+{{- end -}}
+
+{{/*
+开启kms时，只挂secret中的信封文件。
+关闭kms时，整卷挂到原来的 /etc/secrets 路径。
+*/}}
+{{- define "job.kms.secretVolume" -}}
+- name: {{ .volume }}
+  secret:
+{{- if eq (include "job.kms.credential.active" (dict "name" .credential "context" .context)) "true" }}
+    secretName: {{ include "job.kms.targetSecretName" (dict "name" .credential "context" .context) }}
+    items:
+      - key: envelope
+        path: envelope
+{{- else }}
+    secretName: {{ .secretName }}
+{{- end }}
+{{- end -}}
+
+{{/*
+common 凭证的 Secret 名。ESO 目标名是这个名字加 -kms。
+信封 JSON 的 key 就是 Spring 属性名，接管时公共 ConfigMap 不再渲染这些项。
+*/}}
+{{- define "job.common.secretName" -}}
+{{- printf "%s-common" (include "job.fullname" .) -}}
+{{- end -}}
+
+{{/*
+没有对应明文卷的凭证（common、migration）只在被 KMS 接管时挂信封，未接管时什么都不输出。
+*/}}
+{{- define "job.kms.envelopeVolumeMount" -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" .credential "context" .context)) "true" }}
+{{ include "job.kms.secretVolumeMount" (dict "volume" .credential "credential" .credential "context" .context) }}
+{{- end }}
+{{- end -}}
+
+{{- define "job.kms.envelopeVolume" -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" .credential "context" .context)) "true" }}
+{{ include "job.kms.secretVolume" (dict "volume" .credential "credential" .credential "context" .context) }}
+{{- end }}
 {{- end -}}
 
 {{/*
@@ -410,6 +578,7 @@ fail "Invalid external redis architecture"
 Return the redis tls config
 */}}
 {{- define "job.redis.tls" -}}
+{{- $kms := eq (include "job.kms.credential.active" (dict "name" "redis" "context" .)) "true" -}}
 {{- if .Values.redis.enabled -}}
 enabled: false
 {{- else -}}
@@ -417,13 +586,21 @@ enabled: {{ .Values.externalRedis.tls.enabled }}
 {{- end }}
 trustStoreType: {{ .Values.externalRedis.tls.trustStoreType }}
 trustStore: /etc/certs/redis/{{ .Values.externalRedis.tls.trustStoreFilename }}
+{{- if $kms }}
+trustStorePassword: ${redis-truststore-password}
+{{- else }}
 trustStorePassword: {{ .Values.externalRedis.tls.trustStorePassword }}
+{{- end }}
 keyStoreType: {{ .Values.externalRedis.tls.keyStoreType }}
 {{- if .Values.externalRedis.tls.keyStoreFilename }}
 keyStore: /etc/certs/redis/{{ .Values.externalRedis.tls.keyStoreFilename }}
 {{- end }}
 {{- if .Values.externalRedis.tls.keyStorePassword }}
+{{- if $kms }}
+keyStorePassword: ${redis-keystore-password}
+{{- else }}
 keyStorePassword: {{ .Values.externalRedis.tls.keyStorePassword }}
+{{- end }}
 {{- end }}
 verifyHostname: {{ .Values.externalRedis.tls.verifyHostname }}
 {{- end -}}
@@ -467,7 +644,7 @@ Return the RabbitMQ Port
 {{/*
 Return the RabbitMQ username
 */}}
-{{- define "job.rabbitmq.username" -}}
+{{- define "job.rabbitmq.usernameLiteral" -}}
 {{- if .Values.rabbitmq.enabled }}
     {{- printf "%s" .Values.rabbitmq.auth.username -}}
 {{- else -}}
@@ -475,9 +652,25 @@ Return the RabbitMQ username
 {{- end -}}
 {{- end -}}
 
+{{- define "job.rabbitmq.username" -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" "rabbitmq" "context" .)) "true" -}}
+${rabbitmq-username}
+{{- else -}}
+{{- include "job.rabbitmq.usernameLiteral" . -}}
+{{- end -}}
+{{- end -}}
+
 {{/*
 Return the RabbitMQ secret name
 */}}
+{{- define "job.configWatcher.rabbitmq.secretName" -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" "rabbitmq" "context" .)) "true" -}}
+{{- printf "%s-%s" (include "job.fullname" .) "config-watcher-rabbitmq" -}}
+{{- else -}}
+{{- include "job.rabbitmq.secretName" . -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "job.rabbitmq.secretName" -}}
 {{- if .Values.externalRabbitMQ.existingPasswordSecret -}}
     {{- printf "%s" .Values.externalRabbitMQ.existingPasswordSecret -}}
@@ -515,18 +708,27 @@ Return the RabbitMQ SSL Config
 */}}
 {{- define "job.rabbitmq.sslConfig" -}}
 {{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) }}
+{{- $kms := eq (include "job.kms.credential.active" (dict "name" "rabbitmq" "context" .)) "true" }}
 rabbitmq:
   ssl:
     enabled: {{ .Values.externalRabbitMQ.tls.enabled }}
     trustStoreType: {{ .Values.externalRabbitMQ.tls.trustStoreType }}
     trustStore: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.trustStoreFilename }}
+    {{- if $kms }}
+    trustStorePassword: ${rabbitmq-truststore-password}
+    {{- else }}
     trustStorePassword: {{ .Values.externalRabbitMQ.tls.trustStorePassword }}
+    {{- end }}
     keyStoreType: {{ .Values.externalRabbitMQ.tls.keyStoreType }}
     {{- if .Values.externalRabbitMQ.tls.keyStoreFilename }}
     keyStore: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
     {{- end }}
     {{- if .Values.externalRabbitMQ.tls.keyStorePassword }}
+    {{- if $kms }}
+    keyStorePassword: ${rabbitmq-keystore-password}
+    {{- else }}
     keyStorePassword: {{ .Values.externalRabbitMQ.tls.keyStorePassword }}
+    {{- end }}
     {{- end }}
     verifyHostname: {{ .Values.externalRabbitMQ.tls.verifyHostname }}
 {{- end -}}
@@ -616,6 +818,17 @@ Return the MongoDB username
 {{- end -}}
 
 {{/*
+URI 里的用户名。KMS 打开时交给 Spring 从信封解析，关闭时仍由 Helm 写入字面量。
+*/}}
+{{- define "job.mongodb.usernameInUri" -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" "mongodb" "context" .)) "true" -}}
+${mongodb-username}
+{{- else -}}
+{{- include "job.mongodb.username" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the MongoDB secret name
 */}}
 {{- define "job.mongodb.secretName" -}}
@@ -635,12 +848,16 @@ Return the MongoDB connect uri
 */}}
 {{- define "job.mongodb.connect.uri" -}}
 {{- if .Values.mongodb.enabled -}}
-  {{- printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (printf "${%s}" "mongodb-passwords") (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .) -}}
+  {{- printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.usernameInUri" .) (printf "${%s}" "mongodb-passwords") (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .) -}}
 {{- else -}}
   {{- if .Values.externalMongoDB.uri -}}
+    {{- if eq (include "job.kms.credential.active" (dict "name" "mongodb" "context" .)) "true" -}}
+    ${mongodb-uri}
+    {{- else -}}
     {{- printf "%s" .Values.externalMongoDB.uri -}}
+    {{- end -}}
   {{- else -}}
-    {{- $uri := (printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (.Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" ) (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .)) -}}
+    {{- $uri := (printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.usernameInUri" .) (.Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" ) (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .)) -}}
     {{- if (eq .Values.externalMongoDB.architecture "replicaset") -}}
         {{- printf "%s&replicaSet=%s" $uri .Values.externalMongoDB.replicaSetName -}}
     {{- else -}}
@@ -669,6 +886,7 @@ Return whether the mongodb is sharded
 Return the mongodb tls config
 */}}
 {{- define "job.mongodb.tls" -}}
+{{- $kms := eq (include "job.kms.credential.active" (dict "name" "mongodb" "context" .)) "true" -}}
 {{- if .Values.mongodb.enabled -}}
 enabled: false
 {{- else -}}
@@ -676,13 +894,21 @@ enabled: {{ .Values.externalMongoDB.tls.enabled }}
 {{- end }}
 trustStoreType: {{ .Values.externalMongoDB.tls.trustStoreType }}
 trustStore: /etc/certs/mongodb/{{ .Values.externalMongoDB.tls.trustStoreFilename }}
+{{- if $kms }}
+trustStorePassword: ${mongodb-truststore-password}
+{{- else }}
 trustStorePassword: {{ .Values.externalMongoDB.tls.trustStorePassword }}
+{{- end }}
 keyStoreType: {{ .Values.externalMongoDB.tls.keyStoreType }}
 {{- if .Values.externalMongoDB.tls.keyStoreFilename }}
 keyStore: /etc/certs/mongodb/{{ .Values.externalMongoDB.tls.keyStoreFilename }}
 {{- end }}
 {{- if .Values.externalMongoDB.tls.keyStorePassword }}
+{{- if $kms }}
+keyStorePassword: ${mongodb-keystore-password}
+{{- else }}
 keyStorePassword: {{ .Values.externalMongoDB.tls.keyStorePassword }}
+{{- end }}
 {{- end }}
 verifyHostname: {{ .Values.externalMongoDB.tls.verifyHostname }}
 {{- end -}}
@@ -934,10 +1160,12 @@ approval:
     imate:
       url: {{ .Values.analysisConfig.approval.channels.imate.url | quote }}
       appCode: {{ .Values.analysisConfig.approval.channels.imate.appCode | quote }}
+      {{- if ne (include "job.kms.credential.active" (dict "name" "analysis" "context" .)) "true" }}
       openApi:
         # IMate 颁发给作业平台的凭证，回查审批结论时以 x-app-id / x-secret 发出，与蓝鲸凭证无关
         appId: {{ .Values.analysisConfig.approval.channels.imate.openApi.appId | quote }}
         secret: {{ .Values.analysisConfig.approval.channels.imate.openApi.secret | quote }}
+      {{- end }}
       mock:
         # 该开关决定 Mock 渠道 Bean 是否注册，只能在启动前就位，改动后必须重启
         enabled: {{ .Values.analysisConfig.approval.channels.imate.mock.enabled }}
@@ -1053,10 +1281,27 @@ readinessProbe:
 
 
 {{/*
+是否连接归档库。deleteOnly 只删热库，不需要连归档库。
+*/}}
+{{- define "job.archiveMariadb.required" -}}
+{{- if and .Values.backupConfig.archive.execute.enabled (or (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") (eq .Values.backupConfig.archive.execute.mode "backupOnly")) -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the Archive MariaDB secret name
 */}}
 {{- define "job.archiveMariadb.secretName" -}}
 {{ printf "%s-%s" (include "job.fullname" .) "archive-mariadb" }}
+{{- end -}}
+
+{{- define "job.archiveMariadb.username" -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" "archive-mariadb" "context" .)) "true" -}}
+${archive-mariadb-username}
+{{- else -}}
+{{- .Values.backupConfig.archive.mariadb.username -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -1108,7 +1353,11 @@ Return the job crontab database config
 {{- define "job.crontab.databaseConfig" -}}
 {{- if .Values.crontabConfig.database.host -}}
 jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- .Values.crontabConfig.database.host }}:{{- .Values.crontabConfig.database.port }}/job_crontab{{- .Values.crontabConfig.database.connection.properties }}
+{{- if eq (include "job.kms.credential.active" (dict "name" "crontabdb" "context" .)) "true" }}
+username: ${crontab-db-username}
+{{- else }}
 username: {{ .Values.crontabConfig.database.username }}
+{{- end }}
 password: ${crontab-db-password}
 {{- else -}}
 jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab{{ include "job.mariadb.connection.properties" . }}
@@ -1240,3 +1489,52 @@ Return Extension volumes
 {{- toYaml $globalVolumes -}}
 {{- end -}}
 {{- end }}
+
+{{/*
+execute 的 mysql 整块输出。未开垂直分片，或 execute 凭证未接管时，原样 toYaml。
+垂直分片且凭证已接管时去掉分片 password：Java 读的是 spring.datasource.<名>，不是这段。
+*/}}
+{{- define "job.configmap.omitMysqlPasswords" -}}
+{{- $mysql := .mysql -}}
+{{- $vs := index $mysql "verticalSharding" | default dict -}}
+{{- if and (index $vs "enabled") (eq (include "job.kms.credential.active" (dict "name" "execute" "context" .context)) "true") -}}
+{{- $mysql = deepCopy $mysql -}}
+{{- $vs = index $mysql "verticalSharding" | default dict -}}
+{{- $dsMap := index $vs "datasource" | default dict -}}
+{{- range $name, $ds := $dsMap -}}
+{{- $_ := unset $ds "password" -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $mysql -}}
+{{- end -}}
+
+{{/*
+归档整块输出。对应凭证未接管时原样 toYaml。
+archive-mariadb 接管后去掉归档库 username、password 和 TLS 口令。这段 username 没有代码读取，连接用的是 spring.datasource.job-execute-archive.username。backup 接管后去掉热库分片 password。
+*/}}
+{{- define "job.configmap.omitArchiveSecrets" -}}
+{{- $archive := .archive -}}
+{{- $kmsArchive := eq (include "job.kms.credential.active" (dict "name" "archive-mariadb" "context" .context)) "true" -}}
+{{- $kmsBackup := eq (include "job.kms.credential.active" (dict "name" "backup" "context" .context)) "true" -}}
+{{- if or $kmsArchive $kmsBackup -}}
+{{- $archive = deepCopy $archive -}}
+{{- if $kmsArchive -}}
+{{- $mariadb := index $archive "mariadb" | default dict -}}
+{{- $_ := unset $mariadb "username" -}}
+{{- $_ := unset $mariadb "password" -}}
+{{- $tls := index $mariadb "tls" | default dict -}}
+{{- $_ := unset $tls "trustStorePassword" -}}
+{{- $_ := unset $tls "keyStorePassword" -}}
+{{- end -}}
+{{- $execute := index $archive "execute" | default dict -}}
+{{- $executeMariadb := index $execute "mariadb" | default dict -}}
+{{- if and $kmsBackup (eq (index $executeMariadb "dataSourceMode") "vertical_sharding") -}}
+{{- $vs := index $executeMariadb "verticalSharding" | default dict -}}
+{{- $dsMap := index $vs "datasource" | default dict -}}
+{{- range $name, $ds := $dsMap -}}
+{{- $_ := unset $ds "password" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $archive -}}
+{{- end -}}

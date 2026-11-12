@@ -53,6 +53,84 @@ serviceAccount:
   ## If not set and create is true, a name is generated using the fullname template
   ##
   name:
+## 蓝鲸 KMS。默认关闭，仍使用 Chart 渲染的明文 Secret，用户名仍写在 ConfigMap。
+## 某一凭证同时满足：kms.enabled=true、该中间件不用集群内子 Chart、且没有 existingPasswordSecret 时，
+## 对应明文 Secret 不渲染，改为该凭证自己的 SecretStore + ExternalSecret。
+## ESO 写出的 Secret 在原名后加 -kms，例如 external-mariadb 对应 external-mariadb-kms。
+## 信封 JSON 除原有密码 key 外，还要带用户名（Redis 没有用户名）：
+## mariadb-username、rabbitmq-username、mongodb-username、crontab-db-username、archive-mariadb-username。
+## 填了 externalMongoDB.uri 时同样接管：开启 KMS 后 ConfigMap 写 ${mongodb-uri}，整段 URI 放进 mongodb 信封；关闭 KMS 时 URI 仍明文写在 ConfigMap。
+## common 凭证给 Java 微服务用，信封 JSON 的 key 直接用 Spring 属性名（可嵌套），接管时公共 ConfigMap 不再渲染这些项，成对的项一起放：
+## spring.security.user.name/password、app.code/secret、job.security.service.private-key-base64/public-key-base64、
+## job.tracing.bk-data-token、job.encrypt.password、job.encrypt.usedPasswords（数组）、job.encrypt.sm2-private-key/sm2-public-key、
+## bk-api-gateway.bkAIDev.appCode/appSecret、artifactory.admin.username/password、artifactory.job.username/password。
+## values 里 job.security.actuator.user.name/password 仍需填写，供 bkmonitor 使用。
+## 各服务 ConfigMap 抽出的项按服务各一份凭证，信封同样用 Spring 属性名：
+## manage：job.public-app.code/secret；analysis：job.analysis.approval.channels.imate.openApi.appId/secret；
+## file-worker：job.file-worker.token。
+## execute / backup 跟随服务是否部署：标准模式看 executeConfig.enabled / backupConfig.enabled，轻量模式由 job-assemble 挂载。
+## 垂直分片账号密码只在对应分片开启时写入信封；没开分片时信封录 {}。
+## 轻量模式不另建 assemble 凭证，job-assemble 按用到的短名挂载。
+## Redis / MongoDB 的 TLS 口令仅在开启 KMS 时写入各自中间件信封（redis-truststore-password 等），ConfigMap 改为占位符；关闭 KMS 时 ConfigMap 仍写 values 明文，明文 Secret 不新增 TLS 口令 key。
+## RabbitMQ TLS 口令现网明文 Secret 里本来就有。开启 KMS 后 ConfigMap 改用 ${rabbitmq-truststore-password} / ${rabbitmq-keystore-password}；关闭时 ConfigMap 仍写 values 明文。
+## migration 凭证给 job-migration、sync-api-gateway、sync-bk-aidev 共用。
+## migration.enabled、bkApiGatewayConfig.sync 或 bkai.enabled 打开即接管。
+## 信封 JSON：{"admin-username": "...", "admin-password": "...", "bkapp_id_secret": {"default": {"app_code": "...", "app_secret": "..."}}}。
+## 开启 bkai 且 values 里写了 accessToken 时，同一信封再加 "bkai-access-token"。
+## bkapp_id_secret 是 apigw-manager 要求的结构。接管后不再渲染 migration-db 明文 Secret。
+## config-watcher 的 RabbitMQ 明文 Secret 仅在 k8sConfigWatcherConfig.enabled 且 RabbitMQ 走 KMS 时渲染。
+## role 与 remoteKey 由运维在 KMS 创建凭证后填入。未接管的凭证留空即可。
+kms:
+  enabled: false
+  server: ""
+  path: "secret"
+  tls:
+    enabled: false
+    existingSecret: ""
+    certCAFilename: "ca.pem"
+    certFilename: ""
+    certKeyFilename: ""
+  refreshInterval: "1h"
+  credentials:
+    mariadb:
+      role: ""
+      remoteKey: ""
+    redis:
+      role: ""
+      remoteKey: ""
+    rabbitmq:
+      role: ""
+      remoteKey: ""
+    mongodb:
+      role: ""
+      remoteKey: ""
+    crontabdb:
+      role: ""
+      remoteKey: ""
+    archiveMariadb:
+      role: ""
+      remoteKey: ""
+    common:
+      role: ""
+      remoteKey: ""
+    migration:
+      role: ""
+      remoteKey: ""
+    manage:
+      role: ""
+      remoteKey: ""
+    analysis:
+      role: ""
+      remoteKey: ""
+    fileWorker:
+      role: ""
+      remoteKey: ""
+    execute:
+      role: ""
+      remoteKey: ""
+    backup:
+      role: ""
+      remoteKey: ""
 rbac:
   create: true
 
@@ -2445,7 +2523,8 @@ bkai:
   publish: true
   # 发布时是否只发布配置（--publish_config_only）：false走平台常规发布流程，true只发布配置
   publishConfigOnly: false
-  # 初始化资源使用的用户身份，accessToken优先级高于username，都留空时镜像默认使用bk_admin
+  # 初始化资源使用的用户身份，accessToken优先级高于username，都留空时镜像默认使用bk_admin。
+  # 开启 KMS 后这里的值不再注入 Pod；需要令牌时写入 migration 信封的 bkai-access-token。
   accessToken: ""
   # 初始化用户，须填bk_username（多租户下与login_name不同），bkai-init原样透传不做转换
   username: ""

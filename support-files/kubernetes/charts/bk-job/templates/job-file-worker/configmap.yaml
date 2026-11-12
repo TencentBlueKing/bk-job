@@ -1,4 +1,5 @@
 {{- if .Values.fileWorkerConfig.enabled }}
+{{- $kmsFileWorker := eq (include "job.kms.credential.active" (dict "name" "file-worker" "context" .)) "true" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -17,7 +18,9 @@ data:
         version: {{ .Values.fileWorkerConfig.version }}
         enabled-file-source-types: {{ .Values.fileWorkerConfig.enabledFileSourceTypes }}
         tags: {{ .Values.fileWorkerConfig.tags }}
+        {{- if not $kmsFileWorker }}
         token: {{ .Values.fileWorkerConfig.token }}
+        {{- end }}
         app-id: {{ .Values.fileWorkerConfig.appId }}
         ability-tags: {{ .Values.fileWorkerConfig.abilityTags }}
         access:

@@ -69,6 +69,7 @@ spec:
           imagePullPolicy: {{ .Values.gatewayConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
+            {{- include "job.kms.env" (dict "context" . "names" (list "rabbitmq" "common")) | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-gateway"
             - name: BK_JOB_JVM_OPTION
@@ -101,9 +102,8 @@ spec:
             - name: job-gateway-tls-password
               mountPath: /etc/secrets
               readOnly: true
-            - name: rabbitmq
-              mountPath: /etc/secrets/rabbitmq
-              readOnly: true
+            {{- include "job.kms.secretVolumeMount" (dict "volume" "rabbitmq" "credential" "rabbitmq" "mountPath" "/etc/secrets/rabbitmq" "context" .) | nindent 12 }}
+            {{- include "job.kms.envelopeVolumeMount" (dict "credential" "common" "context" .) | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
             {{- include "job.volumeExtension.volumeMounts" (dict "module" .Values.gatewayConfig "global" .Values.volumeExtension) | nindent 12 }}
       volumes:
@@ -126,9 +126,8 @@ spec:
                 path: keystore.password
               - key: truststore.password
                 path: truststore.password
-        - name: rabbitmq
-          secret:
-            secretName: {{ include "job.rabbitmq.secretName" . }}
+        {{- include "job.kms.secretVolume" (dict "volume" "rabbitmq" "credential" "rabbitmq" "secretName" (include "job.rabbitmq.secretName" .) "context" .) | nindent 8 }}
+        {{- include "job.kms.envelopeVolume" (dict "credential" "common" "context" .) | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
         {{- include "job.volumeExtension.volumes" (dict "module" .Values.gatewayConfig "global" .Values.volumeExtension) | nindent 8 }}
 {{- end }}

@@ -1,4 +1,5 @@
 {{- if .Values.bkai.enabled }}
+{{- $kms := eq (include "job.kms.credential.active" (dict "name" "migration" "context" .)) "true" }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -47,17 +48,32 @@ spec:
         # 多租户且未指定初始化用户时，还会替换成 bk-user 查询默认 bk_admin 对应的 bk_username
         - name: BK_API_URL_TMPL
           value: {{ .Values.bkai.apiUrlTmpl | quote }}
-        # bkai-init 调用 AIDEV 应用态接口需要应用身份，直接复用作业平台自身的 appCode/appSecret
+        # bkai-init 调用 AIDEV 应用态接口需要应用身份。关闭 KMS 时直接注入 appCode/appSecret；
+        # 开启后从 migration 信封的 bkapp_id_secret.default 解密，不把口令写进 Pod env。
+        {{- if $kms }}
+        - name: ENABLE_KMS
+          value: "true"
+        - name: BK_JOB_KMS_PRIVATE_KEY_MIGRATION
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "job.kms.targetSecretName" (dict "name" "migration" "context" .) }}
+              key: privateKey
+        {{- if .Values.bkai.accessToken }}
+        - name: BK_AIDEV_REQUIRE_ACCESS_TOKEN
+          value: "true"
+        {{- end }}
+        {{- else }}
         - name: BKAI_APP_CODE
           value: {{ .Values.appCode }}
         - name: BKAI_APP_SECRET
           value: {{ .Values.appSecret }}
+        {{- end }}
         # bkai-init 仅在开启多租户时才使用租户 ID 并查询默认 bk_admin，不设置时按单租户处理
         - name: BKPAAS_MULTI_TENANT_MODE
           value: {{ .Values.tenant.enabled | default false | quote }}
         # 初始化资源使用的用户身份，access token 优先级高于用户名，用户名须为 bk_username；
         # 两者都不注入时 bkai-init 默认用 bk_admin，故留空时不注入，避免空值覆盖默认值
-        {{- if .Values.bkai.accessToken }}
+        {{- if and (not $kms) .Values.bkai.accessToken }}
         - name: BKAI_ACCESS_TOKEN
           value: {{ .Values.bkai.accessToken | quote }}
         {{- end }}
@@ -102,5 +118,13 @@ spec:
         # 同步最终失败时是否忽略错误：false 时脚本以非 0 退出使 Job 与 Helm 部署失败，true 时以 0 退出忽略错误
         - name: BK_AIDEV_IGNORE_SYNC_ERROR
           value: {{ .Values.bkai.ignoreSyncError | default false | quote }}
+        {{- if $kms }}
+        volumeMounts:
+          {{- include "job.kms.envelopeVolumeMount" (dict "credential" "migration" "context" .) | nindent 10 }}
+        {{- end }}
+      {{- if $kms }}
+      volumes:
+        {{- include "job.kms.envelopeVolume" (dict "credential" "migration" "context" .) | nindent 8 }}
+      {{- end }}
       restartPolicy: Never
 {{- end }}

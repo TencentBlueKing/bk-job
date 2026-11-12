@@ -1,0 +1,94 @@
+{{/*
+每个被接管的中间件各渲染一对资源：一个 SecretStore（只绑这一份凭证的 role）和一个 ExternalSecret。
+ExternalSecret 的 target 是原 Secret 名加 -kms，里面只有 privateKey 和 envelope。不是所有中间件共用一个 ExternalSecret。
+*/}}
+{{- $root := . -}}
+{{- $credentials := list "mariadb" "redis" "rabbitmq" "mongodb" "crontabdb" "archive-mariadb" "common" "migration" "manage" "analysis" "file-worker" "execute" "backup" -}}
+{{- $any := false -}}
+{{- range $name := $credentials -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" $name "context" $root)) "true" -}}
+{{- $any = true -}}
+{{- end -}}
+{{- end -}}
+{{- if $any -}}
+{{- $sa := include "job.serviceAccountName" $root -}}
+{{- if eq $sa "default" -}}
+{{- fail "KMS requires a non-default ServiceAccount: set serviceAccount.create=true or serviceAccount.name" -}}
+{{- end -}}
+{{- if not $root.Values.kms.server -}}
+{{- fail "kms.server is required when KMS is enabled" -}}
+{{- end -}}
+{{- if not $root.Values.kms.path -}}
+{{- fail "kms.path is required when KMS is enabled" -}}
+{{- end -}}
+{{- if and $root.Values.kms.tls.enabled (or (and $root.Values.kms.tls.certFilename (not $root.Values.kms.tls.certKeyFilename)) (and $root.Values.kms.tls.certKeyFilename (not $root.Values.kms.tls.certFilename))) -}}
+{{- fail "kms.tls.certFilename and kms.tls.certKeyFilename must be configured together" -}}
+{{- end -}}
+{{- range $name := $credentials -}}
+{{- if eq (include "job.kms.credential.active" (dict "name" $name "context" $root)) "true" -}}
+{{- $role := include "job.kms.credential.field" (dict "name" $name "field" "role" "context" $root) -}}
+{{- $remoteKey := include "job.kms.credential.field" (dict "name" $name "field" "remoteKey" "context" $root) -}}
+{{- if or (not $role) (not $remoteKey) -}}
+{{- fail (printf "kms.credentials.%s.role and remoteKey are required when this credential is managed by KMS" (include "job.kms.credential.valuesKey" $name)) -}}
+{{ end }}
+---
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: {{ printf "%s-%s" (include "job.fullname" $root) (printf "%s-secret-store" $name) }}
+  namespace: {{ $root.Release.Namespace }}
+  labels: {{- include "common.labels.standard" $root | nindent 4 }}
+spec:
+  provider:
+    vault:
+      server: {{ $root.Values.kms.server | quote }}
+      path: {{ $root.Values.kms.path | quote }}
+      version: "v2"
+      {{- if and $root.Values.kms.tls.enabled $root.Values.kms.tls.certCAFilename }}
+      caProvider:
+        type: Secret
+        name: {{ required "kms.tls.existingSecret is required when kms.tls.enabled=true" $root.Values.kms.tls.existingSecret | quote }}
+        key: {{ $root.Values.kms.tls.certCAFilename | quote }}
+      {{- end }}
+      {{- if and $root.Values.kms.tls.enabled $root.Values.kms.tls.certFilename }}
+      tls:
+        certSecretRef:
+          name: {{ $root.Values.kms.tls.existingSecret | quote }}
+          key: {{ $root.Values.kms.tls.certFilename | quote }}
+        keySecretRef:
+          name: {{ $root.Values.kms.tls.existingSecret | quote }}
+          key: {{ $root.Values.kms.tls.certKeyFilename | quote }}
+      {{- end }}
+      auth:
+        kubernetes:
+          mountPath: kubernetes
+          role: {{ $role | quote }}
+          serviceAccountRef:
+            name: {{ $sa | quote }}
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: {{ printf "%s-%s" (include "job.fullname" $root) (printf "%s-external-secret" $name) }}
+  namespace: {{ $root.Release.Namespace }}
+  labels: {{- include "common.labels.standard" $root | nindent 4 }}
+spec:
+  refreshInterval: {{ $root.Values.kms.refreshInterval | quote }}
+  secretStoreRef:
+    name: {{ printf "%s-%s" (include "job.fullname" $root) (printf "%s-secret-store" $name) }}
+    kind: SecretStore
+  target:
+    name: {{ include "job.kms.targetSecretName" (dict "name" $name "context" $root) }}
+    creationPolicy: Owner
+  data:
+    - secretKey: privateKey
+      remoteRef:
+        key: {{ $remoteKey | quote }}
+        property: private_key
+    - secretKey: envelope
+      remoteRef:
+        key: {{ $remoteKey | quote }}
+        property: envelope
+{{ end }}
+{{- end }}
+{{- end }}
