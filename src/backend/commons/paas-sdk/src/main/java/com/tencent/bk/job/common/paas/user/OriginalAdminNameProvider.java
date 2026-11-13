@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.common.paas.user;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import org.apache.commons.lang3.StringUtils;
+
 public class OriginalAdminNameProvider implements IVirtualAdminAccountProvider {
     private final String adminUsername;
 
@@ -33,6 +37,10 @@ public class OriginalAdminNameProvider implements IVirtualAdminAccountProvider {
 
     @Override
     public String getVirtualAdminUsername(String tenantId) {
+        if (StringUtils.isBlank(adminUsername)) {
+            throw new InternalException("virtualAccount.originalAdminUsername must not be blank",
+                ErrorCode.INTERNAL_ERROR);
+        }
         return adminUsername;
     }
 }

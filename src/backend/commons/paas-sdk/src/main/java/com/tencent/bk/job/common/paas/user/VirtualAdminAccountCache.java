@@ -66,6 +66,9 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
 
     @Override
     public String getVirtualAdminUsername(String tenantId) {
+        if (StringUtils.isBlank(adminLoginName)) {
+            throw new InternalException("virtualAccount.adminLoginName must not be blank", ErrorCode.INTERNAL_ERROR);
+        }
         try {
             return adminUsernameCache.get(tenantId);
         } catch (ExecutionException | UncheckedExecutionException e) {
