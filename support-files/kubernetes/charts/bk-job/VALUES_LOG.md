@@ -181,7 +181,7 @@ kms:
 8. 新增管理员登录名配置
 ```yaml
 virtualAccount:
-    # 管理员用户名，填写bk_username，不可为空
+    # 管理员用户名，填写login_name，不可为空
     # 多租户，bk_username != login_name
     # 非多租户，bk_username = login_name
     adminUsername: admin
