@@ -43,7 +43,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
     private final IUserApiClient userApiClient;
-    private static final String BK_VIRTUAL_LOGIN_NAME_ADMIN = "bk_admin";
+
+    /**
+     * 管理员登录名，用于查询该用户的虚拟用户名
+     */
+    private final String adminLoginName;
 
     private final LoadingCache<String, String> adminUsernameCache = CacheBuilder.newBuilder()
         .maximumSize(2000).expireAfterWrite(1, TimeUnit.HOURS)
@@ -55,8 +59,9 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
             }
         });
 
-    public VirtualAdminAccountCache(IUserApiClient userApiClient) {
+    public VirtualAdminAccountCache(IUserApiClient userApiClient, String adminLoginName) {
         this.userApiClient = userApiClient;
+        this.adminLoginName = adminLoginName;
     }
 
     @Override
@@ -86,7 +91,7 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
     private String getVirtualAdminFromApi(String tenantId) {
         List<SimpleUserInfo> virtualUserList = userApiClient.batchGetVirtualUserByLoginName(
             tenantId,
-            BK_VIRTUAL_LOGIN_NAME_ADMIN);
+            adminLoginName);
         if (virtualUserList == null
             || virtualUserList.isEmpty()
             || StringUtils.isEmpty(virtualUserList.get(0).getBkUsername())) {

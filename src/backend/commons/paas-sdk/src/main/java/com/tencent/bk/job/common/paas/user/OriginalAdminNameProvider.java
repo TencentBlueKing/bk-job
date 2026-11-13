@@ -25,8 +25,14 @@
 package com.tencent.bk.job.common.paas.user;
 
 public class OriginalAdminNameProvider implements IVirtualAdminAccountProvider {
+    private final String adminUsername;
+
+    public OriginalAdminNameProvider(String adminUsername) {
+        this.adminUsername = adminUsername;
+    }
+
     @Override
     public String getVirtualAdminUsername(String tenantId) {
-        return "admin";
+        return adminUsername;
     }
 }

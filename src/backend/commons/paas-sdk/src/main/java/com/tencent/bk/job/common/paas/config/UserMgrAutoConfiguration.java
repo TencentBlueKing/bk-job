@@ -43,7 +43,9 @@ import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -86,16 +88,25 @@ public class UserMgrAutoConfiguration {
 
     @Bean
     @UseVirtualAdminAccountUsername
-    public IVirtualAdminAccountProvider virtualAdminAccountCache(IUserApiClient userMgrApiClient) {
+    public IVirtualAdminAccountProvider virtualAdminAccountCache(
+        IUserApiClient userMgrApiClient,
+        @Value("${virtualAccount.adminLoginName}") String adminLoginName) {
+        if (StringUtils.isBlank(adminLoginName)) {
+            throw new IllegalArgumentException("virtualAccount.adminLoginName must not be blank");
+        }
         log.info("Init VirtualAdminAccountCache");
-        return new VirtualAdminAccountCache(userMgrApiClient);
+        return new VirtualAdminAccountCache(userMgrApiClient, adminLoginName);
     }
 
     @Bean
     @UseOriginalAdminAccount
-    public IVirtualAdminAccountProvider originalAdminNameProvider() {
+    public IVirtualAdminAccountProvider originalAdminNameProvider(
+        @Value("${virtualAccount.originalAdminUsername}") String originalAdminUsername) {
+        if (StringUtils.isBlank(originalAdminUsername)) {
+            throw new IllegalArgumentException("virtualAccount.originalAdminUsername must not be blank");
+        }
         log.info("Init OriginalAdminNameProvider");
-        return new OriginalAdminNameProvider();
+        return new OriginalAdminNameProvider(originalAdminUsername);
     }
 
 }
