@@ -15,5 +15,5 @@ metadata:
 #    否则 Agent 同步时依赖尚未创建，引用会失败。
 resources:
   - knowledgebases/bk_job_user_guide
-  # - skills/job_skill
+  # - skills/bkjob-script-check
   - agents/bk_job_ai.yaml

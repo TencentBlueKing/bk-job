@@ -1,13 +1,16 @@
 # Skill 资源目录
 
 本目录下每一个子目录对应 AIDEV 平台上的一个 Skill，Skill code 在 `skill.yaml` 中声明，由 `bkai-init` 同步到平台。
-code 需小写英文字母开头，其余为小写英文、数字、下划线或中划线，最长 64 位。
+
+- `metadata.code` 按 `bkjob-{skill名字}` 命名，例如 `bkjob-script-check`；目录名与 code 一致。
+- `metadata.name` 按 `作业平台-{资源名称}` 命名，例如“作业平台-脚本检查”。
+- code 需小写英文字母开头，其余为小写英文、数字、下划线或中划线，最长 64 位。
 
 目录结构示例：
 
 ```plain
 skills/
-└── job_skill/            # Skill code
+└── bkjob-script-check/    # Skill code
     ├── skill.yaml        # Skill 定义：code、名称、版本、可见性
     ├── SKILL.md          # 必需，Skill 内容与环境变量依赖声明
     └── Dockerfile        # 可选，仅在需要自定义镜像时提供
