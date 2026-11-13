@@ -1,4 +1,4 @@
-# chart values 更新日志
+﻿# chart values 更新日志
 
 ## 0.9.6
 1. job-gateway 开启 https 所需的证书与口令不再内置默认值，需使用 `op-tools/gateway-tls-cert/generate_gateway_tls_cert.py` 生成后填入
@@ -60,14 +60,14 @@ executeConfig:
     logQueryBatchSize: 50
 ```
 
-3. 网关同步新增 MCP Server 开关，MCP Server 定义见 `support-files/bk-api-gateway/v3/definition.yaml`
+5. 网关同步新增 MCP Server 开关，MCP Server 定义见 `support-files/bk-api-gateway/v3/definition.yaml`
 ```yaml
 bkApiGatewayConfig:
   # 是否同步MCP Server（供AI组件调用作业平台API），依赖网关侧支持MCP能力且环境已有生效的资源版本
   syncMcpServers: true
 ```
 
-4. 新增 AIDEV 配置，开启后把 AI 相关资源（Agent/Skill/知识库）自动注入到 AIDEV 平台，资源文件见 `support-files/bk-aidev/bk-job`
+6. 新增 AIDEV 配置，开启后把 AI 相关资源（Agent/Skill/知识库）自动注入到 AIDEV 平台，资源文件见 `support-files/bk-aidev/bk-job`
 ```yaml
 bkai:
   # 是否开启bkaidev功能，开启后把AI相关资源（Agent/Skill/知识库）注入到AIDEV平台
@@ -99,6 +99,17 @@ bkai:
   syncRetryInterval: 30
   # 同步最终失败时是否忽略错误：false时K8S Job失败退出、Helm部署判定为失败；true时忽略错误，让Helm部署成功
   ignoreSyncError: false
+```
+
+7. 新增虚拟管理员和原始管理员配置
+```yaml
+virtualAccount:
+    # 是否向用户管理服务查询虚拟管理员用户
+    queryAdminUsername: false
+    # 查询虚拟管理员用户的登录名，当queryAdminUsername=true时不可为空
+    adminLoginName: bk_admin
+    # 管理员用户名，当queryAdminUsername=false时不可为空
+    originalAdminUsername: admin
 ```
 
 ## 0.9.5

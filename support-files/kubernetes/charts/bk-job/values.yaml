@@ -2656,7 +2656,12 @@ podTerminationGracePeriodSeconds: 60
 tenant:
   enabled: false
 virtualAccount:
+  # 是否向用户管理服务查询虚拟管理员用户
   queryAdminUsername: false
+  # 查询虚拟管理员用户的登录名，当queryAdminUsername=true时不可为空
+  adminLoginName: bk_admin
+  # 管理员用户名，当queryAdminUsername=false时不可为空
+  originalAdminUsername: admin
 
 # 服务启动时，组件的健康检查
 healthCheck:
