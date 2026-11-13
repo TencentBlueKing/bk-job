@@ -178,15 +178,13 @@ kms:
 - `bkai.accessToken` 不再注入 Pod。需要令牌时写进 migration 信封的 `bkai-access-token`；应用身份用同一信封的 `bkapp_id_secret.default`。
 - `job.security.actuator.user.name` / `password` 仍要填写，供 bkmonitor 使用，并与 common 信封一致。
 
-8. 新增虚拟管理员和原始管理员配置
+8. 新增管理员登录名配置
 ```yaml
 virtualAccount:
-    # 是否向用户管理服务查询虚拟管理员用户
-    queryAdminUsername: false
-    # 查询虚拟管理员用户的登录名，当queryAdminUsername=true时不可为空
-    adminLoginName: bk_admin
-    # 管理员用户名，当queryAdminUsername=false时不可为空
-    originalAdminUsername: admin
+    # 管理员用户名，填写login_name，不可为空
+    # 多租户，bk_username != login_name
+    # 非多租户，bk_username = login_name
+    adminUsername: admin
 ```
 
 ## 0.9.5

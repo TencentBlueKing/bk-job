@@ -45,7 +45,7 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
     private final IUserApiClient userApiClient;
 
     /**
-     * 管理员登录名，用于查询该用户的虚拟用户名
+     * 虚拟管理员登录名，用于查询各租户对应的 bk_username。
      */
     private final String adminLoginName;
 
@@ -67,7 +67,7 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
     @Override
     public String getVirtualAdminUsername(String tenantId) {
         if (StringUtils.isBlank(adminLoginName)) {
-            throw new InternalException("virtualAccount.adminLoginName must not be blank", ErrorCode.INTERNAL_ERROR);
+            throw new InternalException("virtualAccount.adminUsername must not be blank", ErrorCode.INTERNAL_ERROR);
         }
         try {
             return adminUsernameCache.get(tenantId);
