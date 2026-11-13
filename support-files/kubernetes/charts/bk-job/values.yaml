@@ -2480,8 +2480,8 @@ bkApiGatewayConfig:
   stage: "prod"
   # 接入的api资源目录, 默认是/data/apidocs/
   resourceDir: "/data/apidocs/"
-  # 网关维护人员，仅维护人员有管理网关的权限, 多个维护人员逗号分隔，如:"user1,user2"
-  maintainers: "admin"
+  # 网关维护人员，仅维护人员有管理网关的权限, 多个维护人员逗号分隔，如:"user1,user2", 需要填写bk_username，不是login_name
+  maintainers: ""
   image:
     # 镜像拉取仓库根地址
     registry: hub.bktencent.com
@@ -2735,7 +2735,12 @@ podTerminationGracePeriodSeconds: 60
 tenant:
   enabled: false
 virtualAccount:
+  # 是否向用户管理服务查询虚拟管理员用户
   queryAdminUsername: false
+  # 查询虚拟管理员用户的登录名，当queryAdminUsername=true时不可为空
+  adminLoginName: bk_admin
+  # 管理员用户名，当queryAdminUsername=false时不可为空
+  originalAdminUsername: admin
 
 # 服务启动时，组件的健康检查
 healthCheck:

@@ -1,4 +1,4 @@
-# chart values 更新日志
+﻿# chart values 更新日志
 
 ## 0.9.6
 1. job-gateway 开启 https 所需的证书与口令不再内置默认值，需使用 `op-tools/gateway-tls-cert/generate_gateway_tls_cert.py` 生成后填入
@@ -60,14 +60,14 @@ executeConfig:
     logQueryBatchSize: 50
 ```
 
-3. 网关同步新增 MCP Server 开关，MCP Server 定义见 `support-files/bk-api-gateway/v3/definition.yaml`
+5. 网关同步新增 MCP Server 开关，MCP Server 定义见 `support-files/bk-api-gateway/v3/definition.yaml`
 ```yaml
 bkApiGatewayConfig:
   # 是否同步MCP Server（供AI组件调用作业平台API），依赖网关侧支持MCP能力且环境已有生效的资源版本
   syncMcpServers: true
 ```
 
-4. 新增 AIDEV 配置，开启后把 AI 相关资源（Agent/Skill/知识库）自动注入到 AIDEV 平台，资源文件见 `support-files/bk-aidev/bk-job`
+6. 新增 AIDEV 配置，开启后把 AI 相关资源（Agent/Skill/知识库）自动注入到 AIDEV 平台，资源文件见 `support-files/bk-aidev/bk-job`
 ```yaml
 bkai:
   # 是否开启bkaidev功能，开启后把AI相关资源（Agent/Skill/知识库）注入到AIDEV平台
@@ -101,7 +101,7 @@ bkai:
   ignoreSyncError: false
 ```
 
-5. 新增蓝鲸 KMS。默认关闭，关闭时渲染结果与现网一致。开启后由运维在 BK-KMS 录入凭证，Chart 按短名渲染 SecretStore 与 ExternalSecret，Pod 只挂私钥引用和信封。
+7. 新增蓝鲸 KMS。默认关闭，关闭时渲染结果与现网一致。开启后由运维在 BK-KMS 录入凭证，Chart 按短名渲染 SecretStore 与 ExternalSecret，Pod 只挂私钥引用和信封。
 ```yaml
 kms:
   # 是否启用。false 时不渲染 SecretStore / ExternalSecret，敏感项仍走现网明文
@@ -177,6 +177,17 @@ kms:
 - `k8sConfigWatcherConfig.enabled=true` 且 RabbitMQ 被接管时，才会渲染只给 config-watcher 的明文 Secret。watcher 关闭时不渲染。
 - `bkai.accessToken` 不再注入 Pod。需要令牌时写进 migration 信封的 `bkai-access-token`；应用身份用同一信封的 `bkapp_id_secret.default`。
 - `job.security.actuator.user.name` / `password` 仍要填写，供 bkmonitor 使用，并与 common 信封一致。
+
+8. 新增虚拟管理员和原始管理员配置
+```yaml
+virtualAccount:
+    # 是否向用户管理服务查询虚拟管理员用户
+    queryAdminUsername: false
+    # 查询虚拟管理员用户的登录名，当queryAdminUsername=true时不可为空
+    adminLoginName: bk_admin
+    # 管理员用户名，当queryAdminUsername=false时不可为空
+    originalAdminUsername: admin
+```
 
 ## 0.9.5
 1. 新增审批相关配置（审批任务 TTL、记录保留期、默认渠道、IMate 渠道地址与 appCode、回查 IMate 使用的开放接口凭证、Mock 渠道开关与通过 ID 列表）
