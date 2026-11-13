@@ -38,7 +38,7 @@ public class OriginalAdminNameProvider implements IVirtualAdminAccountProvider {
     @Override
     public String getVirtualAdminUsername(String tenantId) {
         if (StringUtils.isBlank(adminUsername)) {
-            throw new InternalException("virtualAccount.originalAdminUsername must not be blank",
+            throw new InternalException("virtualAccount.adminUsername must not be blank",
                 ErrorCode.INTERNAL_ERROR);
         }
         return adminUsername;

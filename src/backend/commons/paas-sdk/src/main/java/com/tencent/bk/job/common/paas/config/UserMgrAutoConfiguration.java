@@ -28,8 +28,6 @@ import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockUserApiDisable;
 import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockUserApiEnable;
-import com.tencent.bk.job.common.paas.config.condition.UseOriginalAdminAccount;
-import com.tencent.bk.job.common.paas.config.condition.UseVirtualAdminAccountUsername;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.paas.user.MockUserApiClient;
@@ -38,6 +36,8 @@ import com.tencent.bk.job.common.paas.user.SafeUserMgrApiClient;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.paas.user.VirtualAdminAccountCache;
+import com.tencent.bk.job.common.tenant.ConditionalOnTenantDisabled;
+import com.tencent.bk.job.common.tenant.ConditionalOnTenantEnabled;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
@@ -86,20 +86,20 @@ public class UserMgrAutoConfiguration {
     }
 
     @Bean
-    @UseVirtualAdminAccountUsername
+    @ConditionalOnTenantEnabled
     public IVirtualAdminAccountProvider virtualAdminAccountCache(
         IUserApiClient userMgrApiClient,
-        @Value("${virtualAccount.adminLoginName:}") String adminLoginName) {
+        @Value("${virtualAccount.adminUsername:}") String adminLoginName) {
         log.info("Init VirtualAdminAccountCache");
         return new VirtualAdminAccountCache(userMgrApiClient, adminLoginName);
     }
 
     @Bean
-    @UseOriginalAdminAccount
+    @ConditionalOnTenantDisabled
     public IVirtualAdminAccountProvider originalAdminNameProvider(
-        @Value("${virtualAccount.originalAdminUsername:}") String originalAdminUsername) {
+        @Value("${virtualAccount.adminUsername:}") String adminUsername) {
         log.info("Init OriginalAdminNameProvider");
-        return new OriginalAdminNameProvider(originalAdminUsername);
+        return new OriginalAdminNameProvider(adminUsername);
     }
 
 }
