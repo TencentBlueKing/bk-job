@@ -22,19 +22,24 @@ import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.TopoService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iamv4.service.IamV4AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
@@ -44,12 +49,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -63,6 +68,7 @@ class ExecuteAuthServiceImplTest {
     private AppAuthService appAuthService;
     private AppScopeMappingService appScopeMappingService;
     private JobExecuteConfig jobExecuteConfig;
+    private CommonAppService commonAppService;
     private ExecuteAuthServiceImpl service;
 
     @BeforeEach
@@ -74,6 +80,7 @@ class ExecuteAuthServiceImplTest {
         appScopeMappingService = mock(AppScopeMappingService.class);
         doCallRealMethod().when(appScopeMappingService).fillAppResourceScope(any());
         jobExecuteConfig = mock(JobExecuteConfig.class);
+        commonAppService = mock(CommonAppService.class);
         TopoService topoService = mock(TopoService.class);
         ExecuteTargetInstanceBuilder executeTargetInstanceBuilder =
             new ExecuteTargetInstanceBuilder(topoService);
@@ -85,7 +92,8 @@ class ExecuteAuthServiceImplTest {
             authService,
             appAuthService,
             appScopeMappingService,
-            jobExecuteConfig
+            jobExecuteConfig,
+            commonAppService
         );
     }
 
@@ -255,6 +263,69 @@ class ExecuteAuthServiceImplTest {
         assertThat(fileResult.getRequiredActionResources().get(0).getResourceGroups())
             .extracting(PermissionResourceGroup::getResourceType)
             .containsExactly(ResourceTypeEnum.HOST);
+    }
+
+    @Test
+    void rejectOtherTenant() {
+        mockApplication(2L, "another-tenant");
+
+        assertThatThrownBy(() -> service.checkViewTaskInstancePermission(USER, completeBizScope(),
+            taskInstance(2L, USER.getUsername()))).isInstanceOf(NotFoundException.class);
+        verify(appAuthService, never()).auth(any(), anyString(), any());
+    }
+
+    @Test
+    void missingApp_shouldReject() {
+        assertThatThrownBy(() -> service.checkViewTaskInstancePermission(USER, completeBizScope(),
+            taskInstance(2L, USER.getUsername()))).isInstanceOf(NotFoundException.class);
+        verify(appAuthService, never()).auth(any(), anyString(), any());
+    }
+
+    @Test
+    void wrongApp_shouldReject() {
+        mockApplication(2L, USER.getTenantId());
+
+        assertThatThrownBy(() -> service.checkViewTaskInstancePermission(USER, completeBizScope(),
+            taskInstance(3L, USER.getUsername()))).isInstanceOf(NotFoundException.class);
+        verify(appAuthService, never()).auth(any(), anyString(), any());
+    }
+
+    @Test
+    void operator_shouldPassWithoutIam() {
+        mockApplication(2L, USER.getTenantId());
+        AppResourceScope scope = new AppResourceScope(ResourceScopeTypeEnum.BIZ, "2", null);
+
+        assertThat(service.checkViewTaskInstancePermission(USER, scope,
+            taskInstance(2L, USER.getUsername())).isPass()).isTrue();
+        verify(appAuthService, never()).auth(any(), anyString(), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void nonOperator_shouldCheckHistory(boolean allowed) {
+        mockApplication(2L, USER.getTenantId());
+        AppResourceScope scope = completeBizScope();
+        AuthResult result = allowed ? AuthResult.pass(USER) : AuthResult.fail(USER);
+        when(appAuthService.auth(USER, ActionId.VIEW_HISTORY, scope)).thenReturn(result);
+
+        assertThat(service.checkViewTaskInstancePermission(USER, scope, taskInstance(2L, "another-user")).isPass())
+            .isEqualTo(allowed);
+        verify(appAuthService, never()).auth(any(), eq(ActionId.ACCESS_BUSINESS), any());
+        verify(appAuthService).auth(USER, ActionId.VIEW_HISTORY, scope);
+    }
+
+    private void mockApplication(Long appId, String tenantId) {
+        BasicApp app = new BasicApp();
+        app.setId(appId);
+        app.setTenantId(tenantId);
+        when(commonAppService.getApp(new ResourceScope(ResourceScopeTypeEnum.BIZ, "2"))).thenReturn(app);
+    }
+
+    private TaskInstanceDTO taskInstance(Long appId, String operator) {
+        TaskInstanceDTO taskInstance = new TaskInstanceDTO();
+        taskInstance.setAppId(appId);
+        taskInstance.setOperator(operator);
+        return taskInstance;
     }
 
     private AppResourceScope completeBizScope() {

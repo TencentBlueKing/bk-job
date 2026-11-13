@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -66,6 +67,7 @@ import com.tencent.bk.job.manage.service.WhiteIPService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -318,6 +320,12 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                     }
                     return appId;
                 }).collect(Collectors.toList());
+            String tenantId = JobContextUtil.getTenantId();
+            List<ApplicationDTO> apps = applicationDAO.listAppsByAppIds(appIdList);
+            if (apps.stream().anyMatch(app -> !StringUtils.equals(app.getTenantId(), tenantId))) {
+                log.warn("White list scope does not belong to tenant, appIds: {}, tenantId: {}", appIdList, tenantId);
+                throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+            }
         }
         return appIdList;
     }
@@ -405,7 +413,9 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     public WhiteIPRecordDTO getWhiteIPDetailById(String username, Long id) {
         WhiteIPRecordDTO record = whiteIPRecordDAO.getWhiteIPRecordById(id);
         List<ApplicationDTO> applicationInfoList = applicationDAO.listAppsByAppIds(record.getAppIdList());
-        record.setAppList(applicationInfoList);
+        record.setAppList(applicationInfoList.stream()
+            .filter(app -> StringUtils.equals(app.getTenantId(), JobContextUtil.getTenantId()))
+            .collect(Collectors.toList()));
         return record;
     }
 
