@@ -1,4 +1,4 @@
-﻿USE job_execute;
+USE job_execute;
 
 SET NAMES utf8mb4;
 
