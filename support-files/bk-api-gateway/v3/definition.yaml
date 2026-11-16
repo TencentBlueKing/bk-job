@@ -95,7 +95,7 @@ stages:
     mcp_servers:
       # 任务查询：查询作业执行状态与执行对象日志
       - name: "mcp-query"
-        title: "作业平台任务查询"
+        title: "作业平台-任务查询"
         description: "查询作业平台任务的执行状态与执行对象日志"
         # 是否公开：公开后其他应用可在 MCP 市场中发现并申请权限，权限仍需网关侧审批
         is_public: true
@@ -118,7 +118,7 @@ stages:
           - "Automation"
       # 资源查询：查询执行方案与定时任务等作业资源
       - name: "mcp-resources"
-        title: "作业平台资源查询"
+        title: "作业平台-资源查询"
         description: "查询作业平台的执行方案、定时任务等资源"
         is_public: true
         status: 1
@@ -139,7 +139,7 @@ stages:
           - "Automation"
       # 任务启动：启动执行方案，属于写操作
       - name: "mcp-start"
-        title: "作业平台任务启动"
+        title: "作业平台-任务启动"
         description: "启动作业平台的执行方案"
         is_public: true
         status: 1
@@ -158,7 +158,7 @@ stages:
           - "Automation"
       # 任务上下文：获取脚本/文件任务的上下文，供 AI 分析失败原因
       - name: "mcp-task-context"
-        title: "作业平台任务上下文"
+        title: "作业平台-任务上下文"
         description: "获取作业平台脚本任务与文件分发任务的执行上下文"
         is_public: true
         status: 1
