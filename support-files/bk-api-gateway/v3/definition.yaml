@@ -116,6 +116,7 @@ stages:
         # MCP Server 分类名称列表，不传则不更新分类
         category_names:
           - "Automation"
+          - "Official"
       # 资源查询：查询执行方案与定时任务等作业资源
       - name: "mcp-resources"
         title: "作业平台-资源查询"
@@ -137,6 +138,7 @@ stages:
         # MCP Server 分类名称列表，不传则不更新分类
         category_names:
           - "Automation"
+          - "Official"
       # 任务启动：启动执行方案，属于写操作
       - name: "mcp-start"
         title: "作业平台-任务启动"
@@ -156,6 +158,7 @@ stages:
         # MCP Server 分类名称列表，不传则不更新分类
         category_names:
           - "Automation"
+          - "Official"
       # 任务上下文：获取脚本/文件任务的上下文，供 AI 分析失败原因
       - name: "mcp-task-context"
         title: "作业平台-任务上下文"
@@ -179,6 +182,7 @@ stages:
         # MCP Server 分类名称列表，不传则不更新分类
         category_names:
           - "Automation"
+          - "Official"
 # 主动授权，网关主动给应用，添加访问网关所有资源或者具体某个资源的权限；
 # 用于命令 `grant_apigw_permissions`
 grant_permissions:
