@@ -8,8 +8,10 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.config.JobIamProperties;
@@ -23,8 +25,11 @@ import com.tencent.bk.job.common.iam.service.ActionAuthExecutor;
 import com.tencent.bk.job.common.iam.service.AppAuthExecutor;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
@@ -33,6 +38,8 @@ import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
@@ -41,11 +48,14 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AppAuthServiceImplTest {
@@ -56,19 +66,22 @@ class AppAuthServiceImplTest {
     private IIamClient iamClient;
     private ResourceNameQueryService resourceNameQueryService;
     private AppAuthServiceImpl appAuthService;
+    private CommonAppService commonAppService;
 
     @BeforeEach
     void setUp() {
         authHelper = mock(AuthHelper.class);
         iamClient = mock(IIamClient.class);
         resourceNameQueryService = mock(ResourceNameQueryService.class);
+        commonAppService = mock(CommonAppService.class);
         AppAuthExecutor v3Executor = new V3AppAuthExecutor(
             authHelper, mock(BusinessAuthHelper.class), mock(PolicyService.class), iamClient);
         appAuthService = new AppAuthServiceImpl(
             v3Executor,
             mock(AppAuthExecutor.class),
             mock(JobIamProperties.class),
-            mock(JobIamV4Properties.class)
+            mock(JobIamV4Properties.class),
+            commonAppService
         );
         appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
@@ -241,9 +254,78 @@ class AppAuthServiceImplTest {
             .getResourceGroups().get(0).getPermissionResources().get(0);
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void rejectOtherTenant(boolean byAppId) {
+        BasicApp app = tenantApp("other-tenant");
+        AppResourceScope scope = byAppId
+            ? new AppResourceScope(ResourceScopeTypeEnum.BIZ, "999", 1L)
+            : new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, "2", null);
+        if (byAppId) {
+            when(commonAppService.getApp(1L)).thenReturn(app);
+        } else {
+            when(commonAppService.getApp(app.getScope())).thenReturn(app);
+        }
+
+        assertThatThrownBy(() -> appAuthService.auth(USER, ActionId.ACCESS_BUSINESS, scope))
+            .isInstanceOfSatisfying(NotFoundException.class,
+                exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.APP_NOT_EXIST));
+        verifyNoInteractions(authHelper, iamClient, resourceNameQueryService);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void sameTenant_shouldResolveScope(boolean byAppId) {
+        BasicApp app = tenantApp(USER.getTenantId());
+        AppResourceScope scope = byAppId ? new AppResourceScope(1L)
+            : new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, "2", null);
+        if (byAppId) {
+            when(commonAppService.getApp(1L)).thenReturn(app);
+        } else {
+            when(commonAppService.getApp(app.getScope())).thenReturn(app);
+        }
+        when(authHelper.isAllowed(any(), anyString(), anyString(), any(InstanceDTO.class))).thenReturn(true);
+
+        assertThat(appAuthService.auth(USER, ActionId.ACCESS_BUSINESS, scope).isPass()).isTrue();
+        ArgumentCaptor<InstanceDTO> instance = ArgumentCaptor.forClass(InstanceDTO.class);
+        verify(authHelper).isAllowed(any(), anyString(), anyString(), instance.capture());
+        assertPath(instance.getValue().getPath(), ResourceTypeId.BUSINESS_SET, "2");
+    }
+
+    @Test
+    void missingApp_shouldReject() {
+        assertThatThrownBy(() -> appAuthService.auth(USER, ActionId.ACCESS_BUSINESS, new AppResourceScope(1L)))
+            .isInstanceOf(NotFoundException.class);
+        verifyNoInteractions(authHelper, resourceNameQueryService);
+    }
+
+    @Test
+    void viewHistory_shouldOnlyCheckIam() {
+        when(authHelper.isAllowed(any(), anyString(), anyString(), any(InstanceDTO.class))).thenReturn(true);
+
+        assertThat(appAuthService.auth(USER, ActionId.VIEW_HISTORY,
+            new AppResourceScope(ResourceScopeTypeEnum.BIZ, "2", 1L)).isPass()).isTrue();
+        verify(authHelper).isAllowed(eq(USER.getTenantId()), eq(USER.getUsername()),
+            eq(ActionId.VIEW_HISTORY), any(InstanceDTO.class));
+        verifyNoInteractions(commonAppService);
+    }
+
+    private BasicApp tenantApp(String tenantId) {
+        BasicApp app = new BasicApp();
+        app.setId(1L);
+        app.setTenantId(tenantId);
+        app.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, "2"));
+        return app;
+    }
+
     private void assertAccessBusinessApplication(ResourceScopeTypeEnum scopeType,
                                                  String scopeId,
                                                  String expectedResourceType) {
+        BasicApp app = new BasicApp();
+        app.setId(1L);
+        app.setScope(new ResourceScope(scopeType, scopeId));
+        app.setTenantId(USER.getTenantId());
+        when(commonAppService.getApp(1L)).thenReturn(app);
         AuthResult result = appAuthService.auth(
             USER,
             ActionId.ACCESS_BUSINESS,

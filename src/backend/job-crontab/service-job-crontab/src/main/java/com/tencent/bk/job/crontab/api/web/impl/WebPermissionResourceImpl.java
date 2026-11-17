@@ -25,11 +25,15 @@
 package com.tencent.bk.job.crontab.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.crontab.api.web.WebPermissionResource;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
@@ -43,11 +47,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebPermissionResourceImpl implements WebPermissionResource {
     private final WebAuthService webAuthService;
     private final CronAuthService cronAuthService;
+    private final CommonAppService commonAppService;
 
     public WebPermissionResourceImpl(WebAuthService webAuthService,
-                                     CronAuthService cronAuthService) {
+                                     CronAuthService cronAuthService,
+                                     CommonAppService commonAppService) {
         this.webAuthService = webAuthService;
         this.cronAuthService = cronAuthService;
+        this.commonAppService = commonAppService;
     }
 
     @Override
@@ -85,6 +92,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
         switch (resourceType) {
             case "cron":
+                appResourceScope = checkAppTenant(user, appResourceScope);
                 switch (action) {
                     case "create":
                         return Response.buildSuccessResp(webAuthService.toAuthResultVO(
@@ -106,5 +114,14 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
+    }
+
+    private AppResourceScope checkAppTenant(User user, AppResourceScope scope) {
+        BasicApp app = commonAppService.getApp(new ResourceScope(scope.getType(), scope.getId()));
+        if (app == null || !StringUtils.equals(app.getTenantId(), user.getTenantId())) {
+            log.warn("App does not belong to tenant, scope: {}, tenantId: {}", scope, user.getTenantId());
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+        }
+        return new AppResourceScope(app.getId(), app.getScope());
     }
 }

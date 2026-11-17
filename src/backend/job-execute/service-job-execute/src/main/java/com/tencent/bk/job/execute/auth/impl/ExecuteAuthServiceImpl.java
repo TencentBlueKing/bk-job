@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -40,9 +41,12 @@ import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamAuthVersionHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.execute.auth.ExecuteAuthDecision;
 import com.tencent.bk.job.execute.auth.ExecuteAuthExecutor;
 import com.tencent.bk.job.execute.auth.ExecuteAuthResource;
@@ -89,6 +93,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private final AppAuthService appAuthService;
     private final AppScopeMappingService appScopeMappingService;
     private final JobExecuteConfig jobExecuteConfig;
+    private final CommonAppService commonAppService;
 
     @Autowired
     public ExecuteAuthServiceImpl(@Qualifier("v3ExecuteAuthExecutor")
@@ -101,7 +106,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                   AuthService authService,
                                   AppAuthService appAuthService,
                                   AppScopeMappingService appScopeMappingService,
-                                  JobExecuteConfig jobExecuteConfig) {
+                                  JobExecuteConfig jobExecuteConfig,
+                                  CommonAppService commonAppService) {
         this.v3Executor = v3ExecuteAuthExecutor;
         this.v4Executor = v4ExecuteAuthExecutor;
         this.executeTargetInstanceBuilder = executeTargetInstanceBuilder;
@@ -110,6 +116,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         this.appAuthService = appAuthService;
         this.appScopeMappingService = appScopeMappingService;
         this.jobExecuteConfig = jobExecuteConfig;
+        this.commonAppService = commonAppService;
         this.authService.setResourceNameQueryService(resourceNameQueryService);
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
@@ -460,6 +467,15 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     public AuthResult checkViewTaskInstancePermission(User user,
                                                       AppResourceScope appResourceScope,
                                                       TaskInstanceDTO taskInstance) {
+        BasicApp app = commonAppService.getApp(new ResourceScope(appResourceScope.getType(), appResourceScope.getId()));
+        if (app == null || !app.getId().equals(taskInstance.getAppId())
+            || !StringUtils.equals(app.getTenantId(), user.getTenantId())) {
+            log.warn("Task instance scope or tenant mismatch, taskInstanceId: {}, appId: {}, "
+                    + "appResourceScope: {}, userTenantId: {}, username: {}",
+                taskInstance.getId(), taskInstance.getAppId(), appResourceScope,
+                user.getTenantId(), user.getUsername());
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+        }
         if (user.getUsername().equals(taskInstance.getOperator())) {
             return AuthResult.pass(user);
         }

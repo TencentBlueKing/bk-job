@@ -25,12 +25,14 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebPermissionResource;
@@ -529,38 +531,44 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                         webAuthService.toAuthResultVO(
                             isReturnApplyUrl,
                             businessAuthService.authAccessBusiness(
-                                user, buildResourceScope(scopeType, scopeId))
+                                user, resolveAppResourceScope(user, scopeType, scopeId))
                         )
                     );
                 }
                 break;
             case "script":
-                return checkScriptOperationPermission(user, buildResourceScope(scopeType, scopeId),
+                return checkScriptOperationPermission(user, resolveAppResourceScope(user, scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "public_script":
                 return checkPublicScriptOperationPermission(user, action, resourceId, isReturnApplyUrl);
             case "job_template":
-                return checkJobTemplateOperationPermission(user, buildResourceScope(scopeType, scopeId),
+                return checkJobTemplateOperationPermission(user, resolveAppResourceScope(user, scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "job_plan":
-                return checkJobPlanOperationPermission(user, buildResourceScope(scopeType, scopeId),
+                return checkJobPlanOperationPermission(user, resolveAppResourceScope(user, scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "account":
-                return checkAccountOperationPermission(user, buildResourceScope(scopeType, scopeId),
+                return checkAccountOperationPermission(user, resolveAppResourceScope(user, scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "whitelist":
                 return checkWhiteIPOperationPermission(user, action, isReturnApplyUrl);
             case "tag":
-                return checkTagOperationPermission(user, buildResourceScope(scopeType, scopeId),
+                return checkTagOperationPermission(user, resolveAppResourceScope(user, scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "ticket":
-                return checkTicketOperationPermission(user, buildResourceScope(scopeType, scopeId),
+                return checkTicketOperationPermission(user, resolveAppResourceScope(user, scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
-    private AppResourceScope buildResourceScope(String scopeType, String scopeId) {
-        return new AppResourceScope(scopeType, scopeId, null);
+    private AppResourceScope resolveAppResourceScope(User user, String scopeType, String scopeId) {
+        ApplicationDTO app = applicationService.getAppByScope(scopeType, scopeId);
+        if (!StringUtils.equals(app.getTenantId(), user.getTenantId())) {
+            log.warn("App does not belong to tenant, appId: {}, appTenantId: {}, userTenantId: {}, username: {}",
+                app.getId(), app.getTenantId(), user.getTenantId(), user.getUsername());
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+        }
+        return new AppResourceScope(app.getId(), app.getScope());
     }
 }
