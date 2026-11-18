@@ -251,6 +251,7 @@ data:
       {{- toYaml .Values.timezone | nindent 6 }}
     # 调用蓝鲸系统时使用的管理员账号配置
     virtualAccount:
+      queryAdminUsername: {{ .Values.virtualAccount.queryAdminUsername }}
       adminUsername: {{ .Values.virtualAccount.adminUsername | quote }}
     # 服务启动时 依赖组件的健康检查
     healthCheck:

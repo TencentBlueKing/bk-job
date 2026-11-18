@@ -2731,13 +2731,16 @@ assembleConfig:
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 60
+
 # 多租户配置
 tenant:
   enabled: false
 virtualAccount:
-  # 管理员用户名，填写login_name，不可为空
-  # 多租户，bk_username != login_name
-  # 非多租户，bk_username = login_name
+  # 是否向用户管理服务查询虚拟管理员用户的bk_username
+  queryAdminUsername: false
+  # 管理员用户名，填写login_name
+  # queryAdminUsername=true会通过接口查询对应的bk_username
+  # queryAdminUsername=false直接使用该值
   adminUsername: admin
 
 # 服务启动时，组件的健康检查
