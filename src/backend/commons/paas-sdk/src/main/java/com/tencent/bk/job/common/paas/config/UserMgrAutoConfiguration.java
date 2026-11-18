@@ -36,8 +36,6 @@ import com.tencent.bk.job.common.paas.user.SafeUserMgrApiClient;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.paas.user.VirtualAdminAccountCache;
-import com.tencent.bk.job.common.tenant.ConditionalOnTenantDisabled;
-import com.tencent.bk.job.common.tenant.ConditionalOnTenantEnabled;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.ExternalSystemEnum;
 import com.tencent.bk.job.common.util.http.JobHttpSslVerifyProperties;
@@ -45,6 +43,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -86,7 +85,7 @@ public class UserMgrAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnTenantEnabled
+    @ConditionalOnProperty(value = "virtualAccount.queryAdminUsername", havingValue = "true")
     public IVirtualAdminAccountProvider virtualAdminAccountCache(
         IUserApiClient userMgrApiClient,
         @Value("${virtualAccount.adminUsername:}") String adminLoginName) {
@@ -95,7 +94,7 @@ public class UserMgrAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnTenantDisabled
+    @ConditionalOnProperty(value = "virtualAccount.queryAdminUsername", havingValue = "false", matchIfMissing = true)
     public IVirtualAdminAccountProvider originalAdminNameProvider(
         @Value("${virtualAccount.adminUsername:}") String adminUsername) {
         log.info("Init OriginalAdminNameProvider");
