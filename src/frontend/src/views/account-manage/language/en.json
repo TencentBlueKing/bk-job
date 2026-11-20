@@ -35,6 +35,7 @@
   "密码不一致": "The passwords are not equal",
   "密码不支持中文": "Password does not support chinese",
   "端口必填": "Database port is required",
+  "端口必须为1到65535之间的正整数": "Port must be a positive integer between 1 and 65535",
   "依赖系统账号必填": "Dependent system account is required",
   "密码必填": "Password is required",
   "新建账号成功": "New account has been created",
