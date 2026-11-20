@@ -27,7 +27,10 @@
 
 <template>
   <div class="push-speed-limit">
-    <jb-form-item :label="label">
+    <jb-form-item
+      :label="label"
+      :property="field"
+      :rules="rules">
       <div class="speed-limit-wraper">
         <div class="speed-limit-content form-item-content">
           <bk-checkbox
@@ -38,6 +41,7 @@
           <bk-input
             v-show="enabled"
             class="speed-limit-input"
+            :max="maxSpeedLimit"
             :min="0"
             type="number"
             :value="formData[field]"
@@ -71,6 +75,10 @@
 <script>
   import I18n from '@/i18n';
 
+  // 后端以 int 存储 KB/s，MB/s 转换时乘以 1024，因此上限为 int 最大值除以 1024 后向下取整。
+  const MAX_SPEED_LIMIT = Math.floor(2147483647 / 1024);
+  const isValidSpeedLimit = value => /^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= MAX_SPEED_LIMIT;
+
   export default {
     name: '',
     props: {
@@ -90,12 +98,14 @@
     data() {
       return {
         enabled: false,
+        maxSpeedLimit: MAX_SPEED_LIMIT,
       };
     },
     watch: {
       formData: {
         handler(formData) {
-          if (formData[this.field] > 0) {
+          const value = formData[this.field];
+          if (value !== undefined && value !== null && value !== '' && value !== 0 && value !== '0') {
             this.enabled = true;
           }
         },
@@ -103,6 +113,13 @@
       },
     },
     created() {
+      this.rules = [
+        {
+          validator: value => !this.enabled || isValidSpeedLimit(value),
+          message: I18n.t('限速必须为1到2097151之间的整数（MB/s）'),
+          trigger: 'blur',
+        },
+      ];
       this.speedLimitTipsConfig = {
         allowHTML: true,
         width: '325px',
@@ -118,7 +135,7 @@
         this.$emit('on-change', this.field, enabled ? 10 : 0);
       },
       handleChange(value) {
-        this.$emit('on-change', this.field, value);
+        this.$emit('on-change', this.field, isValidSpeedLimit(value) ? Number(value) : value);
       },
     },
   };
