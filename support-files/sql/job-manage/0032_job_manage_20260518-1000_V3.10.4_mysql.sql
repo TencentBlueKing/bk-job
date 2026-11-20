@@ -1,4 +1,4 @@
-﻿USE job_manage;
+USE job_manage;
 
 SET NAMES utf8mb4;
 
