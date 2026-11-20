@@ -41,7 +41,7 @@
       @sort-change="handleSortChange">
       <bk-table-column
         v-if="allShowColumn.includes('ipv4')"
-        label="IP"
+        label="IPv4"
         :min-width="140"
         prop="ipv4"
         :render-header="renderIpHeader">
@@ -186,7 +186,7 @@
 
   const columnConfig = [
     {
-      label: I18n.t('history.IP'),
+      label: 'IPv4',
       name: 'ipv4',
       width: 140,
       disabled: true,
