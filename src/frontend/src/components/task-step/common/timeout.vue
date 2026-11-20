@@ -141,9 +141,15 @@
         this.showTips();
       },
       /**
-       * @desc 失去焦点是显示ips
+       * @desc 失去焦点时校正超时时长并隐藏tips
        */
-      handleInputBlur() {
+      handleInputBlur(value, event) {
+        const { max } = this.$refs.input;
+        if (Number(value) > max) {
+          this.$refs.input.setCurValue(max);
+          event.target.value = `${max}`;
+          this.handleChange(max);
+        }
         this.isInputFocus = false;
         this.hideTips();
       },
