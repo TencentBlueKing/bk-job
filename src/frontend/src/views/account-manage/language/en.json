@@ -2,6 +2,7 @@
   "新建": "New",
   "搜索账号别名，名称，更新人": "Search by Account name / Alias / Last modified by ...",
   "账号 ID": "ID",
+  "ID只支持数字": "ID is only allow numbers",
   "更新时间": "Last modified at",
   "操作": "Actions",
   "编辑": "Edit",
