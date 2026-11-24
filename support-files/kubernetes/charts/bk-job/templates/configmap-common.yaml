@@ -91,6 +91,7 @@ data:
       secret: {{ .Values.appSecret }}
     {{- end }}
     esb:
+      enabled: {{ .Values.bkEsbEnabled }}
       service:
         url: {{ .Values.bkComponentApiUrl }}
         publicUrl: {{ .Values.bkComponentApiUrl }}

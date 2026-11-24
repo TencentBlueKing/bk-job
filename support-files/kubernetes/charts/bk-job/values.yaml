@@ -671,6 +671,9 @@ bkAuthApiUrl: ""
 # 社区版 bkssm 直连根地址（不走网关），生成个人凭证时拼接 /api/v1/auth/access-tokens
 bkSsmUrl: ""
 
+# 外部接口是否开启esb认证，默认关闭，统一网关认证
+bkEsbEnabled: false
+
 # MockAPI配置：构造依赖系统（CMDB、IAM等）的Mock数据用于联调前的自测
 mockApi:
   # 权限中心API
