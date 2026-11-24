@@ -1340,6 +1340,7 @@ gatewayConfig:
         # job-gateway开启https时使用的truststore的密码
         password: ""
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC -XX:-UseBASE64Intrinsics"
   # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
   volumeExtension:
@@ -1395,6 +1396,7 @@ manageConfig:
     port: 80
     type: ClusterIP
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:-UseBASE64Intrinsics"
   # CMDB资源（业务、业务集、主机等）同步与事件监听相关配置
   sync:
@@ -1529,6 +1531,7 @@ executeConfig:
     type: ClusterIP
     port: 80
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:-UseBASE64Intrinsics"
   # Feign相关配置块
   feign:
@@ -1729,6 +1732,7 @@ crontabConfig:
     type: ClusterIP
   containerPort: 19805
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:-UseBASE64Intrinsics"
   # 连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
   notificationPolicy:
@@ -1856,6 +1860,7 @@ logsvrConfig:
     port: 80
     type: ClusterIP
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:-UseBASE64Intrinsics"
   # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
   volumeExtension:
@@ -2019,6 +2024,7 @@ backupConfig:
     port: 80
     type: ClusterIP
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:-UseBASE64Intrinsics"
   mysql:
     slowSql:
@@ -2080,6 +2086,7 @@ analysisConfig:
     port: 80
     type: ClusterIP
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:-UseBASE64Intrinsics"
   # Feign相关配置块
   feign:
@@ -2207,6 +2214,7 @@ fileGatewayConfig:
     port: 80
     type: ClusterIP
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:-UseBASE64Intrinsics"
   # 用于确定调度范围的worker标签
   workerTags:
@@ -2323,6 +2331,7 @@ fileWorkerConfig:
     # 下载的文件过期时间
     expireDays: 7
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:-UseBASE64Intrinsics"
   # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
   volumeExtension:
@@ -2706,6 +2715,7 @@ assembleConfig:
     type: ClusterIP
     port: 80
   # 运行时JVM参数
+  # -XX:-UseBASE64Intrinsics 仅用于临时规避 CVE-2026-114938，升级到明确包含修复的 JDK 后应评估移除
   jvmOptions: "-Xms512m -Xmx1024m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:-UseBASE64Intrinsics"
   # Feign相关配置块
   feign:
