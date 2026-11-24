@@ -34,6 +34,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "esb")
 public class EsbProperties {
 
+    /**
+     * 是否启用 ESB，用于控制 Gateway 的 ESB JWT 公钥获取。
+     */
+    private boolean enabled;
+
     private EsbServiceConfig service;
 
     @Getter

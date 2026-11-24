@@ -26,6 +26,7 @@ package com.tencent.bk.job.gateway.service.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -62,6 +63,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     private volatile PublicKey esbJwtPublicKey;
     private volatile PublicKey bkApiGatewayJwtPublicKey;
     private final BkGatewayConfig bkApiGatewayConfig;
+    private final EsbProperties esbProperties;
     private final TenantEnvService tenantEnvService;
 
 
@@ -76,9 +78,11 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     @Autowired
     public OpenApiJwtServiceImpl(OpenApiJwtPublicKeyService openApiJwtPublicKeyService,
                                  BkGatewayConfig bkApiGatewayConfig,
+                                 EsbProperties esbProperties,
                                  TenantEnvService tenantEnvService) {
         this.openApiJwtPublicKeyService = openApiJwtPublicKeyService;
         this.bkApiGatewayConfig = bkApiGatewayConfig;
+        this.esbProperties = esbProperties;
         this.tenantEnvService = tenantEnvService;
         getJwtPublicKeyByPolicy();
     }
@@ -120,8 +124,9 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     private boolean tryToGetAndCachePublicKeyOnce() {
         try {
             if (!tenantEnvService.isTenantEnabled()) {
-                // 非多租户环境，需要兼容 ESB
-                if (this.esbJwtPublicKey == null) {
+                if (!esbProperties.isEnabled()) {
+                    log.info("ESB is disabled, skip loading ESB JWT public key");
+                } else if (this.esbJwtPublicKey == null) {
                     String esbJwtPublicKey = openApiJwtPublicKeyService.getEsbJWTPublicKey();
                     if (StringUtils.isEmpty(esbJwtPublicKey)) {
                         log.error("Esb jwt public key is not configured!");
