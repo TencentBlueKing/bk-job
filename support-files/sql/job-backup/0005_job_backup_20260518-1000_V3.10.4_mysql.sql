@@ -1,4 +1,4 @@
-﻿USE job_backup;
+USE job_backup;
 
 SET NAMES utf8mb4;
 
