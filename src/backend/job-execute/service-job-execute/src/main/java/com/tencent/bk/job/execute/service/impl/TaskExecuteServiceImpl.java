@@ -1640,8 +1640,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
             Pair<ExecuteTargetDTO, Set<Long>> needAuthHostsAndAccounts =
                 extractNeedAuthHostsAndAccounts(stepInstance, whiteHostAllowActions);
-            authServers = needAuthHostsAndAccounts.getLeft();
-            accountIds = needAuthHostsAndAccounts.getRight();
+            authServers.merge(needAuthHostsAndAccounts.getLeft());
+            accountIds.addAll(needAuthHostsAndAccounts.getRight());
         }
 
         // 账号使用鉴权
