@@ -1,7 +1,7 @@
-FROM bkjob/jdk17:3.12.3
+FROM bkjob/jdk17:3.12.7
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="3.12.3"
+LABEL dockerfile.version="3.12.7"
 
 ENV BK_JOB_HOME=/data/job/exec
 

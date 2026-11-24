@@ -1,6 +1,6 @@
 # 该文件由shell启动时 source，用于初始化默认jdk，并提供jdk切换函数
-export JAVA17_HOME=/bk_job_data/TencentKona-17.0.16.b1
-export KONA_JDK17_HOME=/bk_job_data/TencentKona-17.0.16.b1
+export JAVA17_HOME=/bk_job_data/TencentKona-17.0.21.1.b1
+export KONA_JDK17_HOME=/bk_job_data/TencentKona-17.0.21.1.b1
 export JAVA8_HOME=/bk_job_data/TencentKona8
 export KONA_JDK8_HOME=/bk_job_data/TencentKona8
 export NVM_DIR=/usr/local/nvm
