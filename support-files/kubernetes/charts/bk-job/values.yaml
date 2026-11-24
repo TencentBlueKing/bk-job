@@ -2631,7 +2631,7 @@ k8sConfigWatcherConfig:
   image:
     registry: hub.bktencent.com
     repository: blueking/job-config-watcher
-    tag: "3.12.4"
+    tag: "3.12.7"
     pullPolicy: IfNotPresent
     pullSecrets: []
   hostAliases: []
