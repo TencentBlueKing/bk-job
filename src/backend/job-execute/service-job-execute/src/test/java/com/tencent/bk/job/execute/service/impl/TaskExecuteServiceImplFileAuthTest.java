@@ -62,6 +62,7 @@ import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -87,6 +88,7 @@ import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -697,6 +699,43 @@ public class TaskExecuteServiceImplFileAuthTest {
             assertThat(result.getLeft().isEmpty()).isFalse();
             assertThat(result.getLeft().getContainerFilters()).hasSize(1);
         }
+    }
+
+    @Test
+    @DisplayName("作业方案鉴权汇总脚本和文件分发步骤的执行目标及账号")
+    void planAuthIncludesStepResources() throws Exception {
+        AppResourceScope appResourceScope = new AppResourceScope(APP_ID);
+        ServiceTaskPlanDTO plan = new ServiceTaskPlanDTO();
+        plan.setId(101L);
+        plan.setTaskTemplateId(102L);
+        plan.setName("multi-step-plan");
+
+        long scriptAccountId = 9002L;
+        StepInstanceDTO scriptStep = new StepInstanceDTO();
+        scriptStep.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
+        scriptStep.setAccountId(scriptAccountId);
+        scriptStep.setTargetExecuteObjects(staticHosts(TARGET_HOST_1));
+        StepInstanceDTO fileStep = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_2),
+            serverFileSource(SOURCE_ACCOUNT_ID_1, SOURCE_HOST_1),
+            serverFileSource(SOURCE_ACCOUNT_ID_2, SOURCE_HOST_2));
+
+        stubAccountAuthPass();
+        when(executeAuthService.authExecutePlan(any(), any(), any(), any(), any(), any()))
+            .thenReturn(AuthResult.pass(operator));
+
+        Method method = TaskExecuteServiceImpl.class.getDeclaredMethod(
+            "authExecuteJobPlan", User.class, AppResourceScope.class, ServiceTaskPlanDTO.class, List.class, Map.class);
+        method.setAccessible(true);
+        method.invoke(service, operator, appResourceScope, plan, Arrays.asList(scriptStep, fileStep),
+            allowMap(TARGET_HOST_1, SOURCE_HOST_2));
+
+        verify(executeAuthService).batchAuthAccountExecutable(operator, appResourceScope,
+            Set.of(scriptAccountId, TARGET_ACCOUNT_ID, SOURCE_ACCOUNT_ID_1, SOURCE_ACCOUNT_ID_2));
+        ArgumentCaptor<ExecuteTargetDTO> targetCaptor = ArgumentCaptor.forClass(ExecuteTargetDTO.class);
+        verify(executeAuthService).authExecutePlan(eq(operator), eq(appResourceScope), eq(plan.getTaskTemplateId()),
+            eq(plan.getId()), eq(plan.getName()), targetCaptor.capture());
+        assertThat(hostIds(targetCaptor.getValue())).containsExactlyInAnyOrder(TARGET_HOST_1, TARGET_HOST_2,
+            SOURCE_HOST_1);
     }
 
     // ========================================================================
