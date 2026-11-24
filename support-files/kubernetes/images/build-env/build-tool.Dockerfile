@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=bkjob/tool-set:3.12.6
+ARG BASE_IMAGE=bkjob/tool-set:3.12.7
 
 # git编译阶段,该阶段会安装gcc/make等编译依赖，不打入最终镜像
 FROM ${BASE_IMAGE} AS git-builder
@@ -38,10 +38,10 @@ ARG NVM_VERSION=0.40.3
 ARG NVM_SHA256=5f4d6aaa04a177dc93c985e31dbc411ab6b8c6e1e21d8015dbc1372625fcd1d0
 
 LABEL maintainer="Tencent BlueKing Job" \
-      dockerfile.version="1.0.1"
+      dockerfile.version="1.0.2"
 
-ENV JAVA17_HOME=/bk_job_data/TencentKona-17.0.16.b1
-ENV KONA_JDK17_HOME=/bk_job_data/TencentKona-17.0.16.b1
+ENV JAVA17_HOME=/bk_job_data/TencentKona-17.0.21.1.b1
+ENV KONA_JDK17_HOME=/bk_job_data/TencentKona-17.0.21.1.b1
 ENV JAVA8_HOME=/bk_job_data/TencentKona8
 ENV KONA_JDK8_HOME=/bk_job_data/TencentKona8
 ENV NVM_DIR=/usr/local/nvm
