@@ -4,7 +4,7 @@ ARG KONA_JDK17_SHA256=ffa817d8234e3658f9120356ee097fc1397f8b581d206e5a1b725f1ef5
 ARG ARTHAS_SHA256=231f1d4f8ceb1c0ff8ece67b117b107ddaad7bec1765c15ffe1b77d7fdf0f19b
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="3.12.5"
+LABEL dockerfile.version="3.12.7"
 
 RUN mkdir -p /bk_job_data && \
     cd /bk_job_data/ &&\
