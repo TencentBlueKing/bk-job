@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.logsvr.mongo;
 
+import com.mongodb.CreateIndexCommitQuorum;
 import com.mongodb.client.ListIndexesIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.CreateIndexOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,7 +49,29 @@ public class CollectionLoaderBase implements CollectionLoader {
     @Value("${job.logsvr.mongodb.shard.enabled:false}")
     protected boolean enableSharding;
 
+    private CreateIndexCommitQuorum indexCommitQuorum;
+
     private final Map<String, Boolean> collectionShardStatusMap = new ConcurrentHashMap<>();
+
+    @Value("${job.logsvr.mongodb.index.commit-quorum:}")
+    private void configureIndexCommitQuorum(String value) {
+        String mode = value.strip();
+        if (mode.isEmpty()) {
+            return;
+        }
+        indexCommitQuorum = mode.matches("-?[0-9]+")
+            ? CreateIndexCommitQuorum.create(Integer.parseInt(mode))
+            : CreateIndexCommitQuorum.create(mode);
+        log.debug("Configured MongoDB index commit quorum for {}: {}", getClass().getSimpleName(), mode);
+    }
+
+    protected CreateIndexOptions createIndexCommandOptions() {
+        CreateIndexOptions options = new CreateIndexOptions();
+        if (indexCommitQuorum != null) {
+            options.commitQuorum(indexCommitQuorum);
+        }
+        return options;
+    }
 
     @Override
     public MongoCollection<Document> load(MongoTemplate mongoTemplate, String collectionName) {

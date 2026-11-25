@@ -1864,6 +1864,11 @@ logsvrConfig:
   volumeExtension:
     volumes: []
     volumeMounts: []
+  mongodb:
+    # 日志索引提交仲裁，副本集或分片集群按需配置，单机留空。
+    # 留空使用 MongoDB 默认值 votingMembers。
+    # 可填项：votingMembers 等待全部投票数据节点、majority 等待多数、正整数 指定投票节点数、0 关闭提交投票、或填写副本集已配置的标签模式。
+    indexCommitQuorum: ""
 
 ## job-backup备份服务配置
 backupConfig:
