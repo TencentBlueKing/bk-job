@@ -25,6 +25,8 @@
 package com.tencent.bk.job.logsvr.mongo;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.CreateIndexOptions;
+import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
@@ -63,13 +65,15 @@ public class FileLogsCollectionLoader extends CollectionLoaderBase {
 
     private void createIndexIfUnavailable(MongoCollection<Document> collection, List<String> indexes,
                                           String collectionName) {
+        CreateIndexOptions commandOptions = createIndexCommandOptions();
         log.info("Create index for collection: {} start...", collectionName);
         if (!indexes.contains(IDX_STEP_ID_HASHED)) {
             log.info("Create index {} for collection: {} start...", IDX_STEP_ID_HASHED, collectionName);
             IndexOptions indexOptions = new IndexOptions();
             indexOptions.background(false);
             indexOptions.name(IDX_STEP_ID_HASHED);
-            collection.createIndex(Document.parse("{\"stepId\":\"hashed\"}"), indexOptions);
+            Document keys = Document.parse("{\"stepId\":\"hashed\"}");
+            collection.createIndexes(List.of(new IndexModel(keys, indexOptions)), commandOptions);
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_ID_HASHED, collectionName);
         }
 
@@ -79,8 +83,8 @@ public class FileLogsCollectionLoader extends CollectionLoaderBase {
             IndexOptions indexOptions = new IndexOptions();
             indexOptions.background(false);
             indexOptions.name(IDX_STEP_EXECUTE_COUNT_MODE_HOST_ID);
-            collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"mode\":1,\"hostId\":1}"),
-                indexOptions);
+            Document keys = Document.parse("{\"stepId\":1,\"executeCount\":1,\"mode\":1,\"hostId\":1}");
+            collection.createIndexes(List.of(new IndexModel(keys, indexOptions)), commandOptions);
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_MODE_HOST_ID,
                 collectionName);
         }
@@ -91,8 +95,8 @@ public class FileLogsCollectionLoader extends CollectionLoaderBase {
             IndexOptions indexOptions = new IndexOptions();
             indexOptions.background(false);
             indexOptions.name(IDX_STEP_EXECUTE_COUNT_MODE_EXECUTE_OBJECT_ID);
-            collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"mode\":1,\"executeObjectId\":1}"),
-                indexOptions);
+            Document keys = Document.parse("{\"stepId\":1,\"executeCount\":1,\"mode\":1,\"executeObjectId\":1}");
+            collection.createIndexes(List.of(new IndexModel(keys, indexOptions)), commandOptions);
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_MODE_EXECUTE_OBJECT_ID,
                 collectionName);
         }
@@ -102,7 +106,8 @@ public class FileLogsCollectionLoader extends CollectionLoaderBase {
             IndexOptions indexOptions = new IndexOptions();
             indexOptions.background(false);
             indexOptions.name(IDX_STEP_EXECUTE_COUNT_TASK_ID);
-            collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"taskId\":1}"), indexOptions);
+            Document keys = Document.parse("{\"stepId\":1,\"executeCount\":1,\"taskId\":1}");
+            collection.createIndexes(List.of(new IndexModel(keys, indexOptions)), commandOptions);
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_TASK_ID,
                 collectionName);
         }

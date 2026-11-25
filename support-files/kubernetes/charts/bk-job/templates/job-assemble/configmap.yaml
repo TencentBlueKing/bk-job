@@ -482,6 +482,8 @@ data:
           {{- include "job.configmap.omitArchiveSecrets" (dict "archive" .Values.backupConfig.archive "context" .) | nindent 10 }}
       logsvr:
         mongodb:
+          index:
+            commit-quorum: {{ .Values.logsvrConfig.mongodb.indexCommitQuorum | quote }}
           shard:
             enabled: {{ include "job.mongodb.useShardingCluster" . }}
       manage:

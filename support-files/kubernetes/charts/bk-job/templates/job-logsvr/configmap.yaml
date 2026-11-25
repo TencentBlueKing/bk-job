@@ -38,6 +38,8 @@ data:
     job:
       logsvr:
         mongodb:
+          index:
+            commit-quorum: {{ .Values.logsvrConfig.mongodb.indexCommitQuorum | quote }}
           shard:
             enabled: {{ include "job.mongodb.useShardingCluster" . }}
     server:
